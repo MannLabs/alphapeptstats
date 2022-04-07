@@ -1,0 +1,4 @@
+recursive-include alphastats *
+include LICENSE.txt
+include README.md
+recursive-exclude alphastats/logs *
