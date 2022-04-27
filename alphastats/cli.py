@@ -17,7 +17,7 @@ import alphastats
 @click.pass_context
 @click.version_option(alphastats.__version__, "-v", "--version")
 def run(ctx, **kwargs):
-    name = f"AlphaTemplate {alphastats.__version__}"
+    name = f"alphastats {alphastats.__version__}"
     click.echo("*" * (len(name) + 4))
     click.echo(f"* {name} *")
     click.echo("*" * (len(name) + 4))

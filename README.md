@@ -1,7 +1,7 @@
 ![Pip installation](https://github.com/MannLabs/alphastats/workflows/Default%20installation%20and%20tests/badge.svg)
 
 # AlphaStats
-An open-source Python package of the AlphaStats ecosystem from the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann). To enable all hyperlinks in this document, please view it at [GitHub](https://github.com/MannLabs/alphatemplate).
+An open-source Python package of the AlphaStats ecosystem from the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann). To enable all hyperlinks in this document, please view it at [GitHub](https://github.com/MannLabs/alphastats).
 
 * [**About**](#about)
 * [**License**](#license)
@@ -31,8 +31,8 @@ AlphaStats was developed by the [Mann Labs at the Max Planck Institute of Bioche
 AlphaStats can be installed and used on all major operating systems (Windows, macOS and Linux).
 There are two different types of installation possible:
 
-* [**Pip installer:**](#pip) Choose this installation if you want to use AlphaTemplate as a Python package in an existing Python 3.8 environment (e.g. a Jupyter notebook). If needed, the GUI and CLI can be installed with pip as well.
-* [**Developer installer:**](#developer) Choose this installation if you are familiar with CLI tools, [conda](https://docs.conda.io/en/latest/) and Python. This installation allows access to all available features of AlphaTemplate and even allows to modify its source code directly. Generally, the developer version of AlphaTemplate outperforms the precompiled versions which makes this the installation of choice for high-throughput experiments.
+* [**Pip installer:**](#pip) Choose this installation if you want to use alphastats as a Python package in an existing Python 3.8 environment (e.g. a Jupyter notebook). If needed, the GUI and CLI can be installed with pip as well.
+* [**Developer installer:**](#developer) Choose this installation if you are familiar with CLI tools, [conda](https://docs.conda.io/en/latest/) and Python. This installation allows access to all available features of alphastats and even allows to modify its source code directly. Generally, the developer version of alphastats outperforms the precompiled versions which makes this the installation of choice for high-throughput experiments.
 
 
 ### Pip
@@ -68,7 +68,7 @@ cd ~/folder/where/to/install/software
 
 ***The following commands assume you do not perform any additional `cd` commands anymore***.
 
-Next, download the AlphaStats repository from GitHub either directly or with a `git` command. This creates a new AlphaTemplate subfolder in your current directory.
+Next, download the AlphaStats repository from GitHub either directly or with a `git` command. This creates a new alphastats subfolder in your current directory.
 
 ```bash
 git clone https://github.com/MannLabs/alphastats.git

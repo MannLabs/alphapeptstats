@@ -1,0 +1,61 @@
+name: Performance test pyinstaller
+
+env:
+  TMP_FOLDER: E:/test_dir/
+
+on:
+  workflow_dispatch:
+jobs:
+  Performance_test_pyinstaller:
+    runs-on: self-hosted
+    timeout-minutes: 1440
+    steps:
+      - uses: actions/checkout@v2
+      - name: Freezing code
+        run: |
+          remove-item -path "C:\Users\admin\.conda\envs\alphastatsinstaller" -Force -Recurse -ErrorAction SilentlyContinue
+          conda deactivate
+          cd installer\one_click_windows
+          .\create_installer_windows.bat
+      - name: Install package
+        run: |
+          conda activate alphastatsinstaller
+          pip install pymongo
+          pip install dnspython
+          pip install wget
+      - name: Run alphastats on Thermo (HeLa_Thermo_Win)
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" thermo_hela "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on Thermo (HeLa_Thermo_Win_LargeFasta)
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" thermo_hela_large_fasta "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on Thermo (HeLa_Thermo_Win_Modifications)
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" thermo_hela_modifications "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on Bruker (HeLa_Bruker_Win)
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" bruker_hela "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on PXD006109
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" PXD006109 "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on PXD010012
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" PXD010012 "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on PXD015087
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" PXD015087 "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on PXD015087 w. Matching
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" PXD015087_matching "${{ secrets.MONGODB_PW }}"
+      - name: Run alphastats on PXD015087 w. Matching + Fractions
+        run: |
+          conda activate alphastatsinstaller
+          python test_ci.py "${{ env.TMP_FOLDER }}" PXD015087_matching_fraction "${{ secrets.MONGODB_PW }}"
