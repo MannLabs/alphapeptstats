@@ -1,5 +1,5 @@
 #!python -m unittest tests.test_utils
-"""This module provides unit tests for alphatemplate.cli."""
+"""This module provides unit tests for alphastats.cli."""
 
 # builtin
 import unittest
