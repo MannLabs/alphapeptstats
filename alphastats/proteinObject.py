@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
+import scipy.stats
 
 def check_param(par):
     pass
@@ -134,6 +135,8 @@ class proteinObject:
         self.software = software
         self.experiment_type = None
         self.data_format = None
+        # update normalization when self.matrix is normalized, filtered
+        self.normalization = None
 
 
     def summary(self):
@@ -148,9 +151,33 @@ class proteinObject:
         pass
 
 
-    def calc_ttest_fc():
+    def calculate_ttest_fc(self, column, group1, group2):
+        """_summary_
 
-        pass
+        Args:
+            column (_type_): _description_
+            group1 (_type_): _description_
+            group2 (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        # get samples names of two groupes
+        group1_samples = self.metadata[self.metadata[column] == group1]["sample"].tolist()
+        group2_samples = self.metadata[self.metadata[column] == group2]["sample"].tolist()
+        # calculate fold change (if its is not logarithimic normalized)
+        if self.normalization != "log":
+            fc = self.mat[group1_samples].T.mean().values/self.mat[group2_samples].T.mean().values
+    
+        # calculate p-values 
+        # output needs to be checked
+        p_values = self.mat.apply(lambda row: scipy.stats.ttest_ind(self.mat[group1_samples].T.values.flatten(), self.mat[group2_samples].T.values.flatten())[1])
+        df = pd.DataFrame()
+        df["Protein IDs"] = p_values.index.tolist()
+        df["fc"] = fc
+        df["pvalue"] = p_values.values
+        return df
+
 
 
     def plot_pca(self, group = None):
@@ -199,8 +226,9 @@ class proteinObject:
         plot = px.imshow(corr_matrix)
         return plot
     
-    
-    def plot_volcano():
+
+    def plot_volcano(self, column, group1, group2):
+        df = self.calculate_ttest_fc(column, group1, group2)
         pass
 
 
