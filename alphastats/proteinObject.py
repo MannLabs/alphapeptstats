@@ -1,86 +1,114 @@
+from random import sample
 import re
 import pandas as pd
 import seaborn as sn
 from data_cache import pandas_cache
 import os
 import warnings
+from sklearn.preprocessing import StandardScaler
+import plotly.express as px
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
 
-"""
-loading data into objet
-- check for contaminations in peptides
-- check for necessary columns in evidence file 
-- check for outliers
-"""
-
-
-
-def filter_contaminations():
+def check_param(par):
     pass
+    
+
+@pandas_cache
+def create_matrix(df, intensity_col = None, proteinID_col = None):
+    """Creates a matrix out of the MS Outputfile, with columns displaying samples and
+    row the protein IDs.
+
+    Parameters
+    ----------
+    df : df
+        Pandas Dataframe of the MS Outputfile
+    intensity_col : str, optional
+        columns , by default "LFQ intensity "
+    proteinID_col : str, optional
+        column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
+
+    Returns# 
+    -------
+    _type_
+        _description_
+    """
+    df = df.set_index(proteinID_col)
+    # check whether column is present print error 
+    # the intensity column has a whitespace between intentisity and the peptide label - needs to be checked
+    df = df[df.columns[pd.Series(df.columns).str.startswith(intensity_col)]]
+    # remove prefix
+    df.columns = df.columns.str.lstrip(intensity_col)
+
+    #  - include Normalization
+    #  - include Filtering
+    return df
 
 
+@pandas_cache
+def load_rawdata(file_path):
+    """Loads raw data into dataframe
 
-def check_experiment_type(data):
-    # alphabase psm_reader
-    # label free - column:  Idensity 
-    # TMT columns: "Reporter intensity 0"...
-    # SILAC
-    pass
+    Parameters
+    ----------
+    file_path : str
+        path to file
 
-
-def save_fig():
-    # check if directory for fig exists
-    # else create directory to save plots (and report?)
-    pass
-
-
-def set_colors():
-    # use seaborn
-    pass
+    Returns
+    -------
+    _type_
+       Pandas Dataframe
+    """
+    df = pd.read_csv(file_path, delimiter = "\t")
+    return df
 
 
 class proteinObject:
     """_summary_
     """
-    # matrix with columns - proteins/peptides rows - samples
-    # 
-    # create object with metadata
-
-    # give experiment type label-free, TMT, SILAC
-    # detect experiment type print type
-    def __init__(self, rawfile_path, metadata_path=None, intensity_column = None, software = None):
-        """_summary_
+    def __init__(self, rawfile_path: str, 
+        metadata_path: str=None, 
+        intensity_column =  "LFQ intensity ", 
+        software = None, 
+        sample_column = "sample",
+        proteinID_column = "Protein IDs"):
+        """Create a Protein Object containing the protein intensity and the corresponding metadata of the samples,
+        ready for analyis 
 
         Parameters
         ----------
-        evidence_file : _type_, optional
-            _description_, by default None
-        metadata : _type_, optional
+        rawfile_path : str
+            path to Protein Intensity file
+        metadata_path : str, optional
+            path to metadata file (xlsx, csv or tsv), by default None
+        intensity_column : str, optional
+            , by default None
+        software : str, optional
             _description_, by default None
         """
 
-        @pandas_cache
-        def create_matrix(df, intensity_col = "LFQ intensity ", proteinID_col = "Protein IDs"):
-            # LFQ intensity when label free but optional
-            df = df.set_index(proteinID_col)
-            df = df[df.columns[pd.Series(df.columns).str.startswith(intensity_col)]]
-            # remove prefix
-            df.columns = df.columns.str.lstrip(intensity_col)
-            return df
+        def load_metadata(file_path, sample_column = None):
+            """Load Metadata into Pandas Dataframe
 
-        @pandas_cache
-        def load_rawdata(file_path):
-            df = pd.read_csv(file_path, delimiter = "\t")
-            return df
+            Parameters
+            ----------
+            file_path : str
+                path to excel, .tsv or .csv - file
+            sample_column : str, optional
+                column in the file containing the sample names, the names of the samples should
+                match sample labelling in the MS-Output file, by default "sample"
 
-        def filter_rawdata():
-            pass
-
-        @pandas_cache
-        def load_metadata(file_path):
-            file_extension = os.path.splitext(file_path).suffix
+            Returns
+            -------
+            _type_
+                Pandas Dataframe containing the metadata
+            """
+            file_extension = os.path.splitext(file_path)[1]
 
             if file_extension == ".xlsx":
                 df = pd.read_excel(file_path)
+            # find robust way to detect file format
+            # else give file separation as variable
             elif file_extension == ".txt" or file_extension == ".tsv":
                 df = pd.read_csv(file_path, delimiter = "\t")
             elif file_extension == ".csv":
@@ -88,27 +116,25 @@ class proteinObject:
             else:
                 df = None
                 warnings.warn("WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file")
-
-            if df:
-                if all(elem in df["sample"].tolist()  for elem in self.mat.index.values) is False:
-                    warnings.warn("WARNING: Sample names do not match protein data")
+                return
+            
+            df.columns = df.columns.str.replace(sample_column, 'sample')
+            # check whether sample labeling matches protein data
+            #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
             return df
-
-
         
-        # insert check whether columns are present
-        # if not print missing columns
-        # matrix with columns - proteins/peptides rows - samples
-        self.rawfile = load_rawdata(rawfile_path)
-        self.mat = create_matrix(self.rawfile, intensity_column = intensity_column)
-        # df with metadata
-        # check if metadata columns match rows in matrix
+        self.rawdata = load_rawdata(rawfile_path)
+
+        # include filtering before 
+        self.mat = create_matrix(self.rawdata, intensity_col = intensity_column, proteinID_col= proteinID_column)
+
         self.metadata = None
         if metadata_path:
-            self.metadata = load_metadata(metadata_path)
+            self.metadata = load_metadata(metadata_path, sample_column= sample_column)
         self.software = software
         self.experiment_type = None
         self.data_format = None
+
 
     def summary(self):
         """_summary_
@@ -121,41 +147,71 @@ class proteinObject:
         # print summary
         pass
 
-    def plot_pca(self):
+
+    def calc_ttest_fc():
+
+        pass
+
+
+    def plot_pca(self, group = None):
+        """plot PCA
+
+        Parameters
+        ----------
+        group : _type_, optional
+            _description_, by default None
+        """
+        if group: 
+            mat = self.mat[self.metadata["sample"].tolist()]
+        else:
+            mat = self.mat
+
+        # needs to be checked with publications
+        # depends on normalization whether NA can be replaced with 0  
+        mat = mat.fillna(0)
+        pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(n_components=2))])
+        components = pipeline.fit_transform(mat.transpose())
+    
+        if group:
+            fig = px.scatter(components, x=0, y=1, color = self.metadata[group])
+        else:
+            fig = px.scatter(components, x=0, y=1)
+        fig.show()
+        return fig
+
+
+    def plot_correlation_matrix(self, corr_method = "pearson", save_figure=False):
         """_summary_
+
+        Parameters
+        ----------
+        corr_method : str, optional
+            _description_, by default "pearson"
+        save_figure : bool, optional
+            _description_, by default False
 
         Returns
         -------
         _type_
             _description_
         """
-        pass
-
-    def plot_correlation_matrix(self, corr_method = "pearson", save_figure=False):
-        """
-        """
-        corr_matrix = self.mat.transpose().corr(method=corr_method)
-        plot = corr_matrix.style.background_gradient(cmap='coolwarm')
-        if save_figure:
-            save_fig(plot)
+        corr_matrix = self.mat.corr(method=corr_method)
+        plot = px.imshow(corr_matrix)
         return plot
+    
     
     def plot_volcano():
         pass
 
 
-"""
-- Protein and Peptide dataset one class? What analysis can be performed on protein but not peptides and visa vera?
-- Filtering of contaminations?
-- How to deal with NAs
-- aggregation of proteins into protein groups by means?
-- do different versions of maxquant have different column labeling for evidence file?
-    -yes 
-- how to normalize silac data
-- normalize data in _init_?
-"""
 
-"""
-Plot Jaccard similarity?
 
-"""
+
+
+
+
+
+
+
+
+
