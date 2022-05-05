@@ -10,6 +10,7 @@ import plotly.express as px
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 import scipy.stats
+import dash_bio
 
 def check_param(par):
     pass
@@ -228,7 +229,11 @@ class proteinObject:
     
 
     def plot_volcano(self, column, group1, group2):
-        df = self.calculate_ttest_fc(column, group1, group2)
+        result = self.calculate_ttest_fc(column, group1, group2)
+        volcano_plot = dash_bio.VolcanoPlot(dataframe = result, 
+            effect_size="fc", 
+            p = "pvalue", 
+            gene = None, snp = None, annotation = "Protein IDs")
         pass
 
 
