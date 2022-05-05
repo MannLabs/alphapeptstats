@@ -171,7 +171,7 @@ class proteinObject:
     
         # calculate p-values 
         # output needs to be checked
-        p_values = self.mat.apply(lambda row: scipy.stats.ttest_ind(self.mat[group1_samples].T.values.flatten(), self.mat[group2_samples].T.values.flatten())[1])
+        p_values = self.mat.apply(lambda row: scipy.stats.ttest_ind(row[group1_samples].values.flatten(), row[group2_samples].values.flatten())[1], axis = 1)
         df = pd.DataFrame()
         df["Protein IDs"] = p_values.index.tolist()
         df["fc"] = fc
