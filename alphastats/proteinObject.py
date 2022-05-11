@@ -11,69 +11,24 @@ from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 import scipy.stats
 import dash_bio
+import numpy as np
+import logging
+from sklearn.impute import SimpleImputer
 
 def check_param(par):
     pass
-    
-
-@pandas_cache
-def create_matrix(df, intensity_col = None, proteinID_col = None):
-    """Creates a matrix out of the MS Outputfile, with columns displaying samples and
-    row the protein IDs.
-
-    Parameters
-    ----------
-    df : df
-        Pandas Dataframe of the MS Outputfile
-    intensity_col : str, optional
-        columns , by default "LFQ intensity "
-    proteinID_col : str, optional
-        column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
-
-    Returns# 
-    -------
-    _type_
-        _description_
-    """
-    df = df.set_index(proteinID_col)
-    # check whether column is present print error 
-    # the intensity column has a whitespace between intentisity and the peptide label - needs to be checked
-    df = df[df.columns[pd.Series(df.columns).str.startswith(intensity_col)]]
-    # remove prefix
-    df.columns = df.columns.str.lstrip(intensity_col)
-
-    #  - include Normalization
-    #  - include Filtering
-    return df
-
-
-@pandas_cache
-def load_rawdata(file_path):
-    """Loads raw data into dataframe
-
-    Parameters
-    ----------
-    file_path : str
-        path to file
-
-    Returns
-    -------
-    _type_
-       Pandas Dataframe
-    """
-    df = pd.read_csv(file_path, delimiter = "\t")
-    return df
 
 
 class proteinObject:
     """_summary_
     """
-    def __init__(self, rawfile_path: str, 
+    def __init__(self, 
+        loader, 
         metadata_path: str=None, 
-        intensity_column =  "LFQ intensity ", 
-        software = None, 
+       # intensity_column =  "LFQ intensity ", 
         sample_column = "sample",
-        proteinID_column = "Protein IDs"):
+       # proteinID_column = "Protein IDs"
+        filter_contamination = True):
         """Create a Protein Object containing the protein intensity and the corresponding metadata of the samples,
         ready for analyis 
 
@@ -88,56 +43,109 @@ class proteinObject:
         software : str, optional
             _description_, by default None
         """
-
-        def load_metadata(file_path, sample_column = None):
-            """Load Metadata into Pandas Dataframe
-
-            Parameters
-            ----------
-            file_path : str
-                path to excel, .tsv or .csv - file
-            sample_column : str, optional
-                column in the file containing the sample names, the names of the samples should
-                match sample labelling in the MS-Output file, by default "sample"
-
-            Returns
-            -------
-            _type_
-                Pandas Dataframe containing the metadata
-            """
-            file_extension = os.path.splitext(file_path)[1]
-
-            if file_extension == ".xlsx":
-                df = pd.read_excel(file_path)
-            # find robust way to detect file format
-            # else give file separation as variable
-            elif file_extension == ".txt" or file_extension == ".tsv":
-                df = pd.read_csv(file_path, delimiter = "\t")
-            elif file_extension == ".csv":
-                df = pd.read_csv(file_path)
-            else:
-                df = None
-                warnings.warn("WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file")
-                return
-            
-            df.columns = df.columns.str.replace(sample_column, 'sample')
-            # check whether sample labeling matches protein data
-            #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
-            return df
         
-        self.rawdata = load_rawdata(rawfile_path)
+        # load data from loader object
+        self.rawdata = loader.data
+        self.software = loader.software
 
         # include filtering before 
-        self.mat = create_matrix(self.rawdata, intensity_col = intensity_column, proteinID_col= proteinID_column)
-
+        self.mat = self.create_matrix()
         self.metadata = None
+
         if metadata_path:
-            self.metadata = load_metadata(metadata_path, sample_column= sample_column)
-        self.software = software
+            self.metadata = self.load_metadata()
+        
         self.experiment_type = None
         self.data_format = None
+        # save preprocessing settings 
+        self.preprocessing = None
         # update normalization when self.matrix is normalized, filtered
         self.normalization = None
+        self.removed_protein_groups = None
+        self.imputation = None
+    
+
+    @pandas_cache
+    def create_matrix(self):
+        """Creates a matrix out of the MaxQuant ProteinGroup Outputfile, with columns displaying samples and
+        row the protein IDs.
+
+        Parameters
+        ----------
+        df : df
+        Pandas Dataframe of the MaxQuant Output ProteinGroup file
+        intensity_col : str, optional
+        columns , by default "LFQ intensity "
+        proteinID_col : str, optional
+        column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
+
+        Returns
+        -------
+        _type_
+        _description_
+        """
+        df = self.rawdata.set_index(self.proteinID_col)
+        # check whether column is present print error 
+        df = df[df.columns[pd.Series(df.columns).str.startswith(self.intensity_col)]]
+        # remove prefix
+        df.columns = df.columns.str.lstrip(self.intensity_col)
+        self.mat = df
+        self.normalization = None
+        self.imputation = None
+        self.removed_protein_groups = None
+
+
+    @pandas_cache
+    def preprocess(self, 
+        normalization = None, 
+        contamination_columns = ["Only identified by site", "Reverse", "Potential contaminant"], # needs to be changed when using different loaders
+        remove_samples = None,
+        impute = False):
+        # main function which calls all subfunction to clean according to cleaning "standards"
+        # Creates a matrix out of the MS Outputfile, with columns displaying samples androw the protein IDs.
+        # intensity_col : str, optional
+        #columns , by default "LFQ intensity "
+     
+        #column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
+        if len(contamination_columns) > 0:
+            # + == contamination
+            protein_groups_to_remove = self.rawdata[(self.rawdata[contamination_columns] != "+").any(1)][self.proteinID_col].tolist()
+            self.mat = self.drop(protein_groups_to_remove)
+            self.removed_protein_groups = protein_groups_to_remove
+            logging.info(len(protein_groups_to_remove), " observations have been removed.")
+ 
+        if normalization is not None:
+            self.mat = normalization.normalize_data(self.mat, method=normalization, normalize='samples', max_iterations=250, linear_method='l1')
+            self.normalization = normalization
+
+        if impute:
+            imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+            imp.fit(self.mat.values)
+            imputation_array = imp.transform(self.mat.values)
+            # https://scikit-learn.org/stable/modules/impute.html
+            self.mat = pd.DataFrame(imputation_array, index=self.mat.index, columns=self.mat.columns)
+            self.imputation = "Missing values were imputed using the mean."
+
+
+    def load_metadata(file_path, sample_column = None):
+        # loading file needs to be more beautiful
+        if file_path.endswith(".xlsx"):
+            df = pd.read_excel(file_path)
+            # find robust way to detect file format
+            # else give file separation as variable
+        elif file_path.endswith(".txt")  or  file_path.endswith(".tsv"):
+            df = pd.read_csv(file_path, delimiter = "\t")
+        elif file_path.endswith(".csv"):
+            df = pd.read_csv(file_path)
+        else:
+            df = None
+            logging.warn("WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file")
+            return
+            
+        df.columns = df.columns.str.replace(sample_column, 'sample')
+            # check whether sample labeling matches protein data
+            #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
+        return df   
 
 
     def summary(self):
@@ -149,6 +157,7 @@ class proteinObject:
             _description_
         """
         # print summary
+        # look at keras model.summary()
         pass
 
 
@@ -176,9 +185,9 @@ class proteinObject:
         df = pd.DataFrame()
         df["Protein IDs"] = p_values.index.tolist()
         df["fc"] = fc
+        df["fc_log2"] = np.log2(fc)
         df["pvalue"] = p_values.values
-        return df
-
+        return df.dropna()
 
 
     def plot_pca(self, group = None):
@@ -196,7 +205,9 @@ class proteinObject:
 
         # needs to be checked with publications
         # depends on normalization whether NA can be replaced with 0  
-        mat = mat.fillna(0)
+        if self.imputation is None and self.mat.isna().values.any():
+            logging.warn("Data contains missing values. Consider Imputation ")
+        mat = mat.fillna(0) # print warning depending on imputatio
         pipeline = Pipeline([('scaling', StandardScaler()), ('pca', PCA(n_components=2))])
         components = pipeline.fit_transform(mat.transpose())
     
@@ -204,7 +215,6 @@ class proteinObject:
             fig = px.scatter(components, x=0, y=1, color = self.metadata[group])
         else:
             fig = px.scatter(components, x=0, y=1)
-        fig.show()
         return fig
 
 
@@ -231,10 +241,10 @@ class proteinObject:
     def plot_volcano(self, column, group1, group2):
         result = self.calculate_ttest_fc(column, group1, group2)
         volcano_plot = dash_bio.VolcanoPlot(dataframe = result, 
-            effect_size="fc", 
+            effect_size = "fc_log2", 
             p = "pvalue", 
             gene = None, snp = None, annotation = "Protein IDs")
-        pass
+        return volcano_plot
 
 
 
