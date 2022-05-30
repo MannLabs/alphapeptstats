@@ -45,8 +45,10 @@ class proteinObject:
         """
         
         # load data from loader object
-        self.rawdata = loader.data
+        self.rawdata = loader.rawdata
         self.software = loader.software
+        self.index_column = loader.index_column
+        self.intensity_column = loader.intensity_column
 
         # include filtering before 
         self.mat = self.create_matrix()
@@ -63,6 +65,7 @@ class proteinObject:
         self.normalization = None
         self.removed_protein_groups = None
         self.imputation = None
+        #self.contamination_columns = loader.contamination_column
     
 
     @pandas_cache
@@ -84,32 +87,40 @@ class proteinObject:
         _type_
         _description_
         """
-        df = self.rawdata.set_index(self.proteinID_col)
-        # check whether column is present print error 
-        df = df[df.columns[pd.Series(df.columns).str.startswith(self.intensity_col)]]
-        # remove prefix
-        df.columns = df.columns.str.lstrip(self.intensity_col)
+        regex_find_intensity_columns = self.intensity_column.replace("[experiment]", ".*")
+        df = self.rawdata.set_index(self.index_column)
+        df = self.rawdata.filter(regex=(regex_find_intensity_columns), axis=1)
+        # remove Intensity so only sample names remain
+        df.columns = df.columns.str.replace(regex_find_intensity_columns[3:], "")
         self.mat = df
         self.normalization = None
         self.imputation = None
         self.removed_protein_groups = None
 
+    def remove_sampels(self, sample_list):
+        self.mat = self.mat
+        pass
+
+
 
     @pandas_cache
     def preprocess(self, 
         normalization = None, 
-        contamination_columns = ["Only identified by site", "Reverse", "Potential contaminant"], # needs to be changed when using different loaders
+        remove_contaminations = False, # needs to be changed when using different loaders
         remove_samples = None,
-        impute = False):
+        impute = False,
+        qvalue = 0.01):
         # main function which calls all subfunction to clean according to cleaning "standards"
         # Creates a matrix out of the MS Outputfile, with columns displaying samples androw the protein IDs.
         # intensity_col : str, optional
         #columns , by default "LFQ intensity "
      
         #column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
-        if len(contamination_columns) > 0:
+        if remove_contaminations:
+            # print column names with contamination
+            logging.info("Contaminations indicated in following columns: ", self.contamination_columns, "are removed")
             # + == contamination
-            protein_groups_to_remove = self.rawdata[(self.rawdata[contamination_columns] != "+").any(1)][self.proteinID_col].tolist()
+            protein_groups_to_remove = self.rawdata[(self.rawdata[self.contamination_columns] != "+").any(1)][self.proteinID_col].tolist()
             self.mat = self.drop(protein_groups_to_remove)
             self.removed_protein_groups = protein_groups_to_remove
             logging.info(len(protein_groups_to_remove), " observations have been removed.")
@@ -237,6 +248,12 @@ class proteinObject:
         plot = px.imshow(corr_matrix)
         return plot
     
+
+    def plot_sampledistribution(self, group = None):
+        df = self.mat.unstack().reset_index()
+        fig = px.box(df, x="level_0", y=0)
+        pass
+
 
     def plot_volcano(self, column, group1, group2):
         result = self.calculate_ttest_fc(column, group1, group2)
