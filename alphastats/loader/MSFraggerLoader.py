@@ -17,7 +17,8 @@ class FragPipeLoader(BaseLoader):
         file,
         intensity_column =  "[experiment] MaxLFQ Intensity ",
         index_column = "Protein",
-        qvalue_column = "Protein Probability"): # 
+        qvalue_column = "Protein Probability",
+        sep = "\t"): # 
         """_summary_
 
         Args:
@@ -26,8 +27,7 @@ class FragPipeLoader(BaseLoader):
             index_column (str, optional): _description_. Defaults to "Protein".
             qvalue_column (str, optional): _description_. Defaults to "Protein Probability".
         """
-        self.rawdata = pd.read_csv(file, sep = "\t")
-        self.intensity_column = intensity_column # normalized protein intensity using the unique+razor sequences after razor assignment calculated using the MaxLFQ method
-        self.index_column = index_column
+        super.__init__(file, intensity_column, index_column, sep)
+        self.qvalue_column = qvalue_column
         #self.filter_column = "Indistinguishable Proteins"? "Protein Probability"
         self.software = "MSFragger_Philosopher"

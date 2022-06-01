@@ -7,7 +7,8 @@ class MaxQuantLoader(BaseLoader):
         intensity_column = "LFQ intentsity [experiment]",
         index_column = "Protein IDs",
         filter_columns = ["Only identified by site", "Reverse", "Potential contaminant"],
-        qvalue_column = "Q-value"):
+        qvalue_column = "Q-value",
+        sep = "\t"):
         """_summary_
 
         Args:
@@ -16,9 +17,7 @@ class MaxQuantLoader(BaseLoader):
             filter_columns (list, optional): _description_. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].
             qvalue_column (str, optional): _description_. Defaults to "Q-value".
         """
-        self.rawdata = pd.read_csv(file, sep = "\t")
-        self.intensity_column = intensity_column
-        self.index_column = index_column
+        super.__init__(file, intensity_column, index_column, sep)
         self.filter_columns = filter_columns
         self.qvalue_column = qvalue_column
         self.software = "MaxQuant"

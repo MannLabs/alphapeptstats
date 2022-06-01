@@ -13,16 +13,19 @@ class DIANNLoader(BaseLoader):
 
    def __init__(self,
                 file,
-                sample_column = "[experiment]", 
-                index_column =  "Protein.Group"):
-                #qvalue_column = ["PG.Q.Value", "Q.Value"],
-                #qvalue_threshold = 0.01,
-                #load_matrix = False): # add option so you can load matrix from diann-rpackage
-        
-        #self.rawdata = self.convert_to_wide_data(file = file, qvalue_threshold = qvalue_threshold)
-        self.rawdata = pd.read_csv(file, sep = "\t")
-        self.sample_column = sample_column
-        self.index_column = index_column
+                intensity_column = "[experiment]", 
+                index_column =  "Protein.Group",
+                sep = "\t"):
+        """load DIA-NN output data report.pg_matrix.tsv
+
+        Args:
+            file (_type_): _description_
+            intensity_column (str, optional): _description_. Defaults to "[experiment]".
+            index_column (str, optional): _description_. Defaults to "Protein.Group".
+            sep (str, optional): _description_. Defaults to "\t".
+        """
+               
+        super.__init__(file, intensity_column, index_column, sep)
         self.software = "DIA-NN"
 
    # def convert_to_wide_data(self, file, qvalue_threshold):
@@ -48,5 +51,9 @@ class DIANNLoader(BaseLoader):
     # column = "PG.Quantity"
 
     # use normalized and non normalized column (normalize later?)
-   
+    #qvalue_column = ["PG.Q.Value", "Q.Value"],
+                #qvalue_threshold = 0.01,
+                #load_matrix = False): # add option so you can load matrix from diann-rpackage
+        
+        #self.rawdata = self.convert_to_wide_data(file = file, qvalue_threshold = qvalue_threshold)
 
