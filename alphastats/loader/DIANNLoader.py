@@ -16,7 +16,7 @@ class DIANNLoader(BaseLoader):
                 intensity_column = "[experiment]", 
                 index_column =  "Protein.Group",
                 sep = "\t"):
-        """load DIA-NN output data report.pg_matrix.tsv
+        """Import DIA-NN output data report.pg_matrix.tsv
 
         Args:
             file (_type_): _description_

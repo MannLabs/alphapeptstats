@@ -15,20 +15,13 @@ import numpy as np
 import logging
 from sklearn.impute import SimpleImputer
 
-def check_param(par):
-    pass
-
 
 class proteinObject:
     """_summary_
     """
     def __init__(self, 
         loader, 
-        metadata_path: str=None, 
-       # intensity_column =  "LFQ intensity ", 
-        sample_column = "sample",
-       # proteinID_column = "Protein IDs"
-        filter_contamination = True):
+        metadata_path: str=None):
         """Create a Protein Object containing the protein intensity and the corresponding metadata of the samples,
         ready for analyis 
 
@@ -49,6 +42,7 @@ class proteinObject:
         self.software = loader.software
         self.index_column = loader.index_column
         self.intensity_column = loader.intensity_column
+        self.filter_columns = loader.filter_columns
 
         # include filtering before 
         self.mat = self.create_matrix()
@@ -65,7 +59,8 @@ class proteinObject:
         self.normalization = None
         self.removed_protein_groups = None
         self.imputation = None
-        #self.contamination_columns = loader.contamination_column
+        self.removed_protein_groups = None
+
     
 
     @pandas_cache
@@ -97,11 +92,42 @@ class proteinObject:
         self.imputation = None
         self.removed_protein_groups = None
 
-    def remove_sampels(self, sample_list):
+    def preprocess_exclude_sampels(self, sample_list):
         self.mat = self.mat
         pass
 
+    def preprocess_print_info(self):
+        n_proteins = self.rawdata.shape[0]
+        n_samples = self.rawdata.shape[1] # remove filter columns etc.
 
+        text = "Preprocessing: \nThe raw data contains "  + str(n_proteins) + \
+            " Proteins and " + str(n_samples) +  "samples.\n" + str(len(self.removed_protein_groups)) + \
+                " rows with Proteins/Protein Groups have been removed."
+
+        if self.normalization is None:
+            normalization_text = "Data has not been normalized, or has already been normalized by " + self.software + ".\n"
+        else:
+            normalization_text = "Data has been normalized using " + self.normalization + ".\n"
+
+        if self.imputation is None:
+            imputation_text = "Data is not imputed.\n"
+        else:
+            imputation_text = self.imputation
+
+        preprocessing_text = text + normalization_text + imputation_text
+        print(preprocessing_text)
+
+
+    def preprocess_filter(self):
+        if self.filter_column is None:
+            logging.error("No columns to filter.")
+        # print column names with contamination
+        logging.info("Contaminations indicated in following columns: ", self.filter_column, "are removed")
+         # + == contamination
+        protein_groups_to_remove = self.rawdata[(self.rawdata[self.filter_column] == False).any(1)][self.index_column].tolist()
+        self.mat = self.drop(protein_groups_to_remove)
+        self.removed_protein_groups = protein_groups_to_remove
+        logging.info(len(protein_groups_to_remove), " observations have been removed.")
 
     @pandas_cache
     def preprocess(self, 
@@ -110,20 +136,8 @@ class proteinObject:
         remove_samples = None,
         impute = False,
         qvalue = 0.01):
-        # main function which calls all subfunction to clean according to cleaning "standards"
-        # Creates a matrix out of the MS Outputfile, with columns displaying samples androw the protein IDs.
-        # intensity_col : str, optional
-        #columns , by default "LFQ intensity "
-     
-        #column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
         if remove_contaminations:
-            # print column names with contamination
-            logging.info("Contaminations indicated in following columns: ", self.contamination_columns, "are removed")
-            # + == contamination
-            protein_groups_to_remove = self.rawdata[(self.rawdata[self.contamination_columns] != "+").any(1)][self.proteinID_col].tolist()
-            self.mat = self.drop(protein_groups_to_remove)
-            self.removed_protein_groups = protein_groups_to_remove
-            logging.info(len(protein_groups_to_remove), " observations have been removed.")
+            self.preprocess_filter()          
  
         if normalization is not None:
             self.mat = normalization.normalize_data(self.mat, method=normalization, normalize='samples', max_iterations=250, linear_method='l1')

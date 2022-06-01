@@ -1,5 +1,6 @@
 from alphastats.loader import BaseLoader
 import pandas as pd
+import numpy as np
 
 class MaxQuantLoader(BaseLoader):
     def __init__(self,
@@ -7,7 +8,7 @@ class MaxQuantLoader(BaseLoader):
         intensity_column = "LFQ intentsity [experiment]",
         index_column = "Protein IDs",
         filter_columns = ["Only identified by site", "Reverse", "Potential contaminant"],
-        qvalue_column = "Q-value",
+        confidence_column = "Q-value",
         sep = "\t"):
         """_summary_
 
@@ -19,17 +20,17 @@ class MaxQuantLoader(BaseLoader):
         """
         super.__init__(file, intensity_column, index_column, sep)
         self.filter_columns = filter_columns
-        self.qvalue_column = qvalue_column
+        self.confidence_column = confidence_column
         self.software = "MaxQuant"
+        self.set_filter_columns_to_true_false()
+
+
+    def set_filter_columns_to_true_false(self):
+        """replaces the '+' with True, else False
+        """
+        for filter_column in self.filter_columns:
+            self.rawdata[filter_column] = np.where(self.rawdata[filter_column] == "+",
+            True, 
+            False)
+
     
-    def filter_contaminations(self):
-        # make class method as other softwares don't annotate contaminations??
-        pass
-
-        
-    def preprocess_contamination(self):
-        # remove columns where +
-        pass
-
-    def annotate_contamination(self):
-        pass

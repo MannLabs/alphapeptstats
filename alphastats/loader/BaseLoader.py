@@ -1,4 +1,5 @@
 import pandas as pd
+import logging
 
 class BaseLoader:
     """Parent class of Loaders
@@ -15,11 +16,20 @@ class BaseLoader:
         self.intensity_column = intensity_column
         self.index_column = index_column
 
-        self.sample_column = None
-        self.value_column = None
-        
-        self.qvalue_column = None
+        self.confidence_column = None
         self.software = None
+        self.check_if_columns_are_present()
+
+
+    def check_if_columns_are_present(self):
+        """check if given columns present in rawdata
+        """
+        given_columns = list(filter(None,[self.index_column, self.confidence_column]))
+        wrong_columns = list(set([given_columns]) - set(self.rawdata.columns.to_list()))
+        if len(wrong_columns) > 0:
+            logging.error(", ".join(wrong_columns) + " columns do not exist.")
+        pass
+
 
         # get different output formats in alpha stat format
         # self.value_column ="Precursor.Normalised" # "PG.Quantity",
@@ -28,6 +38,6 @@ class BaseLoader:
         # allow multiple Q-value colummns qvalue_
         # self.filter_column = []
         # filter column should be binary
-        # allow multiple filter columns filter_
+        # allow multiple filter columns 
         
         
