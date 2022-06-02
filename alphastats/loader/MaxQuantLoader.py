@@ -19,6 +19,7 @@ class MaxQuantLoader(BaseLoader):
             qvalue_column (str, optional): _description_. Defaults to "Q-value".
         """
         super.__init__(file, intensity_column, index_column, sep)
+
         self.filter_columns = filter_columns
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
@@ -28,9 +29,9 @@ class MaxQuantLoader(BaseLoader):
     def set_filter_columns_to_true_false(self):
         """replaces the '+' with True, else False
         """
-        for filter_column in self.filter_columns:
-            self.rawdata[filter_column] = np.where(self.rawdata[filter_column] == "+",
-            True, 
-            False)
+        if len(self.filter_columns) > 0:
+            for filter_column in self.filter_columns:
+                self.rawdata[filter_column] = np.where(self.rawdata[filter_column] == "+",
+                True, False)
 
     

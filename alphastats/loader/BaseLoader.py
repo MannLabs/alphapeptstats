@@ -28,6 +28,11 @@ class BaseLoader:
         wrong_columns = list(set([given_columns]) - set(self.rawdata.columns.to_list()))
         if len(wrong_columns) > 0:
             logging.error(", ".join(wrong_columns) + " columns do not exist.")
+    
+    def add_contamination_column(self):
+        # load dict with potential contamination from fasta file
+        # add column with True False
+        self.rawdata["Potential contaminant"]
         pass
 
 
@@ -40,4 +45,9 @@ class BaseLoader:
         # filter column should be binary
         # allow multiple filter columns 
         
-        
+
+# ALPHASTATS STANDARDS
+
+# intensity_column  
+# confidence_column -> Q-value column in MaxQuant, ProteinProbability in MSFragger, DIA-NN and AlphaPept don't contain confidence column
+# filter_columns -> added by alphastats if not MaxQuant "Contaminations" - use fasta.database, filters are annotated with True/False

@@ -119,12 +119,12 @@ class proteinObject:
 
 
     def preprocess_filter(self):
-        if self.filter_column is None:
+        if self.filter_columns is None:
             logging.error("No columns to filter.")
         # print column names with contamination
-        logging.info("Contaminations indicated in following columns: ", self.filter_column, "are removed")
+        logging.info("Contaminations indicated in following columns: ", self.filter_columns, "are removed")
          # + == contamination
-        protein_groups_to_remove = self.rawdata[(self.rawdata[self.filter_column] == False).any(1)][self.index_column].tolist()
+        protein_groups_to_remove = self.rawdata[(self.rawdata[self.filter_columns] == False).any(1)][self.index_column].tolist()
         self.mat = self.drop(protein_groups_to_remove)
         self.removed_protein_groups = protein_groups_to_remove
         logging.info(len(protein_groups_to_remove), " observations have been removed.")
