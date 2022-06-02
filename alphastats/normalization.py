@@ -1,9 +1,10 @@
 import pandas as pd
 from sklearn import preprocessing, ensemble, cluster, metrics
 
-# from CKG
+#  from CKG
 
-def normalize_data_per_group(data, group, method='median', normalize=None):
+
+def normalize_data_per_group(data, group, method="median", normalize=None):
     """
     This function normalizes the data by group using the selected method
     :param data: DataFrame with the data to be normalized (samples x features)
@@ -23,7 +24,7 @@ def normalize_data_per_group(data, group, method='median', normalize=None):
     return ndf
 
 
-def normalize_data(data, method='median', normalize=None):
+def normalize_data(data, method="median", normalize=None):
     """
     This function normalizes the data using the selected method
     :param data: DataFrame with the data to be normalized (samples x features)
@@ -35,20 +36,22 @@ def normalize_data(data, method='median', normalize=None):
         result = normalize_data(data, method='median_polish')
     """
     normData = None
-    numeric_cols = data.select_dtypes(include=['int64', 'float64'])
-    non_numeric_cols = data.select_dtypes(exclude=['int64', 'float64'])
+    numeric_cols = data.select_dtypes(include=["int64", "float64"])
+    non_numeric_cols = data.select_dtypes(exclude=["int64", "float64"])
     if not numeric_cols.empty:
-        if method == 'median_polish':
+        if method == "median_polish":
             normData = median_polish_normalization(numeric_cols, max_iter=250)
-        elif method == 'median_zero':
+        elif method == "median_zero":
             normData = median_zero_normalization(numeric_cols, normalize)
-        elif method == 'median':
+        elif method == "median":
             normData = median_normalization(numeric_cols, normalize)
-        elif method == 'quantile':
+        elif method == "quantile":
             normData = quantile_normalization(numeric_cols)
-        elif method == 'linear':
-            normData = linear_normalization(numeric_cols, method="l1", normalize=normalize)
-        elif method == 'zscore':
+        elif method == "linear":
+            normData = linear_normalization(
+                numeric_cols, method="l1", normalize=normalize
+            )
+        elif method == "zscore":
             normData = zscore_normalization(numeric_cols, normalize)
 
     if non_numeric_cols is not None and not non_numeric_cols.empty:
@@ -57,7 +60,7 @@ def normalize_data(data, method='median', normalize=None):
     return normData
 
 
-def median_zero_normalization(data, normalize='samples'):
+def median_zero_normalization(data, normalize="samples"):
     """
     This function normalizes each sample by using its median.
     :param data:
@@ -74,7 +77,7 @@ def median_zero_normalization(data, normalize='samples'):
             3 -2.333333 -0.333333  2.666667
             4 -2.000000 -2.000000  4.000000
     """
-    if normalize is None or normalize == 'samples':
+    if normalize is None or normalize == "samples":
         normData = data.sub(data.median(axis=1), axis=0)
     else:
         normData = data.sub(data.median(axis=0), axis=1)
@@ -82,7 +85,7 @@ def median_zero_normalization(data, normalize='samples'):
     return normData
 
 
-def median_normalization(data, normalize='samples'):
+def median_normalization(data, normalize="samples"):
     """
     This function normalizes each sample by using its median.
     :param data:
@@ -99,7 +102,7 @@ def median_normalization(data, normalize='samples'):
             3 -2.333333 -0.333333  2.666667
             4 -2.000000 -2.000000  4.000000
     """
-    if normalize is None or normalize == 'samples':
+    if normalize is None or normalize == "samples":
         normData = data.sub(data.median(axis=1) - data.median(axis=1).median(), axis=0)
     else:
         normData = data.sub(data.median(axis=0) - data.median(axis=0).median(), axis=1)
@@ -107,7 +110,7 @@ def median_normalization(data, normalize='samples'):
     return normData
 
 
-def zscore_normalization(data, normalize='samples'):
+def zscore_normalization(data, normalize="samples"):
     """
     This function normalizes each sample by using its mean and standard deviation (mean=0, std=1).
     :param data:
@@ -124,7 +127,7 @@ def zscore_normalization(data, normalize='samples'):
                 3 -0.927173 -0.132453  1.059626
                 4 -0.577350 -0.577350  1.154701
     """
-    if normalize is None or normalize == 'samples':
+    if normalize is None or normalize == "samples":
         normData = data.sub(data.mean(axis=1), axis=0).div(data.std(axis=1), axis=0)
 
     else:
@@ -157,7 +160,9 @@ def median_polish_normalization(data, max_iter=250):
         mediandf = mediandf.sub(row_median, axis=0)
         col_median = mediandf.median(axis=0)
         mediandf = mediandf.sub(col_median, axis=1)
-        if (mediandf.median(axis=0) == 0).all() and (mediandf.median(axis=1) == 0).all():
+        if (mediandf.median(axis=0) == 0).all() and (
+            mediandf.median(axis=1) == 0
+        ).all():
             break
 
     normData = data - mediandf
@@ -181,13 +186,15 @@ def quantile_normalization(data):
             3  3.2  4.6  8.6
             4  3.2  3.2  8.6
     """
-    rank_mean = data.T.stack().groupby(data.T.rank(method='first').stack().astype(int)).mean()
-    normdf = data.T.rank(method='min').stack().astype(int).map(rank_mean).unstack().T
+    rank_mean = (
+        data.T.stack().groupby(data.T.rank(method="first").stack().astype(int)).mean()
+    )
+    normdf = data.T.rank(method="min").stack().astype(int).map(rank_mean).unstack().T
 
     return normdf
 
 
-def linear_normalization(data, method="l1", normalize='samples'):
+def linear_normalization(data, method="l1", normalize="samples"):
     """
     This function scales input data to a unit norm. For more information visit https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html.
     :param data: pandas dataframe with samples as rows and features as columns.
@@ -205,10 +212,14 @@ def linear_normalization(data, method="l1", normalize='samples'):
             3  0.176471  0.227273  0.186047
             4  0.176471  0.136364  0.209302
     """
-    if normalize is None or normalize == 'samples':
-        normvalues = preprocessing.normalize(data.fillna(0).values, norm=method, axis=0, copy=True, return_norm=False)
+    if normalize is None or normalize == "samples":
+        normvalues = preprocessing.normalize(
+            data.fillna(0).values, norm=method, axis=0, copy=True, return_norm=False
+        )
     else:
-        normvalues = preprocessing.normalize(data.fillna(0).values, norm=method, axis=1, copy=True, return_norm=False)
+        normvalues = preprocessing.normalize(
+            data.fillna(0).values, norm=method, axis=1, copy=True, return_norm=False
+        )
 
     normdf = pd.DataFrame(normvalues, index=data.index, columns=data.columns)
 
