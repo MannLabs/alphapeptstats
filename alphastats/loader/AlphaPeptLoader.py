@@ -39,11 +39,6 @@ class AlphaPeptLoader(BaseLoader):
         )
 
     def load_hdf_protein_table(self, file):
-        """_summary_
-
-        Args:
-            file (_type_): _description_
-        """
         self.rawdata = pd.read_hdf(file, "protein_table")
 
     def add_contamination_column(self):
@@ -76,6 +71,9 @@ class AlphaPeptLoader(BaseLoader):
                 protein_id = fasta_header_split[1]
             protein_id_list.append(protein_id)
         protein_id_concentate = ";".join(protein_id_list)
+        # ADD REV to the protein ID, else there will be duplicates in the ProteinGroup column
+        if "REV_" in entry:
+            protein_id_concentate = "REV_" + protein_id_concentate
         return protein_id_concentate
 
 
