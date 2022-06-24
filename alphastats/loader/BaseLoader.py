@@ -1,5 +1,6 @@
 import pandas as pd
 import logging
+import os
 
 
 class BaseLoader:
@@ -14,6 +15,7 @@ class BaseLoader:
             sep (str, optional): file separation. Defaults to "\t".
         """
 
+        self.check_if_file_exists(file=file)
         self.rawdata = pd.read_csv(file, sep=sep)
         self.intensity_column = intensity_column
         self.index_column = index_column
@@ -29,6 +31,15 @@ class BaseLoader:
         wrong_columns = list(set([given_columns]) - set(self.rawdata.columns.to_list()))
         if len(wrong_columns) > 0:
             logging.error(", ".join(wrong_columns) + " columns do not exist.")
+    
+    def check_if_indexcolumn_is_unique(self):
+        # TODO check whether index column is unique so no error raises when creating matrix
+        pass
+
+    def check_if_file_exists(self, file):
+        if os.path.isfile(file) == False:
+            logging.error(f"{file} does not exist.")
+
 
     def add_contamination_column(self):
         #  load dict with potential contamination from fasta file
