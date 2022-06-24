@@ -5,6 +5,9 @@ import numpy as np
 
 
 class AlphaPeptLoader(BaseLoader):
+    """Loader for AlphaPept outputfiles 
+    https://github.com/MannLabs/alphapept
+    """
     def __init__(
         self,
         file,
@@ -12,7 +15,7 @@ class AlphaPeptLoader(BaseLoader):
         index_column="Unnamed: 0",  # column name to be changed
         sep=",",
     ):
-        """_summary_
+        """Loads Alphapept output: results_proteins.csv. Will add contamination column for further analysis.
 
         Args:
             file (_type_): AlphaPept output, either results_proteins.csv file or the hdf_file with the protein_table given
@@ -55,8 +58,7 @@ class AlphaPeptLoader(BaseLoader):
         #  make column with ProteinGroup to make comparison between softwares possible
         #  'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN', -> P0DMV9;P0DMV8
 
-        # This needs a more beautiful and robuster solution
-
+        # TODO this needs a more beautiful and robuster solution
         # split proteins into list
         proteins = entry.split(",")
         protein_id_list = list()
