@@ -3,7 +3,7 @@ import pandas as pd
 
 # Philosopher
 # class name needs to be discussed whether MSFragger/Fragpipe/Philospher
-class MSFraggerLoader(BaseLoader):
+class FragPipeLoader(BaseLoader):
     """Loader for FragPipe-Philosopheroutputfiles
      https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv
     """
