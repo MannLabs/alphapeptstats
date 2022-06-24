@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import os
+from helpers import duplicates
 
 
 class BaseLoader:
@@ -33,8 +34,12 @@ class BaseLoader:
             logging.error(", ".join(wrong_columns) + " columns do not exist.")
     
     def check_if_indexcolumn_is_unique(self):
-        # TODO check whether index column is unique so no error raises when creating matrix
-        pass
+        # TODO make own duplicates functions to have less dependencies
+        duplicated_values = list(duplicates(self.rawdata[self.index_column].to_list()))
+        if len(duplicated_values) > 0:
+            # error or warning, duplicates could be resolved with preprocessing/filtering
+            logging.error(f"Column {self.index_column} contains duplicated values: " + ", ".join(duplicated_values))
+
 
     def check_if_file_exists(self, file):
         if os.path.isfile(file) == False:
