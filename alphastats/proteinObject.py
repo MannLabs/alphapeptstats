@@ -67,7 +67,7 @@ class proteinObject:
         self.removed_protein_groups = None
 
     def check_loader(self):
-        # check if loader is really from class loader and contains necessary columns
+        # TODO check if loader is really from class loader and contains necessary columns
         pass
 
     @pandas_cache
@@ -155,7 +155,7 @@ class proteinObject:
         ][self.index_column].tolist()
         self.mat = self.drop(protein_groups_to_remove)
         self.removed_protein_groups = protein_groups_to_remove
-        logging.info(len(protein_groups_to_remove), " observations have been removed.")
+        logging.info(f"str(len(protein_groups_to_remove)) observations have been removed.")
 
     @pandas_cache
     def preprocess(

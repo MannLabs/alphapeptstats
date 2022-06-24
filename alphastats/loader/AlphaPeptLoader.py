@@ -61,7 +61,7 @@ class AlphaPeptLoader(BaseLoader):
         # TODO this needs a more beautiful and robuster solution
         # split proteins into list
         proteins = entry.split(",")
-        protein_id_list = list()
+        protein_id_list = []
         for protein in proteins:
             # 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN',
             fasta_header_split = protein.split("|")
