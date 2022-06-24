@@ -1,17 +1,11 @@
 from alphastats.loader import BaseLoader
 import pandas as pd
 
-"""
-- older versions of DIA-NN don't contain MaxLFQ normalization here Precursor.Normalised should be taken
-- Several output files use: report.pg_matrix.tsv
-- else report.tsv could be used but is long data
-- wont work with older versions of DIA-NN
-
-"""
-
-
 class DIANNLoader(BaseLoader):
-    def __init__(
+     """Loader for DIA-NN output files
+     https://github.com/vdemichev/DiaNN
+     """
+     def __init__(
         self,
         file,
         intensity_column="[experiment]",
@@ -21,14 +15,22 @@ class DIANNLoader(BaseLoader):
         """Import DIA-NN output data report.pg_matrix.tsv
 
         Args:
-            file (_type_): _description_
-            intensity_column (str, optional): _description_. Defaults to "[experiment]".
-            index_column (str, optional): _description_. Defaults to "Protein.Group".
-            sep (str, optional): _description_. Defaults to "\t".
+            file (_type_): DIA-NN output file report.pg_matrix.tsv
+            intensity_column (str, optional): columns containing the intensity column for each experiment. Defaults to "[experiment]".
+            index_column (str, optional): column with the Protein IDs. Defaults to "Protein.Group".
+            sep (str, optional): file separation of the input file. Defaults to "\t".
         """
 
         super.__init__(file, intensity_column, index_column, sep)
         self.software = "DIA-NN"
+
+"""
+- older versions of DIA-NN don't contain MaxLFQ normalization here Precursor.Normalised should be taken
+- Several output files use: report.pg_matrix.tsv
+- else report.tsv could be used but is long data
+- wont work with older versions of DIA-NN
+
+"""
 
     # def convert_to_wide_data(self, file, qvalue_threshold):
     #  FDR needs to be filtered before converting to wide format

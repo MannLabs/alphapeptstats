@@ -4,6 +4,8 @@ import numpy as np
 
 
 class MaxQuantLoader(BaseLoader):
+    """Loader for MaxQuant outputfiles
+    """
     def __init__(
         self,
         file,
@@ -13,14 +15,17 @@ class MaxQuantLoader(BaseLoader):
         confidence_column="Q-value",
         sep="\t",
     ):
-        """_summary_
+        """Loader MaxQuant output 
 
         Args:
-            intensity_column (str, optional): _description_. Defaults to "LFQ intentsity [experiment]".
-            index_column (str, optional): _description_. Defaults to "Protein IDs".
-            filter_columns (list, optional): _description_. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].
-            qvalue_column (str, optional): _description_. Defaults to "Q-value".
+            file (_type_): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
+            intensity_column (str, optional): columns with Intensity values for each experiment/sample. Defaults to "LFQ intentsity [experiment]".
+            index_column (str, optional): column with Protein IDs . Defaults to "Protein IDs".
+            filter_columns (list, optional): columns that should be used for filtering. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].
+            confidence_column (str, optional): column with the Q-value given. Defaults to "Q-value".
+            sep (str, optional): separation of the input file. Defaults to "\t".
         """
+
         super.__init__(file, intensity_column, index_column, sep)
 
         self.filter_columns = filter_columns
