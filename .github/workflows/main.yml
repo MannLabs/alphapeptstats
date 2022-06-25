@@ -16,9 +16,7 @@ jobs:
         pip install nbdev jupyter
     - name: Run tests
       run: |
-        chmod +x "${GITHUB_WORKSPACE}/tests/run_tests.sh"
-        "${GITHUB_WORKSPACE}/tests/run_tests.sh"
-      shell: bash
+        python -m unittest discover tests
 
         
 # - name: Read all notebooks
