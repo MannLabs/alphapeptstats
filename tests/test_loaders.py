@@ -2,7 +2,6 @@ import unittest
 import pandas as pd
 import logging
 from unittest.mock import patch
-from requests import RequestException
 import logging
 
 
@@ -23,71 +22,41 @@ class BaseTestLoader:
             # check if loaded data is pandas dataframe
             self.assertIsInstance(self.obj.rawdata, pd.DataFrame)
 
-        @patch("requests.get")
-        def test_check_if_columns_are_present_error(self, get_mock):
-            get_mock.side_effect = RequestException
-            with self.assertLogs() as captured:
-                # check if columns are present
-                # check if error gets raised when column is not present
-                self.obj.confidence_column = "wrong_column"
-                self.obj.check_if_columns_are_present()
-            self.assertEqual(len(captured.records), 1)
-            # self.assertEqual(captured.records[0].level, logging.ERROR)
-            #self.assertRaises(KeyError, self.obj.check_if_columns_are_present())
-        
-        @patch("requests.get")
-        def test_check_if_columns_are_present_no_error(self, get_mock):
-            get_mock.side_effect = RequestException
-            with self.assertLogs() as captured:
-                # check if columns are present
-                # check if error gets raised when column is not present
-                self.obj.check_if_columns_are_present()
-            self.assertEqual(captured.records, None)
-
         @patch("logging.Logger.error")
-        def test_check_if_columns_are_present_no_error2(self, mock):
+        def test_check_if_columns_are_present_error(self, mock):
+            # check if columns are present
+            # check if error gets raised when column is not present
+            self.obj.confidence_column = "wrong_column"
             self.obj.check_if_columns_are_present()
-            #elf.assertEqual(captured.records, None)
+            mock.assert_called_once()
+           
+        @patch("logging.Logger.error") 
+        def test_check_if_columns_are_present_no_error(self, mock):
+            # check if columns are present
+            # check if error gets raised when column is not present
+            self.obj.check_if_columns_are_present()
             mock.assert_not_called()
            
         @patch("logging.Logger.warning")
         def test_check_if_indexcolumn_is_unique_warning(self,mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
-           # with self.assertLogs() as ctx:
             self.obj.rawdata[self.obj.index_column] = "non unique"
             self.obj.check_if_indexcolumn_is_unique()
-                # check if one record = warning gets captured
-                #self.assertEqual(len(ctx.records), 1)
             mock.assert_called_once()
-            #self.assertWarns(self.obj.check_if_indexcolumn_is_unique())
-            #pass
         
-        @patch("logging.Logger.warning")
-        def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
+        #@patch("logging.Logger.warning")
+        #def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
             #  check if indexcolumn is unique
-            # check if error gets raised when duplicate
-           # with self.assertLogs() as ctx:
-            self.obj.check_if_indexcolumn_is_unique()
-                # check if one record = warning gets captured
-                #self.assertEqual(len(ctx.records), 1)
-            mock.assert_not_called()
-            #self.assertWarns(self.obj.check_if_indexcolumn_is_unique())
-            #pass
+            # self.obj.check_if_indexcolumn_is_unique()
+            # mock.assert_not_called()
 
-        @patch("requests.get")
-        def test_check_if_file_exists(self, get_mock):
+        @patch("logging.Logger.error")
+        def test_check_if_file_exists(self, mock):
             # check if error gets raised when file doesnt exist
-            get_mock.side_effect = RequestException
-            with self.assertLogs() as captured:
-                # check if columns are present
-                # check if error gets raised when column is not present
-                wrong_file_path = "wrong/file/path"
-                self.obj.check_if_file_exists(file=wrong_file_path)
-            self.assertEqual(len(captured.records), 1)
-            #self.assertEqual(captured.records[0].level, logging.ERROR)
-            #self.assertRaises(OSError, self.obj.check_if_file_exists(file=wrong_file_path))
-
+            wrong_file_path = "wrong/file/path"
+            self.obj.check_if_file_exists(file=wrong_file_path)
+            mock.assert_called_once()
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
