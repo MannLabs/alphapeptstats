@@ -1,5 +1,10 @@
 import unittest
 import pandas as pd
+import logging
+from unittest.mock import patch
+from requests import RequestException
+import logging
+
 
 from alphastats.loader.BaseLoader import BaseLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
@@ -7,6 +12,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 
+logger = logging.getLogger(__name__)
 
 class BaseTestLoader:
     #  parent class of test loader for common tests among loaders
@@ -15,30 +21,77 @@ class BaseTestLoader:
     class BaseTest(unittest.TestCase):
         def test_dataformat(self):
             # check if loaded data is pandas dataframe
-            self.assertIsInstance(self.obj.rawdata, pd.DataFrane)
+            self.assertIsInstance(self.obj.rawdata, pd.DataFrame)
 
-        def test_check_if_columns_are_present(self):
-            # check if columns are present
-            # check if error gets raised when column is not present
-            self.obj.confidence_column = "wrong_column"
-            self.assertRaises(self.obj.check_if_columns_are_present())
-            self.obj.confidence_column = None
+        @patch("requests.get")
+        def test_check_if_columns_are_present_error(self, get_mock):
+            get_mock.side_effect = RequestException
+            with self.assertLogs() as captured:
+                # check if columns are present
+                # check if error gets raised when column is not present
+                self.obj.confidence_column = "wrong_column"
+                self.obj.check_if_columns_are_present()
+            self.assertEqual(len(captured.records), 1)
+            # self.assertEqual(captured.records[0].level, logging.ERROR)
+            #self.assertRaises(KeyError, self.obj.check_if_columns_are_present())
+        
+        @patch("requests.get")
+        def test_check_if_columns_are_present_no_error(self, get_mock):
+            get_mock.side_effect = RequestException
+            with self.assertLogs() as captured:
+                # check if columns are present
+                # check if error gets raised when column is not present
+                self.obj.check_if_columns_are_present()
+            self.assertEqual(captured.records, None)
 
-        def test_check_if_indexcolumn_is_unique(self):
+        @patch("logging.Logger.error")
+        def test_check_if_columns_are_present_no_error2(self, mock):
+            self.obj.check_if_columns_are_present()
+            #elf.assertEqual(captured.records, None)
+            mock.assert_not_called()
+           
+        @patch("logging.Logger.warning")
+        def test_check_if_indexcolumn_is_unique_warning(self,mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
-            self.obj.rawdata[self.index_column] = "non unique"
-            self.assertRaises(self.obj.if_indexcolumn_is_unique())
+           # with self.assertLogs() as ctx:
+            self.obj.rawdata[self.obj.index_column] = "non unique"
+            self.obj.check_if_indexcolumn_is_unique()
+                # check if one record = warning gets captured
+                #self.assertEqual(len(ctx.records), 1)
+            mock.assert_called_once()
+            #self.assertWarns(self.obj.check_if_indexcolumn_is_unique())
+            #pass
+        
+        @patch("logging.Logger.warning")
+        def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
+            #  check if indexcolumn is unique
+            # check if error gets raised when duplicate
+           # with self.assertLogs() as ctx:
+            self.obj.check_if_indexcolumn_is_unique()
+                # check if one record = warning gets captured
+                #self.assertEqual(len(ctx.records), 1)
+            mock.assert_not_called()
+            #self.assertWarns(self.obj.check_if_indexcolumn_is_unique())
+            #pass
 
-        def test_check_if_file_exists(self, file):
+        @patch("requests.get")
+        def test_check_if_file_exists(self, get_mock):
             # check if error gets raised when file doesnt exist
-            wrong_file_path = "wrong/file/path"
-            self.assertRaises(self.obj.check_if_file_exists(file=wrong_file_path))
+            get_mock.side_effect = RequestException
+            with self.assertLogs() as captured:
+                # check if columns are present
+                # check if error gets raised when column is not present
+                wrong_file_path = "wrong/file/path"
+                self.obj.check_if_file_exists(file=wrong_file_path)
+            self.assertEqual(len(captured.records), 1)
+            #self.assertEqual(captured.records[0].level, logging.ERROR)
+            #self.assertRaises(OSError, self.obj.check_if_file_exists(file=wrong_file_path))
 
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = AlphaPeptLoader(file="../testfiles/alphapept_results_proteins.csv")
+        self.obj = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
         # self.hdf_file =""
 
     def test_df_dimensions(self):
@@ -46,8 +99,8 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
         #  are there as many rows and column we expect
         n_rows = self.obj.rawdata.shape[0]
         n_columns = self.obj.rawdata.shape[1]
-        self.assertEqual(n_rows, 5)
-        self.assertEqual(n_columns, 3781)
+        self.assertEqual(n_rows, 3781)
+        self.assertEqual(n_columns, 7)
 
     def test_load_hdf_protein_table(self):
         #  TODO get corresponding HDF file
@@ -87,7 +140,7 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
 class TestMaxQuantLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = MaxQuantLoader(file="../testfiles/maxquant_proteinGroups.txt")
+        self.obj = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
 
     def test_df_dimensions(self):
         # test if dataframe gets loaded correctly
@@ -106,7 +159,7 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
 
 class TestDIANNLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = DIANNLoader(file="../testfiles/diann_report_final.pg_matrix.tsv")
+        self.obj = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
 
     def test_df_dimensions(self):
         # test if dataframe gets loaded correctly
@@ -117,9 +170,9 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
         self.assertEqual(n_columns, 25)
 
 
-class TesFragPipeLoader(BaseTestLoader.BaseTest):
+class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = FragPipeLoader(file="../testfiles/fragpipe_combined_proteins.tsv")
+        self.obj = FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
 
     def test_df_dimensions(self):
         # test if dataframe gets loaded correctly
