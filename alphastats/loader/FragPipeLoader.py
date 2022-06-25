@@ -1,4 +1,4 @@
-from alphastats.loader import BaseLoader
+from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 
 # Philosopher
@@ -7,16 +7,17 @@ class FragPipeLoader(BaseLoader):
     """Loader for FragPipe-Philosopheroutputfiles
      https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv
     """
+
     def __init__(
         self,
         file,
         intensity_column="[experiment] MaxLFQ Intensity ",
         index_column="Protein",
         confidence_column="Protein Probability",
-        sep="\t"
-        ):
+        sep="\t",
+    ):
 
-        super.__init__(file, intensity_column, index_column, sep)
+        super().__init__(file, intensity_column, index_column, sep)
         self.confidence_column = confidence_column
         self.software = "MSFragger_Philosopher"
 
@@ -33,11 +34,3 @@ class FragPipeLoader(BaseLoader):
 # Frag pipe
 # https://github.com/Nesvilab/philosopher/wiki/Combined-protein-reports
 #  ProteinProphet: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5863791/
-        """_summary_
-
-        Args:
-            file (_type_): _description_
-            intensity_column (str, optional): _description_. Defaults to "[experiment] MaxLFQ Intensity ".
-            index_column (str, optional): _description_. Defaults to "Protein".
-            qvalue_column (str, optional): _description_. Defaults to "Protein Probability".
-        """
