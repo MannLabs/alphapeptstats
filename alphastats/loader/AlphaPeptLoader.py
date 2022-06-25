@@ -1,5 +1,5 @@
 from operator import index
-from alphastats.loader import BaseLoader
+from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
 
@@ -8,6 +8,7 @@ class AlphaPeptLoader(BaseLoader):
     """Loader for AlphaPept outputfiles 
     https://github.com/MannLabs/alphapept
     """
+
     def __init__(
         self,
         file,
@@ -31,6 +32,7 @@ class AlphaPeptLoader(BaseLoader):
 
         self.intensity_column = intensity_column
         self.index_column = index_column
+        self.confidence_column = None
         # add contamination column "Reverse"
         self.add_contamination_column()
         #  make ProteinGroup column
@@ -59,18 +61,20 @@ class AlphaPeptLoader(BaseLoader):
         protein_id_list = []
         for protein in proteins:
             # 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN',
-            fasta_header_split = protein.split("|")
-            if len(fasta_header_split) == 1:
-                #  'ENSEMBL:ENSBTAP00000007350',
+            if "|" in protein:
+                fasta_header_split = protein.split("|")
+            else: 
+                fasta_header_split = protein
+            if isinstance(fasta_header_split, str):
+                 #  'ENSEMBL:ENSBTAP00000007350',
                 if "ENSEMBL:" in fasta_header_split:
                     protein_id = fasta_header_split.replace("ENSEMBL:", "")
-                # if only protein id is given
                 else:
-                    protein_id = fasta_header_split[0]
+                    protein_id = fasta_header_split
             else:
                 protein_id = fasta_header_split[1]
             protein_id_list.append(protein_id)
-        protein_id_concentate = ";".join(protein_id_list)
+        protein_id_concentate = ";".join(protein_id_list)   
         # ADD REV to the protein ID, else there will be duplicates in the ProteinGroup column
         if "REV_" in entry:
             protein_id_concentate = "REV_" + protein_id_concentate
