@@ -1,6 +1,11 @@
+from cmath import isinf
 from random import sample
 import re
 import pandas as pd
+from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
+from alphastats.loader.DIANNLoader import DIANNLoader
+from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 import seaborn as sn
 from data_cache import pandas_cache
 import os
@@ -20,7 +25,7 @@ class proteinObject:
     """_summary_
     """
 
-    def __init__(self, loader, metadata_path: str = None):
+    def __init__(self, loader, metadata_path: str = None, sample_column = None):
 
         """"
         """
@@ -39,10 +44,9 @@ class proteinObject:
             _description_, by default None
         """
 
+        self.check_loader(loader=loader)
         #  load data from loader object
         self.loader = loader
-        # check if loader is valid
-        # self.check_loader()
         self.rawdata = loader.rawdata
         self.software = loader.software
         self.index_column = loader.index_column
@@ -54,7 +58,7 @@ class proteinObject:
         self.metadata = None
 
         if metadata_path:
-            self.metadata = self.load_metadata()
+            self.metadata = self.load_metadata(sample_column=sample_column)
 
         self.experiment_type = None
         self.data_format = None
@@ -66,13 +70,18 @@ class proteinObject:
         self.imputation = None
         self.removed_protein_groups = None
 
-    def check_loader(self):
-        # TODO check if loader is really from class loader and contains necessary columns
-        pass
+    def check_loader(self, loader):
+        if not isinstance(loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)):
+            logging.error("loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION")
+        if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
+            logging.error("Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader")
+        if not isinstance(loader.index_column, str):
+            logging.error("Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader")
+        
 
     @pandas_cache
     def create_matrix(self):
-        """Creates a matrix out of the MaxQuant ProteinGroup Outputfile, with columns displaying samples and
+        """Creates a matrix out of the MaxQuant ProteinGrou p Outputfile, with columns displaying samples and
         row the protein IDs.
 
         Parameters
@@ -142,7 +151,7 @@ class proteinObject:
         """_summary_
         """
         if self.filter_columns is None:
-            logging.error("No columns to filter.")
+            logging.warning("No columns to filter.")
         #  print column names with contamination
         logging.info(
             "Contaminations indicated in following columns: ",
@@ -155,7 +164,9 @@ class proteinObject:
         ][self.index_column].tolist()
         self.mat = self.drop(protein_groups_to_remove)
         self.removed_protein_groups = protein_groups_to_remove
-        logging.info(f"str(len(protein_groups_to_remove)) observations have been removed.")
+        logging.info(
+            f"str(len(protein_groups_to_remove)) observations have been removed."
+        )
 
     @pandas_cache
     def preprocess(
@@ -193,7 +204,9 @@ class proteinObject:
         if remove_samples is not None:
             raise NotImplementedError
 
-    def load_metadata(file_path, sample_column=None):
+    def load_metadata(file_path, sample_column):
+        if file_path is not None and sample_column is None:
+            logging.error("sample_column must be specified")
         #  loading file needs to be more beautiful
         if file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)

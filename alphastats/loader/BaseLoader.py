@@ -20,7 +20,7 @@ class BaseLoader:
         self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.index_column = index_column
-
+        self.filter_columns = None
         self.confidence_column = None
         self.software = None
         self.check_if_columns_are_present()
