@@ -13,6 +13,7 @@ from alphastats.loader.FragPipeLoader import FragPipeLoader
 
 logger = logging.getLogger(__name__)
 
+
 class BaseTestLoader:
     #  parent class of test loader for common tests among loaders
     # this is wrapped in a nested class so it doesnt get called separatly when testing
@@ -29,27 +30,27 @@ class BaseTestLoader:
             self.obj.confidence_column = "wrong_column"
             self.obj.check_if_columns_are_present()
             mock.assert_called_once()
-           
-        @patch("logging.Logger.error") 
+
+        @patch("logging.Logger.error")
         def test_check_if_columns_are_present_no_error(self, mock):
             # check if columns are present
             # check if error gets raised when column is not present
             self.obj.check_if_columns_are_present()
             mock.assert_not_called()
-           
+
         @patch("logging.Logger.warning")
-        def test_check_if_indexcolumn_is_unique_warning(self,mock):
+        def test_check_if_indexcolumn_is_unique_warning(self, mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
-            self.obj.rawdata[self.obj.index_column] = "non unique"
+            self.obj.rawdata[self.obj.index_column] = "non unique"79
             self.obj.check_if_indexcolumn_is_unique()
             mock.assert_called_once()
-        
-        #@patch("logging.Logger.warning")
-        #def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
-            #  check if indexcolumn is unique
-            # self.obj.check_if_indexcolumn_is_unique()
-            # mock.assert_not_called()
+
+        # @patch("logging.Logger.warning")
+        # def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
+        #  check if indexcolumn is unique
+        # self.obj.check_if_indexcolumn_is_unique()
+        # mock.assert_not_called()
 
         @patch("logging.Logger.error")
         def test_check_if_file_exists(self, mock):
@@ -57,6 +58,7 @@ class BaseTestLoader:
             wrong_file_path = "wrong/file/path"
             self.obj.check_if_file_exists(file=wrong_file_path)
             mock.assert_called_once()
+
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
