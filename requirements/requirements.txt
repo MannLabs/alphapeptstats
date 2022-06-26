@@ -1,6 +1,5 @@
 pandas>=1.4
 sklearn
-logging
 data_cache
 dash_bio>=1
 plotly>=5
