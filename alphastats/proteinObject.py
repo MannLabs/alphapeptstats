@@ -6,10 +6,8 @@ from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-import seaborn as sn
 from data_cache import pandas_cache
 import os
-import warnings
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 from sklearn.decomposition import PCA
@@ -25,7 +23,7 @@ class proteinObject:
     """_summary_
     """
 
-    def __init__(self, loader, metadata_path: str = None, sample_column = None):
+    def __init__(self, loader, metadata_path: str = None, sample_column=None):
 
         """"
         """
@@ -71,13 +69,20 @@ class proteinObject:
         self.removed_protein_groups = None
 
     def check_loader(self, loader):
-        if not isinstance(loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)):
-            logging.error("loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION")
+        if not isinstance(
+            loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
+        ):
+            logging.error(
+                "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
+            )
         if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
-            logging.error("Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader")
+            logging.error(
+                "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+            )
         if not isinstance(loader.index_column, str):
-            logging.error("Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader")
-        
+            logging.error(
+                "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+            )
 
     @pandas_cache
     def create_matrix(self):
