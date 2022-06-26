@@ -3,3 +3,5 @@ sklearn
 data_cache
 dash_bio>=1
 plotly>=5
+iteration_utilities
+unittest
