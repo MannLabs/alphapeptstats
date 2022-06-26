@@ -32,7 +32,7 @@ class BaseLoader:
         wrong_columns = list(set(given_columns) - set(self.rawdata.columns.to_list()))
         if len(wrong_columns) > 0:
             logging.error(", ".join(wrong_columns) + " columns do not exist.")
-            #raise KeyError
+            # raise KeyError
 
     def check_if_indexcolumn_is_unique(self):
         # TODO make own duplicates functions to have less dependencies
@@ -47,7 +47,7 @@ class BaseLoader:
     def check_if_file_exists(self, file):
         if os.path.isfile(file) == False:
             logging.error(f"{file} does not exist.")
-            #raise OSError
+            # raise OSError
 
     def add_contamination_column(self):
         #  load dict with potential contamination from fasta file
