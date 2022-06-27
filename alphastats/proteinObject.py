@@ -55,7 +55,7 @@ class proteinObject:
         self.filter_columns = loader.filter_columns
 
         # include filtering before
-        self.mat = self.create_matrix()
+        self.create_matrix()
         self.metadata = None
 
         if metadata_path:
@@ -68,7 +68,7 @@ class proteinObject:
         # update normalization when self.matrix is normalized, filtered
         self.normalization = None
         self.removed_protein_groups = None
-        self.imputation = None
+        self.imputation = "Data is not imputed."
         self.removed_protein_groups = None
 
     def check_loader(self, loader):
@@ -78,6 +78,7 @@ class proteinObject:
             logging.error(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
+
         #if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
         #    logging.error(
         #        "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
@@ -108,10 +109,12 @@ class proteinObject:
         regex_find_intensity_columns = self.intensity_column.replace(
             "[experiment]", ".*"
         )
-        df = self.rawdata.set_index(self.index_column)
-        df = self.rawdata.filter(regex=(regex_find_intensity_columns), axis=1)
+        df = self.rawdata
+        df = df.set_index(self.index_column)
+        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
         # remove Intensity so only sample names remain
-        df.columns = df.columns.str.replace(regex_find_intensity_columns[3:], "")
+        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+        df.columns = df.columns.str.replace(substring_to_remove, "")
         self.mat = df
         self.normalization = None
         self.imputation = None
@@ -124,33 +127,23 @@ class proteinObject:
     def preprocess_print_info(self):
         n_proteins = self.rawdata.shape[0]
         n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
-
         text = (
-            "Preprocessing: \nThe raw data contains "
-            + str(n_proteins)
-            + " Proteins and "
-            + str(n_samples)
-            + "samples.\n"
-            + str(len(self.removed_protein_groups))
-            + " rows with Proteins/Protein Groups have been removed."
+            f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins and " +
+            f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}" +
+            f"rows with Proteins/Protein Groups have been removed."
         )
 
         if self.normalization is None:
             normalization_text = (
-                "Data has not been normalized, or has already been normalized by "
-                + self.software
-                + ".\n"
+                f"Data has not been normalized, or has already been normalized by "
+                f"{self.software}.\n"
             )
         else:
             normalization_text = (
-                "Data has been normalized using " + self.normalization + ".\n"
+                f"Data has been normalized using {self.normalization} .\n"
             )
 
-        if self.imputation is None:
-            imputation_text = "Data is not imputed.\n"
-        else:
-            imputation_text = self.imputation
-
+        imputation_text = self.imputation
         preprocessing_text = text + normalization_text + imputation_text
         print(preprocessing_text)
 
@@ -158,22 +151,21 @@ class proteinObject:
         """_summary_
         """
         if self.filter_columns is None:
-            logging.warning("No columns to filter.")
+            logging.info("No columns to filter.")
         #  print column names with contamination
-        logging.info(
-            "Contaminations indicated in following columns: ",
-            self.filter_columns,
-            "are removed",
-        )
+        else:
+            logging.info(
+            f"Contaminations indicated in following columns: {self.filter_columns} are removed"
+            )
 
-        protein_groups_to_remove = self.rawdata[
-            (self.rawdata[self.filter_columns] == False).any(1)
-        ][self.index_column].tolist()
-        self.mat = self.drop(protein_groups_to_remove)
-        self.removed_protein_groups = protein_groups_to_remove
-        logging.info(
+            protein_groups_to_remove = self.rawdata[
+            (self.rawdata[self.filter_columns] == True).any(1)
+            ][self.index_column].tolist()
+            self.mat = self.mat.drop(protein_groups_to_remove)
+            self.removed_protein_groups = protein_groups_to_remove
+            logging.info(
             f"str(len(protein_groups_to_remove)) observations have been removed."
-        )
+            )
 
     def preprocess(
         self,
@@ -183,8 +175,7 @@ class proteinObject:
         impute=False,
         qvalue=0.01,
     ):
-
-        if remove_contaminations:
+        if remove_contaminations is True:
             self.preprocess_filter()
 
         if normalization is not None:

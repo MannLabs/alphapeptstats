@@ -10,7 +10,7 @@ class MaxQuantLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="LFQ intentsity [experiment]",
+        intensity_column="LFQ intensity [experiment]",
         index_column="Protein IDs",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",

@@ -41,6 +41,7 @@ class AlphaPeptLoader(BaseLoader):
         self.rawdata["ProteinGroup"] = self.rawdata[self.index_column].map(
             self.standardize_protein_group_column
         )
+        self.index_column = "ProteinGroup"
 
     def load_hdf_protein_table(self, file):
         self.rawdata = pd.read_hdf(file, "protein_table")
@@ -51,7 +52,7 @@ class AlphaPeptLoader(BaseLoader):
         self.rawdata["Reverse"] = np.where(
             self.rawdata[self.index_column].str.contains("REV_"), True, False
         )
-        self.filter_column = ["Reverse"]
+        self.filter_columns = ["Reverse"]
 
     def standardize_protein_group_column(self, entry):
         #  make column with ProteinGroup to make comparison between softwares possible
