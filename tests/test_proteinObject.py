@@ -1,3 +1,4 @@
+from calendar import c
 from math import remainder
 from random import sample
 import unittest
@@ -92,6 +93,8 @@ class BaseTestProteinObject:
 
 
 class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
+    # do testing which requires extra files only on TestAlphaPeptProteinObject
+    # to reduce the amount of compariosn files required
     def setUp(self):
         self.loader = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
         self.metadata_path = "testfiles/alphapept_metadata.xlsx"
@@ -117,6 +120,22 @@ class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
         metadata_path = "testfiles/alphapept_metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape,(2,2))
+    
+    def test_calculate_ttest_fc(self):
+        # are df dimension correct
+        # are calculations correct
+        # take first row
+        pass
+
+    def test_plot_volcano(self):
+        # https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
+        pass
+
+    def test_plot_sampledistribution(self):
+        pass
+
+    def test_plot_correlation_matrix(self):
+        pass
 
 
 class TestMaxQuantProteinObject(BaseTestProteinObject.BaseTest):

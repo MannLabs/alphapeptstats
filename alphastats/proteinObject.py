@@ -20,6 +20,7 @@ import numpy as np
 import logging
 from sklearn.impute import SimpleImputer
 import sys
+from sklearn_pandas import DataFrameMapper
 
 
 class proteinObject:
@@ -175,19 +176,17 @@ class proteinObject:
         impute=False,
         qvalue=0.01,
     ):
-        if remove_contaminations is True:
+        if remove_contaminations:
             self.preprocess_filter()
 
-        if normalization is not None:
-            self.mat = normalization.normalize_data(
-                self.mat,
-                method=normalization,
-                normalize="samples",
-                max_iterations=250,
-                linear_method="l1",
-            )
-            self.normalization = normalization
+        # TODO implement different options to normalize data
+        if normalization:
+            mapper = DataFrameMapper([(self.mat.columns, StandardScaler())])
+            scaled_features = mapper.fit_transform(self.mat.copy())
+            self.mat = pd.DataFrame(scaled_features, index=self.mat.index, columns=self.mat.columns)
+            self.normalization = "Data has been normalized"
 
+        # TODO implement different options of imputation
         if impute:
             imp = SimpleImputer(missing_values=np.nan, strategy="mean")
             imp.fit(self.mat.values)
@@ -225,15 +224,8 @@ class proteinObject:
         return df
 
     def summary(self):
-        """_summary_
-
-        Returns
-        -------
-        _type_
-            _description_
-        """
         # print summary
-        # look at keras model.summary()
+        # TODO look at keras model.summary()
         pass
 
     def calculate_ttest_fc(self, column, group1, group2):
