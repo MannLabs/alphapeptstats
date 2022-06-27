@@ -84,7 +84,6 @@ class proteinObject:
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
 
-    @pandas_cache
     def create_matrix(self):
         """Creates a matrix out of the MaxQuant ProteinGrou p Outputfile, with columns displaying samples and
         row the protein IDs.
