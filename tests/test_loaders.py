@@ -42,7 +42,7 @@ class BaseTestLoader:
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
-            self.obj.rawdata[self.obj.index_column] = "non unique"79
+            self.obj.rawdata[self.obj.index_column] = "non unique"
             self.obj.check_if_indexcolumn_is_unique()
             mock.assert_called_once()
 

@@ -1,4 +1,6 @@
+from ast import Not
 from cmath import isinf
+from multiprocessing.sharedctypes import Value
 from random import sample
 import re
 import pandas as pd
@@ -17,6 +19,7 @@ import dash_bio
 import numpy as np
 import logging
 from sklearn.impute import SimpleImputer
+import sys
 
 
 class proteinObject:
@@ -56,7 +59,7 @@ class proteinObject:
         self.metadata = None
 
         if metadata_path:
-            self.metadata = self.load_metadata(sample_column=sample_column)
+            self.metadata = self.load_metadata(file_path = metadata_path, sample_column=sample_column)
 
         self.experiment_type = None
         self.data_format = None
@@ -75,14 +78,14 @@ class proteinObject:
             logging.error(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
-        if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
-            logging.error(
-                "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
-            )
-        if not isinstance(loader.index_column, str):
-            logging.error(
-                "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
-            )
+        #if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
+        #    logging.error(
+        #        "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+        #    )
+        #if not isinstance(loader.index_column, str):
+        #    logging.error(
+        #        "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+        #    )
 
     def create_matrix(self):
         """Creates a matrix out of the MaxQuant ProteinGrou p Outputfile, with columns displaying samples and
@@ -172,7 +175,6 @@ class proteinObject:
             f"str(len(protein_groups_to_remove)) observations have been removed."
         )
 
-    @pandas_cache
     def preprocess(
         self,
         normalization=None,
@@ -208,9 +210,7 @@ class proteinObject:
         if remove_samples is not None:
             raise NotImplementedError
 
-    def load_metadata(file_path, sample_column):
-        if file_path is not None and sample_column is None:
-            logging.error("sample_column must be specified")
+    def load_metadata(self, file_path, sample_column):
         #  loading file needs to be more beautiful
         if file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
@@ -226,7 +226,8 @@ class proteinObject:
                 "WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file"
             )
             return
-
+        if df is not None and sample_column not in df.columns:
+            logging.error(f"sample_column: {sample_column} not found in {file_path}")
         df.columns = df.columns.str.replace(sample_column, "sample")
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")

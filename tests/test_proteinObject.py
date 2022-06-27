@@ -26,32 +26,46 @@ class BaseTestProteinObject:
             self.obj.check_loader(loader=self.loader)
             mock.assert_not_called()
 
-        @patch("logging.Logger.error")
-        def test_check_loader_error(self, mock):
-            # check if error gets raised with invalid class
+        #@patch("logging.Logger.error")
+        #def test_check_loader_error_invalid_column(self, mock):
             #  invalid index column
-            self.loader.index_column = 100
-            self.obj.check_loader(loader=self.loader)
-            mock.assert_called_once()
+        #    self.loader.index_column = 100
+        #    self.obj.check_loader(loader=self.loader)
+        #    mock.assert_called_once()
 
+        #@patch("logging.Logger.error")
+        #def test_check_loader_error_empty_df(self, mock):
             # empty dataframe
-            self.loader.rawdata = pd.DataFrame()
-            self.obj.check_loader(loader=self.loader)
-            mock.assert_called_once()
+        #    self.loader.rawdata = pd.DataFrame()
+        #    self.obj.check_loader(loader=self.loader)
+        #    mock.assert_called_once()
 
-            #  invalid loader
+        @patch("logging.Logger.error")
+        def test_check_loader_error_invalid_loader(self, mock):
+            #  invalid loader, class
             df = pd.DataFrame()
             self.obj.check_loader(loader=df)
             mock.assert_called_once()
 
         def test_load_metadata(self):
-            # gets dataframe loaded
+            # is dataframe loaded
+            self.assertIsInstance(self.obj.metadata, pd.DataFrame)
+            self.assertFalse(self.obj.metadata.empty)
+        
+        @patch("logging.Logger.error")
+        def test_load_metadata_missing_sample_column(self, mock):
             # is error raised when name of sample column is missing
-            pass
+            path = self.metadata_path
+            self.obj.load_metadata(file_path=path, sample_column="wrong_sample_column")
+            mock.assert_called_once()
 
-        def test_load_metadata_warning(self):
+
+        @patch("logging.Logger.warning")
+        def test_load_metadata_warning(self, mock):
             # is dataframe None and is warning produced
-            pass
+            file_path = "wrong/file.xxx"
+            self.obj.load_metadata(file_path=file_path, sample_column="sample")
+            mock.assert_called_once()
 
         def test_create_matrix(self):
             #  are columns renamed correctly
@@ -73,33 +87,38 @@ class BaseTestProteinObject:
 class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
     def setUp(self):
         self.loader = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        self.obj = proteinObject(loader=self.loader)
+        self.metadata_path = "testfiles/alphapept_metadata.csv"
+        self.obj = proteinObject(
+            loader=self.loader,
+            metadata_path="testfiles/alphapept_metadata.csv",
+            sample_column="sample"
+        )
         # self.hdf_file =""
 
-
-class TestMaxQuantLoader(BaseTestProteinObject.BaseTest):
+class TestMaxQuantProteinObject(BaseTestProteinObject.BaseTest):
     def setUp(self):
         self.loader = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
+        self.metadata_path = "testfiles/maxquant_metadata.xlsx"
         self.obj = proteinObject(
             loader=self.loader,
             metadata_path="testfiles/maxquant_metadata.xlsx",
             sample_column="sample",
         )
 
-
-class TestDIANNLoader(BaseTestProteinObject.BaseTest):
+class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
     def setUp(self):
         self.loader = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
+        self.metadata_path = "testfiles/diann_metadata.xlsx"
         self.obj = proteinObject(
             loader=self.loader,
             metadata_path="testfiles/diann_metadata.xlsx",
             sample_column="analytical_sample external_id",
         )
 
-
-class TestFragPipeLoader(BaseTestProteinObject.BaseTest):
+class TestFragPipeProteinObject(BaseTestProteinObject.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
+        self.metadata_path = "testfiles/fragpipe_metadata.xlsx"
         self.obj = proteinObject(
             loader=self.loader,
             metadata_path="testfiles/fragpipe_metadata.xlsx",
