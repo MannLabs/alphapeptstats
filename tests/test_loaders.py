@@ -63,7 +63,7 @@ class BaseTestLoader:
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        # self.hdf_file =""
+        self.hdf_file ="testfiles/alphapept_results.hdf"
 
     def test_df_dimensions(self):
         # test if dataframe gets loaded correctly
@@ -75,13 +75,12 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
     def test_load_hdf_protein_table(self):
         #  TODO get corresponding HDF file
-        # hdf_format = AlphaPeptLoader(file=self.hdf_file)
+        hdf_format = AlphaPeptLoader(file=self.hdf_file)
         # test if hdf file gets loaded
-        # n_rows = hdf_format.shape[0]
-        # n_columns = hdf_format.shape[1]
-        # self.assertEqual(n_rows, 5)
-        # self.assertEqual(n_columns, 3781)
-        pass
+        n_rows = hdf_format.rawdata.shape[0]
+        n_columns = hdf_format.rawdata.shape[1]
+        self.assertEqual(n_rows, 3781)
+        self.assertEqual(n_columns, 7)
 
     def test_add_contamination_column(self):
         # check if contamination column has been added
