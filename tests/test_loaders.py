@@ -1,3 +1,4 @@
+from termios import N_STRIP
 import unittest
 import pandas as pd
 import logging
@@ -139,6 +140,10 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
         self.assertEqual(n_rows, 10)
         self.assertEqual(n_columns, 25)
 
+    def add_tag_to_sample_columns(self):
+        # get number of columns that have tag
+        n_taged_samples = len(self.obj.rawdata.filter(like = "_Intensity").columns.to_list())
+        self.assertEqual(n_taged_samples, 20)
 
 class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUp(self):
