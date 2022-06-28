@@ -148,8 +148,8 @@ class TestMaxQuantProteinObject(BaseTestProteinObject.BaseTest):
             sample_column="sample",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (2611, 312)
-        self.matrix_dim_filtered = (2409, 312)
+        self.matrix_dim = (312, 2611)
+        self.matrix_dim_filtered = (312, 2409)
 
 class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
     def setUp(self):
@@ -161,8 +161,8 @@ class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (10, 20)
-        self.matrix_dim_filtered = (10,20)
+        self.matrix_dim = (20, 10)
+        self.matrix_dim_filtered = (20,10)
 
 class TestFragPipeProteinObject(BaseTestProteinObject.BaseTest):
     def setUp(self):
@@ -177,8 +177,8 @@ class TestFragPipeProteinObject(BaseTestProteinObject.BaseTest):
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (10, 20)
-        self.matrix_dim_filtered = (10, 20)
+        self.matrix_dim = (20, 10)
+        self.matrix_dim_filtered = (20,10)
 
 
 if __name__ == "__main__":

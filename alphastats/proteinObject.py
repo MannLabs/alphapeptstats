@@ -10,7 +10,6 @@ from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from data_cache import pandas_cache
 import os
-from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
@@ -18,34 +17,22 @@ import scipy.stats
 import dash_bio
 import numpy as np
 import logging
-from sklearn.impute import SimpleImputer
 import sys
 from sklearn_pandas import DataFrameMapper
+import sklearn
 
 
 class proteinObject:
-    """_summary_
+    """Analysis Object
     """
-
     def __init__(self, loader, metadata_path: str = None, sample_column=None):
+        """Create proteinObjet/AnalysisObject
 
-        """"
+        Args:
+            loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
+            metadata_path (str, optional): path to metadata file. Defaults to None.
+            sample_column (_type_, optional): column in metadata file indicating the sample IDs. Defaults to None.
         """
-        """Create a Protein Object containing the protein intensity and the corresponding metadata of the samples,
-        ready for analyis 
-
-        Parameters
-        ----------
-        rawfile_path : str
-            path to Protein Intensity file
-        metadata_path : str, optional
-            path to metadata file (xlsx, csv or tsv), by default None
-        intensity_column : str, optional
-            , by default None
-        software : str, optional
-            _description_, by default None
-        """
-
         self.check_loader(loader=loader)
         #  load data from loader object
         self.loader = loader
@@ -60,7 +47,7 @@ class proteinObject:
         self.metadata = None
 
         if metadata_path:
-            self.metadata = self.load_metadata(file_path = metadata_path, sample_column=sample_column)
+            self.load_metadata(file_path = metadata_path, sample_column=sample_column)
 
         self.experiment_type = None
         self.data_format = None
@@ -73,6 +60,11 @@ class proteinObject:
         self.removed_protein_groups = None
 
     def check_loader(self, loader):
+        """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
+
+        Args:
+            loader (_type_): loader
+        """
         if not isinstance(
             loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
         ):
@@ -90,22 +82,8 @@ class proteinObject:
         #    )
 
     def create_matrix(self):
-        """Creates a matrix out of the MaxQuant ProteinGrou p Outputfile, with columns displaying samples and
-        row the protein IDs.
-
-        Parameters
-        ----------
-        df : df
-        Pandas Dataframe of the MaxQuant Output ProteinGroup file
-        intensity_col : str, optional
-        columns , by default "LFQ intensity "
-        proteinID_col : str, optional
-        column in Dataframe containg the Protein IDs, must be unique, by default "Protein IDs"
-
-        Returns
-        -------
-        _type_
-        _description_
+        """Creates a matrix of the Outputfile, with columns displaying features(Proteins) and
+        rows the samples.
         """
         regex_find_intensity_columns = self.intensity_column.replace(
             "[experiment]", ".*"
@@ -116,7 +94,9 @@ class proteinObject:
         # remove Intensity so only sample names remain
         substring_to_remove = regex_find_intensity_columns.replace(".*", "")
         df.columns = df.columns.str.replace(substring_to_remove, "")
-        self.mat = df
+        # transpose dataframe
+        self.mat = df.transpose()
+        # reset preproccessing info
         self.normalization = None
         self.imputation = None
         self.removed_protein_groups = None
@@ -126,6 +106,8 @@ class proteinObject:
         pass
 
     def preprocess_print_info(self):
+        """Print summary of preprocessing steps
+        """
         n_proteins = self.rawdata.shape[0]
         n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
         text = (
@@ -133,7 +115,6 @@ class proteinObject:
             f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}" +
             f"rows with Proteins/Protein Groups have been removed."
         )
-
         if self.normalization is None:
             normalization_text = (
                 f"Data has not been normalized, or has already been normalized by "
@@ -141,66 +122,127 @@ class proteinObject:
             )
         else:
             normalization_text = (
-                f"Data has been normalized using {self.normalization} .\n"
+                f"Data has been normalized using {self.normalization}.\n"
             )
-
         imputation_text = self.imputation
         preprocessing_text = text + normalization_text + imputation_text
         print(preprocessing_text)
 
     def preprocess_filter(self):
-        """_summary_
+        """Removes all observations, that were identified as contaminations. 
         """
         if self.filter_columns is None:
             logging.info("No columns to filter.")
+            return
         #  print column names with contamination
-        else:
-            logging.info(
+        logging.info(
             f"Contaminations indicated in following columns: {self.filter_columns} are removed"
             )
+        protein_groups_to_remove = self.rawdata[
+        (self.rawdata[self.filter_columns] == True).any(1)
+        ][self.index_column].tolist()
+        # remove columns with protin groups
+        self.mat = self.mat.drop(protein_groups_to_remove)
+        self.removed_protein_groups = protein_groups_to_remove
+        logging.info(
+        f"str(len(protein_groups_to_remove)) observations have been removed."
+        )
 
-            protein_groups_to_remove = self.rawdata[
-            (self.rawdata[self.filter_columns] == True).any(1)
-            ][self.index_column].tolist()
-            self.mat = self.mat.drop(protein_groups_to_remove)
-            self.removed_protein_groups = protein_groups_to_remove
-            logging.info(
-            f"str(len(protein_groups_to_remove)) observations have been removed."
-            )
+    def preprocess_impute(self, method):
+        """
+        Impute Data
+        For more information visit:
+        SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
+        k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
+
+        Args:
+            method (str): method to impute data: either "mean", "median" or "knn"
+        """
+        # Imputation using the mean
+        if method == "mean":
+            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="mean")
+            imputation_array = imp.fit_transform(self.mat.values)
+        if method == "median":
+            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="median")
+            imputation_array = imp.fit_transform(self.mat.values)
+        # Imputation using Nearest neighbors imputation
+        # default n_neighbors is 2  - should this optional?
+        if method == "knn":
+            imp = sklearn.impute.KNNImputer(n_neighbors=2, weights="uniform")
+            imputation_array = imp.fit_transform(self.mat.values)
+
+        self.mat = pd.DataFrame(
+            imputation_array, index=self.mat.index, columns=self.mat.columns
+        )
+        self.imputation = f"Missing values were imputed using the {method}."
+
+    def preprocess_normalization(self, method):
+        """
+        Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
+        Z-score normalization equals standaridzation using StandardScaler: 
+        https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+        For more information visit.
+        Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
+        
+        Args:
+            method (str): method to normalize data: either "zscore", "quantile", "linear"
+        """
+        # zscore normalization == standardization
+        if method == "zscore":
+            scaler = sklearn.preprocessing.StandardScaler()
+            normalized_array = scaler.fit_transform(self.mat.values)
+
+        if method == "quantile":
+            qt = sklearn.preprocessing.QuantileTransformer(n_quantiles=10, random_state=0)
+            normalized_array = qt.fit_transform(self.mat.values)
+
+        if method == "linear":
+            normalized_array = sklearn.preprocessing.normalize(self.mat.values, norm='l2', 
+            axis=1, copy=True, return_norm=False)
+
+        self.mat = pd.DataFrame(
+            normalized_array, index=self.mat.index, columns=self.mat.columns
+        )
+        self.normalization = f"Data has been normalized using {method} normalization"
+
 
     def preprocess(
         self,
+        remove_contaminations=False,  
         normalization=None,
-        remove_contaminations=False,  #  needs to be changed when using different loaders
+        impute=None,
         remove_samples=None,
-        impute=False,
-        qvalue=0.01,
+        qvalue=0.01
     ):
+        """Preprocess Protein data
+
+        Args:
+            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination
+            . Defaults to False.
+            normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
+            remove_samples (_type_, optional): _description_. Defaults to None.
+            impute (str, optional):  method to impute data: either "mean", "median" or "knn". Defaults to None.
+            qvalue (float, optional): _description_. Defaults to 0.01.
+
+        Raises:
+            NotImplementedError: _description_
+        """
         if remove_contaminations:
             self.preprocess_filter()
-
-        # TODO implement different options to normalize data
-        if normalization:
-            mapper = DataFrameMapper([(self.mat.columns, StandardScaler())])
-            scaled_features = mapper.fit_transform(self.mat.copy())
-            self.mat = pd.DataFrame(scaled_features, index=self.mat.index, columns=self.mat.columns)
-            self.normalization = "Data has been normalized"
-
-        # TODO implement different options of imputation
-        if impute:
-            imp = SimpleImputer(missing_values=np.nan, strategy="mean")
-            imp.fit(self.mat.values)
-            imputation_array = imp.transform(self.mat.values)
-            # https://scikit-learn.org/stable/modules/impute.html
-            self.mat = pd.DataFrame(
-                imputation_array, index=self.mat.index, columns=self.mat.columns
-            )
-            self.imputation = "Missing values were imputed using the mean."
-
+        if normalization is not None:
+            self.preprocess_normalization(method=normalization)
+        if impute is not None:
+            self.preprocess_impute(method=impute)
         if remove_samples is not None:
             raise NotImplementedError
 
     def load_metadata(self, file_path, sample_column):
+        """Load metadata
+
+        Args:
+            file_path (str): path to metadata file
+            sample_column (str): column with sample IDs
+        """
         #  loading file needs to be more beautiful
         if file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
@@ -221,7 +263,7 @@ class proteinObject:
         df.columns = df.columns.str.replace(sample_column, "sample")
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
-        return df
+        self.metadata = df
 
     def summary(self):
         # print summary
@@ -247,12 +289,12 @@ class proteinObject:
             "sample"
         ].tolist()
         # calculate fold change (if its is not logarithimic normalized)
+        mat_transpose = self.mat.transpose()
         if self.normalization != "log":
             fc = (
-                self.mat[group1_samples].T.mean().values
-                / self.mat[group2_samples].T.mean().values
+                mat_transpose[group1_samples].T.mean().values
+                / mat_transpose[group2_samples].T.mean().values
             )
-
         # calculate p-values
         # output needs to be checked
         p_values = self.mat.apply(
