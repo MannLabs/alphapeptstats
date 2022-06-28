@@ -1,11 +1,14 @@
 from calendar import c
 from math import remainder
 from random import sample
+from ssl import TLSVersion
 import unittest
 import pandas as pd
 import logging
 from unittest.mock import patch
 import logging
+import numpy as np
+import pandas as pd
 #from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
 from alphastats.loader.BaseLoader import BaseLoader
@@ -85,11 +88,6 @@ class BaseTestProteinObject:
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
             # info has been printed at least once
             mock.assert_called()
-           
-        def test_preprocess(self):
-            # is preprocess_filter called when remove_contaminations true
-            # is error printed when software doesnt include contamination columns
-            pass
 
 
 class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
@@ -104,22 +102,90 @@ class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
             sample_column="sample"
         )
         # expected dimensions of matrix
-        self.matrix_dim = (3781, 2)
-        self.matrix_dim_filtered = (3743, 2)
+        self.matrix_dim = (2, 3781)
+        self.matrix_dim_filtered = (2, 3743)
     
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
+        print("txt")
         metadata_path = "testfiles/alphapept_metadata.txt"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape,(2,2))
 
+        print("tsv")
         metadata_path = "testfiles/alphapept_metadata.tsv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape,(2,2))
 
+        print("csv")
         metadata_path = "testfiles/alphapept_metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape,(2,2))
+
+    def test_preprocess_normalize_zscore(self):
+        self.obj.mat = pd.DataFrame({'a': [2,5,4], 'b':[5,4,4], 'c':[0,10,8]})
+        # zscore Normalization
+        self.obj.preprocess(normalization="zscore")
+        expected_mat = pd.DataFrame(
+            {'a': [-1.33630621,  1.06904497,  0.26726124], 
+        'b':[ 1.41421356, -0.70710678, -0.70710678], 
+        'c':[-1.38873015,  0.9258201 ,  0.46291005]}
+        )
+        #self.assertEqual(self.obj.mat.values, expected_mat.values)
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
+    def test_preprocess_normalize_quantile(self):
+        self.obj.mat = pd.DataFrame({'a': [2,5,4], 'b':[5,4,4], 'c':[0,10,8]})
+        # Quantile Normalization
+        self.obj.preprocess(normalization="quantile")
+        expected_mat = pd.DataFrame(
+            {'a': [0. , 1. , 0.5], 
+        'b': [1. , 0. , 0. ], 
+        'c':[0. , 1. , 0.5]}
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+    
+    def test_preprocess_normalize_linear(self):
+        self.obj.mat = pd.DataFrame({'a': [2,5,4], 'b':[5,4,4], 'c':[0,10,8]})
+        # Linear Normalization
+        self.obj.preprocess(normalization="linear")
+        expected_mat = pd.DataFrame(
+            {'a': [0.37139068, 0.42107596, 0.40824829], 
+        'b': [0.92847669, 0.33686077, 0.40824829], 
+        'c':[0.        , 0.84215192, 0.81649658]}
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
+    def test_preprocess_imputation_mean(self):
+        self.obj.mat = pd.DataFrame({'a': [2,np.nan,4], 'b':[5,4,4], 'c':[np.nan,10,np.nan]})
+        self.obj.preprocess(imputation="mean")
+        expected_mat = pd.DataFrame(
+            {'a': [ 2.,  3.,  4.], 
+        'b': [ 5.,  4.,  4.], 
+        'c':[10., 10., 10.]}
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
+    def test_preprocess_imputation_median(self):
+        self.obj.mat = pd.DataFrame({'a': [2,np.nan,4], 'b':[5,4,4], 'c':[np.nan,10,np.nan]})
+        self.obj.preprocess(imputation="median")
+        expected_mat = pd.DataFrame(
+            {'a': [ 2.,  3.,  4.], 
+        'b': [ 5.,  4.,  4.], 
+        'c':[10., 10., 10.]}
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
+    def test_preprocess_imputation_knn(self):
+        self.obj.mat = pd.DataFrame({'a': [2,np.nan,4], 'b':[5,4,4], 'c':[np.nan,10,np.nan]})
+        self.obj.preprocess(imputation="knn")
+        expected_mat = pd.DataFrame(
+            {'a': [ 2.,  3.,  4.], 
+        'b': [ 5.,  4.,  4.], 
+        'c':[10., 10., 10.]}
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+  
     
     def test_calculate_ttest_fc(self):
         # are df dimension correct
