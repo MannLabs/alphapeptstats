@@ -142,10 +142,10 @@ class proteinObject:
         (self.rawdata[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
         # remove columns with protin groups
-        self.mat = self.mat.drop(protein_groups_to_remove)
+        self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
         self.removed_protein_groups = protein_groups_to_remove
         logging.info(
-        f"str(len(protein_groups_to_remove)) observations have been removed."
+        f"{str(len(protein_groups_to_remove))} observations have been removed."
         )
 
     def preprocess_impute(self, method):
@@ -197,8 +197,7 @@ class proteinObject:
             normalized_array = qt.fit_transform(self.mat.values)
 
         if method == "linear":
-            normalized_array = sklearn.preprocessing.normalize(self.mat.values, norm='l2', 
-            axis=1, copy=True, return_norm=False)
+            normalized_array = sklearn.preprocessing.normalize(self.mat.values, norm='l2')
 
         self.mat = pd.DataFrame(
             normalized_array, index=self.mat.index, columns=self.mat.columns
@@ -210,7 +209,7 @@ class proteinObject:
         self,
         remove_contaminations=False,  
         normalization=None,
-        impute=None,
+        imputation=None,
         remove_samples=None,
         qvalue=0.01
     ):
@@ -221,7 +220,7 @@ class proteinObject:
             . Defaults to False.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
             remove_samples (_type_, optional): _description_. Defaults to None.
-            impute (str, optional):  method to impute data: either "mean", "median" or "knn". Defaults to None.
+            imputation (str, optional):  method to impute data: either "mean", "median" or "knn". Defaults to None.
             qvalue (float, optional): _description_. Defaults to 0.01.
 
         Raises:
@@ -231,8 +230,8 @@ class proteinObject:
             self.preprocess_filter()
         if normalization is not None:
             self.preprocess_normalization(method=normalization)
-        if impute is not None:
-            self.preprocess_impute(method=impute)
+        if imputation is not None:
+            self.preprocess_impute(method=imputation)
         if remove_samples is not None:
             raise NotImplementedError
 
