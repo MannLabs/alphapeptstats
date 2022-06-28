@@ -8,7 +8,6 @@ from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from data_cache import pandas_cache
 import os
 import plotly.express as px
 import scipy.stats
@@ -277,6 +276,7 @@ class DataSet:
             pandas Dataframe: pandas Dataframe with foldchange, foldchange_log2 and pvalue
             for each ProteinID/ProteinGroup between group1 and group2
         """
+        # TODO pass the number of components
         # get samples names of two groupes
         group1_samples = self.metadata[self.metadata[column] == group1][
             "sample"
