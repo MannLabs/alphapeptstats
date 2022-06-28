@@ -25,6 +25,7 @@ import sklearn
 class proteinObject:
     """Analysis Object
     """
+
     def __init__(self, loader, metadata_path: str = None, sample_column=None):
         """Create proteinObjet/AnalysisObject
 
@@ -47,7 +48,7 @@ class proteinObject:
         self.metadata = None
 
         if metadata_path:
-            self.load_metadata(file_path = metadata_path, sample_column=sample_column)
+            self.load_metadata(file_path=metadata_path, sample_column=sample_column)
 
         self.experiment_type = None
         self.data_format = None
@@ -72,11 +73,11 @@ class proteinObject:
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
 
-        #if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
+        # if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
         #    logging.error(
         #        "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
         #    )
-        #if not isinstance(loader.index_column, str):
+        # if not isinstance(loader.index_column, str):
         #    logging.error(
         #        "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
         #    )
@@ -96,7 +97,7 @@ class proteinObject:
         df.columns = df.columns.str.replace(substring_to_remove, "")
         # transpose dataframe
         self.mat = df.transpose()
-        # reset preproccessing info
+        #  reset preproccessing info
         self.normalization = None
         self.imputation = None
         self.removed_protein_groups = None
@@ -111,9 +112,9 @@ class proteinObject:
         n_proteins = self.rawdata.shape[0]
         n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
         text = (
-            f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins and " +
-            f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}" +
-            f"rows with Proteins/Protein Groups have been removed."
+            f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins and "
+            + f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}"
+            + f"rows with Proteins/Protein Groups have been removed."
         )
         if self.normalization is None:
             normalization_text = (
@@ -137,15 +138,15 @@ class proteinObject:
         #  print column names with contamination
         logging.info(
             f"Contaminations indicated in following columns: {self.filter_columns} are removed"
-            )
+        )
         protein_groups_to_remove = self.rawdata[
-        (self.rawdata[self.filter_columns] == True).any(1)
+            (self.rawdata[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
         # remove columns with protin groups
         self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
         self.removed_protein_groups = protein_groups_to_remove
         logging.info(
-        f"{str(len(protein_groups_to_remove))} observations have been removed."
+            f"{str(len(protein_groups_to_remove))} observations have been removed."
         )
 
     def preprocess_impute(self, method):
@@ -193,25 +194,28 @@ class proteinObject:
             normalized_array = scaler.fit_transform(self.mat.values)
 
         if method == "quantile":
-            qt = sklearn.preprocessing.QuantileTransformer(n_quantiles=10, random_state=0)
+            qt = sklearn.preprocessing.QuantileTransformer(
+                n_quantiles=10, random_state=0
+            )
             normalized_array = qt.fit_transform(self.mat.values)
 
         if method == "linear":
-            normalized_array = sklearn.preprocessing.normalize(self.mat.values, norm='l2')
+            normalized_array = sklearn.preprocessing.normalize(
+                self.mat.values, norm="l2"
+            )
 
         self.mat = pd.DataFrame(
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
         self.normalization = f"Data has been normalized using {method} normalization"
 
-
     def preprocess(
         self,
-        remove_contaminations=False,  
+        remove_contaminations=False,
         normalization=None,
         imputation=None,
         remove_samples=None,
-        qvalue=0.01
+        qvalue=0.01,
     ):
         """Preprocess Protein data
 

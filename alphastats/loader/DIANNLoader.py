@@ -30,11 +30,23 @@ class DIANNLoader(BaseLoader):
     def add_tag_to_sample_columns(self):
         # when creating matrix sample columns wont be found when it is only specified as [experiment]
         # TODO this is very fragile as changes in column names can break this
-        no_sample_column = ["PG.Q.value", "Global.PG.Q.value", "PTM.Q.value", "PTM.Site.Confidence",
-            "PG.Quantity", "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description"]
-        self.rawdata.columns = [str(col) + "_Intensity" if col not in no_sample_column else str(col) for col in self.rawdata.columns]
+        no_sample_column = [
+            "PG.Q.value",
+            "Global.PG.Q.value",
+            "PTM.Q.value",
+            "PTM.Site.Confidence",
+            "PG.Quantity",
+            "Protein.Group",
+            "Protein.Ids",
+            "Protein.Names",
+            "Genes",
+            "First.Protein.Description",
+        ]
+        self.rawdata.columns = [
+            str(col) + "_Intensity" if col not in no_sample_column else str(col)
+            for col in self.rawdata.columns
+        ]
         self.intensity_column = "[experiment]_Intensity"
-
 
 
 """

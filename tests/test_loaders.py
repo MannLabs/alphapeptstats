@@ -63,7 +63,7 @@ class BaseTestLoader:
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        self.hdf_file ="testfiles/alphapept_results.hdf"
+        self.hdf_file = "testfiles/alphapept_results.hdf"
 
     def test_df_dimensions(self):
         # test if dataframe gets loaded correctly
@@ -141,8 +141,11 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
 
     def add_tag_to_sample_columns(self):
         # get number of columns that have tag
-        n_taged_samples = len(self.obj.rawdata.filter(like = "_Intensity").columns.to_list())
+        n_taged_samples = len(
+            self.obj.rawdata.filter(like="_Intensity").columns.to_list()
+        )
         self.assertEqual(n_taged_samples, 20)
+
 
 class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUp(self):
