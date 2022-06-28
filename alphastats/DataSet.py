@@ -20,7 +20,7 @@ from sklearn_pandas import DataFrameMapper
 import sklearn
 
 
-class proteinObject:
+class DataSet:
     """Analysis Object
     """
 

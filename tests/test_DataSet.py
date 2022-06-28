@@ -17,12 +17,12 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.proteinObject import proteinObject
+from alphastats.DataSet import DataSet
 
 logger = logging.getLogger(__name__)
 
 
-class BaseTestProteinObject:
+class BaseTestDataSet:
     # parent class of test loader for common tests among loaders
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
@@ -103,20 +103,20 @@ class BaseTestProteinObject:
             self.assertTrue(isinstance(df, pd.DataFrame))
             self.assertFalse(df.empty)
 
-        @patch.object(proteinObject, "preprocess")
+        @patch.object(DataSet, "preprocess")
         def test_plot_pca_normalization(self, mock):
             # check if preprocess gets called when data is not normalized/standardized
             self.obj.plot_pca()
             mock.assert_called_once()
 
 
-class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
-    #  do testing which requires extra files only on TestAlphaPeptProteinObject
+class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
+    #  do testing which requires extra files only on TestAlphaPeptDataSet
     # to reduce the amount of compariosn files required
     def setUp(self):
         self.loader = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
         self.metadata_path = "testfiles/alphapept_metadata.csv"
-        self.obj = proteinObject(
+        self.obj = DataSet(
             loader=self.loader,
             metadata_path="testfiles/alphapept_metadata.csv",
             sample_column="sample",
@@ -223,11 +223,11 @@ class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
         pass
 
 
-class TestMaxQuantProteinObject(BaseTestProteinObject.BaseTest):
+class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
         self.metadata_path = "testfiles/maxquant_metadata.xlsx"
-        self.obj = proteinObject(
+        self.obj = DataSet(
             loader=self.loader,
             metadata_path="testfiles/maxquant_metadata.xlsx",
             sample_column="sample",
@@ -238,11 +238,11 @@ class TestMaxQuantProteinObject(BaseTestProteinObject.BaseTest):
         self.comparison_column = "disease"
 
 
-class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
+class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
         self.metadata_path = "testfiles/diann_metadata.xlsx"
-        self.obj = proteinObject(
+        self.obj = DataSet(
             loader=self.loader,
             metadata_path="testfiles/diann_metadata.xlsx",
             sample_column="analytical_sample external_id",
@@ -253,14 +253,14 @@ class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
         self.comparison_column = "grouping1"
 
 
-class TestFragPipeProteinObject(BaseTestProteinObject.BaseTest):
+class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(
             file="testfiles/fragpipe_combined_proteins.tsv",
             intensity_column="[experiment] Razor Intensity",
         )
         self.metadata_path = "testfiles/fragpipe_metadata.xlsx"
-        self.obj = proteinObject(
+        self.obj = DataSet(
             loader=self.loader,
             metadata_path="testfiles/fragpipe_metadata.xlsx",
             sample_column="analytical_sample external_id",
