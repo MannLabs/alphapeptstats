@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseTestProteinObject:
-    #  parent class of test loader for common tests among loaders
+    # parent class of test loader for common tests among loaders
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
@@ -33,19 +33,19 @@ class BaseTestProteinObject:
             self.obj.check_loader(loader=self.loader)
             mock.assert_not_called()
 
-        # @patch("logging.Logger.error")
-        # def test_check_loader_error_invalid_column(self, mock):
-        #  invalid index column
-        #    self.loader.index_column = 100
-        #    self.obj.check_loader(loader=self.loader)
-        #    mock.assert_called_once()
+        @patch("logging.Logger.error")
+        def test_check_loader_error_invalid_column(self, mock):
+            #  invalid index column
+            self.loader.index_column = 100
+            self.obj.check_loader(loader=self.loader)
+            mock.assert_called_once()
 
-        # @patch("logging.Logger.error")
-        # def test_check_loader_error_empty_df(self, mock):
-        # empty dataframe
-        #    self.loader.rawdata = pd.DataFrame()
-        #    self.obj.check_loader(loader=self.loader)
-        #    mock.assert_called_once()
+        @patch("logging.Logger.error")
+        def test_check_loader_error_empty_df(self, mock):
+            # empty dataframe
+            self.loader.rawdata = pd.DataFrame()
+            self.obj.check_loader(loader=self.loader)
+            mock.assert_called_once()
 
         @patch("logging.Logger.error")
         def test_check_loader_error_invalid_loader(self, mock):
@@ -92,35 +92,51 @@ class BaseTestProteinObject:
             #  info has been printed at least once
             mock.assert_called()
 
+        def test_calculate_ttest_fc(self):
+            # get groups from compariosn column
+            groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
+            group1, group2 = groups[0], groups[1]
+            df = self.obj.calculate_ttest_fc(
+                column=self.comparison_column, group1=group1, group2=group2
+            )
+            # check if dataframe gets created
+            self.assertTrue(isinstance(df, pd.DataFrame))
+            self.assertFalse(df.empty)
+
+        @patch.object(proteinObject, "preprocess")
+        def test_plot_pca_normalization(self, mock):
+            # check if preprocess gets called when data is not normalized/standardized
+            self.obj.plot_pca()
+            mock.assert_called_once()
+
 
 class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
     #  do testing which requires extra files only on TestAlphaPeptProteinObject
     # to reduce the amount of compariosn files required
     def setUp(self):
         self.loader = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        self.metadata_path = "testfiles/alphapept_metadata.xlsx"
+        self.metadata_path = "testfiles/alphapept_metadata.csv"
         self.obj = proteinObject(
             loader=self.loader,
-            metadata_path="testfiles/alphapept_metadata.xlsx",
+            metadata_path="testfiles/alphapept_metadata.csv",
             sample_column="sample",
         )
         # expected dimensions of matrix
         self.matrix_dim = (2, 3781)
         self.matrix_dim_filtered = (2, 3743)
+        #  metadata column to compare for PCA, t-test, etc.
+        self.comparison_column = "disease"
 
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
-        print("txt")
         metadata_path = "testfiles/alphapept_metadata.txt"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-        print("tsv")
         metadata_path = "testfiles/alphapept_metadata.tsv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-        print("csv")
         metadata_path = "testfiles/alphapept_metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
@@ -136,7 +152,6 @@ class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
                 "c": [-1.38873015, 0.9258201, 0.46291005],
             }
         )
-        # self.assertEqual(self.obj.mat.values, expected_mat.values)
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
     def test_preprocess_normalize_quantile(self):
@@ -191,20 +206,20 @@ class TestAlphaPeptProteinObject(BaseTestProteinObject.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
-    def test_calculate_ttest_fc(self):
+    def test_calculate_ttest_fc_results(self):
         # are df dimension correct
         # are calculations correct
         # take first row
         pass
 
-    def test_plot_volcano(self):
+    def test_plot_volcano_figure_comparison(self):
         #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
         pass
 
-    def test_plot_sampledistribution(self):
+    def test_plot_sampledistribution_figure_comparison(self):
         pass
 
-    def test_plot_correlation_matrix(self):
+    def test_plot_correlation_matrix_figure_comparison(self):
         pass
 
 
@@ -220,6 +235,7 @@ class TestMaxQuantProteinObject(BaseTestProteinObject.BaseTest):
         # expected dimensions of matrix
         self.matrix_dim = (312, 2611)
         self.matrix_dim_filtered = (312, 2409)
+        self.comparison_column = "disease"
 
 
 class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
@@ -234,6 +250,7 @@ class TestDIANNProteinObject(BaseTestProteinObject.BaseTest):
         # expected dimensions of matrix
         self.matrix_dim = (20, 10)
         self.matrix_dim_filtered = (20, 10)
+        self.comparison_column = "grouping1"
 
 
 class TestFragPipeProteinObject(BaseTestProteinObject.BaseTest):
@@ -251,6 +268,7 @@ class TestFragPipeProteinObject(BaseTestProteinObject.BaseTest):
         # expected dimensions of matrix
         self.matrix_dim = (20, 10)
         self.matrix_dim_filtered = (20, 10)
+        self.comparison_column = "grouping1"
 
 
 if __name__ == "__main__":

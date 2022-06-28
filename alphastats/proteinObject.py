@@ -11,8 +11,6 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from data_cache import pandas_cache
 import os
 import plotly.express as px
-from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
 import scipy.stats
 import dash_bio
 import numpy as np
@@ -46,18 +44,16 @@ class proteinObject:
         # include filtering before
         self.create_matrix()
         self.metadata = None
-
         if metadata_path:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
 
-        self.experiment_type = None
-        self.data_format = None
         # save preprocessing settings
         self.preprocessing = None
         # update normalization when self.matrix is normalized, filtered
-        self.normalization = None
-        self.removed_protein_groups = None
-        self.imputation = "Data is not imputed."
+        self.normalization, self.imputation = (
+            "Data is not normalized.",
+            "Data is not imputed.",
+        )
         self.removed_protein_groups = None
 
     def check_loader(self, loader):
@@ -72,15 +68,17 @@ class proteinObject:
             logging.error(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
-
-        # if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
-        #    logging.error(
-        #        "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
-        #    )
-        # if not isinstance(loader.index_column, str):
-        #    logging.error(
-        #        "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
-        #    )
+            return
+        if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
+            logging.error(
+                "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+            )
+            return
+        if not isinstance(loader.index_column, str):
+            logging.error(
+                "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+            )
+            return
 
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features(Proteins) and
@@ -97,9 +95,11 @@ class proteinObject:
         df.columns = df.columns.str.replace(substring_to_remove, "")
         # transpose dataframe
         self.mat = df.transpose()
-        #  reset preproccessing info
-        self.normalization = None
-        self.imputation = None
+        # reset preproccessing info
+        self.normalization, self.imputation = (
+            "Data is not normalized",
+            "Data is not imputed",
+        )
         self.removed_protein_groups = None
 
     def preprocess_exclude_sampels(self, sample_list):
@@ -116,17 +116,7 @@ class proteinObject:
             + f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}"
             + f"rows with Proteins/Protein Groups have been removed."
         )
-        if self.normalization is None:
-            normalization_text = (
-                f"Data has not been normalized, or has already been normalized by "
-                f"{self.software}.\n"
-            )
-        else:
-            normalization_text = (
-                f"Data has been normalized using {self.normalization}.\n"
-            )
-        imputation_text = self.imputation
-        preprocessing_text = text + normalization_text + imputation_text
+        preprocessing_text = text + self.normalization + self.imputation
         print(preprocessing_text)
 
     def preprocess_filter(self):
@@ -203,7 +193,7 @@ class proteinObject:
             normalized_array = sklearn.preprocessing.normalize(
                 self.mat.values, norm="l2"
             )
-
+        # TODO logarithimic normalization
         self.mat = pd.DataFrame(
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
@@ -220,11 +210,13 @@ class proteinObject:
         """Preprocess Protein data
 
         Args:
-            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination
-            . Defaults to False.
-            normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
+            remove_contaminations (bool, optional): remove ProteinGroups that are identified 
+            as contamination. Defaults to False.
+            normalization (str, optional): method to normalize data: either "zscore", "quantile", 
+            "linear". Defaults to None.
             remove_samples (_type_, optional): _description_. Defaults to None.
-            imputation (str, optional):  method to impute data: either "mean", "median" or "knn". Defaults to None.
+            imputation (str, optional):  method to impute data: either "mean", "median" or "knn". 
+            Defaults to None.
             qvalue (float, optional): _description_. Defaults to 0.01.
 
         Raises:
@@ -240,11 +232,11 @@ class proteinObject:
             raise NotImplementedError
 
     def load_metadata(self, file_path, sample_column):
-        """Load metadata
+        """Load metadata either xlsx, txt, csv or txt file
 
         Args:
             file_path (str): path to metadata file
-            sample_column (str): column with sample IDs
+            sample_column (str): column name with sample IDs
         """
         #  loading file needs to be more beautiful
         if file_path.endswith(".xlsx"):
@@ -257,7 +249,7 @@ class proteinObject:
             df = pd.read_csv(file_path)
         else:
             df = None
-            logging.warn(
+            logging.warning(
                 "WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file"
             )
             return
@@ -274,15 +266,16 @@ class proteinObject:
         pass
 
     def calculate_ttest_fc(self, column, group1, group2):
-        """_summary_
+        """Calculate t-test and fold change between two groups
 
         Args:
-            column (_type_): _description_
-            group1 (_type_): _description_
-            group2 (_type_): _description_
+            column (str): column name in the metadata file with the two groups to compare
+            group1 (str): name of group to compare needs to be present in column
+            group2 (str): nme of group to compare needs to be present in column
 
         Returns:
-            _type_: _description_
+            pandas Dataframe: pandas Dataframe with foldchange, foldchange_log2 and pvalue
+            for each ProteinID/ProteinGroup between group1 and group2
         """
         # get samples names of two groupes
         group1_samples = self.metadata[self.metadata[column] == group1][
@@ -298,9 +291,8 @@ class proteinObject:
                 mat_transpose[group1_samples].T.mean().values
                 / mat_transpose[group2_samples].T.mean().values
             )
-        # calculate p-values
-        # output needs to be checked
-        p_values = self.mat.apply(
+
+        p_values = mat_transpose.apply(
             lambda row: scipy.stats.ttest_ind(
                 row[group1_samples].values.flatten(),
                 row[group2_samples].values.flatten(),
@@ -308,34 +300,38 @@ class proteinObject:
             axis=1,
         )
         df = pd.DataFrame()
-        df["Protein IDs"] = p_values.index.tolist()
-        df["fc"] = fc
-        df["fc_log2"] = np.log2(fc)
-        df["pvalue"] = p_values.values
-        return df.dropna()
+        df["Protein IDs"], df["pvalue"] = p_values.index.tolist(), p_values.values
+        df["foldchange"], df["foldchange_log2"] = fc, np.log2(fc)
+        return df
 
     def plot_pca(self, group=None):
-        """plot PCA
+        """Plot Principal Component Analysis (PCA)
 
-        Parameters
-        ----------
-        group : _type_, optional
-            _description_, by default None
+        Args:
+            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+
+        Returns:
+            _type_: plotly
         """
+        if self.imputation is None and self.mat.isna().values.any():
+            logging.warning(
+                "Data contains missing values. Missing values will replaced with 0. Consider Imputation."
+            )
+
+        if self.normalization == "Data is not normalized.":
+            logging.info(
+                "Data has not been normalized. Data will be normalized using zscore-Normalization"
+            )
+            self.preprocess(normalization="zscore")
+
         if group:
             mat = self.mat[self.metadata["sample"].tolist()]
         else:
             mat = self.mat
+        mat = mat.fillna(0)
 
-        #  needs to be checked with publications
-        # depends on normalization whether NA can be replaced with 0
-        if self.imputation is None and self.mat.isna().values.any():
-            logging.warn("Data contains missing values. Consider Imputation ")
-        mat = mat.fillna(0)  # print warning depending on imputatio
-        pipeline = Pipeline(
-            [("scaling", StandardScaler()), ("pca", PCA(n_components=2))]
-        )
-        components = pipeline.fit_transform(mat.transpose())
+        pca = sklearn.decomposition.PCA(n_components=2)
+        components = pca.fit_transform(mat)
 
         if group:
             fig = px.scatter(components, x=0, y=1, color=self.metadata[group])
@@ -371,7 +367,7 @@ class proteinObject:
         result = self.calculate_ttest_fc(column, group1, group2)
         volcano_plot = dash_bio.VolcanoPlot(
             dataframe=result,
-            effect_size="fc_log2",
+            effect_size="foldchange_log2",
             p="pvalue",
             gene=None,
             snp=None,
