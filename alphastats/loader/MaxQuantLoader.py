@@ -1,4 +1,4 @@
-from alphastats.loader import BaseLoader
+from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
 
@@ -6,10 +6,11 @@ import numpy as np
 class MaxQuantLoader(BaseLoader):
     """Loader for MaxQuant outputfiles
     """
+
     def __init__(
         self,
         file,
-        intensity_column="LFQ intentsity [experiment]",
+        intensity_column="LFQ intensity [experiment]",
         index_column="Protein IDs",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
@@ -26,7 +27,7 @@ class MaxQuantLoader(BaseLoader):
             sep (str, optional): separation of the input file. Defaults to "\t".
         """
 
-        super.__init__(file, intensity_column, index_column, sep)
+        super().__init__(file, intensity_column, index_column, sep)
 
         self.filter_columns = filter_columns
         self.confidence_column = confidence_column

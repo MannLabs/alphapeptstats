@@ -1,5 +1,5 @@
 from operator import index
-from alphastats.loader import BaseLoader
+from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
 
@@ -8,6 +8,7 @@ class AlphaPeptLoader(BaseLoader):
     """Loader for AlphaPept outputfiles 
     https://github.com/MannLabs/alphapept
     """
+
     def __init__(
         self,
         file,
@@ -31,19 +32,18 @@ class AlphaPeptLoader(BaseLoader):
 
         self.intensity_column = intensity_column
         self.index_column = index_column
+        self.filter_columns = None
+        self.confidence_column = None
+        self.software = "AlphaPept"
         # add contamination column "Reverse"
         self.add_contamination_column()
         #  make ProteinGroup column
         self.rawdata["ProteinGroup"] = self.rawdata[self.index_column].map(
             self.standardize_protein_group_column
         )
+        self.index_column = "ProteinGroup"
 
     def load_hdf_protein_table(self, file):
-        """_summary_
-
-        Args:
-            file (_type_): _description_
-        """
         self.rawdata = pd.read_hdf(file, "protein_table")
 
     def add_contamination_column(self):
@@ -52,7 +52,7 @@ class AlphaPeptLoader(BaseLoader):
         self.rawdata["Reverse"] = np.where(
             self.rawdata[self.index_column].str.contains("REV_"), True, False
         )
-        self.filter_column = ["Reverse"]
+        self.filter_columns = ["Reverse"]
 
     def standardize_protein_group_column(self, entry):
         #  make column with ProteinGroup to make comparison between softwares possible
@@ -64,18 +64,23 @@ class AlphaPeptLoader(BaseLoader):
         protein_id_list = []
         for protein in proteins:
             # 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN',
-            fasta_header_split = protein.split("|")
-            if len(fasta_header_split) == 1:
+            if "|" in protein:
+                fasta_header_split = protein.split("|")
+            else:
+                fasta_header_split = protein
+            if isinstance(fasta_header_split, str):
                 #  'ENSEMBL:ENSBTAP00000007350',
                 if "ENSEMBL:" in fasta_header_split:
                     protein_id = fasta_header_split.replace("ENSEMBL:", "")
-                # if only protein id is given
                 else:
-                    protein_id = fasta_header_split[0]
+                    protein_id = fasta_header_split
             else:
                 protein_id = fasta_header_split[1]
             protein_id_list.append(protein_id)
         protein_id_concentate = ";".join(protein_id_list)
+        # ADD REV to the protein ID, else there will be duplicates in the ProteinGroup column
+        if "REV_" in entry:
+            protein_id_concentate = "REV_" + protein_id_concentate
         return protein_id_concentate
 
 

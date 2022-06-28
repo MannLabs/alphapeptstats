@@ -1,1 +1,9 @@
-click==8.0.1
+pandas>=1.4
+sklearn
+data_cache
+dash_bio>=1
+plotly>=5
+iteration_utilities
+openpyxl>=3
+sklearn_pandas
+
