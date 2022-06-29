@@ -109,6 +109,18 @@ class BaseTestDataSet:
             self.obj.plot_pca()
             mock.assert_called_once()
 
+        def test_imputation_mean(self):
+            self.obj.preprocess(imputation="mean")
+            self.assertFalse(self.obj.mat.isna().values.any())
+
+        def test_imputation_median(self):
+            self.obj.preprocess(imputation="median")
+            self.assertFalse(self.obj.mat.isna().values.any())
+
+        def test_imputation_knn(self):
+            self.obj.preprocess(imputation="knn")
+            self.assertFalse(self.obj.mat.isna().values.any())
+
 
 class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     #  do testing which requires extra files only on TestAlphaPeptDataSet
@@ -140,6 +152,11 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         metadata_path = "testfiles/alphapept_metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
+
+    def preprocess_remove_samples(self):
+        sample_list = ["A"]
+        self.obj.preprocess_remove_sampels(sample_list=sample_list)
+        self.assertEqual(self.obj.mat.shape, (1, 3781))
 
     def test_preprocess_normalize_zscore(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
@@ -176,7 +193,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
-    def test_preprocess_imputation_mean(self):
+    def test_preprocess_imputation_mean_values(self):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
@@ -186,7 +203,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
-    def test_preprocess_imputation_median(self):
+    def test_preprocess_imputation_median_values(self):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
@@ -196,7 +213,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
-    def test_preprocess_imputation_knn(self):
+    def test_preprocess_imputation_knn_values(self):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
@@ -236,6 +253,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim = (312, 2611)
         self.matrix_dim_filtered = (312, 2409)
         self.comparison_column = "disease"
+
+    def test_preprocess_subset(self):
+        df = self.obj.preprocess_subset()
+        self.assertEqual(df.shape, (48, 2611))
 
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
