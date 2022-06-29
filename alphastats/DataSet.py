@@ -15,8 +15,13 @@ import dash_bio
 import numpy as np
 import logging
 import sys
-from sklearn_pandas import DataFrameMapper
 import sklearn
+from sklearn_pandas import DataFrameMapper
+import warnings
+
+# remove warning from openpyxl
+# only appears on mac
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 
 class DataSet:
@@ -101,9 +106,14 @@ class DataSet:
         )
         self.removed_protein_groups = None
 
-    def preprocess_exclude_sampels(self, sample_list):
+    def preprocess_remove_sampels(self, sample_list):
         # exclude samples for analysis
-        pass
+        self.mat = self.mat.drop(sample_list)
+
+    def preprocess_subset(self):
+        # filter matrix so only samples that are described in metadata
+        # also found in matrix
+        return self.mat[self.mat.index.isin(self.metadata["sample"].tolist())]
 
     def preprocess_print_info(self):
         """Print summary of preprocessing steps
@@ -148,6 +158,11 @@ class DataSet:
         Args:
             method (str): method to impute data: either "mean", "median" or "knn"
         """
+        # remove ProteinGroups with only NA before
+        protein_group_na = self.mat.columns[self.mat.isna().all()].tolist()
+        if len(protein_group_na) > 0:
+            self.mat = self.mat.drop(protein_group_na, axis=1)
+            logging.info(f"{len(protein_group_na)} Protein Groups were removed.")
         # Imputation using the mean
         if method == "mean":
             imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="mean")
@@ -201,6 +216,7 @@ class DataSet:
     def preprocess(
         self,
         remove_contaminations=False,
+        subset=False,
         normalization=None,
         imputation=None,
         remove_samples=None,
@@ -213,7 +229,7 @@ class DataSet:
             as contamination. Defaults to False.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", 
             "linear". Defaults to None.
-            remove_samples (_type_, optional): _description_. Defaults to None.
+            remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median" or "knn". 
             Defaults to None.
             qvalue (float, optional): _description_. Defaults to 0.01.
@@ -223,12 +239,14 @@ class DataSet:
         """
         if remove_contaminations:
             self.preprocess_filter()
+        if subset:
+            self.mat = self.preprocess_subset()
         if normalization is not None:
             self.preprocess_normalization(method=normalization)
         if imputation is not None:
             self.preprocess_impute(method=imputation)
         if remove_samples is not None:
-            raise NotImplementedError
+            self.preprocess_remove_sampels(sample_list=remove_samples)
 
     def load_metadata(self, file_path, sample_column):
         """Load metadata either xlsx, txt, csv or txt file
@@ -311,7 +329,7 @@ class DataSet:
             group (str, optional): column in metadata that should be used for coloring. Defaults to None.
 
         Returns:
-            _type_: plotly
+            plotly Object: p
         """
         if self.imputation is None and self.mat.isna().values.any():
             logging.warning(
@@ -324,19 +342,28 @@ class DataSet:
             )
             self.preprocess(normalization="zscore")
 
+        # subset matrix so it matches with metadata
         if group:
-            mat = self.mat[self.metadata["sample"].tolist()]
+            mat = self.preprocess_subset()
+            group_color = self.metadata[group]
         else:
             mat = self.mat
+            group_color = group
         mat = mat.fillna(0)
 
         pca = sklearn.decomposition.PCA(n_components=2)
         components = pca.fit_transform(mat)
 
-        if group:
-            fig = px.scatter(components, x=0, y=1, color=self.metadata[group])
-        else:
-            fig = px.scatter(components, x=0, y=1)
+        fig = px.scatter(
+            components,
+            x=0,
+            y=1,
+            labels={
+                "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
+                "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
+            },
+            color=group_color,
+        )
         return fig
 
     def plot_correlation_matrix(self, corr_method="pearson", save_figure=False):
@@ -374,3 +401,7 @@ class DataSet:
             annotation="Protein IDs",
         )
         return volcano_plot
+
+
+# Plotly update figures
+# https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html

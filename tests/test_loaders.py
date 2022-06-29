@@ -78,13 +78,9 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
         self.df_dim = (3781, 8)
 
     def test_load_hdf_protein_table(self):
-        #  TODO get corresponding HDF file
         hdf_format = AlphaPeptLoader(file=self.hdf_file)
         # test if hdf file gets loaded
-        n_rows = hdf_format.rawdata.shape[0]
-        n_columns = hdf_format.rawdata.shape[1]
-        self.assertEqual(n_rows, 3781)
-        self.assertEqual(n_columns, 8)
+        self.assertEqual(hdf_format.rawdata.shape, self.df_dim)
 
     def test_add_contamination_reverse_column(self):
         # check if contamination column has been added
