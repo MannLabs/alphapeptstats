@@ -59,19 +59,23 @@ class BaseTestLoader:
             self.obj.check_if_file_exists(file=wrong_file_path)
             mock.assert_called_once()
 
+        def test_add_contaminantion_column(self):
+            column_added = "Contamination_library" in self.obj.rawdata
+            self.assertTrue(column_added)
+            self.assertEqual(self.obj.rawdata["Contamination_library"].dtype, "bool")
+
+        def test_df_dimensions(self):
+            # test if dataframe gets loaded correctly
+            # are there as many rows and column we expect
+            self.assertEqual(self.obj.rawdata.shape, self.df_dim)
+
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
         self.hdf_file = "testfiles/alphapept_results.hdf"
-
-    def test_df_dimensions(self):
-        # test if dataframe gets loaded correctly
-        #  are there as many rows and column we expect
-        n_rows = self.obj.rawdata.shape[0]
-        n_columns = self.obj.rawdata.shape[1]
-        self.assertEqual(n_rows, 3781)
-        self.assertEqual(n_columns, 7)
+        # expected dim of rawdata df
+        self.df_dim = (3781, 8)
 
     def test_load_hdf_protein_table(self):
         #  TODO get corresponding HDF file
@@ -80,9 +84,9 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
         n_rows = hdf_format.rawdata.shape[0]
         n_columns = hdf_format.rawdata.shape[1]
         self.assertEqual(n_rows, 3781)
-        self.assertEqual(n_columns, 7)
+        self.assertEqual(n_columns, 8)
 
-    def test_add_contamination_column(self):
+    def test_add_contamination_reverse_column(self):
         # check if contamination column has been added
         column_added = "Reverse" in self.obj.rawdata
         self.assertTrue(column_added)
@@ -111,14 +115,7 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 class TestMaxQuantLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
-
-    def test_df_dimensions(self):
-        # test if dataframe gets loaded correctly
-        #  are there as many rows and column we expect
-        n_rows = self.obj.rawdata.shape[0]
-        n_columns = self.obj.rawdata.shape[1]
-        self.assertEqual(n_rows, 2611)
-        self.assertEqual(n_columns, 2530)
+        self.df_dim = (2611, 2531)
 
     def test_set_filter_columns_to_true_false(self):
         # check if + has been replaced by TRUE FALSE
@@ -130,14 +127,7 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
 class TestDIANNLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
-
-    def test_df_dimensions(self):
-        # test if dataframe gets loaded correctly
-        #  are there as many rows and column we expect
-        n_rows = self.obj.rawdata.shape[0]
-        n_columns = self.obj.rawdata.shape[1]
-        self.assertEqual(n_rows, 10)
-        self.assertEqual(n_columns, 25)
+        self.df_dim = (10, 26)
 
     def add_tag_to_sample_columns(self):
         # get number of columns that have tag
@@ -150,14 +140,7 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
 class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
-
-    def test_df_dimensions(self):
-        # test if dataframe gets loaded correctly
-        #  are there as many rows and column we expect
-        n_rows = self.obj.rawdata.shape[0]
-        n_columns = self.obj.rawdata.shape[1]
-        self.assertEqual(n_rows, 10)
-        self.assertEqual(n_columns, 36)
+        self.df_dim = (10, 37)
 
 
 if __name__ == "__main__":

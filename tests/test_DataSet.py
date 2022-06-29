@@ -123,7 +123,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         # expected dimensions of matrix
         self.matrix_dim = (2, 3781)
-        self.matrix_dim_filtered = (2, 3743)
+        self.matrix_dim_filtered = (2, 3707)
         #  metadata column to compare for PCA, t-test, etc.
         self.comparison_column = "disease"
 
