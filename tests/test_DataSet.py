@@ -98,12 +98,17 @@ class BaseTestDataSet:
             # get groups from comparison column
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
-            df = self.obj.calculate_ttest_fc(
+            if self.obj.software != "AlphaPept":
+                df = self.obj.calculate_ttest_fc(
                 column=self.comparison_column, group1=group1, group2=group2
-            )
-            # check if dataframe gets created
-            self.assertTrue(isinstance(df, pd.DataFrame))
-            self.assertFalse(df.empty)
+                ) # check if dataframe gets created
+                self.assertTrue(isinstance(df, pd.DataFrame))
+                self.assertFalse(df.empty)
+            else:
+                # alphapept has only two samples should throw error
+                self.assertRaises(self.obj.calculate_ttest_fc(
+                column=self.comparison_column, group1=group1, group2=group2
+                ), NotImplementedError)
 
         @patch.object(DataSet, "preprocess")
         def test_plot_pca_normalization(self, mock):
@@ -133,7 +138,7 @@ class BaseTestDataSet:
             self.assertEqual(len(plot_dict.get("data")), 1)
             #  check if it is logscale
             self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
-            
+
 
 class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     #  do testing which requires extra files only on TestAlphaPeptDataSet
@@ -251,6 +256,12 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         #  check that it is boxplot and not violinplot
         is_boxplot = "boxmode" in plot_dict.get("layout").keys()
         self.assertTrue(is_boxplot)
+    
+    def test_plot_correlation_matrix(self):
+        plot = self.obj.plot_correlation_matrix()
+        plot_dict = plot.to_plotly_json()
+        correlation_calculations_expected = [1.0, 0.999410773629427]
+        self.assertEqual(plot_dict.get("data")[0].get("z")[0].tolist(), correlation_calculations_expected)
 
 
     def test_calculate_ttest_fc_results(self):
