@@ -1,5 +1,6 @@
 from calendar import c
 from math import remainder
+from multiprocessing.sharedctypes import Value
 from random import sample
 from ssl import TLSVersion
 import unittest
@@ -9,6 +10,7 @@ from unittest.mock import patch
 import logging
 import numpy as np
 import pandas as pd
+import plotly
 
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
@@ -121,6 +123,17 @@ class BaseTestDataSet:
             self.obj.preprocess(imputation="knn")
             self.assertFalse(self.obj.mat.isna().values.any())
 
+        def test_plot_sampledistribution(self):
+            plot = self.obj.plot_sampledistribution()
+            # check if it is a figure
+            self.assertIsInstance(plot, plotly.graph_objects.Figure)
+            # convert plotly objec to dict
+            plot_dict = plot.to_plotly_json()
+            # check if plotly object is not empty
+            self.assertEqual(len(plot_dict.get("data")), 1)
+            #  check if it is logscale
+            self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
+            
 
 class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     #  do testing which requires extra files only on TestAlphaPeptDataSet
@@ -222,6 +235,23 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
+    def test_plot_sampledistribution_group(self):
+        plot = self.obj.plot_sampledistribution(
+            method="box", color="disease", log_scale=False
+        )
+        # check if it is a figure
+        self.assertIsInstance(plot, plotly.graph_objects.Figure)
+        # convert plotly object to dict
+        plot_dict = plot.to_plotly_json()
+        #  check if it doesnt get transformed to logscale
+        self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), None)
+        # check if there are two groups control and disease
+        self.assertEqual(plot_dict.get("data")[0].get("legendgroup"), "control")
+        #  check that it is boxplot and not violinplot
+        is_boxplot = "boxmode" in plot_dict.get("layout").keys()
+        self.assertTrue(is_boxplot)
+
 
     def test_calculate_ttest_fc_results(self):
         # are df dimension correct
