@@ -3,6 +3,7 @@ import logging
 import plotly.express as px
 import plotly
 import dash_bio
+import scipy
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -128,8 +129,9 @@ class Plot:
         Returns:
             _type_: _description_
         """
+        # TODO add option to load DeSeq results???
         result = self.calculate_ttest_fc(column, group1, group2)
-        result = result.drop_na()
+        result = result.dropna()
         volcano_plot = dash_bio.VolcanoPlot(
             dataframe=result,
             effect_size="foldchange_log2",
@@ -140,12 +142,51 @@ class Plot:
         )
         return volcano_plot
 
-    def plot_hierarchialclustering(self):
+    def plot_hierarchialclustering(self, heatmap=True):
         # of anova results
         # general of a subset of proteins
 
-        # use dash bio
-        pass
+        # Initialize figure by creating upper dendrogram
+        fig = plotly.figure_factory.create_dendrogram(self.mat, orientation="bottom", labels=self.mat.index)
+        
+        if heatmap:
+            for i in range(len(fig['data'])):
+                fig['data'][i]['yaxis'] = 'y2'
+            
+            # Create Side Dendrogram
+            dendro_side = plotly.figure_factory.create_dendrogram(self.mat.values, orientation='right')
+            for i in range(len(dendro_side['data'])):
+                dendro_side['data'][i]['xaxis'] = 'x2'
+
+            # Add Side Dendrogram Data to Figure
+            for data in dendro_side['data']:
+                fig.add_trace(data)  
+
+            # Create Heatmap
+            dendro_leaves = dendro_side['layout']['yaxis']['ticktext']
+            dendro_leaves = list(map(int, dendro_leaves))
+            data_dist = scipy.spatial.distance.pdist(self.mat.values)
+            heat_data = scipy.spatial.distance.squareform(data_dist)
+            heat_data = heat_data[dendro_leaves,:]
+            heat_data = heat_data[:,dendro_leaves]
+
+            heatmap = [
+                plotly.graph_objects.Heatmap(
+                x = dendro_leaves,
+                y = dendro_leaves,
+                z = heat_data,
+                colorscale = 'Blues'
+                )
+            ]
+
+            heatmap[0]['x'] = fig['layout']['xaxis']['tickvals']
+            heatmap[0]['y'] = dendro_side['layout']['yaxis']['tickvals']
+
+            # Add Heatmap Data to Figure
+            for data in heatmap:
+                fig.add_trace(data)       
+            
+  
 
     def plot_line(self):
         pass
