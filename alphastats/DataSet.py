@@ -138,9 +138,3 @@ class DataSet(Preprocess, Statistics, Plot):
         # print summary
         # TODO look at keras model.summary()
         pass
-
-
-
-
-
-

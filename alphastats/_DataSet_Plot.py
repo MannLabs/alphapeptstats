@@ -39,9 +39,9 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: PCA plot
         """
-        if self.imputation is None and self.mat.isna().values.any():
+        if self.imputation == "Data is not imputed." and self.mat.isna().values.any():
             logging.warning(
-                "Data contains missing values. Missing values will be replaced with 0. Consider Imputation:"
+                "Data contains missing values. Missing values will be replaced with 0. Consider Imputation instead:"
                 "for instance `DataSet.preprocess(imputation='mean')`."
             )
 
@@ -90,16 +90,16 @@ class Plot:
         plot = px.imshow(corr_matrix)
         return plot
 
-    def plot_sampledistribution(self, method="violin", color=None, log_scale=True):
+    def plot_sampledistribution(self, method="violin", color=None, log_scale=False):
         """Plot Intesity Distribution for each sample. Either Violin or Boxplot
 
         Args:
             method (str, optional): Violinplot = "violin", Boxplot = "box". Defaults to "violin".
             color (_type_, optional): A metadata column used to color the boxes. Defaults to None.
-            log_scale (bool, optional): plot in logarithmic scale. Defaults to True.
+            log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
-             plotly.graph_objects._figure.Figure: Sample Distribution Plot
+             plotly.graph_objects._figure.Figure: Plotly Sample Distribution Plot
         """
 
         # create long df
@@ -113,6 +113,31 @@ class Plot:
             fig = px.violin(df, x="sample", y="Intensity", color=color)
         if method == "box":
             fig = px.box(df, x="sample", y="Intensity", color=color)
+
+        if log_scale:
+            fig.update_layout(yaxis=dict(type="log"))
+        return fig
+
+    def plot_intensity(self, id, group=None, method="violin", log_scale=False):
+        """Plot Intensity of individual Protein/ProteinGroup 
+
+        Args:
+            id (str): ProteinGroup ID
+            group (str, optional): A metadata column used for grouping. Defaults to None.
+            method (str, optional):  Violinplot = "violin", Boxplot = "box". Defaults to "violin".
+            log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
+
+        Returns:
+            plotly.graph_objects._figure.Figure: Plotly Plot
+        """
+        #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
+        df = self.mat[[id]].reset_index().rename(columns={"index": "sample"})
+        df = df.merge(self.metadata, how="inner", on=["sample"])
+
+        if method == "violin":
+            fig = px.violin(df, x=id, y=group, color=group)
+        if method == "box":
+            fig = px.box(df, x=id, y=group, color=group)
 
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
@@ -142,51 +167,46 @@ class Plot:
         )
         return volcano_plot
 
+    def plot_heatmap(self):
+        """Plot Heatmap with samples as columns and Proteins as rows
+
+        Returns:
+            _dash_bio.Clustergram: Dash Bio Clustergram object
+        """
+        if self.mat.isna().values.any() is True:
+            raise ValueError(
+                "Data contains missing values. Impute data before plotting: "
+                + "for instance `DataSet.preprocess(imputation='mean')` or replace NAs with 0."
+            )
+
+        df = self.mat.transpose()
+        columns = list(df.columns.values)
+        rows = list(df.index)
+
+        plot = dash_bio.Clustergram(
+            data=df.loc[rows].values,
+            row_labels=rows,
+            column_labels=columns,
+            color_threshold={"row": 250, "col": 700},
+            height=800,
+            width=1000,
+            color_map=[
+                [0.0, "#D0ECE7"],
+                [0.25, "#5AA28A"],
+                [0.5, "#6C79BB"],
+                [0.75, "#8B6CBB"],
+                [1.0, "#5B2C6F"],
+            ],
+            line_width=2,
+        )
+        return plot
+
     def plot_hierarchialclustering(self, heatmap=True):
         # of anova results
         # general of a subset of proteins
 
         # Initialize figure by creating upper dendrogram
-        fig = plotly.figure_factory.create_dendrogram(self.mat, orientation="bottom", labels=self.mat.index)
-        
-        if heatmap:
-            for i in range(len(fig['data'])):
-                fig['data'][i]['yaxis'] = 'y2'
-            
-            # Create Side Dendrogram
-            dendro_side = plotly.figure_factory.create_dendrogram(self.mat.values, orientation='right')
-            for i in range(len(dendro_side['data'])):
-                dendro_side['data'][i]['xaxis'] = 'x2'
-
-            # Add Side Dendrogram Data to Figure
-            for data in dendro_side['data']:
-                fig.add_trace(data)  
-
-            # Create Heatmap
-            dendro_leaves = dendro_side['layout']['yaxis']['ticktext']
-            dendro_leaves = list(map(int, dendro_leaves))
-            data_dist = scipy.spatial.distance.pdist(self.mat.values)
-            heat_data = scipy.spatial.distance.squareform(data_dist)
-            heat_data = heat_data[dendro_leaves,:]
-            heat_data = heat_data[:,dendro_leaves]
-
-            heatmap = [
-                plotly.graph_objects.Heatmap(
-                x = dendro_leaves,
-                y = dendro_leaves,
-                z = heat_data,
-                colorscale = 'Blues'
-                )
-            ]
-
-            heatmap[0]['x'] = fig['layout']['xaxis']['tickvals']
-            heatmap[0]['y'] = dendro_side['layout']['yaxis']['tickvals']
-
-            # Add Heatmap Data to Figure
-            for data in heatmap:
-                fig.add_trace(data)       
-            
-  
+        fig = plotly.figure_factory.create_dendrogram(self.mat, labels=self.mat.index)
 
     def plot_line(self):
         pass
