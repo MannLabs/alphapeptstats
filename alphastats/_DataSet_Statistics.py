@@ -26,15 +26,15 @@ class Statistics:
             "sample"
         ].tolist()
 
-        if len(group1_samples)==1 or len(group2_samples)==1:
-            logging.warning("Sample number too low to calculate t-test")
-            raise NotImplementedError
+        if len(group1_samples) == 1 or len(group2_samples) == 1:
+            raise NotImplementedError("Sample number too low to calculate t-test")
+            # raise NotImplementedError
 
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.mat.transpose()
         # add small value so no division by zero
         # https://www.researchgate.net/post/can-anyone-tell-me-how-to-Calculate-fold-change-in-RNA-seq-data-if-we-have-change-fromzero-tosomething-and-something-to-zero-in
-        # TODO consider implemetation with permutations
+        #  TODO consider implemetation with permutations
         # https://github.com/swiri021/Difference_test_with_permutation
         # Theis Lab: https://github.com/theislab/diffxpy
         # https://github.com/staslist/A-Lister

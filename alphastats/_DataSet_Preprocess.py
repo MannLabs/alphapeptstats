@@ -3,6 +3,7 @@ import sklearn
 import logging
 import numpy as np
 
+
 class Preprocess:
     def preprocess_remove_sampels(self, sample_list):
         # exclude samples for analysis
@@ -20,8 +21,8 @@ class Preprocess:
         n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
         text = (
             f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins and "
-            + f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}"
-            + f"rows with Proteins/Protein Groups have been removed."
+            f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}"
+            f"rows with Proteins/Protein Groups have been removed."
         )
         preprocessing_text = text + self.normalization + self.imputation
         print(preprocessing_text)
@@ -29,7 +30,7 @@ class Preprocess:
     def preprocess_filter(self):
         """Removes all observations, that were identified as contaminations. 
         """
-        if self.filter_columns is None:
+        if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
             return
         #  print column names with contamination

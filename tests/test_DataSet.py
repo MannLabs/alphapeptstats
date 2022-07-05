@@ -1,6 +1,7 @@
 from calendar import c
 from math import remainder
-from multiprocessing.sharedctypes import Value
+
+# from multiprocessing.sharedctypes import Value
 from random import sample
 from ssl import TLSVersion
 import unittest
@@ -11,6 +12,7 @@ import logging
 import numpy as np
 import pandas as pd
 import plotly
+import dash_bio
 
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
@@ -100,15 +102,16 @@ class BaseTestDataSet:
             group1, group2 = groups[0], groups[1]
             if self.obj.software != "AlphaPept":
                 df = self.obj.calculate_ttest_fc(
-                column=self.comparison_column, group1=group1, group2=group2
-                ) # check if dataframe gets created
+                    column=self.comparison_column, group1=group1, group2=group2
+                )  # check if dataframe gets created
                 self.assertTrue(isinstance(df, pd.DataFrame))
                 self.assertFalse(df.empty)
             else:
-                # alphapept has only two samples should throw error
-                self.assertRaises(self.obj.calculate_ttest_fc(
-                column=self.comparison_column, group1=group1, group2=group2
-                ), NotImplementedError)
+                with self.assertRaises(NotImplementedError):
+                    # alphapept has only two samples should throw error
+                    self.obj.calculate_ttest_fc(
+                        column=self.comparison_column, group1=group1, group2=group2
+                    )
 
         @patch.object(DataSet, "preprocess")
         def test_plot_pca_normalization(self, mock):
@@ -129,7 +132,7 @@ class BaseTestDataSet:
             self.assertFalse(self.obj.mat.isna().values.any())
 
         def test_plot_sampledistribution(self):
-            plot = self.obj.plot_sampledistribution()
+            plot = self.obj.plot_sampledistribution(log_scale=True)
             # check if it is a figure
             self.assertIsInstance(plot, plotly.graph_objects.Figure)
             # convert plotly objec to dict
@@ -256,13 +259,15 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         #  check that it is boxplot and not violinplot
         is_boxplot = "boxmode" in plot_dict.get("layout").keys()
         self.assertTrue(is_boxplot)
-    
+
     def test_plot_correlation_matrix(self):
         plot = self.obj.plot_correlation_matrix()
         plot_dict = plot.to_plotly_json()
         correlation_calculations_expected = [1.0, 0.999410773629427]
-        self.assertEqual(plot_dict.get("data")[0].get("z")[0].tolist(), correlation_calculations_expected)
-
+        self.assertEqual(
+            plot_dict.get("data")[0].get("z")[0].tolist(),
+            correlation_calculations_expected,
+        )
 
     def test_calculate_ttest_fc_results(self):
         # are df dimension correct
@@ -313,6 +318,36 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim = (20, 10)
         self.matrix_dim_filtered = (20, 10)
         self.comparison_column = "grouping1"
+
+    def test_plot_intensity(self):
+        plot = self.obj.plot_intensity(
+            id="A0A075B6H7", group="grouping1", method="violin"
+        )
+        plot_dict = plot.to_plotly_json()
+
+        self.assertIsInstance(plot, plotly.graph_objects.Figure)
+        # are two groups plotted
+        self.assertEqual(len(plot_dict.get("data")), 2)
+
+        plot = self.obj.plot_intensity(
+            id="A0A075B6H7", group="grouping1", method="box", log_scale=True
+        )
+        plot_dict = plot.to_plotly_json()
+        #  log scale
+        self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
+        is_boxplot = "boxmode" in plot_dict.get("layout").keys()
+        self.assertTrue(is_boxplot)
+
+    def test_plot_heatmap(self):
+        # raises error when data is not imputed
+        with self.assertRaises(ValueError):
+            self.obj.plot_heatmap()
+
+        self.obj.preprocess(imputation="mean")
+        plot = self.obj.plot_heatmap()
+        plot_dict = plot.to_plotly_json()
+        #  check number of column and row clusters
+        self.assertEqual(len(plot_dict.get("data")), 26)
 
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
