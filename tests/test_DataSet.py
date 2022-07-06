@@ -4,7 +4,9 @@ from math import remainder
 # from multiprocessing.sharedctypes import Value
 from random import sample
 from ssl import TLSVersion
+from tracemalloc import Statistic
 import unittest
+from xml.sax.handler import property_interning_dict
 import pandas as pd
 import logging
 from unittest.mock import patch
@@ -13,6 +15,7 @@ import numpy as np
 import pandas as pd
 import plotly
 import dash_bio
+from contextlib import contextmanager
 
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
@@ -22,6 +25,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
+from alphastats._DataSet_Statistics import Statistics
 
 logger = logging.getLogger(__name__)
 
@@ -31,29 +35,34 @@ class BaseTestDataSet:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
-        def test_check_loader_no_error(self, mock):
-            raised = False
-            try: 
-                # check if loader is valid
-                self.asserself.obj.check_loader(loader=self.loader)
-            except:
-                raised = True
-            self.assertFalse(raised)
+        @contextmanager
+        def assertNotRaises(self, exc_type):
+            try:
+                yield None
+            except exc_type:
+                raise self.failureException("{} raised".format(exc_type.__name__))
+
+        def test_check_loader_no_error(self):
+            with self.assertNotRaises(ValueError):
+                self.obj.check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
-            self.loader.index_column = 100
-            self.assertRaises(self.obj.check_loader(loader=self.loader), ValueError)
+            with self.assertRaises(ValueError):
+                self.loader.index_column = 100
+                self.obj.check_loader(loader=self.loader)
 
         def test_check_loader_error_empty_df(self):
             # empty dataframe
-            self.loader.rawdata = pd.DataFrame()
-            self.assertRaises(self.obj.check_loader(loader=self.loader), ValueError)
-            
+            with self.assertRaises(ValueError):
+                self.loader.rawdata = pd.DataFrame()
+                self.obj.check_loader(loader=self.loader)
+
         def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
-            df = pd.DataFrame()
-            self.assertRaises(self.obj.check_loader(loader=df), ValueError)
+            with self.assertRaises(ValueError):
+                df = pd.DataFrame()
+                self.obj.check_loader(loader=df)
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -148,7 +157,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/alphapept_metadata.csv"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path="testfiles/alphapept_metadata.csv",
+            metadata_path=self.metadata_path,
             sample_column="sample",
         )
         # expected dimensions of matrix
@@ -289,7 +298,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/maxquant_metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path="testfiles/maxquant_metadata.xlsx",
+            metadata_path=self.metadata_path,
             sample_column="sample",
         )
         # expected dimensions of matrix
@@ -301,6 +310,26 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         df = self.obj.preprocess_subset()
         self.assertEqual(df.shape, (48, 2611))
 
+    @patch.object(Statistics, "calculate_tukey")
+    def test_anova_without_tukey(self, mock):
+        anova_results = self.obj.anova(group="disease", protein_ids="all", tukey=False)
+        self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
+        self.assertEqual(anova_results.shape, (2615, 2))
+        # check if tukey isnt called
+        mock.assert_not_called()
+
+    def test_anova_with_tukey(self):
+        # with first 100 protein ids
+        self.obj.preprocess(imputation="mean")
+        id_list = self.obj.mat.columns.tolist()[0:100]
+        results = self.obj.anova(group="disease", protein_ids=id_list, tukey=True)
+        self.assertEqual(results.shape, (100, 10))
+
+        # with one protein id
+        protein_id = "A0A024R4J8;Q92876"
+        results = self.obj.anova(group="disease", protein_ids=protein_id, tukey=True)
+        self.assertEqual(results.shape[1], 10)
+
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -308,7 +337,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/diann_metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path="testfiles/diann_metadata.xlsx",
+            metadata_path=self.metadata_path,
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
@@ -356,7 +385,7 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/fragpipe_metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path="testfiles/fragpipe_metadata.xlsx",
+            metadata_path=self.metadata_path,
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
