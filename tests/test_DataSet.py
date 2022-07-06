@@ -31,32 +31,29 @@ class BaseTestDataSet:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
-        @patch("logging.Logger.error")
         def test_check_loader_no_error(self, mock):
-            # check if loader is valid
-            self.obj.check_loader(loader=self.loader)
-            mock.assert_not_called()
+            raised = False
+            try: 
+                # check if loader is valid
+                self.asserself.obj.check_loader(loader=self.loader)
+            except:
+                raised = True
+            self.assertFalse(raised)
 
-        @patch("logging.Logger.error")
-        def test_check_loader_error_invalid_column(self, mock):
+        def test_check_loader_error_invalid_column(self):
             #  invalid index column
             self.loader.index_column = 100
-            self.obj.check_loader(loader=self.loader)
-            mock.assert_called_once()
+            self.assertRaises(self.obj.check_loader(loader=self.loader), ValueError)
 
-        @patch("logging.Logger.error")
-        def test_check_loader_error_empty_df(self, mock):
+        def test_check_loader_error_empty_df(self):
             # empty dataframe
             self.loader.rawdata = pd.DataFrame()
-            self.obj.check_loader(loader=self.loader)
-            mock.assert_called_once()
-
-        @patch("logging.Logger.error")
-        def test_check_loader_error_invalid_loader(self, mock):
+            self.assertRaises(self.obj.check_loader(loader=self.loader), ValueError)
+            
+        def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
             df = pd.DataFrame()
-            self.obj.check_loader(loader=df)
-            mock.assert_called_once()
+            self.assertRaises(self.obj.check_loader(loader=df), ValueError)
 
         def test_load_metadata(self):
             #  is dataframe loaded
