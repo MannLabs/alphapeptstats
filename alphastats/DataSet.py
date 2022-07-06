@@ -68,17 +68,17 @@ class DataSet(Preprocess, Statistics, Plot):
         if not isinstance(
             loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
         ):
-            logging.error(
+           raise ValueError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
-            return
+            
         if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
-            logging.error(
+            raise ValueError(
                 "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
             return
         if not isinstance(loader.index_column, str):
-            logging.error(
+            raise ValueError(
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
             return
