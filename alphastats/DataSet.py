@@ -68,10 +68,10 @@ class DataSet(Preprocess, Statistics, Plot):
         if not isinstance(
             loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
         ):
-           raise ValueError(
+            raise ValueError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
-            
+
         if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
             raise ValueError(
                 "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
