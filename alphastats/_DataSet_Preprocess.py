@@ -61,7 +61,9 @@ class Preprocess:
         protein_group_na = self.mat.columns[self.mat.isna().all()].tolist()
         if len(protein_group_na) > 0:
             self.mat = self.mat.drop(protein_group_na, axis=1)
-            logging.info(f"{len(protein_group_na)} Protein Groups were removed.")
+            logging.info(
+                f" {len(protein_group_na)} Protein Groups were removed due to missing values."
+            )
         # Imputation using the mean
         if method == "mean":
             imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="mean")
