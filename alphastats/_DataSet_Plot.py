@@ -176,7 +176,7 @@ class Plot:
         if self.mat.isna().values.any() is True:
             raise ValueError(
                 "Data contains missing values. Impute data before plotting: "
-                + "for instance `DataSet.preprocess(imputation='mean')` or replace NAs with 0."
+                "for instance `DataSet.preprocess(imputation='mean')` or replace NAs with 0."
             )
 
         df = self.mat.transpose()
@@ -201,26 +201,38 @@ class Plot:
         )
         return plot
 
-    def plot_hierarchialclustering(self, heatmap=True):
+    def plot_dendogram(
+        self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
+    ):
+        """Plot Hierarichical Clustering Dendogram. This is a wrapper around: 
+        https://plotly.com/python-api-reference/generated/plotly.figure_factory.create_dendrogram.html
+
+        Args:
+            linkagefun (_type_, optional): Function to compute the linkage matrix from
+                               the pairwise distance. Defaults to lambdax:scipy.cluster.hierarchy.linkage(x, "complete").
+
+        Raises:
+            ValueError: If data contains missing values, is not imputed
+
+        Returns:
+            plotly.figure_factory.create_dendrogram: dendrogram Plotly figure object
+        """
         # of anova results
         # general of a subset of proteins
-
-        # Initialize figure by creating upper dendrogram
-        fig = plotly.figure_factory.create_dendrogram(self.mat, labels=self.mat.index)
+        if self.mat.isna().values.any() is True:
+            raise ValueError(
+                "Data contains missing values. Impute data before plotting: "
+                "for instance `DataSet.preprocess(imputation='mean')` or replace NAs with 0."
+            )
+        fig = plotly.figure_factory.create_dendrogram(
+            self.mat, labels=self.mat.index, linkagefun=linkagefun
+        )
+        return fig
 
     def plot_line(self):
-        pass
-
-    def plot_box(self):
         pass
 
     def plot_upset(self):
         pass
         # Plotly update figures
         # https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html
-
-        """Plot sample distribution
-
-        Returns:
-            plotly.graph_objects._figure.Figure: Plot
-        """
