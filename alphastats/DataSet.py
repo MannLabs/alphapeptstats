@@ -88,7 +88,7 @@ class DataSet(Preprocess, Statistics, Plot):
         rows the samples.
         """
         regex_find_intensity_columns = self.intensity_column.replace(
-            "[experiment]", ".*"
+            "[sample]", ".*"
         )
         df = self.rawdata
         df = df.set_index(self.index_column)
