@@ -31,7 +31,7 @@ release = '07-07-2022'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    #'myst_parser',
+    'myst_parser',
    # "myst_nb",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
@@ -39,11 +39,11 @@ extensions = [
     "sphinx.ext.viewcode"
 ]
 
-#source_suffix = {
-   # '.rst': 'restructuredtext',
-   # '.txt': 'markdown',
-    #'.md': 'markdown',
-#}
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'markdown',
+    '.md': 'markdown',
+}
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

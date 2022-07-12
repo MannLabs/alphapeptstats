@@ -10,7 +10,7 @@ class DIANNLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="[experiment]",
+        intensity_column="[sample]",
         index_column="Protein.Group",
         sep="\t",
     ):
@@ -48,7 +48,7 @@ class DIANNLoader(BaseLoader):
             str(col) + "_Intensity" if col not in no_sample_column else str(col)
             for col in self.rawdata.columns
         ]
-        self.intensity_column = "[experiment]_Intensity"
+        self.intensity_column = "[sample]_Intensity"
 
 
 """

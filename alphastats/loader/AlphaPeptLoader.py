@@ -12,7 +12,7 @@ class AlphaPeptLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="[experiment]_LFQ",
+        intensity_column="[sample]_LFQ",
         index_column="Unnamed: 0",  # column name to be changed
         sep=",",
     ):
@@ -20,7 +20,7 @@ class AlphaPeptLoader(BaseLoader):
 
         Args:
             file (_type_): AlphaPept output, either results_proteins.csv file or the hdf_file with the protein_table given
-            intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "[experiment]_LFQ".
+            intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "[sample]_LFQ".
             index_column (str, optional): column indicating the protein groups. Defaults to "Unnamed: 0".
             sep (str, optional): file separation of file. Defaults to ",".
         """

@@ -10,7 +10,8 @@ Welcome to alphastats's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   context.rst
+   Introduction.md
+   import_data.md
    API <api_reference/index>
 
 
