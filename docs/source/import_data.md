@@ -16,8 +16,8 @@ When importing the data, AlphaStats will itendify potential contaminations based
 Find more details about the file format [here](https://mannlabs.github.io/alphapept/file_formats.html).
 
 ```python
-from alphastats import AlphaPeptLoader
-alphapept_data = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
+import alphastats
+alphapept_data = alphastats.AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
 ```
 
 ## MaxQuant
@@ -26,8 +26,8 @@ alphapept_data = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv"
 Find more details about the file format [here](http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable)
 
 ```python
-from alphastats import MaxQuantPeptLoader
-maxquant_data = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
+import alphastats 
+maxquant_data = alphastats.MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
 ```
 
 ## DIA-NN
@@ -36,8 +36,8 @@ For the analysis of [DIA-NN](https://github.com/vdemichev/DiaNN) output use `rep
 Find more details about the file format [here](https://github.com/vdemichev/DiaNN#output).
 
 ```python
-from alphastats import DIANNLoader
-diann_data = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
+import alphastats 
+diann_data = alphastats.DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
 ```
 
 ## FragPipe
@@ -45,8 +45,8 @@ diann_data = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
 Find more details about the file format [here](https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv).
 
 ```python
-from alphastats import FragPipeLoader
-fragpipe_data = FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
+import alphastats 
+fragpipe_data = alphastats.FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
 ```
 
 
