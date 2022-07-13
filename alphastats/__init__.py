@@ -1,9 +1,10 @@
 #!python
-from .loader.AlphaPeptLoader import *
-from .loader.DIANNLoader import *
-from .loader.FragPipeLoader import *
-from .loader.MaxQuantLoader import *
-from .DataSet import *
+#from pkgutil import ImpImporter
+from .loader.AlphaPeptLoader import AlphaPeptLoader
+from .loader.DIANNLoader import DIANNLoader
+from .loader.FragPipeLoader import FragPipeLoader
+from .loader.MaxQuantLoader import MaxQuantLoader
+from .DataSet import DataSet
 
 __project__ = "alphastats"
 __version__ = "0.0.1"
