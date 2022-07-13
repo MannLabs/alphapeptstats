@@ -1,9 +1,9 @@
 #!python
-from loader.AlphaPeptLoader import *
-from loader.DIANNLoader import *
-from loader.FragPipeLoader import *
-from loader.MaxQuantLoader import *
-from DataSet import *
+from alphastats.loader.AlphaPeptLoader import *
+from alphastats.loader.DIANNLoader import *
+from alphastats.loader.FragPipeLoader import *
+from alphastats.loader.MaxQuantLoader import *
+from alphastats.DataSet import *
 
 __project__ = "alphastats"
 __version__ = "0.0.1"
