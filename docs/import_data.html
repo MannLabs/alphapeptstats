@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data import &mdash; alphastats 07-07-2022 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Workflow" href="workflow_maxquant.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> alphastats
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data import</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#importing-data">Importing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-modifications-by-alphastats">Additional modifications by AlphaStats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alphapept">Alphapept</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#maxquant">MaxQuant</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dia-nn">DIA-NN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fragpipe">FragPipe</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflow_maxquant.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference/index.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">alphastats</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Data import</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/import_data.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="data-import">
+<h1>Data import<a class="headerlink" href="#data-import" title="Permalink to this headline"></a></h1>
+<p>Currently AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe and MaxQuant. As the output of these softwares differs signficantly data needs to be loaded in customized loaders.</p>
+<section id="importing-data">
+<h2>Importing data<a class="headerlink" href="#importing-data" title="Permalink to this headline"></a></h2>
+<p>In order to import data from these softwares the columns describing intensity and Protein/ProteinGroups have to specified when loading. Each loader has a default for the <code class="docutils literal notranslate"><span class="pre">intensity_column</span></code>and the <code class="docutils literal notranslate"><span class="pre">index_column</span></code>, however the column naming can vary depending on the version of the software and personalized settings.</p>
+<p>As we are dealing with wide data, a column represents the intensity for one sample. Thus the <code class="docutils literal notranslate"><span class="pre">intensity_column</span></code> must be specified as follow: For MaxQuant <code class="docutils literal notranslate"><span class="pre">&quot;LFQ</span> <span class="pre">intensity</span> <span class="pre">[sample]&quot;</span></code> or for AlphaPept <code class="docutils literal notranslate"><span class="pre">&quot;[sample]_LFQ&quot;</span></code> (this is already set as default).</p>
+</section>
+<section id="additional-modifications-by-alphastats">
+<h2>Additional modifications by AlphaStats<a class="headerlink" href="#additional-modifications-by-alphastats" title="Permalink to this headline"></a></h2>
+<p>When importing the data, AlphaStats will itendify potential contaminations based on a contaminant library, reated by <a class="reference external" href="https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full">Frankenfield et al. 2022</a>. This information will be added as extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.</p>
+</section>
+<section id="alphapept">
+<h2>Alphapept<a class="headerlink" href="#alphapept" title="Permalink to this headline"></a></h2>
+<p><a class="reference external" href="https://github.com/MannLabs/alphapept">Alphapept</a> output can either be imported as <code class="docutils literal notranslate"><span class="pre">results_proteins.csv</span></code> or <code class="docutils literal notranslate"><span class="pre">results.hdf</span></code>.</p>
+<p>Find more details about the file format <a class="reference external" href="https://mannlabs.github.io/alphapept/file_formats.html">here</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">alphastats</span>
+<span class="n">alphapept_data</span> <span class="o">=</span> <span class="n">alphastats</span><span class="o">.</span><span class="n">AlphaPeptLoader</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="s2">&quot;testfiles/alphapept_results_proteins.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="maxquant">
+<h2>MaxQuant<a class="headerlink" href="#maxquant" title="Permalink to this headline"></a></h2>
+<p><a class="reference external" href="https://www.maxquant.org/">MaxQuant</a> generates multiple files as output. For the downstream anaylsis the <code class="docutils literal notranslate"><span class="pre">proteinGroups.txt</span></code> file, containing the aggregated protein intensities is sufficient.</p>
+<p>Find more details about the file format <a class="reference external" href="http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable">here</a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">alphastats</span> 
+<span class="n">maxquant_data</span> <span class="o">=</span> <span class="n">alphastats</span><span class="o">.</span><span class="n">MaxQuantLoader</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="s2">&quot;testfiles/maxquant_proteinGroups.txt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="dia-nn">
+<h2>DIA-NN<a class="headerlink" href="#dia-nn" title="Permalink to this headline"></a></h2>
+<p>For the analysis of <a class="reference external" href="https://github.com/vdemichev/DiaNN">DIA-NN</a> output use <code class="docutils literal notranslate"><span class="pre">report_final.pg_matrix.tsv</span></code>. Versions before 1.7. are not supported.</p>
+<p>Find more details about the file format <a class="reference external" href="https://github.com/vdemichev/DiaNN#output">here</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">alphastats</span> 
+<span class="n">diann_data</span> <span class="o">=</span> <span class="n">alphastats</span><span class="o">.</span><span class="n">DIANNLoader</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="s2">&quot;testfiles/diann_report_final.pg_matrix.tsv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fragpipe">
+<h2>FragPipe<a class="headerlink" href="#fragpipe" title="Permalink to this headline"></a></h2>
+<p>Find more details about the file format <a class="reference external" href="https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv">here</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">alphastats</span> 
+<span class="n">fragpipe_data</span> <span class="o">=</span> <span class="n">alphastats</span><span class="o">.</span><span class="n">FragPipeLoader</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="s2">&quot;testfiles/fragpipe_combined_proteins.tsv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="workflow_maxquant.html" class="btn btn-neutral float-right" title="Workflow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MannLabs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
