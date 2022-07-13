@@ -1,6 +1,6 @@
 #!python
 #from pkgutil import ImpImporter
-from loader.AlphaPeptLoader import AlphaPeptLoader
+from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from .loader.DIANNLoader import DIANNLoader
 from .loader.FragPipeLoader import *
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader 
