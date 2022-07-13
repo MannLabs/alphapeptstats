@@ -380,7 +380,7 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(
             file="testfiles/fragpipe_combined_proteins.tsv",
-            intensity_column="[experiment] Razor Intensity",
+            intensity_column="[sample] Razor Intensity",
         )
         self.metadata_path = "testfiles/fragpipe_metadata.xlsx"
         self.obj = DataSet(
