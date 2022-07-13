@@ -1,9 +1,9 @@
 #!python
 #from pkgutil import ImpImporter
-from .loader.AlphaPeptLoader import AlphaPeptLoader
+from loader.AlphaPeptLoader import AlphaPeptLoader
 from .loader.DIANNLoader import DIANNLoader
 from .loader.FragPipeLoader import *
-from .loader.MaxQuantLoader import MaxQuantLoader
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader 
 from .DataSet import *
 
 __project__ = "alphastats"
