@@ -1,5 +1,3 @@
-#!python
-#from pkgutil import ImpImporter
 from .loader.AlphaPeptLoader import *
 from .loader.DIANNLoader import *
 from .loader.FragPipeLoader import *
