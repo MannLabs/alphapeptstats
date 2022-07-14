@@ -124,7 +124,7 @@ class Plot:
         Args:
             id (str): ProteinGroup ID
             group (str, optional): A metadata column used for grouping. Defaults to None.
-            method (str, optional):  Violinplot = "violin", Boxplot = "box". Defaults to "violin".
+            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatte. Defaults to "violin".
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
@@ -134,13 +134,22 @@ class Plot:
         df = self.mat[[id]].reset_index().rename(columns={"index": "sample"})
         df = df.merge(self.metadata, how="inner", on=["sample"])
 
+        if method not in ["violin", "box", "scatter"]:
+            raise ValueError(
+                f"{method} is not available."
+                + "Please select from 'violin' for Violinplot, 'box' for Boxplot and 'scatter' for Scatterplot."
+            )
+
         if method == "violin":
             fig = px.violin(df, x=id, y=group, color=group)
         if method == "box":
             fig = px.box(df, x=id, y=group, color=group)
+        if method == "scatter":
+            fig = px.scatter(df, x=id, y=group, color=group)
 
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
+
         return fig
 
     def plot_volcano(self, column, group1, group2):
