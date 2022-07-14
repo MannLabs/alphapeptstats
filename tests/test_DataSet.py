@@ -354,7 +354,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             covar="Triglycerides measurement (14740000)",
             between="disease",
         )
-        self.assertEqual(ancova_df["p-unc"][1], 0.7375624497867097)
+        expected_value = 0.7375624497867097
+        given_value = ncova_df["p-unc"][1]
+        decimal_places = 7
+        self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
