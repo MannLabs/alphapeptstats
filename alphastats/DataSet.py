@@ -87,9 +87,7 @@ class DataSet(Preprocess, Statistics, Plot):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
         """
-        regex_find_intensity_columns = self.intensity_column.replace(
-            "[sample]", ".*"
-        )
+        regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
         df = self.rawdata
         df = df.set_index(self.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)

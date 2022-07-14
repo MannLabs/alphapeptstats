@@ -108,7 +108,7 @@ class Statistics:
         """One-way Analysis of Variance (ANOVA)
 
         Args:
-            group (_type_): A metadata column used calculate ANOVA
+            group (_type_): A metadata column used to calculate ANOVA
             ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable
             Either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for 
             all ProteinIDs. Defaults to "all".
@@ -121,11 +121,12 @@ class Statistics:
             * ``'A vs. B Tukey test'``: Tukey-HSD corrected p-values (each combination represents a column)
         """
         if protein_ids == "all":
-            protein_ids = self.mat.columns.tolist()
-        if isinstance(protein_ids, str):
+            protein_ids_list = self.mat.columns.tolist()
+        elif isinstance(protein_ids, str):
             # convert id to list
-            protein_ids = [protein_ids]
-
+            protein_ids_list = [protein_ids]
+        else:
+            protein_ids_list = protein_ids
         #  generated list of list with samples
         subgroup = self.metadata[group].unique().tolist()
         all_groups = []
@@ -133,7 +134,7 @@ class Statistics:
             group_list = self.metadata[self.metadata[group] == sub]["sample"].tolist()
             all_groups.append(group_list)
 
-        mat_transpose = self.mat[protein_ids].transpose()
+        mat_transpose = self.mat[protein_ids_list].transpose()
         #  perform rowwise anova
         p_values = mat_transpose.apply(
             # generate nested list with values for each group
@@ -150,30 +151,59 @@ class Statistics:
         )
 
         if tukey:
-            df = self.mat[protein_ids].reset_index().rename(columns={"index": "sample"})
-            df = df.merge(self.metadata, how="inner", on=["sample"])
-            tukey_df_list = []
-            for protein_id in tqdm(protein_ids):
-                tukey_df_list.append(
-                    self.calculate_tukey(df=df, protein_id=protein_id, group=group)
-                )
-            # combine all tukey test results
-            tukey_df = pd.concat(tukey_df_list)
-            # combine anova and tukey test results
-            final_df = anova_df.merge(
-                tukey_df[["comparison", "p-tukey", "Protein ID"]],
-                how="inner",
-                on=["Protein ID"],
-            )
-            final_df = final_df.pivot(
-                index=["Protein ID", "ANOVA_pvalue"],
-                columns=["comparison"],
-                values="p-tukey",
+            final_df = self.create_tukey_df(
+                anova_df=anova_df, protein_ids_list=protein_ids_list, group=group
             )
         else:
             final_df = anova_df
-
         return final_df
 
-    def anocova(self):
-        pass
+    def create_tukey_df(self, anova_df, protein_ids_list, group):
+        #  combine tukey results with anova results
+        df = (
+            self.mat[protein_ids_list].reset_index().rename(columns={"index": "sample"})
+        )
+        df = df.merge(self.metadata, how="inner", on=["sample"])
+        tukey_df_list = []
+        for protein_id in tqdm(protein_ids_list):
+            tukey_df_list.append(
+                self.calculate_tukey(df=df, protein_id=protein_id, group=group)
+            )
+        # combine all tukey test results
+        tukey_df = pd.concat(tukey_df_list)
+        # combine anova and tukey test results
+        final_df = anova_df.merge(
+            tukey_df[["comparison", "p-tukey", "Protein ID"]],
+            how="inner",
+            on=["Protein ID"],
+        )
+        final_df = final_df.pivot(
+            index=["Protein ID", "ANOVA_pvalue"],
+            columns=["comparison"],
+            values="p-tukey",
+        )
+        return final_df
+
+    def ancova(self, protein_id, covar, between):
+        """Analysis of covariance (ANCOVA) with on or more covariate(s).
+        Wrapper around = https://pingouin-stats.org/generated/pingouin.ancova.html
+
+        Args:
+            protein_id (str): ProteinID/ProteinGroup - dependent variable
+            covar (str or list):   Name(s) of column(s) in metadata with the covariate.
+            between (str): Name of column in data with the between factor.
+
+        Returns:
+            pandas.Dataframe: 
+            ANCOVA summary:
+            * ``'Source'``: Names of the factor considered
+            * ``'SS'``: Sums of squares
+            * ``'DF'``: Degrees of freedom
+            * ``'F'``: F-values
+            * ``'p-unc'``: Uncorrected p-values
+            * ``'np2'``: Partial eta-squared
+        """
+        df = self.mat[protein_id].reset_index().rename(columns={"index": "sample"})
+        df = self.metadata.merge(df, how="inner", on=["sample"])
+        ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
+        return ancova_df
