@@ -103,7 +103,7 @@ class BaseTestDataSet:
             mock.assert_called()
 
         def test_calculate_ttest_fc(self):
-            # get groups from compariosn column
+            # get groups from comparison column
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
             if self.obj.software != "AlphaPept":
