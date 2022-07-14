@@ -69,7 +69,7 @@ class Statistics:
     @ignore_warning(RuntimeWarning)
     def calculate_tukey(self, protein_id, group, df=None):
         """Calculate Pairwise Tukey-HSD post-hoc test
-        Wrapper around:
+        Wrapper around: 
         https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
 
         Args:
@@ -110,7 +110,7 @@ class Statistics:
         Args:
             group (_type_): A metadata column used calculate ANOVA
             ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable
-            Either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for
+            Either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for 
             all ProteinIDs. Defaults to "all".
             tukey (bool, optional): Whether to calculate a Tukey-HSD post-hoc test. Defaults to True.
 

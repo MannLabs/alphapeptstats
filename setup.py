@@ -4,7 +4,6 @@
 import setuptools
 import re
 import os
-
 # local
 import alphastats as package2install
 
@@ -60,8 +59,7 @@ def create_pip_wheel():
         entry_points={
             "console_scripts": package2install.__console_scripts__,
         },
-        install_requires=requirements
-        + [
+        install_requires=requirements + [
             # TODO Remove hardcoded requirement?
             "pywin32==225; sys_platform=='win32'"
         ],

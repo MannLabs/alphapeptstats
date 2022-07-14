@@ -4,7 +4,8 @@ import numpy as np
 
 
 class MaxQuantLoader(BaseLoader):
-    """Loader for MaxQuant outputfiles"""
+    """Loader for MaxQuant outputfiles
+    """
 
     def __init__(
         self,
@@ -15,7 +16,7 @@ class MaxQuantLoader(BaseLoader):
         confidence_column="Q-value",
         sep="\t",
     ):
-        """Loader MaxQuant output
+        """Loader MaxQuant output 
 
         Args:
             file (_type_): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
@@ -34,7 +35,8 @@ class MaxQuantLoader(BaseLoader):
         self.set_filter_columns_to_true_false()
 
     def set_filter_columns_to_true_false(self):
-        """replaces the '+' with True, else False"""
+        """replaces the '+' with True, else False
+        """
         if len(self.filter_columns) > 0:
             for filter_column in self.filter_columns:
                 self.rawdata[filter_column] = np.where(

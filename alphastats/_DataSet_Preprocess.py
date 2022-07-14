@@ -15,7 +15,8 @@ class Preprocess:
         return self.mat[self.mat.index.isin(self.metadata["sample"].tolist())]
 
     def preprocess_print_info(self):
-        """Print summary of preprocessing steps"""
+        """Print summary of preprocessing steps
+        """
         n_proteins = self.rawdata.shape[0]
         n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
         text = (
@@ -27,7 +28,8 @@ class Preprocess:
         print(preprocessing_text)
 
     def preprocess_filter(self):
-        """Removes all observations, that were identified as contaminations."""
+        """Removes all observations, that were identified as contaminations. 
+        """
         if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
             return
@@ -83,11 +85,11 @@ class Preprocess:
     def preprocess_normalization(self, method):
         """
         Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
-        Z-score normalization equals standaridzation using StandardScaler:
+        Z-score normalization equals standaridzation using StandardScaler: 
         https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
         For more information visit.
         Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
-
+        
         Args:
             method (str): method to normalize data: either "zscore", "quantile", "linear"
         """
@@ -124,12 +126,12 @@ class Preprocess:
         """Preprocess Protein data
 
         Args:
-            remove_contaminations (bool, optional): remove ProteinGroups that are identified
+            remove_contaminations (bool, optional): remove ProteinGroups that are identified 
             as contamination. Defaults to False.
-            normalization (str, optional): method to normalize data: either "zscore", "quantile",
+            normalization (str, optional): method to normalize data: either "zscore", "quantile", 
             "linear". Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
-            imputation (str, optional):  method to impute data: either "mean", "median" or "knn".
+            imputation (str, optional):  method to impute data: either "mean", "median" or "knn". 
             Defaults to None.
             qvalue (float, optional): _description_. Defaults to 0.01.
         """

@@ -79,7 +79,7 @@ class Plot:
         """Plot Correlation Matrix
 
         Args:
-            method (str, optional): orrelation coefficient "pearson", "kendall" (Kendall Tau correlation)
+            method (str, optional): orrelation coefficient "pearson", "kendall" (Kendall Tau correlation) 
             or "spearman" (Spearman rank correlation). Defaults to "pearson".
             save_figure (bool, optional): _description_. Defaults to False.
 
@@ -119,7 +119,7 @@ class Plot:
         return fig
 
     def plot_intensity(self, id, group=None, method="violin", log_scale=False):
-        """Plot Intensity of individual Protein/ProteinGroup
+        """Plot Intensity of individual Protein/ProteinGroup 
 
         Args:
             id (str): ProteinGroup ID
@@ -204,7 +204,7 @@ class Plot:
     def plot_dendogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
-        """Plot Hierarichical Clustering Dendogram. This is a wrapper around:
+        """Plot Hierarichical Clustering Dendogram. This is a wrapper around: 
         https://plotly.com/python-api-reference/generated/plotly.figure_factory.create_dendrogram.html
 
         Args:
