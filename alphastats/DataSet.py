@@ -14,9 +14,9 @@ import numpy as np
 import logging
 from sklearn_pandas import DataFrameMapper
 import warnings
-from alphastats._DataSet_Plot import Plot
-from alphastats._DataSet_Preprocess import Preprocess
-from alphastats._DataSet_Statistics import Statistics
+from alphastats.DataSet_Plot import Plot
+from alphastats.DataSet_Preprocess import Preprocess
+from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
 
 # remove warning from openpyxl

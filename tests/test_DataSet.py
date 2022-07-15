@@ -26,7 +26,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
-from alphastats._DataSet_Statistics import Statistics
+from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
 
 logger = logging.getLogger(__name__)

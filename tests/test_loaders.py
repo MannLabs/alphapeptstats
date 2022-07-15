@@ -60,9 +60,9 @@ class BaseTestLoader:
             mock.assert_called_once()
 
         def test_add_contaminantion_column(self):
-            column_added = "Contamination_library" in self.obj.rawdata
+            column_added = "contamination_library" in self.obj.rawdata
             self.assertTrue(column_added)
-            self.assertEqual(self.obj.rawdata["Contamination_library"].dtype, "bool")
+            self.assertEqual(self.obj.rawdata["contamination_library"].dtype, "bool")
 
         def test_df_dimensions(self):
             # test if dataframe gets loaded correctly
