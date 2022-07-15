@@ -99,9 +99,7 @@ class Preprocess:
             normalized_array = scaler.fit_transform(self.mat.values)
 
         if method == "quantile":
-            qt = sklearn.preprocessing.QuantileTransformer(
-                random_state=0
-            )
+            qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
             normalized_array = qt.fit_transform(self.mat.values)
 
         if method == "linear":

@@ -8,7 +8,12 @@ class DIANNLoader(BaseLoader):
      """
 
     def __init__(
-        self, file, intensity_column="[sample]", index_column="Protein.Group", sep="\t",
+        self,
+        file,
+        intensity_column="[sample]",
+        index_column="Protein.Group",
+        sep="\t",
+        **kwargs
     ):
         """Import DIA-NN output data report.pg_matrix.tsv
 

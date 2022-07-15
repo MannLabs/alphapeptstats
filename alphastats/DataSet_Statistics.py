@@ -162,7 +162,7 @@ class Statistics:
         #  combine tukey results with anova results
         df = (
             self.mat[protein_ids_list].reset_index().rename(columns={"index": "sample"})
-        ) 
+        )
         df = df.merge(self.metadata, how="inner", on=["sample"])
         tukey_df_list = []
         for protein_id in tqdm(protein_ids_list):

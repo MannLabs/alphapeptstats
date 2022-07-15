@@ -15,6 +15,7 @@ class FragPipeLoader(BaseLoader):
         index_column="Protein",
         confidence_column="Protein Probability",
         sep="\t",
+        **kwargs
     ):
 
         super().__init__(file, intensity_column, index_column, sep)

@@ -30,6 +30,7 @@ def ignore_warning(warning: Type[Warning]):
 
 class LoaderError(Exception):
     """Loader Exception that will be logged."""
+
     def __init__(self, message):
         self.message = message
         logging.error(message)
