@@ -17,6 +17,9 @@ jobs:
     - name: Install requirements
       run: |
         pip install -r requirements/requirements.txt
+    - name: Install package
+      run: |
+        pip install -e .
     - name: Run tests
       run: |
         pip install coverage
