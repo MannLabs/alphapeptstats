@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
+
 ![Pip installation](https://github.com/MannLabs/alphastats/workflows/Default%20installation%20and%20tests/badge.svg)
 
 # AlphaStats
