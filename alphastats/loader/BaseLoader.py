@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import os
+import numpy as np
 from iteration_utilities import duplicates
 
 
@@ -20,9 +21,10 @@ class BaseLoader:
         self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.index_column = index_column
-        self.filter_columns = None
+        self.filter_columns = []
         self.confidence_column = None
         self.software = None
+        self.add_contamination_column()
         self.check_if_columns_are_present()
 
     def check_if_columns_are_present(self):
@@ -50,23 +52,15 @@ class BaseLoader:
             # raise OSError
 
     def add_contamination_column(self):
-        #  load dict with potential contamination from fasta file
+        #  load df with potential contamination from fasta file
+        contaminations = pd.read_csv("misc/contaminations.txt", sep="\t")
+        contaminations_ids = contaminations["Uniprot ID"].to_list()
         #  add column with True False
-        # self.rawdata["Potential contaminant"]
-        pass
-
-        # get different output formats in alpha stat format
-        # self.value_column ="Precursor.Normalised" # "PG.Quantity",
-        # self.index_column = "Protein.Group",
-        # self.qvalue_column = ["PG.Q.Value", "Q.Value"] # both qvalues are used for filtering in R-package of DIA-NN
-        # allow multiple Q-value colummns qvalue_
-        # self.filter_column = []
-        # filter column should be binary
-        # allow multiple filter columns
-
-
-# ALPHASTATS STANDARDS
-
-#  intensity_column
-# confidence_column -> Q-value column in MaxQuant, ProteinProbability in MSFragger, DIA-NN and AlphaPept don't contain confidence column
-#  filter_columns -> added by alphastats if not MaxQuant "Contaminations" - use fasta.database, filters are annotated with True/False
+        self.rawdata["contamination_library"] = np.where(
+            self.rawdata[self.index_column].isin(contaminations_ids), True, False
+        )
+        self.filter_columns = self.filter_columns + ["contamination_library"]
+        logging.info(
+            "Column 'Contamination_library' has been added, to indicate contaminations.\n"
+            + "The contaminant library was created by Frankenfield et al. :https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
+        )

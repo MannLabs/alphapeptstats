@@ -1,0 +1,382 @@
+Uniprot ID	Entry name	Status	Protein names	Gene names	Organism	Length	Source of Contamination
+P00722	BGAL_ECOLI	reviewed	Beta-galactosidase (Beta-gal) (EC 3.2.1.23) (Lactase)	lacZ b0344 JW0335	Escherichia coli (strain K12)	1024	Bacterial Ecoli
+P09870	CLOS_HATHI	reviewed	"Clostripain (EC 3.4.22.8) (Clostridiopeptidase B) [Cleaved into: Clostripain light chain; Clostripain heavy chain]"	cloSI	Hathewaya histolytica (Clostridium histolyticum)	526	Enzyme 
+P30879	PEPC_PIG	reviewed	Gastricsin (EC 3.4.23.3) (Pepsinogen C) (Fragment)	PGC	Sus scrofa (Pig)	73	Enzyme 
+P0C1U8	SSPA_STAAU	reviewed	Glutamyl endopeptidase (EC 3.4.21.19) (Endoproteinase Glu-C) (Staphylococcal serine proteinase) (V8 protease) (V8 proteinase)	sspA	Staphylococcus aureus	336	Enzyme 
+Q2FZL2	SSPA_STAA8	reviewed	Glutamyl endopeptidase (EC 3.4.21.19) (Endoproteinase Glu-C) (Staphylococcal serine proteinase) (V8 protease) (V8 proteinase)	sspA SAOUHSC_00988	Staphylococcus aureus (strain NCTC 8325 / PS 47)	336	Enzyme 
+P00698	LYSC_CHICK	reviewed	Lysozyme C (EC 3.2.1.17) (1,4-beta-N-acetylmuramidase C) (Allergen Gal d IV) (allergen Gal d 4)	LYZ	Gallus gallus (Chicken)	147	Enzyme 
+Q7M135	LYSC_LYSEN	reviewed	Lysyl endopeptidase (EC 3.4.21.50) (Lys-C)		Lysobacter enzymogenes	269	Enzyme 
+P13717	NUCA_SERMA	reviewed	"Nuclease (EC 3.1.30.2) (Endonuclease) [Cleaved into: Nuclease isoform Sm2; Nuclease isoform Sm3; Nuclease isoform Sm1]"	nucA nuc	Serratia marcescens	266	Enzyme 
+P00791	PEPA_PIG	reviewed	Pepsin A (EC 3.4.23.1)	PGA	Sus scrofa (Pig)	385	Enzyme 
+Q10735	PEPB_PIG	reviewed	Pepsin B (EC 3.4.23.2) (Parapepsin I) (Fragment)	PGB	Sus scrofa (Pig)	67	Enzyme 
+P81054	PLMP_GRIFR	reviewed	Peptidyl-Lys metalloendopeptidase (MEP) (EC 3.4.24.20) (GfMEP)	MEP	Grifola frondosa (Maitake) (Polyporus frondosus)	348	Enzyme 
+P15636	API_ACHLY	reviewed	Protease 1 (EC 3.4.21.50) (API) (Lysyl endopeptidase) (Protease I)		Achromobacter lyticus	653	Enzyme 
+AAAA1	Anti-FLAG_AffinityTag 	manually added 	Anti-FLAG_AffinityTag 	FLAG			FLAG Affinity beads
+Q9U6Y5	GFPL1_ZOASP	reviewed	GFP-like fluorescent chromoprotein FP506 (zFP506)		Zoanthus sp. (Green polyp)	231	GFP Fluorescent Protein
+P42212	GFP_AEQVI	reviewed	Green fluorescent protein	GFP	Aequorea victoria (Water jellyfish) (Mesonema victoria)	238	GFP Fluorescent Protein
+AAAA2	Anti-HA_AffinityTag	manually added 	Anti-HA_AffinityTag	HA			HA Affinity beads
+A1A580	KR231_HUMAN	reviewed	Keratin-associated protein 23-1	KRTAP23-1 KAP23.1	Homo sapiens (Human)	65	Human skin and hair
+A6NCN2	KR87P_HUMAN	reviewed	Putative keratin-87 protein (Keratin, hair, basic pseudogene 4) (Keratin-121 pseudogene)	KRT87P KRT121P KRTHBP4	Homo sapiens (Human)	255	Human skin and hair
+A8MTY7	KRA97_HUMAN	reviewed	Keratin-associated protein 9-7 (Keratin-associated protein 9-like 1)	KRTAP9-7 KAP9.7 KRTAP9.7 KRTAP9L1	Homo sapiens (Human)	169	Human skin and hair
+A8MUX0	KR161_HUMAN	reviewed	Keratin-associated protein 16-1	KRTAP16-1 KAP16.1	Homo sapiens (Human)	517	Human skin and hair
+A8MVA2	KRA96_HUMAN	reviewed	Keratin-associated protein 9-6 (Keratin-associated protein 9-like 2)	KRTAP9-6 KAP9.6 KRTAP9.6 KRTAP9L2	Homo sapiens (Human)	160	Human skin and hair
+A8MX34	KR291_HUMAN	reviewed	Keratin-associated protein 29-1 (Keratin-associated protein 29.2)	KRTAP29-1 KAP29.2	Homo sapiens (Human)	341	Human skin and hair
+A8MXZ3	KRA91_HUMAN	reviewed	Keratin-associated protein 9-1 (Keratin-associated protein 9-like 3)	KRTAP9-1 KAP9.1 KRTAP9.1 KRTAP9L3	Homo sapiens (Human)	250	Human skin and hair
+O43790	KRT86_HUMAN	reviewed	Keratin, type II cuticular Hb6 (Hair keratin K2.11) (Keratin-86) (K86) (Type II hair keratin Hb6) (Type-II keratin Kb26)	KRT86 KRTHB6	Homo sapiens (Human)	486	Human skin and hair
+O75690	KRA58_HUMAN	reviewed	Keratin-associated protein 5-8 (Keratin, ultra high-sulfur matrix protein B) (Keratin-associated protein 5.8) (UHS keratin B) (UHS KerB) (Ultrahigh sulfur keratin-associated protein 5.8)	KRTAP5-8 KAP5.8 KRTAP5.8 UHSKB	Homo sapiens (Human)	187	Human skin and hair
+O76009	KT33A_HUMAN	reviewed	Keratin, type I cuticular Ha3-I (Hair keratin, type I Ha3-I) (Keratin-33A) (K33A)	KRT33A HHA3-I HKA3A KRTHA3A	Homo sapiens (Human)	404	Human skin and hair
+O76011	KRT34_HUMAN	reviewed	Keratin, type I cuticular Ha4 (Hair keratin, type I Ha4) (Keratin-34) (K34)	KRT34 HHA4 HKA4 KRTHA4	Homo sapiens (Human)	436	Human skin and hair
+O76013	KRT36_HUMAN	reviewed	Keratin, type I cuticular Ha6 (Hair keratin, type I Ha6) (Keratin-36) (K36)	KRT36 HHA6 HKA6 KRTHA6	Homo sapiens (Human)	467	Human skin and hair
+O76014	KRT37_HUMAN	reviewed	Keratin, type I cuticular Ha7 (Hair keratin, type I Ha7) (Keratin-37) (K37)	KRT37 HHA7 HKA7 KRTHA7	Homo sapiens (Human)	449	Human skin and hair
+O76015	KRT38_HUMAN	reviewed	Keratin, type I cuticular Ha8 (Hair keratin, type I Ha8) (Keratin-38) (K38)	KRT38 HHA8 HKA8 KRTHA8	Homo sapiens (Human)	456	Human skin and hair
+O95678	K2C75_HUMAN	reviewed	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (hK6hf) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	KRT75 K6HF KB18	Homo sapiens (Human)	551	Human skin and hair
+P02533	K1C14_HUMAN	reviewed	Keratin, type I cytoskeletal 14 (Cytokeratin-14) (CK-14) (Keratin-14) (K14)	KRT14	Homo sapiens (Human)	472	Human skin and hair
+P02538	K2C6A_HUMAN	reviewed	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Cytokeratin-6D) (CK-6D) (Keratin-6A) (K6A) (Type-II keratin Kb6) (allergen Hom s 5)	KRT6A K6A KRT6D	Homo sapiens (Human)	564	Human skin and hair
+P04259	K2C6B_HUMAN	reviewed	Keratin, type II cytoskeletal 6B (Cytokeratin-6B) (CK-6B) (Keratin-6B) (K6B) (Type-II keratin Kb10)	KRT6B K6B KRTL1	Homo sapiens (Human)	564	Human skin and hair
+P04264	K2C1_HUMAN	reviewed	Keratin, type II cytoskeletal 1 (67 kDa cytokeratin) (Cytokeratin-1) (CK-1) (Hair alpha protein) (Keratin-1) (K1) (Type-II keratin Kb1)	KRT1 KRTA	Homo sapiens (Human)	644	Human skin and hair
+P05783	K1C18_HUMAN	reviewed	Keratin, type I cytoskeletal 18 (Cell proliferation-inducing gene 46 protein) (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	KRT18 CYK18 PIG46	Homo sapiens (Human)	430	Human skin and hair
+P05787	K2C8_HUMAN	reviewed	Keratin, type II cytoskeletal 8 (Cytokeratin-8) (CK-8) (Keratin-8) (K8) (Type-II keratin Kb8)	KRT8 CYK8	Homo sapiens (Human)	483	Human skin and hair
+P08727	K1C19_HUMAN	reviewed	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	KRT19	Homo sapiens (Human)	400	Human skin and hair
+P08729	K2C7_HUMAN	reviewed	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Sarcolectin) (Type-II keratin Kb7)	KRT7 SCL	Homo sapiens (Human)	469	Human skin and hair
+P08779	K1C16_HUMAN	reviewed	Keratin, type I cytoskeletal 16 (Cytokeratin-16) (CK-16) (Keratin-16) (K16)	KRT16 KRT16A	Homo sapiens (Human)	473	Human skin and hair
+P0C5Y4	KRA14_HUMAN	reviewed	Keratin-associated protein 1-4 (High sulfur keratin-associated protein 1.4) (Keratin-associated protein 1.4)	KRTAP1-4 KAP1.4 KRTAP1.4	Homo sapiens (Human)	121	Human skin and hair
+P0C7H8	KRA23_HUMAN	reviewed	Keratin-associated protein 2-3 (High sulfur keratin-associated protein 2.4) (Keratin-associated protein 2.3)	KRTAP2-3 KAP2.3 KRTAP2.3	Homo sapiens (Human)	128	Human skin and hair
+P12035	K2C3_HUMAN	reviewed	Keratin, type II cytoskeletal 3 (65 kDa cytokeratin) (Cytokeratin-3) (CK-3) (Keratin-3) (K3) (Type-II keratin Kb3)	KRT3	Homo sapiens (Human)	628	Human skin and hair
+P13645	K1C10_HUMAN	reviewed	Keratin, type I cytoskeletal 10 (Cytokeratin-10) (CK-10) (Keratin-10) (K10)	KRT10 KPP	Homo sapiens (Human)	584	Human skin and hair
+P13646	K1C13_HUMAN	reviewed	Keratin, type I cytoskeletal 13 (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	KRT13	Homo sapiens (Human)	458	Human skin and hair
+P13647	K2C5_HUMAN	reviewed	Keratin, type II cytoskeletal 5 (58 kDa cytokeratin) (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	KRT5	Homo sapiens (Human)	590	Human skin and hair
+P19012	K1C15_HUMAN	reviewed	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15)	KRT15 KRTB	Homo sapiens (Human)	456	Human skin and hair
+P19013	K2C4_HUMAN	reviewed	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Keratin-4) (K4) (Type-II keratin Kb4)	KRT4 CYK4	Homo sapiens (Human)	520	Human skin and hair
+P20930	FILA_HUMAN	reviewed	Filaggrin	FLG	Homo sapiens (Human)	4061	Human skin and hair
+P26371	KRA59_HUMAN	reviewed	Keratin-associated protein 5-9 (Keratin, cuticle, ultrahigh sulfur 1) (Keratin, ultra high-sulfur matrix protein A) (Keratin-associated protein 5.9) (UHS keratin A) (UHS KerA) (Ultrahigh sulfur keratin-associated protein 5.9)	KRTAP5-9 KAP5.9 KRN1 KRTAP5.9 UHSK1	Homo sapiens (Human)	169	Human skin and hair
+P35527	K1C9_HUMAN	reviewed	Keratin, type I cytoskeletal 9 (Cytokeratin-9) (CK-9) (Keratin-9) (K9)	KRT9	Homo sapiens (Human)	623	Human skin and hair
+P35900	K1C20_HUMAN	reviewed	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20) (Protein IT)	KRT20	Homo sapiens (Human)	424	Human skin and hair
+P35908	K22E_HUMAN	reviewed	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	KRT2 KRT2A KRT2E	Homo sapiens (Human)	639	Human skin and hair
+P48668	K2C6C_HUMAN	reviewed	Keratin, type II cytoskeletal 6C (Cytokeratin-6C) (CK-6C) (Cytokeratin-6E) (CK-6E) (Keratin K6h) (Keratin-6C) (K6C) (Type-II keratin Kb12)	KRT6C KRT6E	Homo sapiens (Human)	564	Human skin and hair
+P59990	KR121_HUMAN	reviewed	Keratin-associated protein 12-1 (High sulfur keratin-associated protein 12.1) (Keratin-associated protein 12.1)	KRTAP12-1 KAP12.1 KRTAP12.1	Homo sapiens (Human)	96	Human skin and hair
+P59991	KR122_HUMAN	reviewed	Keratin-associated protein 12-2 (High sulfur keratin-associated protein 12.2) (Keratin-associated protein 12.2)	KRTAP12-2 KAP12.2 KRTAP12.2	Homo sapiens (Human)	146	Human skin and hair
+P60014	KR10A_HUMAN	reviewed	Keratin-associated protein 10-10 (High sulfur keratin-associated protein 10.10) (Keratin-associated protein 10.10) (Keratin-associated protein 18-10) (Keratin-associated protein 18.10)	KRTAP10-10 KAP10.10 KAP18-10 KRTAP10.10 KRTAP18-1 KRTAP18.10	Homo sapiens (Human)	251	Human skin and hair
+P60328	KR123_HUMAN	reviewed	Keratin-associated protein 12-3 (High sulfur keratin-associated protein 12.3) (Keratin-associated protein 12.3)	KRTAP12-3 KAP12.3 KRTAP12.3	Homo sapiens (Human)	96	Human skin and hair
+P60329	KR124_HUMAN	reviewed	Keratin-associated protein 12-4 (High sulfur keratin-associated protein 12.4) (Keratin-associated protein 12.4)	KRTAP12-4 KAP12.4 KRTAP12.4	Homo sapiens (Human)	112	Human skin and hair
+P60331	KR101_HUMAN	reviewed	Keratin-associated protein 10-1 (High sulfur keratin-associated protein 10.1) (Keratin-associated protein 10.1) (Keratin-associated protein 18-1) (Keratin-associated protein 18.1)	KRTAP10-1 KAP10.1 KAP18-1 KRTAP10.1 KRTAP18-1 KRTAP18.1	Homo sapiens (Human)	282	Human skin and hair
+P60368	KR102_HUMAN	reviewed	Keratin-associated protein 10-2 (High sulfur keratin-associated protein 10.2) (Keratin-associated protein 10.2) (Keratin-associated protein 18-2) (Keratin-associated protein 18.2)	KRTAP10-2 KAP10.2 KAP18-2 KRTAP10.2 KRTAP18-2 KRTAP18.2	Homo sapiens (Human)	255	Human skin and hair
+P60369	KR103_HUMAN	reviewed	Keratin-associated protein 10-3 (High sulfur keratin-associated protein 10.3) (Keratin-associated protein 10.3) (Keratin-associated protein 18-3) (Keratin-associated protein 18.3)	KRTAP10-3 KAP10.3 KAP18-3 KRTAP10.3 KRTAP18-3 KRTAP18.3	Homo sapiens (Human)	221	Human skin and hair
+P60370	KR105_HUMAN	reviewed	Keratin-associated protein 10-5 (High sulfur keratin-associated protein 10.5) (Keratin-associated protein 10.5) (Keratin-associated protein 18-5) (Keratin-associated protein 18.5)	KRTAP10-5 KAP10.5 KAP18-5 KRTAP10.5 KRTAP18-5 KRTAP18.5	Homo sapiens (Human)	271	Human skin and hair
+P60371	KR106_HUMAN	reviewed	Keratin-associated protein 10-6 (High sulfur keratin-associated protein 10.6) (Keratin-associated protein 10.6) (Keratin-associated protein 18-6) (Keratin-associated protein 18.6)	KRTAP10-6 KAP10.6 KAP18-6 KRTAP10.6 KRTAP18-6 KRTAP18.6	Homo sapiens (Human)	365	Human skin and hair
+P60372	KR104_HUMAN	reviewed	Keratin-associated protein 10-4 (High sulfur keratin-associated protein 10.4) (Keratin-associated protein 10.4) (Keratin-associated protein 18-4) (Keratin-associated protein 18.4)	KRTAP10-4 KAP10.4 KAP18-4 KRTAP10.4 KRTAP18-4 KRTAP18.4	Homo sapiens (Human)	401	Human skin and hair
+P60409	KR107_HUMAN	reviewed	Keratin-associated protein 10-7 (High sulfur keratin-associated protein 10.7) (Keratin-associated protein 10.7) (Keratin-associated protein 18-7) (Keratin-associated protein 18.7)	KRTAP10-7 KAP10.7 KAP18-7 KRTAP10.7 KRTAP18-7 KRTAP18.7	Homo sapiens (Human)	370	Human skin and hair
+P60410	KR108_HUMAN	reviewed	Keratin-associated protein 10-8 (High sulfur keratin-associated protein 10.8) (Keratin-associated protein 10.8) (Keratin-associated protein 18-8) (Keratin-associated protein 18.8)	KRTAP10-8 KAP10.8 KAP18-8 KRTAP10.8 KRTAP18-8 KRTAP18.8	Homo sapiens (Human)	259	Human skin and hair
+P60411	KR109_HUMAN	reviewed	Keratin-associated protein 10-9 (High sulfur keratin-associated protein 10.9) (Keratin-associated protein 10.9) (Keratin-associated protein 18-9) (Keratin-associated protein 18.9)	KRTAP10-9 KAP10.9 KAP18-9 KRTAP10.9 KRTAP18-9 KRTAP18.9	Homo sapiens (Human)	292	Human skin and hair
+P60412	KR10B_HUMAN	reviewed	Keratin-associated protein 10-11 (High sulfur keratin-associated protein 10.11) (Keratin-associated protein 10.11) (Keratin-associated protein 18-11) (Keratin-associated protein 18.11)	KRTAP10-11 KAP10.11 KAP18-11 KRTAP10.11 KRTAP18-11 KRTAP18.11	Homo sapiens (Human)	298	Human skin and hair
+P60413	KR10C_HUMAN	reviewed	Keratin-associated protein 10-12 (High sulfur keratin-associated protein 10.12) (Keratin-associated protein 10.12) (Keratin-associated protein 18-12) (Keratin-associated protein 18.12)	KRTAP10-12 KAP10.12 KAP18-12 KRTAP10.12 KRTAP18-12 KRTAP18.12	Homo sapiens (Human)	245	Human skin and hair
+P78385	KRT83_HUMAN	reviewed	Keratin, type II cuticular Hb3 (Hair keratin K2.10) (Keratin-83) (K83) (Type II hair keratin Hb3) (Type-II keratin Kb23)	KRT83 KRTHB3	Homo sapiens (Human)	493	Human skin and hair
+P78386	KRT85_HUMAN	reviewed	Keratin, type II cuticular Hb5 (Hair keratin K2.12) (Keratin-85) (K85) (Type II hair keratin Hb5) (Type-II keratin Kb25)	KRT85 KRTHB5	Homo sapiens (Human)	507	Human skin and hair
+Q01546	K22O_HUMAN	reviewed	Keratin, type II cytoskeletal 2 oral (Cytokeratin-2P) (CK-2P) (K2P) (Keratin-76) (K76) (Type-II keratin Kb9)	KRT76 KRT2B KRT2P	Homo sapiens (Human)	638	Human skin and hair
+Q04695	K1C17_HUMAN	reviewed	Keratin, type I cytoskeletal 17 (39.1) (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	KRT17	Homo sapiens (Human)	432	Human skin and hair
+Q07627	KRA11_HUMAN	reviewed	Keratin-associated protein 1-1 (High sulfur keratin-associated protein 1.1) (Keratin-associated protein 1.1) (Keratin-associated protein 1.6) (Keratin-associated protein 1.7)	KRTAP1-1 B2A KAP1.1 KAP1.6 KAP1.7 KRTAP1.1	Homo sapiens (Human)	177	Human skin and hair
+Q14525	KT33B_HUMAN	reviewed	Keratin, type I cuticular Ha3-II (Hair keratin, type I Ha3-II) (Keratin-33B) (K33B)	KRT33B HHA3-II HKA3B KRTHA3B	Homo sapiens (Human)	404	Human skin and hair
+Q14532	K1H2_HUMAN	reviewed	Keratin, type I cuticular Ha2 (Hair keratin, type I Ha2) (Keratin-32) (K32)	KRT32 HHA2 HKA2 KRTHA2	Homo sapiens (Human)	448	Human skin and hair
+Q14533	KRT81_HUMAN	reviewed	Keratin, type II cuticular Hb1 (Hair keratin K2.9) (Keratin, hair, basic, 1) (Keratin-81) (K81) (Metastatic lymph node 137 gene protein) (MLN 137) (Type II hair keratin Hb1) (Type-II keratin Kb21) (ghHKb1) (ghHb1)	KRT81 KRTHB1 MLN137	Homo sapiens (Human)	505	Human skin and hair
+Q14CN4	K2C72_HUMAN	reviewed	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	KRT72 K6IRS2 KB35 KRT6 KRT6IRS2	Homo sapiens (Human)	511	Human skin and hair
+Q15323	K1H1_HUMAN	reviewed	Keratin, type I cuticular Ha1 (Hair keratin, type I Ha1) (Keratin-31) (K31)	KRT31 HHA1 HKA1 KRTHA1	Homo sapiens (Human)	416	Human skin and hair
+Q2M2I5	K1C24_HUMAN	reviewed	Keratin, type I cytoskeletal 24 (Cytokeratin-24) (CK-24) (Keratin-24) (K24) (Type I keratin-24)	KRT24 KA24	Homo sapiens (Human)	525	Human skin and hair
+Q3KNV1	Q3KNV1_HUMAN	unreviewed	KRT7 protein	KRT7	Homo sapiens (Human)	132	Human skin and hair
+Q3LHN0	KR251_HUMAN	reviewed	Keratin-associated protein 25-1	KRTAP25-1 KAP25.1	Homo sapiens (Human)	102	Human skin and hair
+Q3LHN1	KR213_HUMAN	reviewed	Keratin-associated protein 21-3	KRTAP21-3 KAP21.3	Homo sapiens (Human)	58	Human skin and hair
+Q3LHN2	KR192_HUMAN	reviewed	Keratin-associated protein 19-2	KRTAP19-2 KAP19.2	Homo sapiens (Human)	52	Human skin and hair
+Q3LI54	KR198_HUMAN	reviewed	Keratin-associated protein 19-8	KRTAP19-8 KAP19.8	Homo sapiens (Human)	63	Human skin and hair
+Q3LI58	KR211_HUMAN	reviewed	Keratin-associated protein 21-1	KRTAP21-1 KAP21.1	Homo sapiens (Human)	79	Human skin and hair
+Q3LI59	KR212_HUMAN	reviewed	Keratin-associated protein 21-2	KRTAP21-2 KAP21.2	Homo sapiens (Human)	83	Human skin and hair
+Q3LI61	KR202_HUMAN	reviewed	Keratin-associated protein 20-2	KRTAP20-2 KAP20.2	Homo sapiens (Human)	65	Human skin and hair
+Q3LI63	KR201_HUMAN	reviewed	Keratin-associated protein 20-1	KRTAP20-1 KAP20.1	Homo sapiens (Human)	56	Human skin and hair
+Q3LI64	KRA61_HUMAN	reviewed	Keratin-associated protein 6-1	KRTAP6-1 C21orf103 KAP6.1	Homo sapiens (Human)	71	Human skin and hair
+Q3LI66	KRA62_HUMAN	reviewed	Keratin-associated protein 6-2	KRTAP6-2 KAP6.2	Homo sapiens (Human)	62	Human skin and hair
+Q3LI67	KRA63_HUMAN	reviewed	Keratin-associated protein 6-3	KRTAP6-3 KAP6.3	Homo sapiens (Human)	103	Human skin and hair
+Q3LI70	KR196_HUMAN	reviewed	Keratin-associated protein 19-6	KRTAP19-6 KAP19.6	Homo sapiens (Human)	58	Human skin and hair
+Q3LI72	KR195_HUMAN	reviewed	Keratin-associated protein 19-5	KRTAP19-5 KAP19.5	Homo sapiens (Human)	72	Human skin and hair
+Q3LI73	KR194_HUMAN	reviewed	Keratin-associated protein 19-4	KRTAP19-4 KAP19.4	Homo sapiens (Human)	84	Human skin and hair
+Q3LI76	KR151_HUMAN	reviewed	Keratin-associated protein 15-1	KRTAP15-1 KAP15.1	Homo sapiens (Human)	137	Human skin and hair
+Q3LI77	KR134_HUMAN	reviewed	Keratin-associated protein 13-4	KRTAP13-4 KAP13.4	Homo sapiens (Human)	160	Human skin and hair
+Q3LI81	KR271_HUMAN	reviewed	Keratin-associated protein 27-1	KRTAP27-1 KAP27.1	Homo sapiens (Human)	207	Human skin and hair
+Q3LI83	KR241_HUMAN	reviewed	Keratin-associated protein 24-1	KRTAP24-1 KAP24.1	Homo sapiens (Human)	254	Human skin and hair
+Q3MIV0	KR221_HUMAN	reviewed	Keratin-associated protein 22-1	KRTAP22-1 KAP22.1	Homo sapiens (Human)	48	Human skin and hair
+Q3SY46	KR133_HUMAN	reviewed	Keratin-associated protein 13-3	KRTAP13-3 KAP13.3	Homo sapiens (Human)	172	Human skin and hair
+Q3SY84	K2C71_HUMAN	reviewed	Keratin, type II cytoskeletal 71 (Cytokeratin-71) (CK-71) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (Keratin 6 irs) (hK6irs) (hK6irs1) (Type-II keratin Kb34)	KRT71 K6IRS1 KB34 KRT6IRS1	Homo sapiens (Human)	523	Human skin and hair
+Q3SYF9	KR197_HUMAN	reviewed	Keratin-associated protein 19-7	KRTAP19-7 KAP19.7	Homo sapiens (Human)	63	Human skin and hair
+Q52LG2	KR132_HUMAN	reviewed	Keratin-associated protein 13-2	KRTAP13-2 KAP13.2	Homo sapiens (Human)	175	Human skin and hair
+Q5D862	FILA2_HUMAN	reviewed	Filaggrin-2 (FLG-2) (Intermediate filament-associated and psoriasis-susceptibility protein) (Ifapsoriasin)	FLG2 IFPS	Homo sapiens (Human)	2391	Human skin and hair
+Q5XKE5	K2C79_HUMAN	reviewed	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-6-like) (Keratin-6L) (Keratin-79) (K79) (Type-II keratin Kb38)	KRT79 K6L KB38 KRT6L	Homo sapiens (Human)	535	Human skin and hair
+Q6A162	K1C40_HUMAN	reviewed	Keratin, type I cytoskeletal 40 (Cytokeratin-40) (CK-40) (Keratin-40) (K40) (Type I hair keratin Ka36)	KRT40 KA36	Homo sapiens (Human)	431	Human skin and hair
+Q6A163	K1C39_HUMAN	reviewed	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	KRT39 KA35	Homo sapiens (Human)	491	Human skin and hair
+Q6E0U4	DMKN_HUMAN	reviewed	Dermokine (Epidermis-specific secreted protein SK30/SK89)	DMKN UNQ729/PRO1411	Homo sapiens (Human)	476	Human skin and hair
+Q6KB66	K2C80_HUMAN	reviewed	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	KRT80 KB20	Homo sapiens (Human)	452	Human skin and hair
+Q6L8G4	KR511_HUMAN	reviewed	Keratin-associated protein 5-11 (Keratin-associated protein 5.11) (Ultrahigh sulfur keratin-associated protein 5.11)	KRTAP5-11 KAP5.11 KRTAP5.11	Homo sapiens (Human)	156	Human skin and hair
+Q6L8G5	KR510_HUMAN	reviewed	Keratin-associated protein 5-10 (Keratin-associated protein 5.10) (Ultrahigh sulfur keratin-associated protein 5.10)	KRTAP5-10 KAP5.10 KRTAP5.10	Homo sapiens (Human)	202	Human skin and hair
+Q6L8G8	KRA57_HUMAN	reviewed	Keratin-associated protein 5-7 (Keratin-associated protein 5-3) (Keratin-associated protein 5.3) (Keratin-associated protein 5.7) (Ultrahigh sulfur keratin-associated protein 5.7)	KRTAP5-7 KAP5-7 KAP5.3 KRTAP5.3 KRTAP5.7	Homo sapiens (Human)	165	Human skin and hair
+Q6L8G9	KRA56_HUMAN	reviewed	Keratin-associated protein 5-6 (Keratin-associated protein 5.6) (Ultrahigh sulfur keratin-associated protein 5.6)	KRTAP5-6 KAP5.6 KRTAP5.6	Homo sapiens (Human)	129	Human skin and hair
+Q6L8H1	KRA54_HUMAN	reviewed	Keratin-associated protein 5-4 (Keratin-associated protein 5.4) (Ultrahigh sulfur keratin-associated protein 5.4)	KRTAP5-4 KAP5.4 KRTAP5.4	Homo sapiens (Human)	288	Human skin and hair
+Q6L8H2	KRA53_HUMAN	reviewed	Keratin-associated protein 5-3 (Keratin-associated protein 5-9) (Keratin-associated protein 5.3) (Keratin-associated protein 5.9) (UHS KerB-like) (Ultrahigh sulfur keratin-associated protein 5.3)	KRTAP5-3 KAP5-9 KAP5.3 KRTAP5-9 KRTAP5.3 KRTAP5.9	Homo sapiens (Human)	238	Human skin and hair
+Q6L8H4	KRA51_HUMAN	reviewed	Keratin-associated protein 5-1 (Keratin, cuticle, ultrahigh sulphur 1-like) (Keratin-associated protein 5.1) (Ultrahigh sulfur keratin-associated protein 5.1)	KRTAP5-1 KAP5.1 KRN1L KRTAP5.1	Homo sapiens (Human)	278	Human skin and hair
+Q6PEX3	KR261_HUMAN	reviewed	Keratin-associated protein 26-1	KRTAP26-1 KAP26.1	Homo sapiens (Human)	210	Human skin and hair
+Q701N2	KRA55_HUMAN	reviewed	Keratin-associated protein 5-5 (Keratin-associated protein 5-11) (Keratin-associated protein 5.11) (Keratin-associated protein 5.5) (Ultrahigh sulfur keratin-associated protein 5.5)	KRTAP5-5 KAP5-11 KAP5.5 KRTAP5-11 KRTAP5.11 KRTAP5.5	Homo sapiens (Human)	237	Human skin and hair
+Q701N4	KRA52_HUMAN	reviewed	Keratin-associated protein 5-2 (Keratin-associated protein 5-8) (Keratin-associated protein 5.2) (Keratin-associated protein 5.8) (Ultrahigh sulfur keratin-associated protein 5.2)	KRTAP5-2 KAP5-8 KAP5.2 KRTAP5-8 KRTAP5.2 KRTAP5.8	Homo sapiens (Human)	177	Human skin and hair
+Q7RTS7	K2C74_HUMAN	reviewed	Keratin, type II cytoskeletal 74 (Cytokeratin-74) (CK-74) (Keratin-5c) (K5C) (Keratin-74) (K74) (Type II inner root sheath-specific keratin-K6irs4) (Type-II keratin Kb37)	KRT74 K6IRS4 KB37 KRT5C KRT6IRS4	Homo sapiens (Human)	529	Human skin and hair
+Q7Z3Y7	K1C28_HUMAN	reviewed	Keratin, type I cytoskeletal 28 (Cytokeratin-28) (CK-28) (Keratin-25D) (K25D) (Keratin-28) (K28) (Type I inner root sheath-specific keratin-K25irs4)	KRT28 KRT25D	Homo sapiens (Human)	464	Human skin and hair
+Q7Z3Y8	K1C27_HUMAN	reviewed	Keratin, type I cytoskeletal 27 (Cytokeratin-27) (CK-27) (Keratin-25C) (K25C) (Keratin-27) (K27) (Type I inner root sheath-specific keratin-K25irs3)	KRT27 KRT25C	Homo sapiens (Human)	459	Human skin and hair
+Q7Z3Y9	K1C26_HUMAN	reviewed	Keratin, type I cytoskeletal 26 (Cytokeratin-26) (CK-26) (Keratin-25B) (K25B) (Keratin-26) (K26) (Type I inner root sheath-specific keratin-K25irs2)	KRT26 KRT25B	Homo sapiens (Human)	468	Human skin and hair
+Q7Z3Z0	K1C25_HUMAN	reviewed	Keratin, type I cytoskeletal 25 (Cytokeratin-25) (CK-25) (Keratin-25) (K25) (Keratin-25A) (K25A) (Type I inner root sheath-specific keratin-K25irs1)	KRT25 KRT25A	Homo sapiens (Human)	450	Human skin and hair
+Q7Z4W3	KR193_HUMAN	reviewed	Keratin-associated protein 19-3 (GTHRP) (Glycine/tyrosine-rich protein)	KRTAP19-3 KAP19.3	Homo sapiens (Human)	81	Human skin and hair
+Q7Z794	K2C1B_HUMAN	reviewed	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Keratin-77) (K77) (Type-II keratin Kb39)	KRT77 KRT1B	Homo sapiens (Human)	578	Human skin and hair
+Q86Y46	K2C73_HUMAN	reviewed	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	KRT73 K6IRS3 KB36 KRT6IRS3	Homo sapiens (Human)	540	Human skin and hair
+Q86YZ3	HORN_HUMAN	reviewed	Hornerin	HRNR S100A18	Homo sapiens (Human)	2850	Human skin and hair
+Q8IUB9	KR191_HUMAN	reviewed	Keratin-associated protein 19-1 (High tyrosine-glycine keratin-associated protein 19.1)	KRTAP19-1 KAP19.1 KRTAP19.1	Homo sapiens (Human)	90	Human skin and hair
+Q8IUC0	KR131_HUMAN	reviewed	Keratin-associated protein 13-1 (High sulfur keratin-associated protein 13.1)	KRTAP13-1 KAP13.1 KRTAP13.1	Homo sapiens (Human)	172	Human skin and hair
+Q8IUC1	KR111_HUMAN	reviewed	Keratin-associated protein 11-1 (High sulfur keratin-associated protein 11.1)	KRTAP11-1 KAP11.1 KRTAP11.1	Homo sapiens (Human)	163	Human skin and hair
+Q8IUC2	KRA81_HUMAN	reviewed	Keratin-associated protein 8-1 (High glycine-tyrosine keratin-associated protein 8.1)	KRTAP8-1 KAP8.1 KRTAP8.1	Homo sapiens (Human)	63	Human skin and hair
+Q8IUC3	KRA71_HUMAN	reviewed	Keratin-associated protein 7-1 (High tyrosine-glycine keratin-associated protein 7.1)	KRTAP7-1 KAP7.1 KRTAP7.1	Homo sapiens (Human)	87	Human skin and hair
+Q8IUG1	KRA13_HUMAN	reviewed	Keratin-associated protein 1-3 (Keratin-associated protein 1.8) (Keratin-associated protein 1.9)	KRTAP1-3 B2B KAP1.2 KAP1.3 KAP1.8 KAP1.9 KRATP1.9 KRTAP1.8	Homo sapiens (Human)	177	Human skin and hair
+Q8N1A0	KT222_HUMAN	reviewed	Keratin-like protein KRT222 (Keratin-222) (Keratin-222 pseudogene)	KRT222 KA21 KRT222P	Homo sapiens (Human)	295	Human skin and hair
+Q8N1N4	K2C78_HUMAN	reviewed	Keratin, type II cytoskeletal 78 (Cytokeratin-78) (CK-78) (Keratin-5b) (Keratin-78) (K78) (Type-II keratin Kb40)	KRT78 K5B KB40	Homo sapiens (Human)	520	Human skin and hair
+Q92764	KRT35_HUMAN	reviewed	Keratin, type I cuticular Ha5 (Hair keratin, type I Ha5) (Keratin-35) (K35)	KRT35 HHA5 HKA5 KRTHA5	Homo sapiens (Human)	455	Human skin and hair
+Q99456	K1C12_HUMAN	reviewed	Keratin, type I cytoskeletal 12 (Cytokeratin-12) (CK-12) (Keratin-12) (K12)	KRT12	Homo sapiens (Human)	494	Human skin and hair
+Q9BQ66	KR412_HUMAN	reviewed	Keratin-associated protein 4-12 (Keratin-associated protein 4.12) (Ultrahigh sulfur keratin-associated protein 4.12)	KRTAP4-12 KAP4.12 KRTAP4.12	Homo sapiens (Human)	201	Human skin and hair
+Q9BYP8	KR171_HUMAN	reviewed	Keratin-associated protein 17-1 (Keratin-associated protein 16.1)	KRTAP17-1 KAP17.1 KRTAP16.1	Homo sapiens (Human)	105	Human skin and hair
+Q9BYP9	KRA99_HUMAN	reviewed	Keratin-associated protein 9-9 (Keratin-associated protein 9-5) (Keratin-associated protein 9.5) (Keratin-associated protein 9.9) (Ultrahigh sulfur keratin-associated protein 9.9)	KRTAP9-9 KAP9.5 KAP9.9 KRTAP9-5 KRTAP9.5 KRTAP9.9	Homo sapiens (Human)	154	Human skin and hair
+Q9BYQ0	KRA98_HUMAN	reviewed	Keratin-associated protein 9-8 (Keratin-associated protein 9.8) (Ultrahigh sulfur keratin-associated protein 9.8)	KRTAP9-8 KAP9.8 KRTAP9.8	Homo sapiens (Human)	159	Human skin and hair
+Q9BYQ2	KRA94_HUMAN	reviewed	Keratin-associated protein 9-4 (Keratin-associated protein 9.4) (Ultrahigh sulfur keratin-associated protein 9.4)	KRTAP9-4 KAP9.4 KRTAP9.4	Homo sapiens (Human)	154	Human skin and hair
+Q9BYQ3	KRA93_HUMAN	reviewed	Keratin-associated protein 9-3 (Keratin-associated protein 9.3) (Ultrahigh sulfur keratin-associated protein 9.3)	KRTAP9-3 KAP9.3 KRTAP9.3	Homo sapiens (Human)	159	Human skin and hair
+Q9BYQ4	KRA92_HUMAN	reviewed	Keratin-associated protein 9-2 (Keratin-associated protein 9.2) (Ultrahigh sulfur keratin-associated protein 9.2)	KRTAP9-2 KAP9.2 KRTAP9.2	Homo sapiens (Human)	174	Human skin and hair
+Q9BYQ5	KRA46_HUMAN	reviewed	Keratin-associated protein 4-6 (Keratin-associated protein 4-15) (Keratin-associated protein 4.15) (Keratin-associated protein 4.6) (Ultrahigh sulfur keratin-associated protein 4.15)	KRTAP4-6 KAP4.15 KRTAP4-15 KRTAP4.15 KRTAP4.6	Homo sapiens (Human)	205	Human skin and hair
+Q9BYQ6	KR411_HUMAN	reviewed	Keratin-associated protein 4-11 (Keratin-associated protein 4-14) (Keratin-associated protein 4.11) (Keratin-associated protein 4.14) (Ultrahigh sulfur keratin-associated protein 4.14)	KRTAP4-11 KAP4.14 KRTAP4-14 KRTAP4.11 KRTAP4.14	Homo sapiens (Human)	195	Human skin and hair
+Q9BYQ7	KRA41_HUMAN	reviewed	Keratin-associated protein 4-1 (Keratin-associated protein 4-10) (Keratin-associated protein 4.1) (Keratin-associated protein 4.10) (Ultrahigh sulfur keratin-associated protein 4.10)	KRTAP4-1 KAP4.10 KRTAP4-10 KRTAP4.1 KRTAP4.10	Homo sapiens (Human)	146	Human skin and hair
+Q9BYQ8	KRA49_HUMAN	reviewed	Keratin-associated protein 4-9 (Keratin-associated protein 4.9) (Ultrahigh sulfur keratin-associated protein 4.9)	KRTAP4-9 KAP4.9 KRTAP4.9	Homo sapiens (Human)	210	Human skin and hair
+Q9BYQ9	KRA48_HUMAN	reviewed	Keratin-associated protein 4-8 (Keratin-associated protein 4.8) (Ultrahigh sulfur keratin-associated protein 4.8)	KRTAP4-8 KAP4.8 KRTAP4.8	Homo sapiens (Human)	185	Human skin and hair
+Q9BYR0	KRA47_HUMAN	reviewed	Keratin-associated protein 4-7 (Keratin-associated protein 4.7) (Ultrahigh sulfur keratin-associated protein 4.7)	KRTAP4-7 KAP4.7 KRTAP4.7	Homo sapiens (Human)	210	Human skin and hair
+Q9BYR2	KRA45_HUMAN	reviewed	Keratin-associated protein 4-5 (Keratin-associated protein 4.5) (Ultrahigh sulfur keratin-associated protein 4.5)	KRTAP4-5 KAP4.5 KRTAP4.5	Homo sapiens (Human)	181	Human skin and hair
+Q9BYR3	KRA44_HUMAN	reviewed	Keratin-associated protein 4-4 (Keratin-associated protein 4-13) (Keratin-associated protein 4.13) (Keratin-associated protein 4.4) (Ultrahigh sulfur keratin-associated protein 4.13) (Ultrahigh sulfur keratin-associated protein 4.4)	KRTAP4-4 KAP4.13 KAP4.4 KRTAP4-13 KRTAP4.13 KRTAP4.4	Homo sapiens (Human)	166	Human skin and hair
+Q9BYR4	KRA43_HUMAN	reviewed	Keratin-associated protein 4-3 (Keratin-associated protein 4.3) (Ultrahigh sulfur keratin-associated protein 4.3)	KRTAP4-3 KAP4.3 KRTAP4.3	Homo sapiens (Human)	195	Human skin and hair
+Q9BYR5	KRA42_HUMAN	reviewed	Keratin-associated protein 4-2 (Keratin-associated protein 4.2) (Ultrahigh sulfur keratin-associated protein 4.2)	KRTAP4-2 KAP4.2 KRTAP4.2	Homo sapiens (Human)	136	Human skin and hair
+Q9BYR6	KRA33_HUMAN	reviewed	Keratin-associated protein 3-3 (High sulfur keratin-associated protein 3.3) (Keratin-associated protein 3.3)	KRTAP3-3 KAP3.3 KRTAP3.3	Homo sapiens (Human)	98	Human skin and hair
+Q9BYR7	KRA32_HUMAN	reviewed	Keratin-associated protein 3-2 (High sulfur keratin-associated protein 3.2) (Keratin-associated protein 3.2)	KRTAP3-2 KAP3.2 KRTAP3.2	Homo sapiens (Human)	98	Human skin and hair
+Q9BYR8	KRA31_HUMAN	reviewed	Keratin-associated protein 3-1 (High sulfur keratin-associated protein 3.1) (Keratin-associated protein 3.1)	KRTAP3-1 KAP3.1 KRTAP3.1	Homo sapiens (Human)	98	Human skin and hair
+Q9BYR9	KRA24_HUMAN	reviewed	Keratin-associated protein 2-4 (High sulfur keratin-associated protein 2.4) (Keratin-associated protein 2.4)	KRTAP2-4 KAP2.4 KRTAP2.4	Homo sapiens (Human)	128	Human skin and hair
+Q9BYS1	KRA15_HUMAN	reviewed	Keratin-associated protein 1-5 (High sulfur keratin-associated protein 1.5) (Keratin-associated protein 1.5)	KRTAP1-5 KAP1.5 KRTAP1.5	Homo sapiens (Human)	174	Human skin and hair
+Q9BYT5	KRA22_HUMAN	reviewed	Keratin-associated protein 2-2 (High sulfur keratin-associated protein 2.2) (Keratin-associated protein 2.2)	KRTAP2-2 KAP2.2 KRTAP2.2	Homo sapiens (Human)	123	Human skin and hair
+Q9BYU5	KRA21_HUMAN	reviewed	Keratin-associated protein 2-1 (High sulfur keratin-associated protein 2.1) (Keratin-associated protein 2.1)	KRTAP2-1 KAP2.1 KRTAP2.1A KRTAP2.1B	Homo sapiens (Human)	128	Human skin and hair
+Q9C075	K1C23_HUMAN	reviewed	Keratin, type I cytoskeletal 23 (Cytokeratin-23) (CK-23) (Keratin-23) (K23)	KRT23	Homo sapiens (Human)	422	Human skin and hair
+Q9NSB2	KRT84_HUMAN	reviewed	Keratin, type II cuticular Hb4 (Keratin-84) (K84) (Type II hair keratin Hb4) (Type-II keratin Kb24)	KRT84 KRTHB4	Homo sapiens (Human)	600	Human skin and hair
+Q9NSB4	KRT82_HUMAN	reviewed	Keratin, type II cuticular Hb2 (Keratin-82) (K82) (Type II hair keratin Hb2) (Type-II keratin Kb22)	KRT82 KRTHB2	Homo sapiens (Human)	513	Human skin and hair
+P15252	REF_HEVBR	reviewed	Rubber elongation factor protein (HbREF) (allergen Hev b 1)		Hevea brasiliensis (Para rubber tree) (Siphonia brasiliensis)	138	Latex gloves
+O82803	SRPP_HEVBR	reviewed	Small rubber particle protein (HbSRPP) (22 kDa rubber particle protein) (22 kDa RPP) (27 kDa natural rubber allergen) (Latex allergen Hev b 3) (allergen Hev b 3)	SRPP HEVB3	Hevea brasiliensis (Para rubber tree) (Siphonia brasiliensis)	204	Latex gloves
+Q1WEI2	Q1WEI2_PSEAI	unreviewed	Protease IV	prpL	Pseudomonas aeruginosa	462	Lys-C protease enzyme
+Q61765	K1H1_MOUSE	reviewed	Keratin, type I cuticular Ha1 (HKA-1) (Hair keratin, type I Ha1) (Keratin-31) (K31)	Krt31 Hka1 Krt1-1 Krtha1	Mus musculus (Mouse)	416	Mouse skin and hair 
+Q62168	K1H2_MOUSE	reviewed	Keratin, type I cuticular Ha2 (Hair keratin, type I Ha2) (Keratin-32) (K32)	Krt32 Hka2 Krt1-2 Krtha2	Mus musculus (Mouse)	407	Mouse skin and hair 
+Q9D646	KRT34_MOUSE	reviewed	Keratin, type I cuticular Ha4 (Hair keratin, type I Ha4) (Keratin-34) (K34)	Krt34 Ha4 Krt1-4	Mus musculus (Mouse)	392	Mouse skin and hair 
+Q497I4	KRT35_MOUSE	reviewed	Keratin, type I cuticular Ha5 (Hair keratin, type I Ha5) (Keratin-35) (K35)	Krt35 Krt1-24	Mus musculus (Mouse)	455	Mouse skin and hair 
+P02535	K1C10_MOUSE	reviewed	Keratin, type I cytoskeletal 10 (56 kDa cytokeratin) (Cytokeratin-10) (CK-10) (Keratin, type I cytoskeletal 59 kDa) (Keratin-10) (K10)	Krt10 Krt1-10	Mus musculus (Mouse)	570	Mouse skin and hair 
+P08730	K1C13_MOUSE	reviewed	Keratin, type I cytoskeletal 13 (47 kDa cytokeratin) (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	Krt13 Krt1-13	Mus musculus (Mouse)	437	Mouse skin and hair 
+Q9Z2K1	K1C16_MOUSE	reviewed	Keratin, type I cytoskeletal 16 (Cytokeratin-16) (CK-16) (Keratin-16) (K16)	Krt16 Krt1-16	Mus musculus (Mouse)	469	Mouse skin and hair 
+Q9QWL7	K1C17_MOUSE	reviewed	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	Krt17 Krt1-17	Mus musculus (Mouse)	433	Mouse skin and hair 
+P05784	K1C18_MOUSE	reviewed	Keratin, type I cytoskeletal 18 (Cytokeratin endo B) (Keratin D) (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	Krt18 Kerd Krt1-18	Mus musculus (Mouse)	423	Mouse skin and hair 
+P19001	K1C19_MOUSE	reviewed	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	Krt19 Krt1-19	Mus musculus (Mouse)	403	Mouse skin and hair 
+Q9D312	K1C20_MOUSE	reviewed	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20)	Krt20	Mus musculus (Mouse)	431	Mouse skin and hair 
+Q99PS0	K1C23_MOUSE	reviewed	Keratin, type I cytoskeletal 23 (Cytokeratin-23) (CK-23) (Keratin-23) (K23)	Krt23 Haik1 Krt1-23	Mus musculus (Mouse)	422	Mouse skin and hair 
+Q6IFX4	K1C39_MOUSE	reviewed	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	Krt39 Ka35	Mus musculus (Mouse)	482	Mouse skin and hair 
+Q6IFX2	K1C42_MOUSE	reviewed	Keratin, type I cytoskeletal 42 (Cytokeratin-42) (CK-42) (Keratin-17n) (Keratin-42) (K42) (Type I keratin Ka22)	Krt42 Ka22	Mus musculus (Mouse)	452	Mouse skin and hair 
+Q6IFZ6	K2C1B_MOUSE	reviewed	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Embryonic type II keratin-1) (Keratin-77) (K77) (Type-II keratin Kb39)	Krt77 Krt1b	Mus musculus (Mouse)	572	Mouse skin and hair 
+Q3TTY5	K22E_MOUSE	reviewed	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	Krt2 K2e Krt2-17 Krt2a	Mus musculus (Mouse)	707	Mouse skin and hair 
+P07744	K2C4_MOUSE	reviewed	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Cytoskeletal 57 kDa keratin) (Keratin-4) (K4) (Type-II keratin Kb4)	Krt4 Krt2-4	Mus musculus (Mouse)	525	Mouse skin and hair 
+Q922U2	K2C5_MOUSE	reviewed	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	Krt5 Krt2-5	Mus musculus (Mouse)	580	Mouse skin and hair 
+P50446	K2C6A_MOUSE	reviewed	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Keratin-6-alpha) (mK6-alpha) (Keratin-6A) (K6A)	Krt6a Ker2 Krt2-6 Krt2-6a Krt6	Mus musculus (Mouse)	553	Mouse skin and hair 
+Q9DCV7	K2C7_MOUSE	reviewed	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	Krt7 Krt2-7	Mus musculus (Mouse)	457	Mouse skin and hair 
+Q9R0H5	K2C71_MOUSE	reviewed	Keratin, type II cytoskeletal 71 (Cytokeratin-6G) (CK-6G) (Cytokeratin-71) (CK-71) (Keratin-6G) (K6G) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (mK6irs) (mK6irs1/Krt2-6g) (Type-II keratin Kb34)	Krt71 K6irs1 Kb34 Krt2-6g Krt6g	Mus musculus (Mouse)	524	Mouse skin and hair 
+Q6IME9	K2C72_MOUSE	reviewed	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	Krt72 Kb35 Krt72-ps	Mus musculus (Mouse)	520	Mouse skin and hair 
+Q6NXH9	K2C73_MOUSE	reviewed	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	Krt73 Kb36	Mus musculus (Mouse)	539	Mouse skin and hair 
+Q8BGZ7	K2C75_MOUSE	reviewed	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (mK6hf) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	Krt75 Kb18	Mus musculus (Mouse)	551	Mouse skin and hair 
+Q8VED5	K2C79_MOUSE	reviewed	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-79) (K79) (Type-II keratin Kb38)	Krt79 Kb38	Mus musculus (Mouse)	531	Mouse skin and hair 
+Q0VBK2	K2C80_MOUSE	reviewed	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	Krt80 Kb20	Mus musculus (Mouse)	452	Mouse skin and hair 
+P00330	ADH1_YEAST	reviewed	Alcohol dehydrogenase 1 (EC 1.1.1.1) (Alcohol dehydrogenase I) (YADH-1)	ADH1 ADC1 YOL086C O0947	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	348	Others
+P00004	CYC_HORSE	reviewed	Cytochrome c	CYCS CYC	Equus caballus (Horse)	105	Others
+P00883	ALDOA_RABIT	reviewed	Fructose-bisphosphate aldolase A (EC 4.1.2.13) (Muscle-type aldolase)	ALDOA	Oryctolagus cuniculus (Rabbit)	364	Others
+P32503	GAG_SCVLA	reviewed	Major capsid protein (Gag protein) (Major coat protein)	gag	Saccharomyces cerevisiae virus L-A (ScV-L-A) (ScVL1)	680	Others
+P68082	MYG_HORSE	reviewed	Myoglobin	MB	Equus caballus (Horse)	154	Others
+P01012	OVAL_CHICK	reviewed	Ovalbumin (Allergen Gal d II) (Egg albumin) (Plakalbumin) (allergen Gal d 2)	SERPINB14	Gallus gallus (Chicken)	386	Others
+Q9R4J4	ASPN_PSEFR	reviewed	Peptidyl-Asp metalloendopeptidase (EC 3.4.24.33) (Endopeptidase Asp-N) (Fragments)		Pseudomonas fragi	144	Others
+Q32KY0	APOD_BOVIN	reviewed	Apolipoprotein D (Apo-D) (ApoD)	APOD	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q2KIX7	HP251_BOVIN	reviewed	Protein HP-25 homolog 1		Bos taurus (Bovine)		Residue cell medium containing FBS
+O02659	MBL2_BOVIN	reviewed	Mannose-binding protein C (MBP-C) (Mannan-binding protein)	MBL	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q24K22	HGFL_BOVIN	reviewed	"Hepatocyte growth factor-like protein (Macrophage stimulatory protein) (Macrophage-stimulating protein) (MSP) [Cleaved into: Hepatocyte growth factor-like protein alpha chain; Hepatocyte growth factor-like protein beta chain]"	MST1 HGFL	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q2KJ39	RCN3_BOVIN	reviewed	Reticulocalbin-3	RCN3	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q9TTK6	AOC3_BOVIN	reviewed	Membrane primary amine oxidase (EC 1.4.3.21) (Copper amine oxidase) (Semicarbazide-sensitive amine oxidase) (SSAO) (Vascular adhesion protein 1) (VAP-1)	AOC3	Bos taurus (Bovine)		Residue cell medium containing FBS
+P68103	EF1A1_BOVIN	reviewed	Elongation factor 1-alpha 1 (EF-1-alpha-1) (Elongation factor Tu) (EF-Tu) (Eukaryotic elongation factor 1 A-1) (eEF1A-1)	EEF1A1 EEF1A EF1A	Bos taurus (Bovine)		Residue cell medium containing FBS
+P12260	F13A_BOVIN	reviewed	Coagulation factor XIII A chain (Coagulation factor XIIIa) (EC 2.3.2.13) (Protein-glutamine gamma-glutamyltransferase A chain) (Transglutaminase A chain) (Fragment)	F13A1 F13A	Bos taurus (Bovine)		Residue cell medium containing FBS
+P31836	NCAM1_BOVIN	reviewed	Neural cell adhesion molecule 1 (N-CAM-1) (NCAM-1)	NCAM1 NCAM	Bos taurus (Bovine)		Residue cell medium containing FBS
+P42916	CL43_BOVIN	reviewed	Collectin-43 (CL-43) (43 kDa collectin)	CL43	Bos taurus (Bovine)		Residue cell medium containing FBS
+P80109	PHLD_BOVIN	reviewed	Phosphatidylinositol-glycan-specific phospholipase D (PI-G PLD) (EC 3.1.4.50) (Glycoprotein phospholipase D) (Glycosyl-phosphatidylinositol-specific phospholipase D) (GPI-PLD) (GPI-specific phospholipase D)	GPLD1 PIGPLD	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q29437	AOCX_BOVIN	reviewed	Primary amine oxidase, liver isozyme (EC 1.4.3.21) (Amine oxidase [copper-containing]) (Copper amine oxidase) (Serum amine oxidase) (SAO)		Bos taurus (Bovine)		Residue cell medium containing FBS
+Q8SPP7	PGRP1_BOVIN	reviewed	Peptidoglycan recognition protein 1 (Oligosaccharide-binding protein) (OBP) (Peptidoglycan recognition protein short) (PGRP-S)	PGLYRP1 PGLYRP PGRP	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q3SYV4	CAP1_BOVIN	reviewed	Adenylyl cyclase-associated protein 1 (CAP 1)	CAP1	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q9TTJ5	RGN_BOVIN	reviewed	Regucalcin (RC) (Gluconolactonase) (GNL) (EC 3.1.1.17) (Senescence marker protein 30) (SMP-30)	RGN SMP30	Bos taurus (Bovine)		Residue cell medium containing FBS
+A2I7N2	SPA36_BOVIN	reviewed	Serpin A3-6	SERPINA3-6	Bos taurus (Bovine)		Residue cell medium containing FBS
+A6QPQ2	SPA38_BOVIN	reviewed	Serpin A3-8	SERPINA3-8	Bos taurus (Bovine)		Residue cell medium containing FBS
+A7E3W2	LG3BP_BOVIN	reviewed	Galectin-3-binding protein (Lectin galactoside-binding soluble 3-binding protein)	LGALS3BP	Bos taurus (Bovine)		Residue cell medium containing FBS
+G3MYZ3	AFAM_BOVIN	reviewed	Afamin (Alpha-albumin)	AFM	Bos taurus (Bovine)		Residue cell medium containing FBS
+O46375	TTHY_BOVIN	reviewed	Transthyretin (Prealbumin)	TTR	Bos taurus (Bovine)		Residue cell medium containing FBS
+P00741	FA9_BOVIN	reviewed	"Coagulation factor IX (EC 3.4.21.22) (Christmas factor) [Cleaved into: Coagulation factor IXa light chain; Coagulation factor IXa heavy chain]"	F9	Bos taurus (Bovine)		Residue cell medium containing FBS
+P00743	FA10_BOVIN	reviewed	"Coagulation factor X (EC 3.4.21.6) (Stuart factor) [Cleaved into: Factor X light chain; Factor X heavy chain; Activated factor Xa heavy chain]"	F10	Bos taurus (Bovine)		Residue cell medium containing FBS
+P00745	PROC_BOVIN	reviewed	"Vitamin K-dependent protein C (EC 3.4.21.69) (Anticoagulant protein C) (Autoprothrombin IIA) (Blood coagulation factor XIV) [Cleaved into: Vitamin K-dependent protein C light chain; Vitamin K-dependent protein C heavy chain; Activation peptide] (Fragment)"	PROC	Bos taurus (Bovine)		Residue cell medium containing FBS
+P01017	ANGT_BOVIN	reviewed	"Angiotensinogen (Serpin A8) [Cleaved into: Angiotensin-1 (Angiotensin 1-10) (Angiotensin I) (Ang I); Angiotensin-2 (Angiotensin 1-8) (Angiotensin II) (Ang II); Angiotensin-3 (Angiotensin 2-8) (Angiotensin III) (Ang III) (Des-Asp[1]-angiotensin II); Angiotensin-4 (Angiotensin 3-8) (Angiotensin IV) (Ang IV); Angiotensin 1-9; Angiotensin 1-7; Angiotensin 1-5; Angiotensin 1-4]"	AGT	Bos taurus (Bovine)		Residue cell medium containing FBS
+P01035	CYTC_BOVIN	reviewed	Cystatin-C (Colostrum thiol proteinase inhibitor) (Cystatin-3)	CST3	Bos taurus (Bovine)		Residue cell medium containing FBS
+P01267	THYG_BOVIN	reviewed	Thyroglobulin (Tg)	TG	Bos taurus (Bovine)		Residue cell medium containing FBS
+P02453	CO1A1_BOVIN	reviewed	Collagen alpha-1(I) chain (Alpha-1 type I collagen)	COL1A1	Bos taurus (Bovine)		Residue cell medium containing FBS
+P02465	CO1A2_BOVIN	reviewed	Collagen alpha-2(I) chain (Alpha-2 type I collagen)	COL1A2	Bos taurus (Bovine)		Residue cell medium containing FBS
+P07589	FINC_BOVIN	reviewed	Fibronectin (FN) [Cleaved into: Anastellin]	FN1	Bos taurus (Bovine)		Residue cell medium containing FBS
+P08169	MPRI_BOVIN	reviewed	Cation-independent mannose-6-phosphate receptor (CI Man-6-P receptor) (CI-MPR) (M6PR) (300 kDa mannose 6-phosphate receptor) (MPR 300) (Insulin-like growth factor 2 receptor) (Insulin-like growth factor II receptor) (IGF-II receptor) (CD antigen CD222)	IGF2R M6P	Bos taurus (Bovine)		Residue cell medium containing FBS
+P12799	FIBG_BOVIN	reviewed	Fibrinogen gamma-B chain (Gamma')	FGG	Bos taurus (Bovine)		Residue cell medium containing FBS
+P13384	IBP2_BOVIN	reviewed	Insulin-like growth factor-binding protein 2 (IBP-2) (IGF-binding protein 2) (IGFBP-2)	IGFBP2	Bos taurus (Bovine)		Residue cell medium containing FBS
+P13605	FMOD_BOVIN	reviewed	Fibromodulin (FM) (Collagen-binding 59 kDa protein) (Keratan sulfate proteoglycan fibromodulin) (KSPG fibromodulin)	FMOD	Bos taurus (Bovine)		Residue cell medium containing FBS
+P18902	RET4_BOVIN	reviewed	Retinol-binding protein 4 (Plasma retinol-binding protein) (PRBP) (RBP)	RBP4	Bos taurus (Bovine)		Residue cell medium containing FBS
+P33433	HRG_BOVIN	reviewed	Histidine-rich glycoprotein (Histidine-proline-rich glycoprotein) (HPRG) (Fragments)	HRG	Bos taurus (Bovine)		Residue cell medium containing FBS
+P55906	BGH3_BOVIN	reviewed	Transforming growth factor-beta-induced protein ig-h3 (Beta ig-h3) (MP70) (MP78)	TGFBI BIGH3	Bos taurus (Bovine)		Residue cell medium containing FBS
+P60712	ACTB_BOVIN	reviewed	Actin, cytoplasmic 1 (Beta-actin) [Cleaved into: Actin, cytoplasmic 1, N-terminally processed]	ACTB	Bos taurus (Bovine)		Residue cell medium containing FBS
+P63103	1433Z_BOVIN	reviewed	14-3-3 protein zeta/delta (Factor activating exoenzyme S) (FAS) (Protein kinase C inhibitor protein 1) (KCIP-1)	YWHAZ	Bos taurus (Bovine)		Residue cell medium containing FBS
+P68138	ACTS_BOVIN	reviewed	Actin, alpha skeletal muscle (Alpha-actin-1) [Cleaved into: Actin, alpha skeletal muscle, intermediate form]	ACTA1 ACTA	Bos taurus (Bovine)		Residue cell medium containing FBS
+P80012	VWF_BOVIN	reviewed	von Willebrand factor (vWF) (Fragment)	VWF F8VWF	Bos taurus (Bovine)		Residue cell medium containing FBS
+P81187	CFAB_BOVIN	reviewed	"Complement factor B (EC 3.4.21.47) (C3/C5 convertase) (EC-VMFB) [Cleaved into: Complement factor B Ba fragment; Complement factor B Bb fragment]"	CFB BF	Bos taurus (Bovine)		Residue cell medium containing FBS
+P81948	TBA4A_BOVIN	reviewed	Tubulin alpha-4A chain (Alpha-tubulin 1) (Tubulin alpha-1 chain)	TUBA4A TUBA1	Bos taurus (Bovine)		Residue cell medium containing FBS
+P98140	FA12_BOVIN	reviewed	"Coagulation factor XII (EC 3.4.21.38) (Hageman factor) (HAF) [Cleaved into: Coagulation factor XIIa heavy chain; Coagulation factor XIIa light chain]"	F12	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q28106	CNTN1_BOVIN	reviewed	Contactin-1 (Neural cell surface protein F3)	CNTN1	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q28178	TSP1_BOVIN	reviewed	Thrombospondin-1 (Glycoprotein G)	THBS1 TSP-1 TSP1	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q2HJ86	TBA1D_BOVIN	reviewed	Tubulin alpha-1D chain [Cleaved into: Detyrosinated tubulin alpha-1D chain]	TUBA1D	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q2KJ63	KLKB1_BOVIN	reviewed	"Plasma kallikrein (EC 3.4.21.34) (Fletcher factor) (Kininogenin) (Plasma prekallikrein) [Cleaved into: Plasma kallikrein heavy chain; Plasma kallikrein light chain]"	KLKB1	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q2KJD0	TBB5_BOVIN	reviewed	Tubulin beta-5 chain	TUBB5	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q3SWW8	TSP4_BOVIN	reviewed	Thrombospondin-4	THBS4	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q3ZCH5	ZA2G_BOVIN	reviewed	Zinc-alpha-2-glycoprotein (Zn-alpha-2-GP) (Zn-alpha-2-glycoprotein)	AZGP1	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q58CQ9	VNN1_BOVIN	reviewed	Pantetheinase (EC 3.5.1.92) (Pantetheine hydrolase) (Vascular non-inflammatory molecule 1) (Vanin-1)	VNN1	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q5E9B1	LDHB_BOVIN	reviewed	L-lactate dehydrogenase B chain (LDH-B) (EC 1.1.1.27)	LDHB	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q5E9Z2	HABP2_BOVIN	reviewed	"Hyaluronan-binding protein 2 (EC 3.4.21.-) [Cleaved into: Hyaluronan-binding protein 2 50 kDa heavy chain; Hyaluronan-binding protein 2 50 kDa heavy chain alternate form; Hyaluronan-binding protein 2 27 kDa light chain; Hyaluronan-binding protein 2 27 kDa light chain alternate form]"	HABP2	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q5NTB3	FA11_BOVIN	reviewed	"Coagulation factor XI (FXI) (EC 3.4.21.27) (Plasma thromboplastin antecedent) (PTA) [Cleaved into: Coagulation factor XIa heavy chain; Coagulation factor XIa light chain]"	F11	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q6URK6	CADH5_BOVIN	reviewed	Cadherin-5 (Vascular endothelial cadherin) (VE-cadherin) (CD antigen CD144)	CDH5	Bos taurus (Bovine)		Residue cell medium containing FBS
+Q9XSJ4	ENOA_BOVIN	reviewed	Alpha-enolase (EC 4.2.1.11) (2-phospho-D-glycerate hydro-lyase) (Enolase 1) (HAP47) (Non-neural enolase) (NNE) (Phosphopyruvate hydratase)	ENO1	Bos taurus (Bovine)		Residue cell medium containing FBS
+A2I7N0	SPA34_BOVIN	reviewed	Serpin A3-4	SERPINA3-4	Bos taurus (Bovine)	411	Residue cell medium containing FBS
+A2I7N1	SPA35_BOVIN	reviewed	Serpin A3-5	SERPINA3-5	Bos taurus (Bovine)	411	Residue cell medium containing FBS
+A2I7N3	SPA37_BOVIN	reviewed	Serpin A3-7	SERPINA3-7	Bos taurus (Bovine)	417	Residue cell medium containing FBS
+E1BF81	CBG_BOVIN	reviewed	Corticosteroid-binding globulin (CBG) (Serpin A6) (Transcortin)	SERPINA6 CBG	Bos taurus (Bovine)	404	Residue cell medium containing FBS
+P00735	THRB_BOVIN	reviewed	"Prothrombin (EC 3.4.21.5) (Coagulation factor II) [Cleaved into: Activation peptide fragment 1; Activation peptide fragment 2; Thrombin light chain; Thrombin heavy chain]"	F2	Bos taurus (Bovine)	625	Residue cell medium containing FBS
+P00978	AMBP_BOVIN	reviewed	"Protein AMBP [Cleaved into: Alpha-1-microglobulin; Inter-alpha-trypsin inhibitor light chain (ITI-LC) (BI-14) (Bikunin) (Cumulus extracellular matrix-stabilizing factor) (ESF) (HI-30); Trypstatin]"	AMBP ITIL	Bos taurus (Bovine)	352	Residue cell medium containing FBS
+P01044	KNG1_BOVIN	reviewed	"Kininogen-1 (Kininogen I) (Thiol proteinase inhibitor) [Cleaved into: Kininogen-1 heavy chain; Bradykinin (Kallidin I); Lysyl-bradykinin (Kallidin II); Kininogen-1 light chain]"	KNG1	Bos taurus (Bovine)	621	Residue cell medium containing FBS
+P01045	KNG2_BOVIN	reviewed	"Kininogen-2 (Kininogen II) (Thiol proteinase inhibitor) [Cleaved into: Kininogen-2 heavy chain; Bradykinin (Kallidin I); Lysyl-bradykinin (Kallidin II); Kininogen-2 light chain]"	KNG2	Bos taurus (Bovine)	619	Residue cell medium containing FBS
+P01966	HBA_BOVIN	reviewed	Hemoglobin subunit alpha (Alpha-globin) (Hemoglobin alpha chain)	HBA	Bos taurus (Bovine)	142	Residue cell medium containing FBS
+P02070	HBB_BOVIN	reviewed	Hemoglobin subunit beta (Beta-globin) (Hemoglobin beta chain) [Cleaved into: Spinorphin]	HBB	Bos taurus (Bovine)	145	Residue cell medium containing FBS
+P02081	HBBF_BOVIN	reviewed	Hemoglobin fetal subunit beta (Beta-globin, fetal) (Hemoglobin beta chain, fetal) (Hemoglobin gamma chain)		Bos taurus (Bovine)	145	Residue cell medium containing FBS
+P02584	PROF1_BOVIN	reviewed	Profilin-1 (Profilin I)	PFN1	Bos taurus (Bovine)	140	Residue cell medium containing FBS
+P02672	FIBA_BOVIN	reviewed	"Fibrinogen alpha chain [Cleaved into: Fibrinopeptide A; Fibrinogen alpha chain]"	FGA	Bos taurus (Bovine)	615	Residue cell medium containing FBS
+P02676	FIBB_BOVIN	reviewed	"Fibrinogen beta chain [Cleaved into: Fibrinopeptide B; Fibrinogen beta chain]"	FGB	Bos taurus (Bovine)	468	Residue cell medium containing FBS
+P07224	PROS_BOVIN	reviewed	Vitamin K-dependent protein S	PROS1 PROS	Bos taurus (Bovine)	675	Residue cell medium containing FBS
+P17690	APOH_BOVIN	reviewed	Beta-2-glycoprotein 1 (Apolipoprotein H) (Apo-H) (Beta-2-glycoprotein I) (B2GPI) (Beta(2)GPI)	APOH	Bos taurus (Bovine)	345	Residue cell medium containing FBS
+P17697	CLUS_BOVIN	reviewed	"Clusterin (Glycoprotein III) (GpIII) [Cleaved into: Clusterin beta chain; Clusterin alpha chain]"	CLU	Bos taurus (Bovine)	439	Residue cell medium containing FBS
+P28800	A2AP_BOVIN	reviewed	Alpha-2-antiplasmin (Alpha-2-AP) (Alpha-2-plasmin inhibitor) (Alpha-2-PI) (Serpin F2)	SERPINF2 PLI	Bos taurus (Bovine)	492	Residue cell medium containing FBS
+P35445	COMP_BOVIN	reviewed	Cartilage oligomeric matrix protein (COMP)	COMP	Bos taurus (Bovine)	756	Residue cell medium containing FBS
+P41361	ANT3_BOVIN	reviewed	Antithrombin-III (ATIII) (Serpin C1)	SERPINC1 AT3	Bos taurus (Bovine)	465	Residue cell medium containing FBS
+P50448	F12AI_BOVIN	reviewed	Factor XIIa inhibitor (XIIaINH)		Bos taurus (Bovine)	468	Residue cell medium containing FBS
+P56652	ITIH3_BOVIN	reviewed	Inter-alpha-trypsin inhibitor heavy chain H3 (ITI heavy chain H3) (ITI-HC3) (Inter-alpha-inhibitor heavy chain 3)	ITIH3	Bos taurus (Bovine)	891	Residue cell medium containing FBS
+P81644	APOA2_BOVIN	reviewed	"Apolipoprotein A-II (Apo-AII) (ApoA-II) (Antimicrobial peptide BAMP-1) (Apolipoprotein A2) [Cleaved into: Proapolipoprotein A-II (ProapoA-II); Truncated apolipoprotein A-II (Apolipoprotein A-II(1-76))]"	APOA2	Bos taurus (Bovine)	100	Residue cell medium containing FBS
+Q03247	APOE_BOVIN	reviewed	Apolipoprotein E (Apo-E)	APOE	Bos taurus (Bovine)	316	Residue cell medium containing FBS
+Q05443	LUM_BOVIN	reviewed	Lumican (Corneal keratan sulfate proteoglycan 37B core protein) (Keratan sulfate proteoglycan) (KSPG)	LUM LDC	Bos taurus (Bovine)	342	Residue cell medium containing FBS
+Q28065	C4BPA_BOVIN	reviewed	C4b-binding protein alpha chain (C4bp)	C4BPA	Bos taurus (Bovine)	610	Residue cell medium containing FBS
+Q28085	CFAH_BOVIN	reviewed	Complement factor H (H factor 1)	CFH HF1	Bos taurus (Bovine)	1236	Residue cell medium containing FBS
+Q28107	FA5_BOVIN	reviewed	"Coagulation factor V (Activated protein C cofactor) [Cleaved into: Coagulation factor V heavy chain; Coagulation factor V light chain]"	F5	Bos taurus (Bovine)	2211	Residue cell medium containing FBS
+Q29RQ1	CO7_BOVIN	reviewed	Complement component C7	C7	Bos taurus (Bovine)	843	Residue cell medium containing FBS
+Q2KIG3	CBPB2_BOVIN	reviewed	Carboxypeptidase B2 (EC 3.4.17.20) (Carboxypeptidase U) (CPU) (Plasma carboxypeptidase B) (pCPB) (Thrombin-activable fibrinolysis inhibitor) (TAFI)	CPB2	Bos taurus (Bovine)	423	Residue cell medium containing FBS
+Q2KIS7	TETN_BOVIN	reviewed	Tetranectin (TN) (C-type lectin domain family 3 member B)	CLEC3B	Bos taurus (Bovine)	202	Residue cell medium containing FBS
+Q2KIU3	HP252_BOVIN	reviewed	Protein HP-25 homolog 2		Bos taurus (Bovine)	215	Residue cell medium containing FBS
+Q2KJF1	A1BG_BOVIN	reviewed	Alpha-1B-glycoprotein (Alpha-1-B glycoprotein)	A1BG	Bos taurus (Bovine)	503	Residue cell medium containing FBS
+Q32PJ2	APOA4_BOVIN	reviewed	Apolipoprotein A-IV (Apo-AIV) (ApoA-IV) (Apolipoprotein A4)	APOA4	Bos taurus (Bovine)	380	Residue cell medium containing FBS
+Q3MHN2	CO9_BOVIN	reviewed	Complement component C9	C9	Bos taurus (Bovine)	548	Residue cell medium containing FBS
+Q3MHN5	VTDB_BOVIN	reviewed	Vitamin D-binding protein (DBP) (VDB) (Gc-globulin) (Group-specific component)	GC	Bos taurus (Bovine)	474	Residue cell medium containing FBS
+Q3SX14	GELS_BOVIN	reviewed	Gelsolin (Actin-depolymerizing factor) (ADF) (Brevin)	GSN	Bos taurus (Bovine)	731	Residue cell medium containing FBS
+Q3T052	ITIH4_BOVIN	reviewed	Inter-alpha-trypsin inhibitor heavy chain H4 (ITI heavy chain H4) (ITI-HC4) (Inter-alpha-inhibitor heavy chain 4)	ITIH4	Bos taurus (Bovine)	916	Residue cell medium containing FBS
+Q3Y5Z3	ADIPO_BOVIN	reviewed	Adiponectin (30 kDa adipocyte complement-related protein) (Adipocyte complement-related 30 kDa protein) (ACRP30) (Adipocyte, C1q and collagen domain-containing protein) (Adipose most abundant gene transcript 1 protein) (apM-1)	ADIPOQ ACRP30 APM1	Bos taurus (Bovine)	240	Residue cell medium containing FBS
+Q58D62	FETUB_BOVIN	reviewed	Fetuin-B	FETUB	Bos taurus (Bovine)	387	Residue cell medium containing FBS
+Q95121	PEDF_BOVIN	reviewed	Pigment epithelium-derived factor (PEDF) (Serpin F1)	SERPINF1 PEDF	Bos taurus (Bovine)	416	Residue cell medium containing FBS
+Q95M17	CHIA_BOVIN	reviewed	Acidic mammalian chitinase (AMCase) (EC 3.2.1.14) (Chitin-binding protein b04) (CBPb04)	CHIA	Bos taurus (Bovine)	472	Residue cell medium containing FBS
+Q9N2I2	IPSP_BOVIN	reviewed	Plasma serine protease inhibitor (Protein C inhibitor) (PCI) (Serpin A5)	SERPINA5	Bos taurus (Bovine)	404	Residue cell medium containing FBS
+Q9TT36	THBG_BOVIN	reviewed	Thyroxine-binding globulin (Serpin A7) (T4-binding globulin)	SERPINA7 TBG	Bos taurus (Bovine)	411	Residue cell medium containing FBS
+Q9TTE1	SPA31_BOVIN	reviewed	Serpin A3-1 (Endopin-1A) (Muscle endopin-1A) (mEndopin-1A)	SERPINA3-1 SERPINA3A	Bos taurus (Bovine)	411	Residue cell medium containing FBS
+A0A3Q1M032	A0A3Q1M032_BOVIN	unreviewed	Uncharacterized protein		Bos taurus (Bovine)	369	Residue cell medium containing FBS
+A0A3Q1MJB2	A0A3Q1MJB2_BOVIN	unreviewed	Fibulin-1	FBLN1	Bos taurus (Bovine)	706	Residue cell medium containing FBS
+A5PJ69	A5PJ69_BOVIN	unreviewed	SERPINA10 protein (Serpin family A member 10)	SERPINA10	Bos taurus (Bovine)	452	Residue cell medium containing FBS
+E1BCW0	E1BCW0_BOVIN	unreviewed	HGF activator	HGFAC	Bos taurus (Bovine)	651	Residue cell medium containing FBS
+E1BJK2	E1BJK2_BOVIN	unreviewed	Tubulin beta chain	TUBB1	Bos taurus (Bovine)	450	Residue cell medium containing FBS
+G3N188	G3N188_BOVIN	unreviewed	Ig-like domain-containing protein		Bos taurus (Bovine)	218	Residue cell medium containing FBS
+G5E513	G5E513_BOVIN	unreviewed	Uncharacterized protein		Bos taurus (Bovine)	439	Residue cell medium containing FBS
+Q1A7A4	Q1A7A4_BOVIN	unreviewed	Complement component C5a (Fragment)		Bos taurus (Bovine)	74	Residue cell medium containing FBS
+Q1RMN8	Q1RMN8_BOVIN	unreviewed	Immunoglobulin light chain, lambda gene cluster	IGL@	Bos taurus (Bovine)	234	Residue cell medium containing FBS
+Q2KIF2	Q2KIF2_BOVIN	unreviewed	Leucine-rich alpha-2-glycoprotein 1	LRG1	Bos taurus (Bovine)	346	Residue cell medium containing FBS
+Q2KIH2	Q2KIH2_BOVIN	unreviewed	ApoN protein (Apolipoprotein N)	APON 	Bos taurus (Bovine)	254	Residue cell medium containing FBS
+Q2KIT0	HP20_BOVIN	reviewed	Protein HP-20 homolog		Bos taurus (Bovine)	191	Residue cell medium containing FBS
+Q2KJ83	CBPN_BOVIN	reviewed	Carboxypeptidase N catalytic chain (CPN) (EC 3.4.17.3) (Carboxypeptidase N polypeptide 1) (Carboxypeptidase N small subunit)	CPN1	Bos taurus (Bovine)	462	Residue cell medium containing FBS
+Q2KJC7	Q2KJC7_BOVIN	unreviewed	Periostin (Periostin variant 7) (Periostin, osteoblast specific factor)	POSTN	Bos taurus (Bovine)	779	Residue cell medium containing FBS
+Q2TBQ1	Q2TBQ1_BOVIN	unreviewed	Coagulation factor XIII B chain (Coagulation factor XIII, B polypeptide)	F13B	Bos taurus (Bovine)	661	Residue cell medium containing FBS
+Q32PI4	Q32PI4_BOVIN	unreviewed	Complement factor I	CFI	Bos taurus (Bovine)	618	Residue cell medium containing FBS
+Q3MHH8	Q3MHH8_BOVIN	unreviewed	Alpha-amylase (EC 3.2.1.1)	AMY2A	Bos taurus (Bovine)	511	Residue cell medium containing FBS
+Q3ZBS7	Q3ZBS7_BOVIN	unreviewed	Vitronectin	VTN	Bos taurus (Bovine)	476	Residue cell medium containing FBS
+Q6T181	Q6T181_BOVIN	unreviewed	Sex hormone-binding globulin (Fragment)	SHBG	Bos taurus (Bovine)	99	Residue cell medium containing FBS
+P02769	ALBU_BOVIN	reviewed	Albumin (BSA) (allergen Bos d 6)	ALB	Bos taurus (Bovine)	607	"Residue cell medium containing FBS; Affinity beads background"
+Q3SZR3	A1AG_BOVIN	reviewed	Alpha-1-acid glycoprotein (Orosomucoid) (OMD)	ORM1 AGP	Bos taurus (Bovine)	202	"Residue cell medium containing FBS; Affinity beads background"
+P34955	A1AT_BOVIN	reviewed	Alpha-1-antiproteinase (Alpha-1-antitrypsin) (Alpha-1-proteinase inhibitor) (Serpin A1)	SERPINA1 PI	Bos taurus (Bovine)	416	"Residue cell medium containing FBS; Affinity beads background"
+P12763	FETUA_BOVIN	reviewed	Alpha-2-HS-glycoprotein (Asialofetuin) (Fetuin-A)	AHSG FETUA	Bos taurus (Bovine)	359	"Residue cell medium containing FBS; Affinity beads background"
+Q7SIH1	A2MG_BOVIN	reviewed	Alpha-2-macroglobulin (Alpha-2-M)	A2M	Bos taurus (Bovine)	1510	"Residue cell medium containing FBS; Affinity beads background"
+Q3SZ57	FETA_BOVIN	reviewed	Alpha-fetoprotein (Alpha-1-fetoprotein) (Alpha-fetoglobulin)	AFP	Bos taurus (Bovine)	610	"Residue cell medium containing FBS; Affinity beads background"
+P00711	LALBA_BOVIN	reviewed	Alpha-lactalbumin (Lactose synthase B protein) (allergen Bos d 4)	LALBA ALACTA	Bos taurus (Bovine)	142	"Residue cell medium containing FBS; Affinity beads background"
+P02662	CASA1_BOVIN	reviewed	Alpha-S1-casein (allergen Bos d 8) [Cleaved into: Antioxidant peptide]	CSN1S1	Bos taurus (Bovine)	214	"Residue cell medium containing FBS; Affinity beads background"
+P02663	CASA2_BOVIN	reviewed	Alpha-S2-casein [Cleaved into: Casocidin-1 (Casocidin-I)]	CSN1S2	Bos taurus (Bovine)	222	"Residue cell medium containing FBS; Affinity beads background"
+Q29463	TRY2_BOVIN	reviewed	Anionic trypsin (EC 3.4.21.4)		Bos taurus (Bovine)	247	"Residue cell medium containing FBS; Affinity beads background"
+P15497	APOA1_BOVIN	reviewed	"Apolipoprotein A-I (Apo-AI) (ApoA-I) (Apolipoprotein A1) [Cleaved into: Proapolipoprotein A-I (ProapoA-I); Truncated apolipoprotein A-I]"	APOA1	Bos taurus (Bovine)	265	"Residue cell medium containing FBS; Affinity beads background"
+P02666	CASB_BOVIN	reviewed	"Beta-casein [Cleaved into: Casoparan; Antioxidant peptide; Casohypotensin]"	CSN2	Bos taurus (Bovine)	224	"Residue cell medium containing FBS; Affinity beads background"
+P02754	LACB_BOVIN	reviewed	Beta-lactoglobulin (Beta-LG) (allergen Bos d 5)	LGB	Bos taurus (Bovine)	178	"Residue cell medium containing FBS; Affinity beads background"
+Q3KUS7	Q3KUS7_BOVIN	unreviewed	C3/C5 convertase (EC 3.4.21.47) (Complement factor B) (Fragment)	BF	Bos taurus (Bovine)	77	"Residue cell medium containing FBS; Affinity beads background"
+P00921	CAH2_BOVIN	reviewed	Carbonic anhydrase 2 (EC 4.2.1.1) (Carbonate dehydratase II) (Carbonic anhydrase II) (CA-II)	CA2	Bos taurus (Bovine)	260	"Residue cell medium containing FBS; Affinity beads background"
+P00760	TRY1_BOVIN	reviewed	"Cationic trypsin (EC 3.4.21.4) (Beta-trypsin) [Cleaved into: Alpha-trypsin chain 1; Alpha-trypsin chain 2]"		Bos taurus (Bovine)	246	"Residue cell medium containing FBS; Affinity beads background"
+P00766	CTRA_BOVIN	reviewed	"Chymotrypsinogen A (EC 3.4.21.1) [Cleaved into: Chymotrypsin A chain A; Chymotrypsin A chain B; Chymotrypsin A chain C]"		Bos taurus (Bovine)	245	"Residue cell medium containing FBS; Affinity beads background"
+P00767	CTRB_BOVIN	reviewed	"Chymotrypsinogen B (EC 3.4.21.1) [Cleaved into: Chymotrypsin B chain A; Chymotrypsin B chain B; Chymotrypsin B chain C]"		Bos taurus (Bovine)	245	"Residue cell medium containing FBS; Affinity beads background"
+P04258	CO3A1_BOVIN	reviewed	Collagen alpha-1(III) chain	COL3A1	Bos taurus (Bovine)	1049	"Residue cell medium containing FBS; Affinity beads background"
+Q2UVX4	CO3_BOVIN	reviewed	"Complement C3 [Cleaved into: Complement C3 beta chain; Complement C3 alpha chain; C3a anaphylatoxin; C3-beta-c (C3bc); Acylation stimulating protein (ASP) (C3adesArg); Complement C3b alpha' chain; Complement C3c alpha' chain fragment 1; Complement C3dg fragment; Complement C3g fragment; Complement C3d fragment; Complement C3f fragment; Complement C3c alpha' chain fragment 2]"	C3	Bos taurus (Bovine)	1661	"Residue cell medium containing FBS; Affinity beads background"
+P01030	CO4_BOVIN	reviewed	"Complement C4 [Cleaved into: Complement C4 alpha chain; C4a anaphylatoxin; Complement C4 gamma chain] (Fragments)"	C4	Bos taurus (Bovine)	920	"Residue cell medium containing FBS; Affinity beads background"
+P62894	CYC_BOVIN	reviewed	Cytochrome c	CYCS CYC	Bos taurus (Bovine)	105	"Residue cell medium containing FBS; Affinity beads background"
+Q3ZBD7	G6PI_BOVIN	reviewed	Glucose-6-phosphate isomerase (GPI) (EC 5.3.1.9) (Autocrine motility factor) (AMF) (Neuroleukin) (NLK) (Phosphoglucose isomerase) (PGI) (Phosphohexose isomerase) (PHI)	GPI	Bos taurus (Bovine)	557	"Residue cell medium containing FBS; Affinity beads background"
+P00366	DHE3_BOVIN	reviewed	Glutamate dehydrogenase 1, mitochondrial (GDH 1) (EC 1.4.1.3)	GLUD1 GLUD	Bos taurus (Bovine)	558	"Residue cell medium containing FBS; Affinity beads background"
+Q3SZV7	HEMO_BOVIN	reviewed	Hemopexin	HPX	Bos taurus (Bovine)	459	"Residue cell medium containing FBS; Affinity beads background"
+Q05B55	Q05B55_BOVIN	unreviewed	IGK protein	IGK	Bos taurus (Bovine)	240	"Residue cell medium containing FBS; Affinity beads background"
+Q0VCM5	ITIH1_BOVIN	reviewed	Inter-alpha-trypsin inhibitor heavy chain H1 (ITI heavy chain H1) (ITI-HC1) (Inter-alpha-inhibitor heavy chain 1)	ITIH1	Bos taurus (Bovine)	906	"Residue cell medium containing FBS; Affinity beads background"
+P02668	CASK_BOVIN	reviewed	"Kappa-casein [Cleaved into: Casoxin-C; Casoxin-6; Casoxin-A; Casoxin-B; Casoplatelin]"	CSN3 CSN10 CSNK	Bos taurus (Bovine)	190	"Residue cell medium containing FBS; Affinity beads background"
+P67983	MT1A_BOVIN	reviewed	Metallothionein-1A (MT-1A) (MTC) (Metallothionein-IA) (MT-IA)	MT1A MT-IA	Bos taurus (Bovine)	61	"Residue cell medium containing FBS; Affinity beads background"
+Q2YDI2	ORC4_BOVIN	reviewed	Origin recognition complex subunit 4	ORC4 ORC4L	Bos taurus (Bovine)	436	"Residue cell medium containing FBS; Affinity beads background"
+P31096	OSTP_BOVIN	reviewed	Osteopontin (Bone sialoprotein 1) (Secreted phosphoprotein 1) (SPP-1)	SPP1 OPN	Bos taurus (Bovine)	278	"Residue cell medium containing FBS; Affinity beads background"
+P00792	PEPA_BOVIN	reviewed	Pepsin A (EC 3.4.23.1)	PGA	Bos taurus (Bovine)	372	"Residue cell medium containing FBS; Affinity beads background"
+P06868	PLMN_BOVIN	reviewed	"Plasminogen (EC 3.4.21.7) [Cleaved into: Plasmin heavy chain A; Activation peptide; Plasmin heavy chain A, short form; Plasmin light chain B]"	PLG	Bos taurus (Bovine)	812	"Residue cell medium containing FBS; Affinity beads background"
+P02777	PLF4_BOVIN	reviewed	Platelet factor 4 (PF-4) (C-X-C motif chemokine 4)	PF4 CXCL4 SCYB4	Bos taurus (Bovine)	88	"Residue cell medium containing FBS; Affinity beads background"
+Q29443	TRFE_BOVIN	reviewed	Serotransferrin (Transferrin) (Beta-1 metal-binding globulin) (Siderophilin)	TF	Bos taurus (Bovine)	704	"Residue cell medium containing FBS; Affinity beads background"
+Q2HJF0	Q2HJF0_BOVIN	unreviewed	Serotransferrin-like	LOC525947	Bos taurus (Bovine)	622	"Residue cell medium containing FBS; Affinity beads background"
+P21752	TYB10_BOVIN	reviewed	Thymosin beta-10 (Thymosin beta-9) [Cleaved into: Thymosin beta-8]	TMSB10	Bos taurus (Bovine)	42	"Residue cell medium containing FBS; Affinity beads background"
+Q5KR48	TPM2_BOVIN	reviewed	Tropomyosin beta chain (Beta-tropomyosin) (Tropomyosin-2)	TPM2	Bos taurus (Bovine)	284	"Residue cell medium containing FBS; Affinity beads background"
+A0A3Q1M3L6	A0A3Q1M3L6_BOVIN	unreviewed	Uncharacterized protein		Bos taurus (Bovine)	367	"Residue cell medium containing FBS; Affinity beads background"
+O77727	K1C15_SHEEP	reviewed	Keratin, type I cytoskeletal 15 (Cytokeratin-15) (CK-15) (Keratin-15) (K15)	KRT15	Ovis aries (Sheep)	453	Sheep keratin from wool clothing
+P02438	KRB2A_SHEEP	reviewed	Keratin, high-sulfur matrix protein, B2A		Ovis aries (Sheep)	172	Sheep keratin from wool clothing
+P02439	KRB2B_SHEEP	reviewed	Keratin, high-sulfur matrix protein, B2B		Ovis aries (Sheep)	156	Sheep keratin from wool clothing
+P02440	KRB2C_SHEEP	reviewed	Keratin, high-sulfur matrix protein, B2C		Ovis aries (Sheep)	152	Sheep keratin from wool clothing
+P02441	KRA3_SHEEP	reviewed	Keratin, high-sulfur matrix protein, IIIA3		Ovis aries (Sheep)	131	Sheep keratin from wool clothing
+P02443	KRA3A_SHEEP	reviewed	Keratin, high-sulfur matrix protein, IIIA3A		Ovis aries (Sheep)	130	Sheep keratin from wool clothing
+P02444	KRA33_SHEEP	reviewed	Keratin, high sulfur matrix protein, IIIB3		Ovis aries (Sheep)	98	Sheep keratin from wool clothing
+P02445	KRA34_SHEEP	reviewed	Keratin, high sulfur matrix protein, IIIB4		Ovis aries (Sheep)	98	Sheep keratin from wool clothing
+P02534	K1M1_SHEEP	reviewed	Keratin, type I microfibrillar 48 kDa, component 8C-1 (Low-sulfur keratin)		Ovis aries (Sheep)	412	Sheep keratin from wool clothing
+P02539	K2M1_SHEEP	reviewed	Keratin, type II microfibrillar (Low-sulfur keratin) (Fragment)		Ovis aries (Sheep)	109	Sheep keratin from wool clothing
+P08131	KRB2D_SHEEP	reviewed	Keratin, high-sulfur matrix protein, B2D		Ovis aries (Sheep)	182	Sheep keratin from wool clothing
+P15241	K2M2_SHEEP	reviewed	Keratin, type II microfibrillar, component 7C		Ovis aries (Sheep)	491	Sheep keratin from wool clothing
+P25690	K1M2_SHEEP	reviewed	Keratin, type I microfibrillar, 47.6 kDa (Low-sulfur keratin)		Ovis aries (Sheep)	404	Sheep keratin from wool clothing
+P25691	K2M3_SHEEP	reviewed	Keratin, type II microfibrillar, component 5		Ovis aries (Sheep)	502	Sheep keratin from wool clothing
+P26372	KRUC_SHEEP	reviewed	Keratin, ultra high-sulfur matrix protein (UHS keratin)		Ovis aries (Sheep)	182	Sheep keratin from wool clothing
+Q02958	KRA61_SHEEP	reviewed	Keratin-associated protein 6-1 (Keratin, glycine/tyrosine-rich of hair)	KRTAP6-1 KAP6-1	Ovis aries (Sheep)	83	Sheep keratin from wool clothing
+P22629	SAV_STRAV	reviewed	Streptavidin		Streptomyces avidinii	183	Streptavidin beads
+P00761	TRYP_PIG	reviewed	Trypsin (EC 3.4.21.4)		Sus scrofa (Pig)	231	Trypsin Protease enzyme
+P21578	LUXY_ALIFS	reviewed	Yellow fluorescent protein (YFP)	luxY	Aliivibrio fischeri (Vibrio fischeri)	194	YFP Fluorescent Protein

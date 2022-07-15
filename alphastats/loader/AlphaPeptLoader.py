@@ -12,15 +12,16 @@ class AlphaPeptLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="[experiment]_LFQ",
+        intensity_column="[sample]_LFQ",
         index_column="Unnamed: 0",  # column name to be changed
         sep=",",
+        **kwargs
     ):
         """Loads Alphapept output: results_proteins.csv. Will add contamination column for further analysis.
 
         Args:
             file (_type_): AlphaPept output, either results_proteins.csv file or the hdf_file with the protein_table given
-            intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "[experiment]_LFQ".
+            intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "[sample]_LFQ".
             index_column (str, optional): column indicating the protein groups. Defaults to "Unnamed: 0".
             sep (str, optional): file separation of file. Defaults to ",".
         """
@@ -32,10 +33,11 @@ class AlphaPeptLoader(BaseLoader):
 
         self.intensity_column = intensity_column
         self.index_column = index_column
-        self.filter_columns = None
+        self.filter_columns = []
         self.confidence_column = None
         self.software = "AlphaPept"
         # add contamination column "Reverse"
+        self.add_contamination_reverse_column()
         self.add_contamination_column()
         #  make ProteinGroup column
         self.rawdata["ProteinGroup"] = self.rawdata[self.index_column].map(
@@ -46,7 +48,7 @@ class AlphaPeptLoader(BaseLoader):
     def load_hdf_protein_table(self, file):
         self.rawdata = pd.read_hdf(file, "protein_table")
 
-    def add_contamination_column(self):
+    def add_contamination_reverse_column(self):
         """adds column 'Reverse' to the rawdata for filtering
         """
         self.rawdata["Reverse"] = np.where(

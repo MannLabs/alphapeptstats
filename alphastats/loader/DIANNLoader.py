@@ -10,9 +10,10 @@ class DIANNLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="[experiment]",
+        intensity_column="[sample]",
         index_column="Protein.Group",
         sep="\t",
+        **kwargs
     ):
         """Import DIA-NN output data report.pg_matrix.tsv
 
@@ -26,6 +27,7 @@ class DIANNLoader(BaseLoader):
         super().__init__(file, intensity_column, index_column, sep)
         self.software = "DIA-NN"
         self.add_tag_to_sample_columns()
+        self.add_contamination_column()
 
     def add_tag_to_sample_columns(self):
         # when creating matrix sample columns wont be found when it is only specified as [experiment]
@@ -41,12 +43,13 @@ class DIANNLoader(BaseLoader):
             "Protein.Names",
             "Genes",
             "First.Protein.Description",
+            "contamination_library",
         ]
         self.rawdata.columns = [
             str(col) + "_Intensity" if col not in no_sample_column else str(col)
             for col in self.rawdata.columns
         ]
-        self.intensity_column = "[experiment]_Intensity"
+        self.intensity_column = "[sample]_Intensity"
 
 
 """

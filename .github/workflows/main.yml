@@ -17,9 +17,19 @@ jobs:
     - name: Install requirements
       run: |
         pip install -r requirements/requirements.txt
+    - name: Install package
+      run: |
+        pip install -e .
     - name: Run tests
       run: |
-        python -m unittest discover tests
+        pip install coverage
+        coverage run -m unittest
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v2
+      
+
+
+# python -m unittest discover tests
 
         
 # - name: Read all notebooks
