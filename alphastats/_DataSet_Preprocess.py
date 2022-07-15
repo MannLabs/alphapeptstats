@@ -47,7 +47,7 @@ class Preprocess:
             f"{str(len(protein_groups_to_remove))} observations have been removed."
         )
 
-    def preprocess_impute(self, method):
+    def preprocess_imputation(self, method):
         """
         Impute Data
         For more information visit:
@@ -100,7 +100,7 @@ class Preprocess:
 
         if method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(
-                n_quantiles=10, random_state=0
+                random_state=0
             )
             normalized_array = qt.fit_transform(self.mat.values)
 
@@ -125,13 +125,14 @@ class Preprocess:
     ):
         """Preprocess Protein data
 
+
         Args:
             remove_contaminations (bool, optional): remove ProteinGroups that are identified 
-            as contamination. Defaults to False.
+            as contamination. Calls preprocess_filter() Defaults to False.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", 
-            "linear". Defaults to None.
+            "linear", calls preprocess_normalizatin(). Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
-            imputation (str, optional):  method to impute data: either "mean", "median" or "knn". 
+            imputation (str, optional):  method to impute data: either "mean", "median" or "knn", calls preprocess_imputation(). 
             Defaults to None.
             qvalue (float, optional): _description_. Defaults to 0.01.
         """
@@ -142,6 +143,6 @@ class Preprocess:
         if normalization is not None:
             self.preprocess_normalization(method=normalization)
         if imputation is not None:
-            self.preprocess_impute(method=imputation)
+            self.preprocess_imputation(method=imputation)
         if remove_samples is not None:
             self.preprocess_remove_sampels(sample_list=remove_samples)
