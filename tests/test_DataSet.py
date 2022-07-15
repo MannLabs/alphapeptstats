@@ -1,4 +1,5 @@
 from calendar import c
+from http.cookiejar import LoadError
 from math import remainder
 
 # from multiprocessing.sharedctypes import Value
@@ -26,6 +27,7 @@ from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
 from alphastats._DataSet_Statistics import Statistics
+from alphastats.utils import LoaderError
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,7 @@ class BaseTestDataSet:
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
                 self.obj.check_loader(loader=self.loader)
-
+        
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
             with self.assertRaises(ValueError):
@@ -58,11 +60,13 @@ class BaseTestDataSet:
                 self.loader.rawdata = pd.DataFrame()
                 self.obj.check_loader(loader=self.loader)
 
-        def test_check_loader_error_invalid_loader(self):
+        @patch("logging.Logger.error")
+        def test_check_loader_error_invalid_loader(self, mock):
             #  invalid loader, class
-            with self.assertRaises(ValueError):
+            with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
                 self.obj.check_loader(loader=df)
+                mock.asser_called_once()
 
         def test_load_metadata(self):
             #  is dataframe loaded

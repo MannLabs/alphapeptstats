@@ -1,5 +1,6 @@
 from ast import Not
 from cmath import isinf
+from importlib.abc import Loader
 from multiprocessing.sharedctypes import Value
 from random import sample
 import re
@@ -16,7 +17,7 @@ import warnings
 from alphastats._DataSet_Plot import Plot
 from alphastats._DataSet_Preprocess import Preprocess
 from alphastats._DataSet_Statistics import Statistics
-
+from alphastats.utils import LoaderError
 
 # remove warning from openpyxl
 # only appears on mac
@@ -68,7 +69,7 @@ class DataSet(Preprocess, Statistics, Plot):
         if not isinstance(
             loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
         ):
-            raise ValueError(
+            raise LoaderError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
 
