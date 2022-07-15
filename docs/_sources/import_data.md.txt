@@ -8,7 +8,6 @@ In order to import data from these softwares the columns describing intensity an
 As we are dealing with wide data, a column represents the intensity for one sample. Thus the `intensity_column` must be specified as follow: For MaxQuant `"LFQ intensity [sample]"` or for AlphaPept `"[sample]_LFQ"` (this is already set as default).
 
 ## Additional modifications by AlphaStats
-
 When importing the data, AlphaStats will itendify potential contaminations based on a contaminant library, reated by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full). This information will be added as extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.
 
 ## Alphapept
@@ -33,7 +32,6 @@ maxquant_data = alphastats.MaxQuantLoader(file="testfiles/maxquant_proteinGroups
 
 ## DIA-NN
 For the analysis of [DIA-NN](https://github.com/vdemichev/DiaNN) output use `report_final.pg_matrix.tsv`. Versions before 1.7. are not supported.
-
 
 Find more details about the file format [here](https://github.com/vdemichev/DiaNN#output).
 

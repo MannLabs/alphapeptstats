@@ -32,6 +32,7 @@ release = '07-07-2022'
 # ones.
 extensions = [
     'myst_parser',
+    "nbsphinx",
    # "myst_nb",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",

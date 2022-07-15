@@ -56,10 +56,12 @@ class BaseLoader:
         contaminations = pd.read_csv("misc/contaminations.txt", sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
         #  add column with True False
+
         self.rawdata["contamination_library"] = np.where(
             self.rawdata[self.index_column].isin(contaminations_ids), True, False
         )
         self.filter_columns = self.filter_columns + ["contamination_library"]
+
         logging.info(
             "Column 'Contamination_library' has been added, to indicate contaminations.\n"
             + "The contaminant library was created by Frankenfield et al. :https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
