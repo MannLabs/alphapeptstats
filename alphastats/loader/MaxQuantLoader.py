@@ -10,17 +10,18 @@ class MaxQuantLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="LFQ intensity [experiment]",
+        intensity_column="LFQ intensity [sample]",
         index_column="Protein IDs",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
         sep="\t",
+        **kwargs
     ):
         """Loader MaxQuant output 
 
         Args:
             file (_type_): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
-            intensity_column (str, optional): columns with Intensity values for each experiment/sample. Defaults to "LFQ intentsity [experiment]".
+            intensity_column (str, optional): columns with Intensity values for each sample. Defaults to "LFQ intentsity [experiment]".
             index_column (str, optional): column with Protein IDs . Defaults to "Protein IDs".
             filter_columns (list, optional): columns that should be used for filtering. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].
             confidence_column (str, optional): column with the Q-value given. Defaults to "Q-value".
