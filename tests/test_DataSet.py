@@ -1,4 +1,5 @@
 from calendar import c
+from http.cookiejar import LoadError
 from math import remainder
 
 # from multiprocessing.sharedctypes import Value
@@ -25,7 +26,10 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
-from alphastats._DataSet_Statistics import Statistics
+
+from alphastats.DataSet_Statistics import Statistics
+from alphastats.utils import LoaderError
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,9 +64,10 @@ class BaseTestDataSet:
 
         def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
-            with self.assertRaises(ValueError):
+            with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
                 self.obj.check_loader(loader=df)
+                mock.asser_called_once()
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -102,8 +107,14 @@ class BaseTestDataSet:
             #  info has been printed at least once
             mock.assert_called()
 
+        @patch("logging.Logger.info")
+        def test_preprocess_filter_no_filter_columns(self, mock):
+            self.obj.filter_columns = []
+            self.obj.preprocess(remove_contaminations=True)
+            mock.assert_called_once()
+
         def test_calculate_ttest_fc(self):
-            # get groups from compariosn column
+            # get groups from comparison column
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
             if self.obj.software != "AlphaPept":
@@ -180,9 +191,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-    def preprocess_remove_samples(self):
+    def test_preprocess_remove_samples(self):
         sample_list = ["A"]
-        self.obj.preprocess_remove_sampels(sample_list=sample_list)
+        self.obj.preprocess(remove_samples=sample_list)
         self.assertEqual(self.obj.mat.shape, (1, 3781))
 
     def test_preprocess_normalize_zscore(self):
@@ -306,6 +317,11 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim_filtered = (312, 2409)
         self.comparison_column = "disease"
 
+    def test_plot_pca_group(self):
+        pca_plot = self.obj.plot_pca(group=self.comparison_column)
+        # 5 different disease
+        self.assertEqual(len(pca_plot.to_plotly_json().get("data")), 5)
+
     def test_preprocess_subset(self):
         df = self.obj.preprocess_subset()
         self.assertEqual(df.shape, (48, 2611))
@@ -330,6 +346,23 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         results = self.obj.anova(group="disease", protein_ids=protein_id, tukey=True)
         self.assertEqual(results.shape[1], 10)
 
+    def test_calculate_tukey(self):
+        protein_id = "K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1"
+        tukey_df = self.obj.calculate_tukey(
+            protein_id=protein_id, group="disease", df=None
+        )
+        self.assertEqual(tukey_df["p-tukey"][0], 0.674989009816342)
+
+    def test_ancova(self):
+        ancova_df = self.obj.ancova(
+            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            covar="Triglycerides measurement (14740000)",
+            between="disease",
+        )
+        expected_value = 0.7375624497867097
+        given_value = ancova_df["p-unc"][1]
+        decimal_places = 7
+        self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -345,16 +378,18 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim_filtered = (20, 10)
         self.comparison_column = "grouping1"
 
-    def test_plot_intensity(self):
+    def test_plot_intensity_violin(self):
+        # Violinplot
         plot = self.obj.plot_intensity(
             id="A0A075B6H7", group="grouping1", method="violin"
         )
         plot_dict = plot.to_plotly_json()
-
         self.assertIsInstance(plot, plotly.graph_objects.Figure)
         # are two groups plotted
         self.assertEqual(len(plot_dict.get("data")), 2)
 
+    def test_plot_intensity_box(self):
+        # Boxplot
         plot = self.obj.plot_intensity(
             id="A0A075B6H7", group="grouping1", method="box", log_scale=True
         )
@@ -364,17 +399,39 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         is_boxplot = "boxmode" in plot_dict.get("layout").keys()
         self.assertTrue(is_boxplot)
 
-    def test_plot_heatmap(self):
-        # raises error when data is not imputed
-        with self.assertRaises(ValueError):
-            self.obj.plot_heatmap()
+    def test_plot_intensity_scatter(self):
+        # Scatterplot
+        plot = self.obj.plot_intensity(
+            id="A0A075B6H7", group="grouping1", method="scatter"
+        )
+        plot_dict = plot.to_plotly_json()
+        self.assertIsInstance(plot, plotly.graph_objects.Figure)
+        # are two groups plotted
+        self.assertEqual(plot_dict.get("data")[0].get("type"), "scatter")
 
+    def test_plot_intensity_wrong_method(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_intensity(id="A0A075B6H7", group="grouping1", method="wrong")
+
+    def test_plot_heatmap(self):
         self.obj.preprocess(imputation="mean")
         plot = self.obj.plot_heatmap()
         plot_dict = plot.to_plotly_json()
         #  check number of column and row clusters
         self.assertEqual(len(plot_dict.get("data")), 26)
 
+    def test_plot_heatmap_noimputation(self):
+        # raises error when data is not imputed
+        with self.assertRaises(ValueError):
+            self.obj.plot_heatmap()
+
+    def test_plot_dendogram(self):
+        self.obj.preprocess(imputation="mean")
+        fig = self.obj.plot_dendogram()
+
+    def test_plot_dendogram_not_imputed(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_dendogram()
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

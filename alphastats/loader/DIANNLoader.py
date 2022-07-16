@@ -13,6 +13,7 @@ class DIANNLoader(BaseLoader):
         intensity_column="[sample]",
         index_column="Protein.Group",
         sep="\t",
+        **kwargs
     ):
         """Import DIA-NN output data report.pg_matrix.tsv
 
@@ -42,7 +43,7 @@ class DIANNLoader(BaseLoader):
             "Protein.Names",
             "Genes",
             "First.Protein.Description",
-            "Contamination_library",
+            "contamination_library"
         ]
         self.rawdata.columns = [
             str(col) + "_Intensity" if col not in no_sample_column else str(col)

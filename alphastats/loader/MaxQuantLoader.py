@@ -15,6 +15,7 @@ class MaxQuantLoader(BaseLoader):
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
         sep="\t",
+        **kwargs
     ):
         """Loader MaxQuant output 
 

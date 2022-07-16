@@ -1,6 +1,8 @@
 import functools
 import warnings
 from typing import Type
+import logging
+
 
 
 def ignore_warning(warning: Type[Warning]):
@@ -25,3 +27,11 @@ def ignore_warning(warning: Type[Warning]):
         return wrapper
 
     return inner
+
+class LoaderError(Exception):
+    """Loader Exception that will be logged."""
+
+    def __init__(self, message):
+        self.message = message
+        logging.error(message)
+        super().__init__(self.message)
