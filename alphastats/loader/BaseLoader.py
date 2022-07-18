@@ -3,6 +3,7 @@ import logging
 import os
 import numpy as np
 from iteration_utilities import duplicates
+import pkg_resources
 
 
 class BaseLoader:
@@ -53,7 +54,8 @@ class BaseLoader:
 
     def add_contamination_column(self):
         #  load df with potential contamination from fasta file
-        contaminations = pd.read_csv("misc/contaminations.txt", sep="\t")
+        contaminations_path = pkg_resources.resource_filename(__name__, "../data/contaminations.txt")
+        contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
         #  add column with True False
         self.rawdata["contamination_library"] = np.where(
