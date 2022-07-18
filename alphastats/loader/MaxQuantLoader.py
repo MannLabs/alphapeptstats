@@ -27,10 +27,8 @@ class MaxQuantLoader(BaseLoader):
             confidence_column (str, optional): column with the Q-value given. Defaults to "Q-value".
             sep (str, optional): separation of the input file. Defaults to "\t".
         """
-
-        super().__init__(file, intensity_column, index_column, sep)
-
         self.filter_columns = filter_columns
+        super().__init__(file, intensity_column, index_column, sep)
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self.set_filter_columns_to_true_false()
