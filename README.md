@@ -3,15 +3,13 @@
 ![Pip installation](https://github.com/MannLabs/alphastats/workflows/Default%20installation%20and%20tests/badge.svg)
 
 # AlphaStats
-An open-source Python package of the AlphaStats ecosystem from the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann). To enable all hyperlinks in this document, please view it at [GitHub](https://github.com/MannLabs/alphatemplate).
+An open-source Python package of the AlphaStats ecosystem from the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann). To enable all hyperlinks in this document, please view it at [GitHub](https://github.com/MannLabs/alphastats).
 
 * [**About**](#about)
 * [**License**](#license)
 * [**Installation**](#installation)
   * [**Pip installer**](#pip)
-  * [**Developer installer**](#developer)
 * [**Usage**](#usage)
-  * [**CLI**](#cli)
   * [**Python and jupyter notebooks**](#python-and-jupyter-notebooks)
 * [**Troubleshooting**](#troubleshooting)
 * [**Citations**](#citations)
@@ -30,13 +28,6 @@ AlphaStats was developed by the [Mann Labs at the Max Planck Institute of Bioche
 ---
 ## Installation
 
-AlphaStats can be installed and used on all major operating systems (Windows, macOS and Linux).
-There are two different types of installation possible:
-
-* [**Pip installer:**](#pip) Choose this installation if you want to use AlphaTemplate as a Python package in an existing Python 3.8 environment (e.g. a Jupyter notebook). If needed, the GUI and CLI can be installed with pip as well.
-* [**Developer installer:**](#developer) Choose this installation if you are familiar with CLI tools, [conda](https://docs.conda.io/en/latest/) and Python. This installation allows access to all available features of AlphaTemplate and even allows to modify its source code directly. Generally, the developer version of AlphaTemplate outperforms the precompiled versions which makes this the installation of choice for high-throughput experiments.
-
-
 ### Pip
 
 AlphaStats can be installed in an existing Python 3.8 environment with a single `bash` command. *This `bash` command can also be run directly from within a Jupyter notebook by prepending it with a `!`*:
@@ -44,8 +35,7 @@ AlphaStats can be installed in an existing Python 3.8 environment with a single 
 ```bash
 pip install alphastats
 ```
-
-Installing AlphaStats like this avoids conflicts when integrating it in other tools, as this does not enforce strict versioning of dependancies. However, if new versions of dependancies are released, they are not guaranteed to be fully compatible with AlphaStats. While this should only occur in rare cases where dependencies are not backwards compatible, you can always force AlphaStats to use dependancy versions which are known to be compatible with:
+<!--Installing AlphaStats like this avoids conflicts when integrating it in other tools, as this does not enforce strict versioning of dependancies. However, if new versions of dependancies are released, they are not guaranteed to be fully compatible with AlphaStats. While this should only occur in rare cases where dependencies are not backwards compatible, you can always force AlphaStats to use dependancy versions which are known to be compatible with:
 
 ```bash
 pip install "alphastats[stable]"
@@ -68,9 +58,9 @@ mkdir ~/folder/where/to/install/software
 cd ~/folder/where/to/install/software
 ```
 
-***The following commands assume you do not perform any additional `cd` commands anymore***.
+***The following commands assume you do not perform any additional `cd` commands anymore***.-->
 
-Next, download the AlphaStats repository from GitHub either directly or with a `git` command. This creates a new AlphaTemplate subfolder in your current directory.
+Next, download the AlphaStats repository from GitHub either directly or with a `git` command. This creates a new alphastats subfolder in your current directory.
 
 ```bash
 git clone https://github.com/MannLabs/alphastats.git
@@ -89,31 +79,13 @@ Finally, AlphaStats and all its [dependancies](requirements) need to be installe
 pip install -e "./alphastats[development]"
 ```
 
-By default this installs loose dependancies (no explicit versioining), although it is also possible to use stable dependencies (e.g. `pip install -e "./alphastats[stable,development-stable]"`).
+<!--By default this installs loose dependancies (no explicit versioining), although it is also possible to use stable dependencies (e.g. `pip install -e "./alphastats[stable,development-stable]"`).
 
-***By using the editable flag `-e`, all modifications to the [AlphaStats source code folder](alphastats) are directly reflected when running AlphaStats. Note that the AlphaStats folder cannot be moved and/or renamed if an editable version is installed.***
+***By using the editable flag `-e`, all modifications to the [AlphaStats source code folder](alphastats) are directly reflected when running AlphaStats. Note that the AlphaStats folder cannot be moved and/or renamed if an editable version is installed.***-->
 
 ---
 ## Usage
 
-There are two ways to use AlphaStats:
-
-
-* [**CLI**](#cli)
-* [**Python**](#python-and-jupyter-notebooks)
-
-NOTE: The first time you use a fresh installation of AlphaStats, it is often quite slow because some functions might still need compilation on your local operating system and architecture. Subsequent use should be a lot faster.
-
-
-### CLI
-
-The CLI can be run with the following command (after activating the `conda` environment with `conda activate alphastats` or if an alias was set to the alphastats executable):
-
-```bash
-alphatstats -h
-```
-
-It is possible to get help about each function and their (required) parameters by using the `-h` flag.
 
 ### Python and Jupyter notebooks
 

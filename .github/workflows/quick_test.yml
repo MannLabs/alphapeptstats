@@ -1,0 +1,34 @@
+# GitHub Actions to automatically test on sample files
+name: Quick Test
+env:
+  TMP_FOLDER: 'E:/test_dir/'
+
+on:
+  push:
+    branches: [ master, develop]
+  pull_request:
+    branches: [ master, develop]
+
+jobs:
+  Quick_Test:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install package (alphastats)
+      run: |
+        remove-item -path "C:\Users\admin\.conda\envs\alphastats" -Force -Recurse -ErrorAction SilentlyContinue
+        conda create --name alphastats python=3.8 -y
+        conda activate alphastats
+        pip install pip --upgrade --user
+        pip install ".[stable,gui-stable]"
+        pip install pymongo
+        pip install dnspython
+        pip install wget
+    - name: Run alphastats on Thermo (IRT_Thermo_Win)
+      run: |
+        conda activate alphastats
+        python test_ci.py "${{ env.TMP_FOLDER }}" thermo_irt "${{ secrets.MONGODB_PW }}"
+    - name: Run alphastats on Bruker (IRT_Bruker_Win)
+      run: |
+        conda activate alphastats
+        python test_ci.py "${{ env.TMP_FOLDER }}" bruker_irt "${{ secrets.MONGODB_PW }}"
