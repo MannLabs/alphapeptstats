@@ -6,4 +6,5 @@ plotly>=5
 iteration_utilities
 openpyxl>=3
 sklearn_pandas
+pingouin
 

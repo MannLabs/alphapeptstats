@@ -11,10 +11,11 @@ class FragPipeLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="[experiment] MaxLFQ Intensity ",
+        intensity_column="[sample] MaxLFQ Intensity ",
         index_column="Protein",
         confidence_column="Protein Probability",
         sep="\t",
+        **kwargs
     ):
 
         super().__init__(file, intensity_column, index_column, sep)
