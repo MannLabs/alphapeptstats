@@ -440,7 +440,11 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_dendogram(self):
         self.obj.preprocess(imputation="mean")
         fig = self.obj.plot_dendogram()
-
+    
+    def test_plot_tsne(self):
+        plot_dict = self.obj.plot_tsne().to_plotly_json()
+        # check if everything get plotted
+        self.assertEqual(len(plot_dict.get("data")[0].get("x")), 20)
 
     def test_plot_dendogram_navalues(self):
         with self.assertRaises(ValueError):

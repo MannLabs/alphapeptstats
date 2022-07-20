@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly
 import dash_bio
 import scipy
+import sklearn.manifold
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -39,15 +40,8 @@ class Plot:
         return inner
 
     @_check_for_missing_values
-    def plot_pca(self, group=None):
-        """Plot Principal Component Analysis (PCA)
-
-        Args:
-            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
-
-        Returns:
-            plotly.graph_objects._figure.Figure: PCA plot
-        """
+    def _plot_dimensionality_reduction(self, group, method, **kwargs):
+        # function for plot_pca and plot_tsne
         if self.normalization == "Data is not normalized.":
             logging.info(
                 "Data has not been normalized. Data will be normalized using zscore-Normalization"
@@ -63,20 +57,57 @@ class Plot:
             group_color = group
         mat = mat.fillna(0)
 
-        pca = sklearn.decomposition.PCA(n_components=2)
-        components = pca.fit_transform(mat)
+        if method == "pca":
+            pca = sklearn.decomposition.PCA(n_components=2)
+            components = pca.fit_transform(mat)
+            labels={
+                "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
+                "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
+            }
+        
+        elif method == "tsne":
+            tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, **kwargs) 
+            components = tsne.fit_transform(mat)
+            labels={
+                "0": "Dimension 1",
+                "1": "Dimension 2",
+            }
+
+        else:
+            #TODO implement UMAP??
+            return
 
         fig = px.scatter(
             components,
             x=0,
             y=1,
-            labels={
-                "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
-                "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
-            },
+            labels=labels,
             color=group_color,
         )
         return fig
+
+    def plot_pca(self, group=None):
+        """Plot Principal Component Analysis (PCA)
+
+        Args:
+            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+
+        Returns:
+            plotly.graph_objects._figure.Figure: PCA plot
+        """
+        return self._plot_dimensionality_reduction(group=group, method = "pca")
+
+    def plot_tsne(self, group=None, perplexity=30, n_iter=1000):
+        """Plot t-distributed stochastic neighbor embedding (t-SNE)
+
+        Args:
+            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+
+        Returns:
+            plotly.graph_objects._figure.Figure: t-SNE plot
+        """
+        return self._plot_dimensionality_reduction(group=group, method = "tsne", perplexity=perplexity, n_iter=n_iter)
+    
 
     def plot_correlation_matrix(self, method="pearson", save_figure=False):
         """Plot Correlation Matrix
@@ -207,11 +238,6 @@ class Plot:
             line_width=2,
         )
         return plot
-
-    def plot_tsne():
-        tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, random_state = 123) 
-        tsne_result = tsne.fit_transform()
-
 
     @_check_for_missing_values
     def plot_dendogram(
