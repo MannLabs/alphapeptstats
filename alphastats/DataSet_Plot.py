@@ -9,23 +9,19 @@ import scipy
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
         colorway=[
-            "#489B80",
+            "#009599",
+            "#005358",
+            "#772173",
             "#B65EAF",
-            "#7593D6",
-            "#A475D6",
-            "#C177B3",
-            "#468189",
-            "#9DBEBB",
-            "#65676F",
-            "#ABCCA6",
-            "#B395F2",
-            "#535F97",
-            "#A7D87F",
-            "#F3A020",
-            "#20CAF3",
+            "#A73A00",
+            "#6490C1",
+            "#FF894F",
+            "#2B5E8B",
+            "#A87F32"  
         ]
     )
 )
+
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
