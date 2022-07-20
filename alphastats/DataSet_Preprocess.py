@@ -137,7 +137,7 @@ class Preprocess:
         if remove_contaminations:
             self.preprocess_filter()
         if subset:
-            self.mat = self.preprocess_subset()
+            self.preprocess_subset()
         if normalization is not None:
             self.preprocess_normalization(method=normalization)
         if imputation is not None:
