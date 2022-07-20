@@ -26,6 +26,19 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class Plot:
+   # @staticmethod
+    def _check_for_missing_values(f):
+        # decorator to check for missing values 
+        def inner(*args, **kwargs):
+            if args[0].mat.isna().values.any() is True:
+                raise ValueError(
+                "Data contains missing values. Consider Imputation:"
+                "for instance `DataSet.preprocess(imputation='mean')`."
+                )
+            return f(*args, **kwargs)
+        return inner
+
+    @_check_for_missing_values
     def plot_pca(self, group=None):
         """Plot Principal Component Analysis (PCA)
 
@@ -35,12 +48,6 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: PCA plot
         """
-        if self.imputation == "Data is not imputed." and self.mat.isna().values.any():
-            logging.warning(
-                "Data contains missing values. Missing values will be replaced with 0. Consider Imputation instead:"
-                "for instance `DataSet.preprocess(imputation='mean')`."
-            )
-
         if self.normalization == "Data is not normalized.":
             logging.info(
                 "Data has not been normalized. Data will be normalized using zscore-Normalization"
@@ -172,18 +179,13 @@ class Plot:
         )
         return volcano_plot
 
+    @_check_for_missing_values
     def plot_heatmap(self):
         """Plot Heatmap with samples as columns and Proteins as rows
 
         Returns:
             _dash_bio.Clustergram: Dash Bio Clustergram object
         """
-        if self.mat.isna().values.any() is True:
-            raise ValueError(
-                "Data contains missing values. Impute data before plotting: "
-                "for instance `DataSet.preprocess(imputation='mean')` or replace NAs with 0."
-            )
-
         df = self.mat.transpose()
         columns = list(df.columns.values)
         rows = list(df.index)
@@ -206,6 +208,12 @@ class Plot:
         )
         return plot
 
+    def plot_tsne():
+        tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, random_state = 123) 
+        tsne_result = tsne.fit_transform()
+
+
+    @_check_for_missing_values
     def plot_dendogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
@@ -224,11 +232,6 @@ class Plot:
         """
         # of anova results
         # general of a subset of proteins
-        if self.mat.isna().values.any() is True:
-            raise ValueError(
-                "Data contains missing values. Impute data before plotting: "
-                "for instance `DataSet.preprocess(imputation='mean')` or replace NAs with 0."
-            )
         fig = plotly.figure_factory.create_dendrogram(
             self.mat, labels=self.mat.index, linkagefun=linkagefun
         )

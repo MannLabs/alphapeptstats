@@ -27,6 +27,7 @@ from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.DataSet_Plot import Plot
 from alphastats.utils import LoaderError
 
 logger = logging.getLogger(__name__)
@@ -439,6 +440,11 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_dendogram(self):
         self.obj.preprocess(imputation="mean")
         fig = self.obj.plot_dendogram()
+
+
+    def test_plot_dendogram_navalues(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_dendogram()
 
     def test_plot_dendogram_not_imputed(self):
         with self.assertRaises(ValueError):

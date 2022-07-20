@@ -21,10 +21,9 @@ class Preprocess:
         n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
         text = (
             f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins and "
-            f"{str(n_samples)} samples.\n {str(len(self.removed_protein_groups))}"
-            f"rows with Proteins/Protein Groups have been removed."
+            f"{str(n_samples)} samples.\n"
         )
-        preprocessing_text = text + self.normalization + self.imputation
+        preprocessing_text = text + self.normalization + self.imputation + self.contamination_filter
         print(preprocessing_text)
 
     def preprocess_filter(self):

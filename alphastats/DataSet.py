@@ -54,11 +54,11 @@ class DataSet(Preprocess, Statistics, Plot):
         # save preprocessing settings
         self.preprocessing = None
         # update normalization when self.matrix is normalized, filtered
-        self.normalization, self.imputation = (
+        self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized.",
-            "Data is not imputed."
+            "Data is not imputed.",
+            "Contaminations have not been removed."
         )
-        self.contamination_filter = "Contaminations have not been removed."
 
     def check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
