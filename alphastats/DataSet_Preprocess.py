@@ -33,19 +33,22 @@ class Preprocess:
         if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
             return
+        
+        if self.contamination_filter != "Contaminations have not been removed.":
+            logging.info("Contaminatons have already been filtered: " + self.contamination_filter)
+            return
+
         #  print column names with contamination
-        logging.info(
-            f"Contaminations indicated in following columns: {self.filter_columns} are removed"
-        )
         protein_groups_to_remove = self.rawdata[
             (self.rawdata[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
+
         # remove columns with protin groups
         self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
-        self.removed_protein_groups = protein_groups_to_remove
-        logging.info(
-            f"{str(len(protein_groups_to_remove))} observations have been removed."
-        )
+        
+        self.contamination_filter = (f"Contaminations indicated in following columns: {self.filter_columns} were removed\n" 
+                 f"{str(len(protein_groups_to_remove))} observations have been removed.")
+        logging.info(self.contamination_filter)
 
     def preprocess_imputation(self, method):
         """
@@ -137,7 +140,7 @@ class Preprocess:
         if remove_contaminations:
             self.preprocess_filter()
         if subset:
-            self.preprocess_subset()
+            self.mat = self.preprocess_subset()
         if normalization is not None:
             self.preprocess_normalization(method=normalization)
         if imputation is not None:

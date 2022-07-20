@@ -56,9 +56,9 @@ class DataSet(Preprocess, Statistics, Plot):
         # update normalization when self.matrix is normalized, filtered
         self.normalization, self.imputation = (
             "Data is not normalized.",
-            "Data is not imputed.",
+            "Data is not imputed."
         )
-        self.removed_protein_groups = None
+        self.contamination_filter = "Contaminations have not been removed."
 
     def check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -98,12 +98,12 @@ class DataSet(Preprocess, Statistics, Plot):
         # transpose dataframe
         self.mat = df.transpose()
         # reset preproccessing info
-        self.normalization, self.imputation = (
+        self.normalization, self.imputation, self.contamination_filter= (
             "Data is not normalized",
             "Data is not imputed",
+            "Contaminations have not been removed."
         )
-        self.removed_protein_groups = None
-
+      
     def load_metadata(self, file_path, sample_column):
         """Load metadata either xlsx, txt, csv or txt file
 

@@ -98,13 +98,24 @@ class BaseTestDataSet:
 
         @patch("logging.Logger.info")
         def test_preprocess_filter(self, mock):
-            # is warning raised when filter columns are none
             # is info printed if contamination columns get removed
             # is the new matrix smaller than the older matrix
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
             #  info has been printed at least once
-            mock.assert_called()
+            mock.assert_called_once()
+        
+        @patch("logging.Logger.info")
+        def test_preprocess_filter_already_filter(self, mock):
+            # is warning raised when filter columns are none
+            # is info printed if contamination columns get removed
+            # is the new matrix smaller than the older matrix
+            self.assertEqual(self.obj.contamination_filter, "Contaminations have not been removed.")
+            self.obj.preprocess(remove_contaminations=True)
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
+            self.assertNotEqual(self.obj.contamination_filter, "Contaminations have not been removed.")
+            self.obj.preprocess(remove_contaminations=True)
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)        
 
         @patch("logging.Logger.info")
         def test_preprocess_filter_no_filter_columns(self, mock):
