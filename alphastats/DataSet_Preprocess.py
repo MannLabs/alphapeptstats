@@ -27,8 +27,6 @@ class Preprocess:
         print(preprocessing_text)
 
     def preprocess_filter(self):
-        """Removes all observations, that were identified as contaminations. 
-        """
         if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
             return
@@ -50,15 +48,14 @@ class Preprocess:
         logging.info(self.contamination_filter)
 
     def preprocess_imputation(self, method):
-        """
-        Impute Data
-        For more information visit:
-        SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
-        k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
+        # Impute Data
+        # For more information visit:
+        # SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
+        # k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
 
-        Args:
-            method (str): method to impute data: either "mean", "median" or "knn"
-        """
+        # Args:
+        #    method (str): method to impute data: either "mean", "median" or "knn"
+      
         # remove ProteinGroups with only NA before
         protein_group_na = self.mat.columns[self.mat.isna().all()].tolist()
         if len(protein_group_na) > 0:
@@ -85,16 +82,15 @@ class Preprocess:
         self.imputation = f"Missing values were imputed using the {method}."
 
     def preprocess_normalization(self, method):
-        """
-        Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
-        Z-score normalization equals standaridzation using StandardScaler: 
-        https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
-        For more information visit.
-        Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
+        # Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
+        # Z-score normalization equals standaridzation using StandardScaler: 
+        # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+        # For more information visit.
+        # Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
         
-        Args:
-            method (str): method to normalize data: either "zscore", "quantile", "linear"
-        """
+        #Args:
+            #method (str): method to normalize data: either "zscore", "quantile", "linear"
+   
         # zscore normalization == standardization
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
@@ -125,12 +121,29 @@ class Preprocess:
     ):
         """Preprocess Protein data
 
+        Removal of contaminations:
+        Removes all observations, that were identified as contaminations. 
+
+        Normalization:
+        "zscore", "quantile", "linear"
+        Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
+        Z-score normalization equals standaridzation using StandardScaler: 
+        https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+        For more information visit.
+        Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
+
+        Imputation:
+        "mean", "median" or "knn"
+        For more information visit:
+        SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
+        k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
+
 
         Args:
             remove_contaminations (bool, optional): remove ProteinGroups that are identified 
             as contamination. Calls preprocess_filter() Defaults to False.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", 
-            "linear", calls preprocess_normalizatin(). Defaults to None.
+            "linear", calls preprocess_normalization(). Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median" or "knn", calls preprocess_imputation(). 
             Defaults to None.
