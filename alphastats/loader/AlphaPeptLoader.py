@@ -2,6 +2,7 @@ from operator import index
 from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
+import logging
 
 
 class AlphaPeptLoader(BaseLoader):
@@ -55,6 +56,8 @@ class AlphaPeptLoader(BaseLoader):
             self.rawdata[self.index_column].str.contains("REV_"), True, False
         )
         self.filter_columns = ["Reverse"]
+        logging.info("Proteins with a peptide derived from the reversed part of the decoy database have been annotated"
+        "These proteins should be filtered with `DataSet.preprocess(remove_contaminations=True)` later.")
 
     def standardize_protein_group_column(self, entry):
         #  make column with ProteinGroup to make comparison between softwares possible
