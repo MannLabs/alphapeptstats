@@ -8,6 +8,7 @@ class Preprocess:
     def preprocess_remove_sampels(self, sample_list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
+        self.metadata = self.metadata[~self.metadata["sample"].isin(sample_list)]
 
     def preprocess_subset(self):
         # filter matrix so only samples that are described in metadata
