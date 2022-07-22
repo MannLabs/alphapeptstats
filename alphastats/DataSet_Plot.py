@@ -1,3 +1,4 @@
+from audioop import add
 import sklearn
 import logging
 import plotly.express as px
@@ -27,7 +28,6 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class Plot:
-   # @staticmethod
     def _check_for_missing_values(f):
         # decorator to check for missing values 
         def inner(*args, **kwargs):
@@ -39,8 +39,29 @@ class Plot:
             return f(*args, **kwargs)
         return inner
 
+    @staticmethod
+    def _add_circles_to_scatterplot(fig):
+        # called by _plot_dimensionality_reduction()
+        # convert figure to dict and extract information
+        fig_dict = fig.to_plotly_json().get("data")
+        for group in fig_dict:
+            # get coordinates for the group
+            x_vector = group.get("x")
+            y_vector = group.get("y")
+            # get color of the group to color circle in the same color
+            group_color = group.get("marker").get("color")
+            fig.add_shape(type="circle",
+                xref="x", yref="y",
+                x0=min(x_vector), y0=min(y_vector),
+                x1=max(x_vector), y1=max(y_vector),
+                opacity=0.2,
+                fillcolor=group_color,
+                line_color=group_color,
+            )   
+        return fig
+
     @_check_for_missing_values
-    def _plot_dimensionality_reduction(self, group, method, **kwargs):
+    def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
         if self.normalization == "Data is not normalized.":
             logging.info(
@@ -84,29 +105,36 @@ class Plot:
             labels=labels,
             color=group_color,
         )
+
+        # draw circles around plotted groups
+        if circle is True and group is not None:
+            fig = self._add_circles_to_scatterplot(fig)
+
         return fig
 
-    def plot_pca(self, group=None):
+    def plot_pca(self, group=None, circle=False):
         """Plot Principal Component Analysis (PCA)
 
         Args:
             group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+            circle (bool, optional): draw circle around each group. Defaults to False.
 
         Returns:
             plotly.graph_objects._figure.Figure: PCA plot
         """
-        return self._plot_dimensionality_reduction(group=group, method = "pca")
+        return self._plot_dimensionality_reduction(group=group, method = "pca", circle=circle)
 
-    def plot_tsne(self, group=None, perplexity=30, n_iter=1000):
+    def plot_tsne(self, group=None, circle=False, perplexity=30, n_iter=1000):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)
 
         Args:
             group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+            circle (bool, optional): draw circle around each group. Defaults to False.
 
         Returns:
             plotly.graph_objects._figure.Figure: t-SNE plot
         """
-        return self._plot_dimensionality_reduction(group=group, method = "tsne", perplexity=perplexity, n_iter=n_iter)
+        return self._plot_dimensionality_reduction(group=group, method = "tsne", circle=circle, perplexity=perplexity, n_iter=n_iter)
     
 
     def plot_correlation_matrix(self, method="pearson", save_figure=False):
@@ -158,7 +186,7 @@ class Plot:
         Args:
             id (str): ProteinGroup ID
             group (str, optional): A metadata column used for grouping. Defaults to None.
-            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatte. Defaults to "violin".
+            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "violin".
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
