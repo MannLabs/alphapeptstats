@@ -48,7 +48,7 @@ class BaseTestDataSet:
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
                 self.obj.check_loader(loader=self.loader)
-        
+
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
             with self.assertRaises(ValueError):
@@ -96,13 +96,15 @@ class BaseTestDataSet:
                 set(list(map(pd.api.types.is_numeric_dtype, self.obj.mat.dtypes)))
             )
             self.assertEqual(is_dtype_numeric, [True])
-        
+
         @patch("logging.Logger.warning")
         def test_check_values_warning(self, mock):
             # is dataframe None and is warning produced
-            data = {'A': [10, 11, 12, 13, 14], 
-                    'B': [23, 22, 24, 22, 25],
-                    'C': [66, 72, np.inf, 68, -np.inf]}
+            data = {
+                "A": [10, 11, 12, 13, 14],
+                "B": [23, 22, 24, 22, 25],
+                "C": [66, 72, np.inf, 68, -np.inf],
+            }
             self.obj.mat = pd.DataFrame(data)
             self.obj.check_matrix_values()
             mock.assert_called_once()
@@ -115,18 +117,22 @@ class BaseTestDataSet:
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
             #  info has been printed at least once
             mock.assert_called_once()
-        
+
         @patch("logging.Logger.info")
         def test_preprocess_filter_already_filter(self, mock):
             # is warning raised when filter columns are none
             # is info printed if contamination columns get removed
             # is the new matrix smaller than the older matrix
-            self.assertEqual(self.obj.contamination_filter, "Contaminations have not been removed.")
+            self.assertEqual(
+                self.obj.contamination_filter, "Contaminations have not been removed."
+            )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
-            self.assertNotEqual(self.obj.contamination_filter, "Contaminations have not been removed.")
+            self.assertNotEqual(
+                self.obj.contamination_filter, "Contaminations have not been removed."
+            )
             self.obj.preprocess(remove_contaminations=True)
-            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)        
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
 
         @patch("logging.Logger.info")
         def test_preprocess_filter_no_filter_columns(self, mock):
@@ -137,7 +143,7 @@ class BaseTestDataSet:
         def test_preprocess_normalization_invalid_method(self):
             with self.assertRaises(ValueError):
                 self.obj.preprocess(normalization="wrong method")
-        
+
         def test_preprocess_imputation_invalid_method(self):
             with self.assertRaises(ValueError):
                 self.obj.preprocess(imputation="wrong method")
@@ -290,6 +296,20 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
+    def test_preprocess_imputation_randomforest_values(self):
+        self.obj.mat = pd.DataFrame(
+            {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
+        )
+        self.obj.preprocess(imputation="randomforest")
+        expected_mat = pd.DataFrame(
+            {
+                "a": [2.00000000e00, -9.22337204e12, 4.00000000e00],
+                "b": [5.00000000e00, 4.00000000e00, 4.0],
+                "c": [-9.22337204e12, 1.00000000e01, -9.22337204e12],
+            }
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
     def test_plot_sampledistribution_group(self):
         plot = self.obj.plot_sampledistribution(
             method="box", color="disease", log_scale=False
@@ -350,9 +370,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         pca_plot = self.obj.plot_pca(group=self.comparison_column)
         # 5 different disease
         self.assertEqual(len(pca_plot.to_plotly_json().get("data")), 5)
-    
+
     def test_plot_pca_circles(self):
-        pca_plot =  self.obj.plot_pca(group=self.comparison_column, circle=True)
+        pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
         # are there 5 circles drawn - for each group
         number_of_groups = len(pca_plot.to_plotly_json().get("layout").get("shapes"))
         self.assertEqual(number_of_groups, 5)
@@ -464,7 +484,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_dendogram(self):
         self.obj.preprocess(imputation="mean")
         fig = self.obj.plot_dendogram()
-    
+
     def test_plot_tsne(self):
         plot_dict = self.obj.plot_tsne().to_plotly_json()
         # check if everything get plotted
