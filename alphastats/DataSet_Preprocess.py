@@ -6,6 +6,7 @@ import numpy as np
 import sklearn.ensemble
 import sklearn.impute
 from sklearn.experimental import enable_iterative_imputer
+from alphastats.utils import ignore_warning
 
 
 class Preprocess:
@@ -23,10 +24,10 @@ class Preprocess:
         """Print summary of preprocessing steps
         """
         n_proteins = self.rawdata.shape[0]
-        n_samples = self.rawdata.shape[1]  #  remove filter columns etc.
+        n_matrix = self.mat.shape[1]  #  remove filter columns etc.
         text = (
-            f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins and "
-            f"{str(n_samples)} samples.\n"
+            f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins/ProteinGroups.\n"
+            f"The filtered data contains {n_matrix} Proteins/ProteinGroups."
         )
         preprocessing_text = (
             text + self.normalization + self.imputation + self.contamination_filter
@@ -53,11 +54,12 @@ class Preprocess:
         self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
 
         self.contamination_filter = (
-            f"Contaminations indicated in following columns: {self.filter_columns} were removed\n"
-            f"{str(len(protein_groups_to_remove))} observations have been removed."
+            f"Contaminations indicated in following columns: {self.filter_columns} were removed. "
+            f"In total {str(len(protein_groups_to_remove))} observations have been removed."
         )
         logging.info(self.contamination_filter)
 
+    @ignore_warning(RuntimeWarning)
     def preprocess_imputation(self, method):
         # Impute Data
         # For more information visit:
@@ -87,6 +89,8 @@ class Preprocess:
             imputation_array = imp.fit_transform(self.mat.values)
 
         elif method == "knn":
+            # change for text
+            method = "k-Nearest Neighbor"
             imp = sklearn.impute.KNNImputer(n_neighbors=2, weights="uniform")
             imputation_array = imp.fit_transform(self.mat.values)
 
@@ -122,8 +126,9 @@ class Preprocess:
             imputation_array, index=self.mat.index, columns=self.mat.columns
         )
 
-        self.imputation = f"Missing values were imputed using the {method}."
+        self.imputation = f"Missing values were imputed using the {method}.\n"
 
+    @ignore_warning(RuntimeWarning)
     def preprocess_normalization(self, method):
         # Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
         # Z-score normalization equals standaridzation using StandardScaler:
@@ -160,8 +165,9 @@ class Preprocess:
         self.mat = pd.DataFrame(
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
-        self.normalization = f"Data has been normalized using {method} normalization"
+        self.normalization = f"Data has been normalized using {method} normalization. \n"
 
+    @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
         remove_contaminations=False,

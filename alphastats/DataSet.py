@@ -58,7 +58,7 @@ class DataSet(Preprocess, Statistics, Plot):
         self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized.",
             "Data is not imputed.",
-            "Contaminations have not been removed."
+            "Contaminations have not been removed.",
         )
 
     def check_loader(self, loader):
@@ -78,12 +78,12 @@ class DataSet(Preprocess, Statistics, Plot):
             raise ValueError(
                 "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
-       
+
         if not isinstance(loader.index_column, str):
             raise ValueError(
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
-            
+
     def check_matrix_values(self):
         if np.isinf(self.mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
@@ -102,12 +102,12 @@ class DataSet(Preprocess, Statistics, Plot):
         # transpose dataframe
         self.mat = df.transpose()
         # reset preproccessing info
-        self.normalization, self.imputation, self.contamination_filter= (
+        self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized",
             "Data is not imputed",
-            "Contaminations have not been removed."
+            "Contaminations have not been removed.",
         )
-      
+
     def load_metadata(self, file_path, sample_column):
         """Load metadata either xlsx, txt, csv or txt file
 

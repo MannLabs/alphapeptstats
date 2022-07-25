@@ -19,7 +19,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
             "#6490C1",
             "#FF894F",
             "#2B5E8B",
-            "#A87F32"  
+            "#A87F32",
         ]
     )
 )
@@ -29,14 +29,15 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 class Plot:
     def _check_for_missing_values(f):
-        # decorator to check for missing values 
+        # decorator to check for missing values
         def inner(*args, **kwargs):
             if args[0].mat.isna().values.any() is True:
                 raise ValueError(
-                "Data contains missing values. Consider Imputation:"
-                "for instance `DataSet.preprocess(imputation='mean')`."
+                    "Data contains missing values. Consider Imputation:"
+                    "for instance `DataSet.preprocess(imputation='mean')`."
                 )
             return f(*args, **kwargs)
+
         return inner
 
     @staticmethod
@@ -50,14 +51,18 @@ class Plot:
             y_vector = group.get("y")
             # get color of the group to color circle in the same color
             group_color = group.get("marker").get("color")
-            fig.add_shape(type="circle",
-                xref="x", yref="y",
-                x0=min(x_vector), y0=min(y_vector),
-                x1=max(x_vector), y1=max(y_vector),
+            fig.add_shape(
+                type="circle",
+                xref="x",
+                yref="y",
+                x0=min(x_vector),
+                y0=min(y_vector),
+                x1=max(x_vector),
+                y1=max(y_vector),
                 opacity=0.2,
                 fillcolor=group_color,
                 line_color=group_color,
-            )   
+            )
         return fig
 
     @_check_for_missing_values
@@ -81,30 +86,24 @@ class Plot:
         if method == "pca":
             pca = sklearn.decomposition.PCA(n_components=2)
             components = pca.fit_transform(mat)
-            labels={
+            labels = {
                 "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
                 "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
             }
-        
+
         elif method == "tsne":
-            tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, **kwargs) 
+            tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, **kwargs)
             components = tsne.fit_transform(mat)
-            labels={
+            labels = {
                 "0": "Dimension 1",
                 "1": "Dimension 2",
             }
 
         else:
-            #TODO implement UMAP??
+            # TODO implement UMAP??
             return
 
-        fig = px.scatter(
-            components,
-            x=0,
-            y=1,
-            labels=labels,
-            color=group_color,
-        )
+        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
 
         # draw circles around plotted groups
         if circle is True and group is not None:
@@ -122,7 +121,9 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: PCA plot
         """
-        return self._plot_dimensionality_reduction(group=group, method = "pca", circle=circle)
+        return self._plot_dimensionality_reduction(
+            group=group, method="pca", circle=circle
+        )
 
     def plot_tsne(self, group=None, circle=False, perplexity=30, n_iter=1000):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)
@@ -134,8 +135,13 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: t-SNE plot
         """
-        return self._plot_dimensionality_reduction(group=group, method = "tsne", circle=circle, perplexity=perplexity, n_iter=n_iter)
-    
+        return self._plot_dimensionality_reduction(
+            group=group,
+            method="tsne",
+            circle=circle,
+            perplexity=perplexity,
+            n_iter=n_iter,
+        )
 
     def plot_correlation_matrix(self, method="pearson", save_figure=False):
         """Plot Correlation Matrix
@@ -173,6 +179,7 @@ class Plot:
 
         if method == "violin":
             fig = px.violin(df, x="sample", y="Intensity", color=color)
+
         if method == "box":
             fig = px.box(df, x="sample", y="Intensity", color=color)
 
@@ -196,45 +203,44 @@ class Plot:
         df = self.mat[[id]].reset_index().rename(columns={"index": "sample"})
         df = df.merge(self.metadata, how="inner", on=["sample"])
 
-        if method not in ["violin", "box", "scatter"]:
+        if method == "violin":
+            fig = px.violin(df, x=id, y=group, color=group)
+        elif method == "box":
+            fig = px.box(df, x=id, y=group, color=group)
+        elif method == "scatter":
+            fig = px.scatter(df, x=id, y=group, color=group)
+        else:
             raise ValueError(
                 f"{method} is not available."
                 + "Please select from 'violin' for Violinplot, 'box' for Boxplot and 'scatter' for Scatterplot."
             )
-
-        if method == "violin":
-            fig = px.violin(df, x=id, y=group, color=group)
-        if method == "box":
-            fig = px.box(df, x=id, y=group, color=group)
-        if method == "scatter":
-            fig = px.scatter(df, x=id, y=group, color=group)
 
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
 
         return fig
 
+    @ignore_warning(RuntimeWarning)
     def plot_volcano(self, column, group1, group2):
         """Plot Volcano Plot
 
         Args:
-            column (_type_): _description_
-            group1 (_type_): _description_
-            group2 (_type_): _description_
+            column (str): column name in the metadata file with the two groups to compare
+            group1 (str): name of group to compare needs to be present in column
+            group2 (str): name of group to compare needs to be present in column
 
         Returns:
-            _type_: _description_
+            _dash_bio: Volcano Plot
         """
-        # TODO add option to load DeSeq results???
         result = self.calculate_ttest_fc(column, group1, group2)
-        result = result.dropna()
+        result = result.dropna().reset_index(drop=True)
         volcano_plot = dash_bio.VolcanoPlot(
             dataframe=result,
             effect_size="foldchange_log2",
             p="pvalue",
             gene=None,
             snp=None,
-            annotation="Protein IDs",
+            annotation="Protein ID",
         )
         return volcano_plot
 

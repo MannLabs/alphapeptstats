@@ -10,13 +10,14 @@ from tqdm import tqdm
 
 
 class Statistics:
+    @ignore_warning(RuntimeWarning)
     def calculate_ttest_fc(self, column, group1, group2):
         """Calculate t-test and fold change between two groups
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
-            group2 (str): nme of group to compare needs to be present in column
+            group2 (str): name of group to compare needs to be present in column
 
         Returns:
             pandas.DataFrame: pandas Dataframe with foldchange, foldchange_log2 and pvalue

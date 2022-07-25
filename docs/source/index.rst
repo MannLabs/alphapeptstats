@@ -11,7 +11,11 @@ Welcome to alphastats's documentation!
    :caption: Contents:
 
    Introduction.md
+   installation.md
    import_data.md
+   data_preprocessing.md
+   plots.rst
+   workflow_mq.ipynb
    API <api_reference/index>
 
 
