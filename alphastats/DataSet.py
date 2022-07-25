@@ -47,6 +47,7 @@ class DataSet(Preprocess, Statistics, Plot):
 
         # include filtering before
         self.create_matrix()
+        self.check_matrix_values()
         self.metadata = None
         if metadata_path:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
@@ -77,12 +78,15 @@ class DataSet(Preprocess, Statistics, Plot):
             raise ValueError(
                 "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
-            return
+       
         if not isinstance(loader.index_column, str):
             raise ValueError(
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
-            return
+            
+    def check_matrix_values(self):
+        if np.isinf(self.mat).values.sum() > 0:
+            logging.warning("Data contains infinite values.")
 
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and

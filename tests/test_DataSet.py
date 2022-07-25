@@ -96,6 +96,16 @@ class BaseTestDataSet:
                 set(list(map(pd.api.types.is_numeric_dtype, self.obj.mat.dtypes)))
             )
             self.assertEqual(is_dtype_numeric, [True])
+        
+        @patch("logging.Logger.warning")
+        def test_check_values_warning(self, mock):
+            # is dataframe None and is warning produced
+            data = {'A': [10, 11, 12, 13, 14], 
+                    'B': [23, 22, 24, 22, 25],
+                    'C': [66, 72, np.inf, 68, -np.inf]}
+            self.obj.mat = pd.DataFrame(data)
+            self.obj.check_matrix_values()
+            mock.assert_called_once()
 
         @patch("logging.Logger.info")
         def test_preprocess_filter(self, mock):
@@ -123,6 +133,14 @@ class BaseTestDataSet:
             self.obj.filter_columns = []
             self.obj.preprocess(remove_contaminations=True)
             mock.assert_called_once()
+
+        def test_preprocess_normalization_invalid_method(self):
+            with self.assertRaises(ValueError):
+                self.obj.preprocess(normalization="wrong method")
+        
+        def test_preprocess_imputation_invalid_method(self):
+            with self.assertRaises(ValueError):
+                self.obj.preprocess(imputation="wrong method")
 
         def test_calculate_ttest_fc(self):
             # get groups from comparison column
