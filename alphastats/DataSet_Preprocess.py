@@ -3,7 +3,6 @@ import pandas as pd
 import sklearn
 import logging
 import numpy as np
-import miceforest
 import sklearn.ensemble
 import sklearn.impute
 from sklearn.experimental import enable_iterative_imputer
