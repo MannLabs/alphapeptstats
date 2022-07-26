@@ -13,7 +13,8 @@
 import os
 import sys
 import plotly.io as pio
-pio.renderers.default = 'sphinx_gallery'
+
+pio.renderers.default = "sphinx_gallery_png"
 
 
 sys.path.insert(0, os.path.abspath("../../"))
@@ -41,7 +42,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode"
+    "sphinx.ext.viewcode",
 ]
 
 source_suffix = {
@@ -57,7 +58,9 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-
+sphinx_gallery_conf = {
+    "capture_repr": ("_repr_html_", "__repr__"),
+}
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -72,6 +75,3 @@ html_static_path = ["_static"]
 
 add_module_names = False
 set_type_checking_flag = False
-
-
-
