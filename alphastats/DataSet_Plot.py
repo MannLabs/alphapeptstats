@@ -65,7 +65,7 @@ class Plot:
 
         # subset matrix so it matches with metadata
         if group:
-            mat = self._preprocess_subset()
+            mat = self._subset()
             group_color = self.metadata[group]
         else:
             mat = self.mat
