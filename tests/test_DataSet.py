@@ -378,7 +378,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(number_of_groups, 5)
 
     def test_preprocess_subset(self):
-        df = self.obj.preprocess_subset()
+        df = self.obj._preprocess_subset()
         self.assertEqual(df.shape, (48, 2611))
 
     @patch.object(Statistics, "calculate_tukey")

@@ -10,12 +10,12 @@ from alphastats.utils import ignore_warning
 
 
 class Preprocess:
-    def preprocess_remove_sampels(self, sample_list):
+    def _remove_sampels(self, sample_list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
         self.metadata = self.metadata[~self.metadata["sample"].isin(sample_list)]
 
-    def preprocess_subset(self):
+    def _subset(self):
         # filter matrix so only samples that are described in metadata
         # also found in matrix
         return self.mat[self.mat.index.isin(self.metadata["sample"].tolist())]
@@ -34,7 +34,7 @@ class Preprocess:
         )
         print(preprocessing_text)
 
-    def preprocess_filter(self):
+    def _filter(self):
         if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
             return
@@ -60,7 +60,7 @@ class Preprocess:
         logging.info(self.contamination_filter)
 
     @ignore_warning(RuntimeWarning)
-    def preprocess_imputation(self, method):
+    def _imputation(self, method):
         # Impute Data
         # For more information visit:
         # SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
@@ -129,7 +129,7 @@ class Preprocess:
         self.imputation = f"Missing values were imputed using the {method}.\n"
 
     @ignore_warning(RuntimeWarning)
-    def preprocess_normalization(self, method):
+    def _normalization(self, method):
         # Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
         # Z-score normalization equals standaridzation using StandardScaler:
         # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
@@ -165,7 +165,9 @@ class Preprocess:
         self.mat = pd.DataFrame(
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
-        self.normalization = f"Data has been normalized using {method} normalization. \n"
+        self.normalization = (
+            f"Data has been normalized using {method} normalization. \n"
+        )
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
@@ -175,48 +177,50 @@ class Preprocess:
         normalization=None,
         imputation=None,
         remove_samples=None,
-        qvalue=0.01,
     ):
         """Preprocess Protein data
 
         Removal of contaminations:
+
         Removes all observations, that were identified as contaminations. 
 
         Normalization:
+
         "zscore", "quantile", "linear"
+
         Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
+        
         Z-score normalization equals standaridzation using StandardScaler: 
         https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+        
         For more information visit.
         Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
 
         Imputation:
+
         "mean", "median", "knn" or "randomforest"
         For more information visit:
+        
         SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
+        
         k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
+        
         Random Forest Imputation: https://scikit-learn.org/stable/auto_examples/impute/plot_iterative_imputer_variants_comparison.html
         https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor
 
-        Note: 
-
         Args:
-            remove_contaminations (bool, optional): remove ProteinGroups that are identified 
-            as contamination. Calls preprocess_filter() Defaults to False.
-            normalization (str, optional): method to normalize data: either "zscore", "quantile", 
-            "linear", calls preprocess_normalization(). Defaults to None.
+            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination. Calls preprocess_filter() Defaults to False.
+            normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear", calls preprocess_normalization(). Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
-            imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest", calls preprocess_imputation(). 
-            Defaults to None.
-            qvalue (float, optional): _description_. Defaults to 0.01.
+            imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest", calls preprocess_imputation(). Defaults to None.
         """
         if remove_contaminations:
-            self.preprocess_filter()
+            self._filter()
         if subset:
-            self.mat = self.preprocess_subset()
+            self.mat = self._subset()
         if normalization is not None:
-            self.preprocess_normalization(method=normalization)
+            self._normalization(method=normalization)
         if imputation is not None:
-            self.preprocess_imputation(method=imputation)
+            self._imputation(method=imputation)
         if remove_samples is not None:
-            self.preprocess_remove_sampels(sample_list=remove_samples)
+            self._remove_sampels(sample_list=remove_samples)

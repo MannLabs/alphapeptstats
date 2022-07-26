@@ -35,3 +35,16 @@ class LoaderError(Exception):
         self.message = message
         logging.error(message)
         super().__init__(self.message)
+
+
+def check_for_missing_values(f):
+    # decorator to check for missing values
+    def inner(*args, **kwargs):
+        if args[0].mat.isna().values.any() is True:
+            raise ValueError(
+                "Data contains missing values. Consider Imputation:"
+                "for instance `DataSet.preprocess(imputation='mean')`."
+            )
+        return f(*args, **kwargs)
+
+    return inner

@@ -6,6 +6,7 @@ import plotly
 import dash_bio
 import scipy
 import sklearn.manifold
+from alphastats.utils import ignore_warning, check_for_missing_values
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -28,18 +29,6 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class Plot:
-    def _check_for_missing_values(f):
-        # decorator to check for missing values
-        def inner(*args, **kwargs):
-            if args[0].mat.isna().values.any() is True:
-                raise ValueError(
-                    "Data contains missing values. Consider Imputation:"
-                    "for instance `DataSet.preprocess(imputation='mean')`."
-                )
-            return f(*args, **kwargs)
-
-        return inner
-
     @staticmethod
     def _add_circles_to_scatterplot(fig):
         # called by _plot_dimensionality_reduction()
@@ -65,7 +54,7 @@ class Plot:
             )
         return fig
 
-    @_check_for_missing_values
+    @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
         if self.normalization == "Data is not normalized.":
@@ -76,7 +65,7 @@ class Plot:
 
         # subset matrix so it matches with metadata
         if group:
-            mat = self.preprocess_subset()
+            mat = self._preprocess_subset()
             group_color = self.metadata[group]
         else:
             mat = self.mat
@@ -143,13 +132,12 @@ class Plot:
             n_iter=n_iter,
         )
 
-    def plot_correlation_matrix(self, method="pearson", save_figure=False):
+    def plot_correlation_matrix(self, method="pearson"):
         """Plot Correlation Matrix
 
         Args:
             method (str, optional): orrelation coefficient "pearson", "kendall" (Kendall Tau correlation) 
             or "spearman" (Spearman rank correlation). Defaults to "pearson".
-            save_figure (bool, optional): _description_. Defaults to False.
 
         Returns:
             plotly.graph_objects._figure.Figure: Correlation matrix
@@ -159,7 +147,7 @@ class Plot:
         return plot
 
     def plot_sampledistribution(self, method="violin", color=None, log_scale=False):
-        """Plot Intesity Distribution for each sample. Either Violin or Boxplot
+        """Plot Intensity Distribution for each sample. Either Violin or Boxplot
 
         Args:
             method (str, optional): Violinplot = "violin", Boxplot = "box". Defaults to "violin".
@@ -180,8 +168,14 @@ class Plot:
         if method == "violin":
             fig = px.violin(df, x="sample", y="Intensity", color=color)
 
-        if method == "box":
+        elif method == "box":
             fig = px.box(df, x="sample", y="Intensity", color=color)
+
+        else:
+            raise ValueError(
+                f"{method} is not available."
+                + "Please select from 'violin' for Violinplot or 'box' for Boxplot."
+            )
 
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
@@ -205,10 +199,13 @@ class Plot:
 
         if method == "violin":
             fig = px.violin(df, x=id, y=group, color=group)
+
         elif method == "box":
             fig = px.box(df, x=id, y=group, color=group)
+
         elif method == "scatter":
             fig = px.scatter(df, x=id, y=group, color=group)
+
         else:
             raise ValueError(
                 f"{method} is not available."
@@ -234,6 +231,7 @@ class Plot:
         """
         result = self.calculate_ttest_fc(column, group1, group2)
         result = result.dropna().reset_index(drop=True)
+
         volcano_plot = dash_bio.VolcanoPlot(
             dataframe=result,
             effect_size="foldchange_log2",
@@ -244,7 +242,7 @@ class Plot:
         )
         return volcano_plot
 
-    @_check_for_missing_values
+    @check_for_missing_values
     def plot_heatmap(self):
         """Plot Heatmap with samples as columns and Proteins as rows
 
@@ -273,7 +271,7 @@ class Plot:
         )
         return plot
 
-    @_check_for_missing_values
+    @check_for_missing_values
     def plot_dendogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
@@ -297,10 +295,10 @@ class Plot:
         )
         return fig
 
-    def plot_line(self):
-        pass
+    # def plot_line(self):
+    #   pass
 
-    def plot_upset(self):
-        pass
-        # Plotly update figures
-        # https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html
+    # def plot_upset(self):
+    #    pass
+    # Plotly update figures
+    # https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html

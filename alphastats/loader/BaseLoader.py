@@ -34,13 +34,14 @@ class BaseLoader:
         given_columns = list(filter(None, [self.index_column, self.confidence_column]))
         wrong_columns = list(set(given_columns) - set(self.rawdata.columns.to_list()))
         if len(wrong_columns) > 0:
-            raise KeyError(", ".join(wrong_columns) + " columns do not exist.\n"
-            "Check the documtentation: \n"
-            "AlphaPept Format: https://github.com/MannLabs/alphapept \n"
-            "DIA-NN Format: https://github.com/vdemichev/DiaNN"
-            "FragPipe Format: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
-            "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable")
-    
+            raise KeyError(
+                ", ".join(wrong_columns) + " columns do not exist.\n"
+                "Check the documtentation: \n"
+                "AlphaPept Format: https://github.com/MannLabs/alphapept \n"
+                "DIA-NN Format: https://github.com/vdemichev/DiaNN"
+                "FragPipe Format: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
+                "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
+            )
 
     def check_if_indexcolumn_is_unique(self):
         # TODO make own duplicates functions to have less dependencies
@@ -59,7 +60,9 @@ class BaseLoader:
 
     def add_contamination_column(self):
         #  load df with potential contamination from fasta file
-        contaminations_path = pkg_resources.resource_filename(__name__, "../data/contaminations.txt")
+        contaminations_path = pkg_resources.resource_filename(
+            __name__, "../data/contaminations.txt"
+        )
         contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
         #  add column with True False
