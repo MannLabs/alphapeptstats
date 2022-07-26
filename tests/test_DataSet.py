@@ -26,9 +26,11 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
+
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.DataSet_Plot import Plot
 from alphastats.utils import LoaderError
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +63,7 @@ class BaseTestDataSet:
                 self.loader.rawdata = pd.DataFrame()
                 self.obj.check_loader(loader=self.loader)
 
-        @patch("logging.Logger.error")
-        def test_check_loader_error_invalid_loader(self, mock):
+        def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
@@ -419,7 +420,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
-
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
@@ -497,7 +497,6 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_dendogram_not_imputed(self):
         with self.assertRaises(ValueError):
             self.obj.plot_dendogram()
-
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

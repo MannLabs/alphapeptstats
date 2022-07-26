@@ -18,7 +18,6 @@ from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-
 # remove warning from openpyxl
 # only appears on mac
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
@@ -71,6 +70,7 @@ class DataSet(Preprocess, Statistics, Plot):
             loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
         ):
             raise LoaderError(
+
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
 
@@ -92,7 +92,9 @@ class DataSet(Preprocess, Statistics, Plot):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
         """
+
         regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
+
         df = self.rawdata
         df = df.set_index(self.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
