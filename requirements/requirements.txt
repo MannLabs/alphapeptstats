@@ -8,9 +8,6 @@ openpyxl
 sklearn_pandas
 pingouin
 
-[:sys_platform == "win32"]
-pywin32==225
-
 [development]
 jupyter
 jupyter_contrib_nbextensions
