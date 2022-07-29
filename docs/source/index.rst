@@ -25,7 +25,6 @@ The tool allows a structured workflow like importing data, preprocessing data an
    plots.rst
    workflow_mq.ipynb
    API <api_reference/index>
-   references.md
 
 
 

@@ -68,13 +68,3 @@ In case the proteomics data contains more samples than the metadata, the proteom
 If you want to remove samples from your `DataSet`, outliers for instance you can give a list of sample names `DataSet.preprocess(remove_samples=["sample1", "sample3"])`.
 
 
-## Literature
-
-Dubois, E., Galindo, A. N., Dayon, L., & Cominetti, O. (2022). Assessing normalization methods in mass spectrometry-based proteome profiling of clinical samples. Bio Systems, 215-216, 104661. https://doi.org/10.1016/j.biosystems.2022.104661
-
-Karpievitch, Y. V., Dabney, A. R., & Smith, R. D. (2012). Normalization and missing value imputation for label-free LC-MS analysis. BMC bioinformatics, 13 Suppl 16(Suppl 16), S5. https://doi.org/10.1186/1471-2105-13-S16-S5
-
-Kokla, M., Virtanen, J., Kolehmainen, M. et al. Random forest-based imputation outperforms other methods for imputing LC-MS metabolomics data: a comparative study. BMC Bioinformatics 20, 492 (2019). https://doi.org/10.1186/s12859-019-3110-0
-
-Jin, L., Bi, Y., Hu, C., Qu, J., Shen, S., Wang, X., & Tian, Y. (2021). A comparative study of evaluating missing value imputation methods in label-free proteomics. Scientific reports, 11(1), 1760. https://doi.org/10.1038/s41598-021-81279-4
-
