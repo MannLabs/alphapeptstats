@@ -3,7 +3,7 @@
 
 Plots
 ~~~~~~~~~~~~~~~
-.. automodule:: alphastats._DataSet_Plot.Plot
+.. automodule:: alphastats.DataSet_Plot.Plot
     :imported-members:
     :members:
     :undoc-members:

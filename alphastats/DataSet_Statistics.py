@@ -10,17 +10,21 @@ from tqdm import tqdm
 
 
 class Statistics:
+    @ignore_warning(RuntimeWarning)
     def calculate_ttest_fc(self, column, group1, group2):
         """Calculate t-test and fold change between two groups
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
-            group2 (str): nme of group to compare needs to be present in column
+            group2 (str): name of group to compare needs to be present in column
 
         Returns:
-            pandas.DataFrame: pandas Dataframe with foldchange, foldchange_log2 and pvalue
-            for each ProteinID/ProteinGroup between group1 and group2
+            pandas.DataFrame: 
+            
+            pandas Dataframe with foldchange, foldchange_log2 and pvalue
+            for each ProteinID/ProteinGroup between group1 and group2.
+
             * ``'Protein ID'``: ProteinID/ProteinGroup
             * ``'pvalue'``: p-value result of t-test
             * ``'foldchange'``: foldchange of the mean Protein Intensity of group1 vs. group2
@@ -75,7 +79,7 @@ class Statistics:
         Args:
             protein_id (str): ProteinID to calculate Pairwise Tukey-HSD post-hoc test - dependend variable
             group (str): A metadata column used calculate pairwise tukey
-            df (_type_, optional): _description_. Defaults to None.
+            df (pandas.DataFrame, optional): Defaults to None.
 
         Returns:
             pandas.DataFrame:
@@ -108,10 +112,8 @@ class Statistics:
         """One-way Analysis of Variance (ANOVA)
 
         Args:
-            group (_type_): A metadata column used to calculate ANOVA
-            ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable
-            Either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for 
-            all ProteinIDs. Defaults to "all".
+            group (str): A metadata column used to calculate ANOVA
+            ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for all ProteinIDs. Defaults to "all".
             tukey (bool, optional): Whether to calculate a Tukey-HSD post-hoc test. Defaults to True.
 
         Returns:
@@ -151,14 +153,14 @@ class Statistics:
         )
 
         if tukey:
-            final_df = self.create_tukey_df(
+            final_df = self._create_tukey_df(
                 anova_df=anova_df, protein_ids_list=protein_ids_list, group=group
             )
         else:
             final_df = anova_df
         return final_df
 
-    def create_tukey_df(self, anova_df, protein_ids_list, group):
+    def _create_tukey_df(self, anova_df, protein_ids_list, group):
         #  combine tukey results with anova results
         df = (
             self.mat[protein_ids_list].reset_index().rename(columns={"index": "sample"})
@@ -195,7 +197,9 @@ class Statistics:
 
         Returns:
             pandas.Dataframe: 
+
             ANCOVA summary:
+
             * ``'Source'``: Names of the factor considered
             * ``'SS'``: Sums of squares
             * ``'DF'``: Degrees of freedom

@@ -11,7 +11,7 @@ class BaseLoader:
     """
 
     def __init__(self, file, intensity_column, index_column, sep):
-        """_summary_
+        """BaseLoader for AlphaPept, MaxQuant, Fragpipe and DIANNLoader
 
         Args:
             file_path (str): path to file 
@@ -34,8 +34,14 @@ class BaseLoader:
         given_columns = list(filter(None, [self.index_column, self.confidence_column]))
         wrong_columns = list(set(given_columns) - set(self.rawdata.columns.to_list()))
         if len(wrong_columns) > 0:
-            logging.error(", ".join(wrong_columns) + " columns do not exist.")
-            # raise KeyError
+            raise KeyError(
+                ", ".join(wrong_columns) + " columns do not exist.\n"
+                "Check the documtentation: \n"
+                "AlphaPept Format: https://github.com/MannLabs/alphapept \n"
+                "DIA-NN Format: https://github.com/vdemichev/DiaNN"
+                "FragPipe Format: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
+                "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
+            )
 
     def check_if_indexcolumn_is_unique(self):
         # TODO make own duplicates functions to have less dependencies
@@ -49,20 +55,24 @@ class BaseLoader:
 
     def check_if_file_exists(self, file):
         if os.path.isfile(file) == False:
-            logging.error(f"{file} does not exist.")
+            raise OSError(f"{file} does not exist.")
             # raise OSError
 
     def add_contamination_column(self):
         #  load df with potential contamination from fasta file
-        contaminations_path = pkg_resources.resource_filename(__name__, "../data/contaminations.txt")
+        contaminations_path = pkg_resources.resource_filename(
+            __name__, "../data/contaminations.txt"
+        )
         contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
         #  add column with True False
+
         self.rawdata["contamination_library"] = np.where(
             self.rawdata[self.index_column].isin(contaminations_ids), True, False
         )
         self.filter_columns = self.filter_columns + ["contamination_library"]
+
         logging.info(
-            "Column 'Contamination_library' has been added, to indicate contaminations.\n"
+            "Column 'contamination_library' has been added, to indicate contaminations.\n"
             + "The contaminant library was created by Frankenfield et al. :https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
         )

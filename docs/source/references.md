@@ -1,1 +1,0 @@
-Strauss et al. 2021 AlphaPept, a modern and open framework for MS-based proteomics
