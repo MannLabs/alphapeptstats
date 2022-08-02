@@ -1,9 +1,7 @@
 on:
   workflow_dispatch:
 
-
 name: Publish on PyPi 2
-
 
 jobs:
   Version_Bumped:
@@ -34,7 +32,6 @@ jobs:
             exit 1
           fi
           echo ::set-output name=version::$current_version
-
   Create_PyPi_Release:
     runs-on: ubuntu-latest
     steps:
