@@ -1,10 +1,10 @@
-pandas>=1.4
+pandas
 sklearn
 data_cache
-dash_bio>=1
-plotly>=5
+dash_bio
+plotly
 iteration_utilities
-openpyxl>=3
+openpyxl
 sklearn_pandas
 pingouin
 

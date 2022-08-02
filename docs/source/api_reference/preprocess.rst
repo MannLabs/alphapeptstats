@@ -2,7 +2,7 @@
 
 Preprocessing
 ~~~~~~~~~~~~~~~
-.. automodule:: alphastats._DataSet_Preprocess.Preprocess
+.. automodule:: alphastats.DataSet_Preprocess.Preprocess
     :imported-members:
     :members:
     :undoc-members:

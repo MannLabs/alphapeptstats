@@ -18,7 +18,6 @@ from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-
 # remove warning from openpyxl
 # only appears on mac
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
@@ -47,6 +46,7 @@ class DataSet(Preprocess, Statistics, Plot):
 
         # include filtering before
         self.create_matrix()
+        self.check_matrix_values()
         self.metadata = None
         if metadata_path:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
@@ -54,11 +54,11 @@ class DataSet(Preprocess, Statistics, Plot):
         # save preprocessing settings
         self.preprocessing = None
         # update normalization when self.matrix is normalized, filtered
-        self.normalization, self.imputation = (
+        self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized.",
             "Data is not imputed.",
+            "Contaminations have not been removed.",
         )
-        self.removed_protein_groups = None
 
     def check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -70,6 +70,7 @@ class DataSet(Preprocess, Statistics, Plot):
             loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
         ):
             raise LoaderError(
+
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
 
@@ -77,18 +78,23 @@ class DataSet(Preprocess, Statistics, Plot):
             raise ValueError(
                 "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
-            return
+
         if not isinstance(loader.index_column, str):
             raise ValueError(
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
-            return
+
+    def check_matrix_values(self):
+        if np.isinf(self.mat).values.sum() > 0:
+            logging.warning("Data contains infinite values.")
 
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
         """
+
         regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
+
         df = self.rawdata
         df = df.set_index(self.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
@@ -98,11 +104,11 @@ class DataSet(Preprocess, Statistics, Plot):
         # transpose dataframe
         self.mat = df.transpose()
         # reset preproccessing info
-        self.normalization, self.imputation = (
+        self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized",
             "Data is not imputed",
+            "Contaminations have not been removed.",
         )
-        self.removed_protein_groups = None
 
     def load_metadata(self, file_path, sample_column):
         """Load metadata either xlsx, txt, csv or txt file

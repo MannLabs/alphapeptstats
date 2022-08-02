@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>alphastats.loader.AlphaPeptLoader &mdash; alphastats 07-07-2022 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> alphastats
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../import_data.html">Data import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflow_maxquant.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/index.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">alphastats</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>alphastats.loader.AlphaPeptLoader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for alphastats.loader.AlphaPeptLoader</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">index</span>
+<span class="kn">from</span> <span class="nn">alphastats.loader.BaseLoader</span> <span class="kn">import</span> <span class="n">BaseLoader</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="AlphaPeptLoader"><a class="viewcode-back" href="../../../api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader">[docs]</a><span class="k">class</span> <span class="nc">AlphaPeptLoader</span><span class="p">(</span><span class="n">BaseLoader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loader for AlphaPept outputfiles </span>
+<span class="sd">    https://github.com/MannLabs/alphapept</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">file</span><span class="p">,</span>
+        <span class="n">intensity_column</span><span class="o">=</span><span class="s2">&quot;[sample]_LFQ&quot;</span><span class="p">,</span>
+        <span class="n">index_column</span><span class="o">=</span><span class="s2">&quot;Unnamed: 0&quot;</span><span class="p">,</span>  <span class="c1"># column name to be changed</span>
+        <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads Alphapept output: results_proteins.csv. Will add contamination column for further analysis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file (_type_): AlphaPept output, either results_proteins.csv file or the hdf_file with the protein_table given</span>
+<span class="sd">            intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to &quot;[sample]_LFQ&quot;.</span>
+<span class="sd">            index_column (str, optional): column indicating the protein groups. Defaults to &quot;Unnamed: 0&quot;.</span>
+<span class="sd">            sep (str, optional): file separation of file. Defaults to &quot;,&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.hdf&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_hdf_protein_table</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rawdata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_column</span> <span class="o">=</span> <span class="n">intensity_column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_column</span> <span class="o">=</span> <span class="n">index_column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_columns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence_column</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">software</span> <span class="o">=</span> <span class="s2">&quot;AlphaPept&quot;</span>
+        <span class="c1"># add contamination column &quot;Reverse&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_contamination_reverse_column</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_contamination_column</span><span class="p">()</span>
+        <span class="c1">#  make ProteinGroup column</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rawdata</span><span class="p">[</span><span class="s2">&quot;ProteinGroup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rawdata</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index_column</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">standardize_protein_group_column</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_column</span> <span class="o">=</span> <span class="s2">&quot;ProteinGroup&quot;</span>
+
+<div class="viewcode-block" id="AlphaPeptLoader.load_hdf_protein_table"><a class="viewcode-back" href="../../../api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader.load_hdf_protein_table">[docs]</a>    <span class="k">def</span> <span class="nf">load_hdf_protein_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rawdata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;protein_table&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AlphaPeptLoader.add_contamination_reverse_column"><a class="viewcode-back" href="../../../api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader.add_contamination_reverse_column">[docs]</a>    <span class="k">def</span> <span class="nf">add_contamination_reverse_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;adds column &#39;Reverse&#39; to the rawdata for filtering</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rawdata</span><span class="p">[</span><span class="s2">&quot;Reverse&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rawdata</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index_column</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;REV_&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Reverse&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AlphaPeptLoader.standardize_protein_group_column"><a class="viewcode-back" href="../../../api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader.standardize_protein_group_column">[docs]</a>    <span class="k">def</span> <span class="nf">standardize_protein_group_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">):</span>
+        <span class="c1">#  make column with ProteinGroup to make comparison between softwares possible</span>
+        <span class="c1">#  &#39;sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN&#39;, -&gt; P0DMV9;P0DMV8</span>
+
+        <span class="c1"># TODO this needs a more beautiful and robuster solution</span>
+        <span class="c1"># split proteins into list</span>
+        <span class="n">proteins</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">protein_id_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">protein</span> <span class="ow">in</span> <span class="n">proteins</span><span class="p">:</span>
+            <span class="c1"># &#39;sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN&#39;,</span>
+            <span class="k">if</span> <span class="s2">&quot;|&quot;</span> <span class="ow">in</span> <span class="n">protein</span><span class="p">:</span>
+                <span class="n">fasta_header_split</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fasta_header_split</span> <span class="o">=</span> <span class="n">protein</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fasta_header_split</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="c1">#  &#39;ENSEMBL:ENSBTAP00000007350&#39;,</span>
+                <span class="k">if</span> <span class="s2">&quot;ENSEMBL:&quot;</span> <span class="ow">in</span> <span class="n">fasta_header_split</span><span class="p">:</span>
+                    <span class="n">protein_id</span> <span class="o">=</span> <span class="n">fasta_header_split</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;ENSEMBL:&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">protein_id</span> <span class="o">=</span> <span class="n">fasta_header_split</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">protein_id</span> <span class="o">=</span> <span class="n">fasta_header_split</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">protein_id_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protein_id</span><span class="p">)</span>
+        <span class="n">protein_id_concentate</span> <span class="o">=</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">protein_id_list</span><span class="p">)</span>
+        <span class="c1"># ADD REV to the protein ID, else there will be duplicates in the ProteinGroup column</span>
+        <span class="k">if</span> <span class="s2">&quot;REV_&quot;</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
+            <span class="n">protein_id_concentate</span> <span class="o">=</span> <span class="s2">&quot;REV_&quot;</span> <span class="o">+</span> <span class="n">protein_id_concentate</span>
+        <span class="k">return</span> <span class="n">protein_id_concentate</span></div></div>
+
+
+<span class="c1"># https://mannlabs.github.io/alphapept/file_formats.html#Output-Files</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MannLabs.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

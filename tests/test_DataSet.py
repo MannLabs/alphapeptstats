@@ -26,8 +26,11 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.DataSet import DataSet
+
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.DataSet_Plot import Plot
 from alphastats.utils import LoaderError
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +50,7 @@ class BaseTestDataSet:
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
                 self.obj.check_loader(loader=self.loader)
-        
+
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
             with self.assertRaises(ValueError):
@@ -60,8 +63,7 @@ class BaseTestDataSet:
                 self.loader.rawdata = pd.DataFrame()
                 self.obj.check_loader(loader=self.loader)
 
-        @patch("logging.Logger.error")
-        def test_check_loader_error_invalid_loader(self, mock):
+        def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
@@ -96,21 +98,56 @@ class BaseTestDataSet:
             )
             self.assertEqual(is_dtype_numeric, [True])
 
+        @patch("logging.Logger.warning")
+        def test_check_values_warning(self, mock):
+            # is dataframe None and is warning produced
+            data = {
+                "A": [10, 11, 12, 13, 14],
+                "B": [23, 22, 24, 22, 25],
+                "C": [66, 72, np.inf, 68, -np.inf],
+            }
+            self.obj.mat = pd.DataFrame(data)
+            self.obj.check_matrix_values()
+            mock.assert_called_once()
+
         @patch("logging.Logger.info")
         def test_preprocess_filter(self, mock):
-            # is warning raised when filter columns are none
             # is info printed if contamination columns get removed
             # is the new matrix smaller than the older matrix
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
             #  info has been printed at least once
-            mock.assert_called()
+            mock.assert_called_once()
+
+        @patch("logging.Logger.info")
+        def test_preprocess_filter_already_filter(self, mock):
+            # is warning raised when filter columns are none
+            # is info printed if contamination columns get removed
+            # is the new matrix smaller than the older matrix
+            self.assertEqual(
+                self.obj.contamination_filter, "Contaminations have not been removed."
+            )
+            self.obj.preprocess(remove_contaminations=True)
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
+            self.assertNotEqual(
+                self.obj.contamination_filter, "Contaminations have not been removed."
+            )
+            self.obj.preprocess(remove_contaminations=True)
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
 
         @patch("logging.Logger.info")
         def test_preprocess_filter_no_filter_columns(self, mock):
             self.obj.filter_columns = []
             self.obj.preprocess(remove_contaminations=True)
             mock.assert_called_once()
+
+        def test_preprocess_normalization_invalid_method(self):
+            with self.assertRaises(ValueError):
+                self.obj.preprocess(normalization="wrong method")
+
+        def test_preprocess_imputation_invalid_method(self):
+            with self.assertRaises(ValueError):
+                self.obj.preprocess(imputation="wrong method")
 
         def test_calculate_ttest_fc(self):
             # get groups from comparison column
@@ -260,6 +297,20 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
+    def test_preprocess_imputation_randomforest_values(self):
+        self.obj.mat = pd.DataFrame(
+            {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
+        )
+        self.obj.preprocess(imputation="randomforest")
+        expected_mat = pd.DataFrame(
+            {
+                "a": [2.00000000e00, -9.22337204e12, 4.00000000e00],
+                "b": [5.00000000e00, 4.00000000e00, 4.0],
+                "c": [-9.22337204e12, 1.00000000e01, -9.22337204e12],
+            }
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+
     def test_plot_sampledistribution_group(self):
         plot = self.obj.plot_sampledistribution(
             method="box", color="disease", log_scale=False
@@ -321,8 +372,14 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         # 5 different disease
         self.assertEqual(len(pca_plot.to_plotly_json().get("data")), 5)
 
+    def test_plot_pca_circles(self):
+        pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
+        # are there 5 circles drawn - for each group
+        number_of_groups = len(pca_plot.to_plotly_json().get("layout").get("shapes"))
+        self.assertEqual(number_of_groups, 5)
+
     def test_preprocess_subset(self):
-        df = self.obj.preprocess_subset()
+        df = self.obj._subset()
         self.assertEqual(df.shape, (48, 2611))
 
     @patch.object(Statistics, "calculate_tukey")
@@ -362,7 +419,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         given_value = ancova_df["p-unc"][1]
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
-
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -429,10 +485,18 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(imputation="mean")
         fig = self.obj.plot_dendogram()
 
-    def test_plot_dendogram_not_imputed(self):
+    def test_plot_tsne(self):
+        plot_dict = self.obj.plot_tsne().to_plotly_json()
+        # check if everything get plotted
+        self.assertEqual(len(plot_dict.get("data")[0].get("x")), 20)
+
+    def test_plot_dendogram_navalues(self):
         with self.assertRaises(ValueError):
             self.obj.plot_dendogram()
 
+    def test_plot_dendogram_not_imputed(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_dendogram()
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

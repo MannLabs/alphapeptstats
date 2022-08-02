@@ -10,6 +10,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
+from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
@@ -19,24 +20,29 @@ class BaseTestLoader:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
+        @contextmanager
+        def assertNotRaises(self, exc_type):
+            try:
+                yield None
+            except exc_type:
+                raise self.failureException("{} raised".format(exc_type.__name__))
+
         def test_dataformat(self):
             # check if loaded data is pandas dataframe
             self.assertIsInstance(self.obj.rawdata, pd.DataFrame)
 
-        @patch("logging.Logger.error")
-        def test_check_if_columns_are_present_error(self, mock):
+        def test_check_if_columns_are_present_error(self):
             # check if columns are present
             # check if error gets raised when column is not present
-            self.obj.confidence_column = "wrong_column"
-            self.obj.check_if_columns_are_present()
-            mock.assert_called_once()
+            with self.assertRaises(KeyError):
+                self.obj.confidence_column = "wrong_column"
+                self.obj.check_if_columns_are_present()
 
-        @patch("logging.Logger.error")
-        def test_check_if_columns_are_present_no_error(self, mock):
+        def test_check_if_columns_are_present_no_error(self):
             # check if columns are present
             # check if error gets raised when column is not present
-            self.obj.check_if_columns_are_present()
-            mock.assert_not_called()
+            with self.assertNotRaises(KeyError):
+                self.obj.check_if_columns_are_present()
 
         @patch("logging.Logger.warning")
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
@@ -52,12 +58,11 @@ class BaseTestLoader:
         # self.obj.check_if_indexcolumn_is_unique()
         # mock.assert_not_called()
 
-        @patch("logging.Logger.error")
-        def test_check_if_file_exists(self, mock):
+        def test_check_if_file_exists(self):
             # check if error gets raised when file doesnt exist
-            wrong_file_path = "wrong/file/path"
-            self.obj.check_if_file_exists(file=wrong_file_path)
-            mock.assert_called_once()
+            with self.assertRaises(OSError):
+                wrong_file_path = "wrong/file/path"
+                self.obj.check_if_file_exists(file=wrong_file_path)
 
         def test_add_contaminantion_column(self):
             column_added = "contamination_library" in self.obj.rawdata
