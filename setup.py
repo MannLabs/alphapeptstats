@@ -42,7 +42,7 @@ def create_pip_wheel():
             "openpyxl",
             "sklearn_pandas",
             "pingouin", 
-            "pywin32==225; sys_platform=='win32'"
+            "pywin32==301; sys_platform=='win32'"
         ],
         python_requires=">=3.8",
     )
