@@ -4,6 +4,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    target-branch: "develop"
+    target-branch: "developer"
     labels:
       - "pip dependencies"   
