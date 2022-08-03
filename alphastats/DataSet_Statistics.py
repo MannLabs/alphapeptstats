@@ -102,12 +102,17 @@ class Statistics:
             )
             df = df.merge(self.metadata, how="inner", on=["sample"])
 
-        tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
-        tukey_df["comparison"] = tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
-        tukey_df["Protein ID"] = protein_id
+        try:
+            tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
+            tukey_df["comparison"] = tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
+            tukey_df["Protein ID"] = protein_id
+        
+        except ValueError:
+            tukey_df =  pd.DataFrame()
+        
         return tukey_df
 
-    # @ignore_warning(F_onewayConstantInputWarning)
+    @ignore_warning(RuntimeWarning)
     def anova(self, group, protein_ids="all", tukey=True):
         """One-way Analysis of Variance (ANOVA)
 
