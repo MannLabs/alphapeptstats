@@ -1,11 +1,11 @@
-#!python
-
 # builtin
 import setuptools
 import re
 import os
 # local
-import alphastats as package2install
+# info has to be imported individually or sidepacakges will already be installed
+from alphastats import __project__, __version__, __license__, __description__,__author__,__author_email__
+from alphastats import __github__, __keywords__, __python_version__, __classifiers__, __urls__, __extra_requirements__, __console_scripts__
 
 
 def get_long_description():
@@ -16,7 +16,7 @@ def get_long_description():
 
 def get_requirements():
     extra_requirements = {}
-    requirement_file_names = package2install.__extra_requirements__
+    requirement_file_names = __extra_requirements__
     requirement_file_names[""] = "requirements.txt"
     for extra, requirement_file_name in requirement_file_names.items():
         full_requirement_file_name = os.path.join(
@@ -42,30 +42,26 @@ def get_requirements():
 def create_pip_wheel():
     requirements, extra_requirements = get_requirements()
     setuptools.setup(
-        name=package2install.__project__,
-        version=package2install.__version__,
-        license=package2install.__license__,
-        description=package2install.__description__,
+        name=__project__,
+        version=__version__,
+        license=__license__,
+        description=__description__,
         long_description=get_long_description(),
         long_description_content_type="text/markdown",
-        author=package2install.__author__,
-        author_email=package2install.__author_email__,
-        url=package2install.__github__,
-        project_urls=package2install.__urls__,
-        keywords=package2install.__keywords__,
-        classifiers=package2install.__classifiers__,
-        packages=[package2install.__project__],
+        author=__author__,
+        author_email=__author_email__,
+        url=__github__,
+        project_urls=__urls__,
+        keywords=__keywords__,
+        classifiers=__classifiers__,
+        packages=[__project__],
         include_package_data=True,
-        package_data={package2install.__project__: ["data/contaminations.txt"]},
         entry_points={
-            "console_scripts": package2install.__console_scripts__,
+            "console_scripts": __console_scripts__,
         },
-        install_requires=requirements + [
-            # TODO Remove hardcoded requirement?
-            "pywin32==225; sys_platform=='win32'"
-        ],
+        install_requires=requirements,
         extras_require=extra_requirements,
-        python_requires=package2install.__python_version__,
+        python_requires=__python_version__,
     )
 
 
