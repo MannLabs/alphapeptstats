@@ -52,10 +52,10 @@ jobs:
     - name: Install package
       run: |
         pip install -e .
-    - name: Test if version is valid
-      run: |
-        pip install pytest
-        pytest --runrelease
+   # - name: Test if version is valid
+   #   run: |
+   #     pip install pytest
+   #     pytest --runrelease
     - name: Build package
       run: |
         python setup.py sdist bdist_wheel
