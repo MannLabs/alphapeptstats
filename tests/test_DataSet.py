@@ -63,7 +63,7 @@ class BaseTestDataSet:
                 self.loader.rawdata = pd.DataFrame()
                 self.obj.check_loader(loader=self.loader)
 
-        def test_check_loader_error_invalid_loader(self):
+        def test_check_loader_error_invalid_loader(self, mock):
             #  invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
@@ -200,8 +200,8 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     #  do testing which requires extra files only on TestAlphaPeptDataSet
     # to reduce the amount of compariosn files required
     def setUp(self):
-        self.loader = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        self.metadata_path = "testfiles/alphapept_metadata.csv"
+        self.loader = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
+        self.metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
@@ -215,15 +215,15 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
-        metadata_path = "testfiles/alphapept_metadata.txt"
+        metadata_path = "testfiles/alphapept/metadata.txt"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-        metadata_path = "testfiles/alphapept_metadata.tsv"
+        metadata_path = "testfiles/alphapept/metadata.tsv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-        metadata_path = "testfiles/alphapept_metadata.csv"
+        metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
@@ -355,8 +355,8 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
-        self.loader = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
-        self.metadata_path = "testfiles/maxquant_metadata.xlsx"
+        self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
+        self.metadata_path = "testfiles/maxquant/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
@@ -422,8 +422,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
-        self.loader = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
-        self.metadata_path = "testfiles/diann_metadata.xlsx"
+        self.loader = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
+        self.metadata_path = "testfiles/diann/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
@@ -501,10 +501,10 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(
-            file="testfiles/fragpipe_combined_proteins.tsv",
+            file="testfiles/fragpipe/combined_proteins.tsv",
             intensity_column="[sample] Razor Intensity",
         )
-        self.metadata_path = "testfiles/fragpipe_metadata.xlsx"
+        self.metadata_path = "testfiles/fragpipe/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
