@@ -23,7 +23,7 @@ An open-source Python package for downstream mass spectrometry data analysis fro
 ---
 ## License
 
-AlphaStats was developed by the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann) and is freely available with an [Apache License](LICENSE.txt). External Python packages (available in the [requirements](requirements) folder) have their own licenses, which can be consulted on their respective websites.
+AlphaStats was developed by the [Mann Group, Novo Nordisk Foundation Center for Protein Research](https://www.cpr.ku.dk/research/proteomics/mann/) and is freely available with an [Apache License](LICENSE.txt). External Python packages (available in the [requirements](requirements) folder) have their own licenses, which can be consulted on their respective websites.
 
 ---
 ## Installation
@@ -35,30 +35,6 @@ AlphaStats can be installed in an existing Python 3.8 environment with a single 
 ```bash
 pip install alphastats
 ```
-<!--Installing AlphaStats like this avoids conflicts when integrating it in other tools, as this does not enforce strict versioning of dependancies. However, if new versions of dependancies are released, they are not guaranteed to be fully compatible with AlphaStats. While this should only occur in rare cases where dependencies are not backwards compatible, you can always force AlphaStats to use dependancy versions which are known to be compatible with:
-
-```bash
-pip install "alphastats[stable]"
-```
-
-NOTE: You might need to run `pip install pip==21.0` before installing AlphaStats like this. Also note the double quotes `"`.
-
-For those who are really adventurous, it is also possible to directly install any branch (e.g. `@development`) with any extras (e.g. `#egg=alphastats[stable,development-stable]`) from GitHub with e.g.
-
-```bash
-pip install "git+https://github.com/MannLabs/alphastats.git@development#egg=alphastats[stable,development-stable]"
-```
-
-### Developer
-
-AlphaStats can also be installed in editable (i.e. developer) mode with a few `bash` commands. This allows to fully customize the software and even modify the source code to your specific needs. When an editable Python package is installed, its source code is stored in a transparent location of your choice. While optional, it is advised to first (create and) navigate to e.g. a general software folder:
-
-```bash
-mkdir ~/folder/where/to/install/software
-cd ~/folder/where/to/install/software
-```
-
-***The following commands assume you do not perform any additional `cd` commands anymore***.-->
 
 Next, download the AlphaStats repository from GitHub either directly or with a `git` command. This creates a new alphastats subfolder in your current directory.
 
@@ -79,10 +55,6 @@ Finally, AlphaStats and all its [dependancies](requirements) need to be installe
 pip install -e "./alphastats[development]"
 ```
 
-<!--By default this installs loose dependancies (no explicit versioining), although it is also possible to use stable dependencies (e.g. `pip install -e "./alphastats[stable,development-stable]"`).
-
-***By using the editable flag `-e`, all modifications to the [AlphaStats source code folder](alphastats) are directly reflected when running AlphaStats. Note that the AlphaStats folder cannot be moved and/or renamed if an editable version is installed.***-->
-
 ---
 ## Usage
 
@@ -91,7 +63,7 @@ pip install -e "./alphastats[development]"
 
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 
-A brief [Jupyter notebook tutorial](nbs/tutorial.ipynb) on how to use the API is also present in the [nbs folder](nbs).
+A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
 ---
 ## Troubleshooting
