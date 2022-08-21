@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -39,9 +40,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="import_data.html">Data import</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflow_maxquant.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plots.html">Figures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow_mq.html">Workflow Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_reference/index.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
         </div>
@@ -91,31 +93,31 @@
       <li><a href="api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader">AlphaPeptLoader (class in alphastats.loader.AlphaPeptLoader)</a>
 </li>
       <li>
-    alphastats._DataSet_Plot.Plot
-
-      <ul>
-        <li><a href="api_reference/plot.html#module-alphastats._DataSet_Plot.Plot">module</a>
-</li>
-      </ul></li>
-      <li>
-    alphastats._DataSet_Preprocess.Preprocess
-
-      <ul>
-        <li><a href="api_reference/preprocess.html#module-alphastats._DataSet_Preprocess.Preprocess">module</a>
-</li>
-      </ul></li>
-      <li>
-    alphastats._DataSet_Statistics.Statistics
-
-      <ul>
-        <li><a href="api_reference/statistics.html#module-alphastats._DataSet_Statistics.Statistics">module</a>
-</li>
-      </ul></li>
-      <li>
     alphastats.DataSet
 
       <ul>
         <li><a href="api_reference/dataset.html#module-alphastats.DataSet">module</a>
+</li>
+      </ul></li>
+      <li>
+    alphastats.DataSet_Plot.Plot
+
+      <ul>
+        <li><a href="api_reference/plot.html#module-alphastats.DataSet_Plot.Plot">module</a>
+</li>
+      </ul></li>
+      <li>
+    alphastats.DataSet_Preprocess.Preprocess
+
+      <ul>
+        <li><a href="api_reference/preprocess.html#module-alphastats.DataSet_Preprocess.Preprocess">module</a>
+</li>
+      </ul></li>
+      <li>
+    alphastats.DataSet_Statistics.Statistics
+
+      <ul>
+        <li><a href="api_reference/statistics.html#module-alphastats.DataSet_Statistics.Statistics">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -148,9 +150,9 @@
         <li><a href="api_reference/loader.html#module-alphastats.loader.MaxQuantLoader">module</a>
 </li>
       </ul></li>
-      <li><a href="api_reference/statistics.html#alphastats._DataSet_Statistics.Statistics.anocova">anocova() (in module alphastats._DataSet_Statistics.Statistics)</a>
+      <li><a href="api_reference/statistics.html#alphastats.DataSet_Statistics.Statistics.ancova">ancova() (in module alphastats.DataSet_Statistics.Statistics)</a>
 </li>
-      <li><a href="api_reference/statistics.html#alphastats._DataSet_Statistics.Statistics.anova">anova() (in module alphastats._DataSet_Statistics.Statistics)</a>
+      <li><a href="api_reference/statistics.html#alphastats.DataSet_Statistics.Statistics.anova">anova() (in module alphastats.DataSet_Statistics.Statistics)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -158,13 +160,15 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/statistics.html#alphastats._DataSet_Statistics.Statistics.calculate_ttest_fc">calculate_ttest_fc() (in module alphastats._DataSet_Statistics.Statistics)</a>
+      <li><a href="api_reference/statistics.html#alphastats.DataSet_Statistics.Statistics.calculate_ttest_fc">calculate_ttest_fc() (in module alphastats.DataSet_Statistics.Statistics)</a>
 </li>
-      <li><a href="api_reference/statistics.html#alphastats._DataSet_Statistics.Statistics.calculate_tukey">calculate_tukey() (in module alphastats._DataSet_Statistics.Statistics)</a>
+      <li><a href="api_reference/statistics.html#alphastats.DataSet_Statistics.Statistics.calculate_tukey">calculate_tukey() (in module alphastats.DataSet_Statistics.Statistics)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/dataset.html#alphastats.DataSet.DataSet.check_loader">check_loader() (DataSet method)</a>
+</li>
+      <li><a href="api_reference/dataset.html#alphastats.DataSet.DataSet.check_matrix_values">check_matrix_values() (DataSet method)</a>
 </li>
       <li><a href="api_reference/dataset.html#alphastats.DataSet.DataSet.create_matrix">create_matrix() (DataSet method)</a>
 </li>
@@ -194,10 +198,12 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader.load_hdf_protein_table">load_hdf_protein_table() (AlphaPeptLoader method)</a>
+      <li><a href="api_reference/loader.html#alphastats.loader.MaxQuantLoader.MaxQuantLoader.load_evidence">load_evidence() (MaxQuantLoader method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference/loader.html#alphastats.loader.AlphaPeptLoader.AlphaPeptLoader.load_hdf_protein_table">load_hdf_protein_table() (AlphaPeptLoader method)</a>
+</li>
       <li><a href="api_reference/dataset.html#alphastats.DataSet.DataSet.load_metadata">load_metadata() (DataSet method)</a>
 </li>
   </ul></td>
@@ -212,13 +218,13 @@
     module
 
       <ul>
-        <li><a href="api_reference/plot.html#module-alphastats._DataSet_Plot.Plot">alphastats._DataSet_Plot.Plot</a>
-</li>
-        <li><a href="api_reference/preprocess.html#module-alphastats._DataSet_Preprocess.Preprocess">alphastats._DataSet_Preprocess.Preprocess</a>
-</li>
-        <li><a href="api_reference/statistics.html#module-alphastats._DataSet_Statistics.Statistics">alphastats._DataSet_Statistics.Statistics</a>
-</li>
         <li><a href="api_reference/dataset.html#module-alphastats.DataSet">alphastats.DataSet</a>
+</li>
+        <li><a href="api_reference/plot.html#module-alphastats.DataSet_Plot.Plot">alphastats.DataSet_Plot.Plot</a>
+</li>
+        <li><a href="api_reference/preprocess.html#module-alphastats.DataSet_Preprocess.Preprocess">alphastats.DataSet_Preprocess.Preprocess</a>
+</li>
+        <li><a href="api_reference/statistics.html#module-alphastats.DataSet_Statistics.Statistics">alphastats.DataSet_Statistics.Statistics</a>
 </li>
         <li><a href="api_reference/loader.html#module-alphastats.loader.AlphaPeptLoader">alphastats.loader.AlphaPeptLoader</a>
 </li>
@@ -235,39 +241,27 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_correlation_matrix">plot_correlation_matrix() (in module alphastats._DataSet_Plot.Plot)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_correlation_matrix">plot_correlation_matrix() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_dendogram">plot_dendogram() (in module alphastats._DataSet_Plot.Plot)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_dendogram">plot_dendogram() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_heatmap">plot_heatmap() (in module alphastats._DataSet_Plot.Plot)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_heatmap">plot_heatmap() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_intensity">plot_intensity() (in module alphastats._DataSet_Plot.Plot)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_intensity">plot_intensity() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_line">plot_line() (in module alphastats._DataSet_Plot.Plot)</a>
-</li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_pca">plot_pca() (in module alphastats._DataSet_Plot.Plot)</a>
-</li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_sampledistribution">plot_sampledistribution() (in module alphastats._DataSet_Plot.Plot)</a>
-</li>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_upset">plot_upset() (in module alphastats._DataSet_Plot.Plot)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_pca">plot_pca() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/plot.html#alphastats._DataSet_Plot.Plot.plot_volcano">plot_volcano() (in module alphastats._DataSet_Plot.Plot)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_sampledistribution">plot_sampledistribution() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess">preprocess() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_tsne">plot_tsne() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess_filter">preprocess_filter() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
+      <li><a href="api_reference/plot.html#alphastats.DataSet_Plot.Plot.plot_volcano">plot_volcano() (in module alphastats.DataSet_Plot.Plot)</a>
 </li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess_impute">preprocess_impute() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
+      <li><a href="api_reference/preprocess.html#alphastats.DataSet_Preprocess.Preprocess.preprocess">preprocess() (in module alphastats.DataSet_Preprocess.Preprocess)</a>
 </li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess_normalization">preprocess_normalization() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
-</li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess_print_info">preprocess_print_info() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
-</li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess_remove_sampels">preprocess_remove_sampels() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
-</li>
-      <li><a href="api_reference/preprocess.html#alphastats._DataSet_Preprocess.Preprocess.preprocess_subset">preprocess_subset() (in module alphastats._DataSet_Preprocess.Preprocess)</a>
+      <li><a href="api_reference/preprocess.html#alphastats.DataSet_Preprocess.Preprocess.preprocess_print_info">preprocess_print_info() (in module alphastats.DataSet_Preprocess.Preprocess)</a>
 </li>
   </ul></td>
 </tr></table>

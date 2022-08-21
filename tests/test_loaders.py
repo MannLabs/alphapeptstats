@@ -77,8 +77,8 @@ class BaseTestLoader:
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        self.hdf_file = "testfiles/alphapept_results.hdf"
+        self.obj = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
+        self.hdf_file = "testfiles/alphapept/results.hdf"
         # expected dim of rawdata df
         self.df_dim = (3781, 8)
 
@@ -115,7 +115,7 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
 class TestMaxQuantLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
+        self.obj = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
         self.df_dim = (2611, 2531)
 
     def test_set_filter_columns_to_true_false(self):
@@ -127,7 +127,7 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
 
 class TestDIANNLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
+        self.obj = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
         self.df_dim = (10, 26)
 
     def add_tag_to_sample_columns(self):
@@ -140,7 +140,7 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
 
 class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUp(self):
-        self.obj = FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
+        self.obj = FragPipeLoader(file="testfiles/fragpipe/combined_proteins.tsv")
         self.df_dim = (10, 37)
 
 
