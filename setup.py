@@ -1,13 +1,11 @@
-#!python
-
 # builtin
 import setuptools
 import re
 import os
-import configparser
-config = configparser.ConfigParser()
-config.read('settings.ini')
-package = config["DEFAULT"]
+# local
+# info has to be imported individually or sidepacakges will already be installed
+from alphastats import __project__, __version__, __license__, __description__,__author__,__author_email__
+from alphastats import __github__, __keywords__, __python_version__, __classifiers__, __urls__, __extra_requirements__, __console_scripts__
 
 
 def get_long_description():
@@ -16,35 +14,54 @@ def get_long_description():
     return long_description
 
 
+def get_requirements():
+    extra_requirements = {}
+    requirement_file_names = __extra_requirements__
+    requirement_file_names[""] = "requirements.txt"
+    for extra, requirement_file_name in requirement_file_names.items():
+        full_requirement_file_name = os.path.join(
+            "requirements",
+            requirement_file_name,
+        )
+        with open(full_requirement_file_name) as requirements_file:
+            if extra != "":
+                extra_stable = f"{extra}-stable"
+            else:
+                extra_stable = "stable"
+            extra_requirements[extra_stable] = []
+            extra_requirements[extra] = []
+            for line in requirements_file:
+                extra_requirements[extra_stable].append(line)
+                requirement, *comparison = re.split("[><=~!]", line)
+                requirement == requirement.strip()
+                extra_requirements[extra].append(requirement)
+    requirements = extra_requirements.pop("")
+    return requirements, extra_requirements
+
+
 def create_pip_wheel():
+    requirements, extra_requirements = get_requirements()
     setuptools.setup(
-        name=package["lib_name"],
-        version=package["version"],
-        license=package["license"],
-        description=package["description"],
+        name=__project__,
+        version=__version__,
+        license=__license__,
+        description=__description__,
         long_description=get_long_description(),
         long_description_content_type="text/markdown",
-        author=package["author"],
-        author_email=package["author_email"],
-        url=package["git_url"],
-        keywords=package["keywords"],
-        packages=[package["lib_name"]],
+        author=__author__,
+        author_email=__author_email__,
+        url=__github__,
+        project_urls=__urls__,
+        keywords=__keywords__,
+        classifiers=__classifiers__,
+        packages=[__project__],
         include_package_data=True,
-        package_data={package["lib_name"]: ["data/contaminations.txt"]},
-        entry_points={"console_scripts": package["console_scripts"],},
-        install_requires=[
-            "pandas", 
-            "sklearn",
-            "data_cache",
-            "dash_bio",
-            "plotly",
-            "iteration_utilities",
-            "openpyxl",
-            "sklearn_pandas",
-            "pingouin", 
-            "pywin32==225; sys_platform=='win32'"
-        ],
-        python_requires=">=3.8",
+        entry_points={
+            "console_scripts": __console_scripts__,
+        },
+        install_requires=requirements,
+        extras_require=extra_requirements,
+        python_requires=__python_version__,
     )
 
 

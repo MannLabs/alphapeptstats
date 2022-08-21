@@ -1,2 +1,4 @@
 .DS_store
 __pycache__
+.ipynb_checkpoints
+alphastats.egg-info

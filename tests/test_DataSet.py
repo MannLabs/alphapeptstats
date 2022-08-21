@@ -68,7 +68,7 @@ class BaseTestDataSet:
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
                 self.obj.check_loader(loader=df)
-                mock.asser_called_once()
+        
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -200,8 +200,8 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     #  do testing which requires extra files only on TestAlphaPeptDataSet
     # to reduce the amount of compariosn files required
     def setUp(self):
-        self.loader = AlphaPeptLoader(file="testfiles/alphapept_results_proteins.csv")
-        self.metadata_path = "testfiles/alphapept_metadata.csv"
+        self.loader = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
+        self.metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
@@ -215,15 +215,15 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
-        metadata_path = "testfiles/alphapept_metadata.txt"
+        metadata_path = "testfiles/alphapept/metadata.txt"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-        metadata_path = "testfiles/alphapept_metadata.tsv"
+        metadata_path = "testfiles/alphapept/metadata.tsv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
-        metadata_path = "testfiles/alphapept_metadata.csv"
+        metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
@@ -336,12 +336,6 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             correlation_calculations_expected,
         )
 
-    def test_calculate_ttest_fc_results(self):
-        # are df dimension correct
-        # are calculations correct
-        # take first row
-        pass
-
     def test_plot_volcano_figure_comparison(self):
         #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
         pass
@@ -355,8 +349,8 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
-        self.loader = MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
-        self.metadata_path = "testfiles/maxquant_metadata.xlsx"
+        self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
+        self.metadata_path = "testfiles/maxquant/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
@@ -384,7 +378,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
-        anova_results = self.obj.anova(group="disease", protein_ids="all", tukey=False)
+        anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
         self.assertEqual(anova_results.shape, (2615, 2))
         # check if tukey isnt called
@@ -394,12 +388,12 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         # with first 100 protein ids
         self.obj.preprocess(imputation="mean")
         id_list = self.obj.mat.columns.tolist()[0:100]
-        results = self.obj.anova(group="disease", protein_ids=id_list, tukey=True)
+        results = self.obj.anova(column="disease", protein_ids=id_list, tukey=True)
         self.assertEqual(results.shape, (100, 10))
 
         # with one protein id
         protein_id = "A0A024R4J8;Q92876"
-        results = self.obj.anova(group="disease", protein_ids=protein_id, tukey=True)
+        results = self.obj.anova(column="disease", protein_ids=protein_id, tukey=True)
         self.assertEqual(results.shape[1], 10)
 
     def test_calculate_tukey(self):
@@ -422,8 +416,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
-        self.loader = DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
-        self.metadata_path = "testfiles/diann_metadata.xlsx"
+        self.loader = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
+        self.metadata_path = "testfiles/diann/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,
@@ -501,10 +495,10 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(
-            file="testfiles/fragpipe_combined_proteins.tsv",
+            file="testfiles/fragpipe/combined_proteins.tsv",
             intensity_column="[sample] Razor Intensity",
         )
-        self.metadata_path = "testfiles/fragpipe_metadata.xlsx"
+        self.metadata_path = "testfiles/fragpipe/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
             metadata_path=self.metadata_path,

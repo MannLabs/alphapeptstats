@@ -7,6 +7,8 @@ import dash_bio
 import scipy
 import sklearn.manifold
 from alphastats.utils import ignore_warning, check_for_missing_values
+import plotly.graph_objects as go
+import numpy as np
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -15,7 +17,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
             "#009599",
             "#005358",
             "#772173",
-            "#B65EAF",
+            "#B65EAF", # pink
             "#A73A00",
             "#6490C1",
             "#FF894F",
@@ -29,6 +31,20 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class Plot:
+    @staticmethod
+    def _update_colors_plotly(fig, color_dict):
+        # plotly doesnt allow to assign color to certain group
+        # update instead the figure in form of a dict
+        # color_dict with group_variable/legendgroup as key, and corresponding color as value
+        fig_dict = fig.to_plotly_json()
+        data_dict_list = fig_dict.get("data")
+        for count, group in enumerate(data_dict_list):
+            group_variable = group.get("legendgroup")
+            group_color = color_dict.get(group_variable)
+            fig_dict["data"][count]["marker"]["color"] = group_color
+        # convert dict back to plotly figure
+        return go.Figure(fig_dict)
+    
     @staticmethod
     def _add_circles_to_scatterplot(fig):
         # called by _plot_dimensionality_reduction()
@@ -218,28 +234,70 @@ class Plot:
         return fig
 
     @ignore_warning(RuntimeWarning)
-    def plot_volcano(self, column, group1, group2):
+    def plot_volcano(self, column, group1, group2, method="anova"):
         """Plot Volcano Plot
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
             group2 (str): name of group to compare needs to be present in column
+            method: "anova", "glm", "ttest"
 
         Returns:
-            _dash_bio: Volcano Plot
+            plotly.graph_objects._figure.Figure: Volcano Plot
         """
-        result = self.calculate_ttest_fc(column, group1, group2)
-        result = result.dropna().reset_index(drop=True)
+        #if method == "glm":
+        #   result = self.perform_diff_expression_analysis(column, group1, group2)
+        #    pvalue_column = "qval"
+        
+        if method == "ttest":
+            result = self.calculate_ttest_fc(column, group1, group2)
+            pvalue_column = "pvalue"
+        
+        elif method == "anova":
+            result = self.anova(column = column, protein_ids="all", tukey=True)
+            group1_samples = self.metadata[self.metadata[column] == group1][
+            "sample"
+            ].tolist()
+            group2_samples = self.metadata[self.metadata[column] == group2][
+            "sample"
+            ].tolist()
+            mat_transpose = self.mat.transpose()
+            fc =  self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
 
-        volcano_plot = dash_bio.VolcanoPlot(
-            dataframe=result,
-            effect_size="foldchange_log2",
-            p="pvalue",
-            gene=None,
-            snp=None,
-            annotation="Protein ID",
-        )
+            # check how column is ordered
+            pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
+            if pvalue_column not in fc.columns.to_list():
+                pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
+
+            result = result.reset_index().merge(fc.reset_index(), on=self.index_column)
+        
+        else:
+            raise ValueError(
+                f"{method} is not available."
+                + "Please select from 'ttest' or 'anova' for anova with follow up tukey."
+            )
+
+        result = result[(result["log2fc"] < 10) &(result["log2fc"] > -10)]
+        result["-log10(p-value)"] = -np.log10(result[pvalue_column])
+        
+        # add color variable to plot
+        condition = [(result["log2fc"] < -1) & (result["-log10(p-value)"] > 1),
+            (result["log2fc"] > 1) & (result["-log10(p-value)"] > 1)]
+        value = ["down", "up"]
+        result["color"]= np.select(condition, value, default = "non-significant")
+
+        # create volcano plot
+        volcano_plot = px.scatter(result, x = "log2fc", y ="-log10(p-value)", color = "color", hover_data=[self.index_column])
+        
+        # update coloring
+        color_dict = {
+            "non-significant": "#404040", 
+            "up": "#B65EAF", 
+            "down": "#009599"
+            }
+        volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
+        volcano_plot.update_layout(showlegend=False)
         return volcano_plot
 
     @check_for_missing_values
