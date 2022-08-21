@@ -63,12 +63,12 @@ class BaseTestDataSet:
                 self.loader.rawdata = pd.DataFrame()
                 self.obj.check_loader(loader=self.loader)
 
-        def test_check_loader_error_invalid_loader(self, mock):
+        def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
                 self.obj.check_loader(loader=df)
-                mock.asser_called_once()
+        
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -378,7 +378,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
-        anova_results = self.obj.anova(group="disease", protein_ids="all", tukey=False)
+        anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
         self.assertEqual(anova_results.shape, (2615, 2))
         # check if tukey isnt called
@@ -388,12 +388,12 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         # with first 100 protein ids
         self.obj.preprocess(imputation="mean")
         id_list = self.obj.mat.columns.tolist()[0:100]
-        results = self.obj.anova(group="disease", protein_ids=id_list, tukey=True)
+        results = self.obj.anova(column="disease", protein_ids=id_list, tukey=True)
         self.assertEqual(results.shape, (100, 10))
 
         # with one protein id
         protein_id = "A0A024R4J8;Q92876"
-        results = self.obj.anova(group="disease", protein_ids=protein_id, tukey=True)
+        results = self.obj.anova(column="disease", protein_ids=protein_id, tukey=True)
         self.assertEqual(results.shape[1], 10)
 
     def test_calculate_tukey(self):

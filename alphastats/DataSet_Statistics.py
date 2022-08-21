@@ -7,9 +7,55 @@ import logging
 import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
+#import anndata
+#import diffxpy.api as de
 
 
 class Statistics:
+    # def perform_diff_expression_analysis(self, column, group1, group2):
+    #     # if a column has more than two groups matrix needs to be reduced to compare
+    #     group_samples = self.metadata[(self.metadata[column] == group1) | (self.metadata[column] == group2)][
+    #         "sample"
+    #     ].tolist()
+
+    #     # reduce matrix
+    #     reduced_matrix = self.mat.loc[group_samples]
+    #     # sort metadata according to matrix values
+    #     list_to_sort = reduced_matrix.index.to_list()
+    #     # reduce metadata
+    #     obs_metadata = self.metadata[self.metadata["sample"].isin(group_samples)].set_index("sample").loc[list_to_sort]
+    #     # change comparison group to 0/1
+    #     obs_metadata[column] = np.where(obs_metadata[column]==group1, 1, 0)
+        
+    #     # create a annotated dataset 
+    #     d = anndata.AnnData(
+    #         X=reduced_matrix.values,
+    #         var=pd.DataFrame(index=self.mat.T.index.to_list()),
+    #         obs=obs_metadata,
+    #         dtype = reduced_matrix.values.dtype
+    #     )
+
+    #     formula_loc = "~ 1 +"  + column
+    #     test = de.test.wald(
+    #         data=d,
+    #         formula_loc=formula_loc,
+    #         factor_loc_totest=column
+    #     )
+    #     df = test.summary().rename(columns={"gene": self.index_column})
+    #     return df
+
+    def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
+         mat_transpose += 0.00001
+         fc = (
+             mat_transpose[group1_samples].T.mean().values
+             / mat_transpose[group2_samples].T.mean().values
+         )
+         df = pd.DataFrame({"fc": fc, "log2fc": np.log2(fc)},  
+             index=mat_transpose.index, 
+             columns=["fc","log2fc"])
+         return df
+
+    
     @ignore_warning(RuntimeWarning)
     def calculate_ttest_fc(self, column, group1, group2):
         """Calculate t-test and fold change between two groups
@@ -27,8 +73,8 @@ class Statistics:
 
             * ``'Protein ID'``: ProteinID/ProteinGroup
             * ``'pvalue'``: p-value result of t-test
-            * ``'foldchange'``: foldchange of the mean Protein Intensity of group1 vs. group2
-            * ``'foldchange_log2'``: log2(foldchange)
+            * ``'fc'``: foldchange of the mean Protein Intensity of group1 vs. group2
+            * ``'log2fc'``: log2(foldchange)
 
         """
         # get samples names of two groupes
@@ -50,12 +96,7 @@ class Statistics:
         # Theis Lab: https://github.com/theislab/diffxpy
         # https://github.com/staslist/A-Lister
 
-        mat_transpose += 0.00001
-        # np.aps()
-        fc = (
-            mat_transpose[group1_samples].T.mean().values
-            / mat_transpose[group2_samples].T.mean().values
-        )
+        fc = self._calculate_foldchange(mat_transpose, group1_samples=group1_samples, group2_samples=group2_samples)
 
         p_values = mat_transpose.apply(
             lambda row: scipy.stats.ttest_ind(
@@ -66,8 +107,8 @@ class Statistics:
             axis=1,
         )
         df = pd.DataFrame()
-        df["Protein ID"], df["pvalue"] = p_values.index.tolist(), p_values.values
-        df["foldchange"], df["foldchange_log2"] = fc, np.log2(fc)
+        df[self.index_column], df["pvalue"] = p_values.index.tolist(), p_values.values
+        df = df.merge(fc.reset_index(), on=self.index_column)
         return df
 
     @ignore_warning(RuntimeWarning)
@@ -105,7 +146,7 @@ class Statistics:
         try:
             tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
             tukey_df["comparison"] = tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
-            tukey_df["Protein ID"] = protein_id
+            tukey_df[self.index_column] = protein_id
         
         except ValueError:
             tukey_df =  pd.DataFrame()
@@ -113,11 +154,11 @@ class Statistics:
         return tukey_df
 
     @ignore_warning(RuntimeWarning)
-    def anova(self, group, protein_ids="all", tukey=True):
+    def anova(self, column, protein_ids="all", tukey=True):
         """One-way Analysis of Variance (ANOVA)
 
         Args:
-            group (str): A metadata column used to calculate ANOVA
+            column (str): A metadata column used to calculate ANOVA
             ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for all ProteinIDs. Defaults to "all".
             tukey (bool, optional): Whether to calculate a Tukey-HSD post-hoc test. Defaults to True.
 
@@ -135,10 +176,10 @@ class Statistics:
         else:
             protein_ids_list = protein_ids
         #  generated list of list with samples
-        subgroup = self.metadata[group].unique().tolist()
+        subgroup = self.metadata[column].unique().tolist()
         all_groups = []
         for sub in subgroup:
-            group_list = self.metadata[self.metadata[group] == sub]["sample"].tolist()
+            group_list = self.metadata[self.metadata[column] == sub]["sample"].tolist()
             all_groups.append(group_list)
 
         mat_transpose = self.mat[protein_ids_list].transpose()
@@ -152,14 +193,14 @@ class Statistics:
             axis=1,
         )
         anova_df = pd.DataFrame()
-        anova_df["Protein ID"], anova_df["ANOVA_pvalue"] = (
+        anova_df[self.index_column], anova_df["ANOVA_pvalue"] = (
             p_values.index.tolist(),
             p_values.values,
         )
 
         if tukey:
             final_df = self._create_tukey_df(
-                anova_df=anova_df, protein_ids_list=protein_ids_list, group=group
+                anova_df=anova_df, protein_ids_list=protein_ids_list, group=column
             )
         else:
             final_df = anova_df
@@ -180,12 +221,12 @@ class Statistics:
         tukey_df = pd.concat(tukey_df_list)
         # combine anova and tukey test results
         final_df = anova_df.merge(
-            tukey_df[["comparison", "p-tukey", "Protein ID"]],
+            tukey_df[["comparison", "p-tukey", self.index_column]],
             how="inner",
-            on=["Protein ID"],
+            on=[self.index_column],
         )
         final_df = final_df.pivot(
-            index=["Protein ID", "ANOVA_pvalue"],
+            index=[self.index_column, "ANOVA_pvalue"],
             columns=["comparison"],
             values="p-tukey",
         )
