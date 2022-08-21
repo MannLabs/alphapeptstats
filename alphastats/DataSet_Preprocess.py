@@ -60,6 +60,7 @@ class Preprocess:
         logging.info(self.contamination_filter)
 
     @ignore_warning(RuntimeWarning)
+    @ignore_warning(UserWarning)
     def _imputation(self, method):
         # Impute Data
         # For more information visit:
@@ -101,7 +102,7 @@ class Preprocess:
                 max_samples=0.5,
                 n_jobs=2,
                 random_state=0,
-                verbose=1,  #  random forest takes a while print progress
+                verbose=0,  #  random forest takes a while print progress
             )
             imp = sklearn.impute.IterativeImputer(
                 random_state=0, estimator=randomforest
