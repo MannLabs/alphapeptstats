@@ -336,12 +336,6 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             correlation_calculations_expected,
         )
 
-    def test_calculate_ttest_fc_results(self):
-        # are df dimension correct
-        # are calculations correct
-        # take first row
-        pass
-
     def test_plot_volcano_figure_comparison(self):
         #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
         pass
