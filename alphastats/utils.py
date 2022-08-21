@@ -2,6 +2,7 @@ import functools
 import warnings
 from typing import Type
 import logging
+import http.client as httplib
 
 
 
@@ -48,3 +49,17 @@ def check_for_missing_values(f):
         return f(*args, **kwargs)
 
     return inner
+
+
+def check_internetconnection():
+    connection = httplib.HTTPSConnection("8.8.8.8", timeout=5)
+    try:
+        connection.request("HEAD", "/")
+        return True
+    except Exception:
+        raise ConnectionError("No internet connection available.")
+    finally:
+        connection.close()
+
+
+
