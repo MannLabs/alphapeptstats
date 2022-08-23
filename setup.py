@@ -86,7 +86,7 @@ def create_pip_wheel():
         },
         install_requires=requirements,
         extras_require=extra_requirements,
-        python_requires=">=3.8,<4",
+        python_requires=">=3.7,<4",
     )
 
 
