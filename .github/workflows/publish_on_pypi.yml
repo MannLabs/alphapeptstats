@@ -69,7 +69,7 @@ jobs:
           alphastats
           conda deactivate
       - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@main
+        uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
   Test_PyPi_Release:
