@@ -1,2 +1,2 @@
-#def run():
-#    return
+def run():
+    return
