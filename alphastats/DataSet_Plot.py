@@ -279,10 +279,12 @@ class Plot:
         #    pvalue_column = "qval"
 
         if method == "ttest":
+            print("Calculating t-test...")
             result = self.calculate_ttest_fc(column, group1, group2)
             pvalue_column = "pvalue"
 
         elif method == "anova":
+            print("Calculating ANOVA with follow-up tukey test...")
             result = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 "sample"
