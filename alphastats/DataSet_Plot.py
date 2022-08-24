@@ -21,7 +21,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
             "#009599",
             "#005358",
             "#772173",
-            "#B65EAF", # pink
+            "#B65EAF",  # pink
             "#A73A00",
             "#6490C1",
             "#FF894F",
@@ -33,20 +33,23 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
+
 class plotly_object(plotly.graph_objs._figure.Figure):
     plotting_data = None
     preprocessing = None
     method = None
+
 
 class seaborn_object(plotly.graph_objs._figure.Figure):
     plotting_data = None
     preprocessing = None
     method = None
 
+
 class Plot:
     @staticmethod
     def _update_colors_plotly(fig, color_dict):
-        # plotly doesnt allow to assign color to certain group
+        #  plotly doesnt allow to assign color to certain group
         # update instead the figure in form of a dict
         # color_dict with group_variable/legendgroup as key, and corresponding color as value
         fig_dict = fig.to_plotly_json()
@@ -57,7 +60,7 @@ class Plot:
             fig_dict["data"][count]["marker"]["color"] = group_color
         # convert dict back to plotly figure
         return go.Figure(fig_dict)
-    
+
     @staticmethod
     def _add_circles_to_scatterplot(fig):
         # called by _plot_dimensionality_reduction()
@@ -83,12 +86,12 @@ class Plot:
             )
         return fig
 
-    def _update_figure_attributes(self,figure_object, plotting_data, method=None):
+    def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", self.preprocessing)
         setattr(figure_object, "method", method)
         return figure_object
-    
+
     @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
@@ -101,7 +104,7 @@ class Plot:
         # subset matrix so it matches with metadata
         if group:
             mat = self._subset()
-            self.metadata[group]= self.metadata[group].apply(str)
+            self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
         else:
             mat = self.mat
@@ -129,10 +132,11 @@ class Plot:
             return
 
         fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
-        # save plotting data in figure object
+        #  save plotting data in figure object
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(figure_object=fig, 
-            plotting_data= pd.DataFrame(components), method=method)
+        fig = self._update_figure_attributes(
+            figure_object=fig, plotting_data=pd.DataFrame(components), method=method
+        )
 
         # draw circles around plotted groups
         if circle is True and group is not None:
@@ -270,65 +274,68 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
-        #if method == "glm":
+        # if method == "glm":
         #   result = self.perform_diff_expression_analysis(column, group1, group2)
         #    pvalue_column = "qval"
-        
+
         if method == "ttest":
             result = self.calculate_ttest_fc(column, group1, group2)
             pvalue_column = "pvalue"
-        
+
         elif method == "anova":
-            result = self.anova(column = column, protein_ids="all", tukey=True)
+            result = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
-            "sample"
+                "sample"
             ].tolist()
             group2_samples = self.metadata[self.metadata[column] == group2][
-            "sample"
+                "sample"
             ].tolist()
             mat_transpose = self.mat.transpose()
-            fc =  self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
+            fc = self._calculate_foldchange(
+                mat_transpose, group1_samples, group2_samples
+            )
 
-            # check how column is ordered
+            #  check how column is ordered
             pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
             if pvalue_column not in fc.columns.to_list():
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
             result = result.reset_index().merge(fc.reset_index(), on=self.index_column)
-        
+
         else:
             raise ValueError(
                 f"{method} is not available."
                 + "Please select from 'ttest' or 'anova' for anova with follow up tukey."
             )
 
-        result = result[(result["log2fc"] < 10) &(result["log2fc"] > -10)]
+        result = result[(result["log2fc"] < 10) & (result["log2fc"] > -10)]
         result["-log10(p-value)"] = -np.log10(result[pvalue_column])
-        
+
         # add color variable to plot
-        condition = [(result["log2fc"] < -1) & (result["-log10(p-value)"] > 1),
-            (result["log2fc"] > 1) & (result["-log10(p-value)"] > 1)]
+        condition = [
+            (result["log2fc"] < -1) & (result["-log10(p-value)"] > 1),
+            (result["log2fc"] > 1) & (result["-log10(p-value)"] > 1),
+        ]
         value = ["down", "up"]
-        result["color"]= np.select(condition, value, default = "non-significant")
+        result["color"] = np.select(condition, value, default="non-significant")
 
         # create volcano plot
-        volcano_plot = px.scatter(result, 
-        x = "log2fc",
-         y ="-log10(p-value)", 
-        color = "color", 
-        hover_data=[self.index_column])
-        
-        # save plotting data in figure object
+        volcano_plot = px.scatter(
+            result,
+            x="log2fc",
+            y="-log10(p-value)",
+            color="color",
+            hover_data=[self.index_column],
+        )
+
+        #  save plotting data in figure object
         volcano_plot = plotly_object(volcano_plot)
-        volcano_plot = self._update_figure_attributes(figure_object=volcano_plot, 
-            plotting_data= result, method=method)
-        
+        volcano_plot = self._update_figure_attributes(
+            figure_object=volcano_plot, plotting_data=result, method=method
+        )
+
         # update coloring
-        color_dict = {
-            "non-significant": "#404040", 
-            "up": "#B65EAF", 
-            "down": "#009599"
-            }
+        color_dict = {"non-significant": "#404040", "up": "#B65EAF", "down": "#009599"}
         volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
         volcano_plot.update_layout(showlegend=False)
         return volcano_plot
@@ -339,26 +346,27 @@ class Plot:
         colors = sns.light_palette(color, len(su))
         lut = dict(zip(su, colors))
         return s.map(lut)
-    
+
     def _clustermap_create_label_bar(self, list_of_labels):
         label_colors = []
-        colorway=[
+        colorway = [
             "#009599",
             "#005358",
             "#772173",
-            "#B65EAF", 
+            "#B65EAF",
             "#A73A00",
             "#6490C1",
-            "#FF894F"
+            "#FF894F",
         ]
         for label in list_of_labels:
-            color_label = self._clustermap_get_colors_for_bar(columnname = label, 
-            color=random.choice(colorway))
+            color_label = self._clustermap_get_colors_for_bar(
+                columnname=label, color=random.choice(colorway)
+            )
             label_colors.append(color_label)
         return label_colors
 
     @check_for_missing_values
-    def plot_clustermap(self, label_bar = None):
+    def plot_clustermap(self, label_bar=None):
         """Plot clustermap with samples as columns and Proteins as rows
 
         Args:
@@ -368,7 +376,7 @@ class Plot:
             _type_: _description_
         """
         if label_bar is not None:
-            label_bar= self._clustermap_create_label_bar(label_bar)
+            label_bar = self._clustermap_create_label_bar(label_bar)
 
         fig = sns.clustermap(self.mat.transpose(), col_colors=label_bar)
         return fig

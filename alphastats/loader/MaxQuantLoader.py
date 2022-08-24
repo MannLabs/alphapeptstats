@@ -14,7 +14,7 @@ class MaxQuantLoader(BaseLoader):
         index_column="Protein IDs",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
-        evidence_file = None,
+        evidence_file=None,
         sep="\t",
         **kwargs
     ):
@@ -37,7 +37,7 @@ class MaxQuantLoader(BaseLoader):
         if evidence_file is not None:
             self.load_evidence(evidence_file=evidence_file)
 
-    def load_evidence(self, evidence_file, sep = "\t"):
+    def load_evidence(self, evidence_file, sep="\t"):
         self.evidence_file = pd.read_csv(evidence_file, sep=sep, low_memory=False)
         # check if names match protien group file
 

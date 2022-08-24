@@ -67,7 +67,6 @@ class BaseTestDataSet:
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
                 self.obj.check_loader(loader=df)
-        
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -341,17 +340,18 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         first_row = plot.data2d.iloc[0].to_list()
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
-    
+
     def test_plot_clustermap_with_label_bar(self):
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_clustermap(label_bar = [self.comparison_column])
+        plot = self.obj.plot_clustermap(label_bar=[self.comparison_column])
         first_row = plot.data2d.iloc[0].to_list()
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
 
-    #def test_plot_volcano_figure_comparison(self):
-        #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
-        # pass
+    # def test_plot_volcano_figure_comparison(self):
+    #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
+    # pass
+
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -419,6 +419,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         given_value = ancova_df["p-unc"][1]
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
+
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -493,26 +494,30 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
 
     def test_volcano_plot_anova(self):
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_volcano(column = "grouping1", 
-        group1 = "Healthy", group2 = "Disease",
-        method = "anova")
+        plot = self.obj.plot_volcano(
+            column="grouping1", group1="Healthy", group2="Disease", method="anova"
+        )
         expected_y_value = 0.09437708068494619
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
         self.assertAlmostEqual(y_value, expected_y_value)
 
     def test_volcano_plot_ttest(self):
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_volcano(column = "grouping1", 
-        group1 = "Healthy", group2 = "Disease",
-        method = "ttest")
+        plot = self.obj.plot_volcano(
+            column="grouping1", group1="Healthy", group2="Disease", method="ttest"
+        )
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
-        self.assertEqual(round(y_value,1), 0.1)
-    
+        self.assertEqual(round(y_value, 1), 0.1)
+
     def test_volcano_plot_wrongmethod(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_volcano(column = "grouping1", 
-            group1 = "Healthy", group2 = "Disease",
-            method = "wrongmethod")
+            self.obj.plot_volcano(
+                column="grouping1",
+                group1="Healthy",
+                group2="Disease",
+                method="wrongmethod",
+            )
+
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
