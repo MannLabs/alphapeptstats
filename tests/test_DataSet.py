@@ -507,7 +507,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
             column="grouping1", group1="Healthy", group2="Disease", method="ttest"
         )
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
-        self.assertEqual(round(y_value, 1), 0.1)
+        self.assertAlmostEqual(round(y_value, 1), 0.1)
 
     def test_volcano_plot_wrongmethod(self):
         with self.assertRaises(ValueError):
