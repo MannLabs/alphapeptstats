@@ -269,16 +269,17 @@ class Plot:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
             group2 (str): name of group to compare needs to be present in column
-            method: "anova", "glm", "ttest"
+            method: "anova", "wald", "ttest"
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
-        # if method == "glm":
-        #   result = self.perform_diff_expression_analysis(column, group1, group2)
-        #    pvalue_column = "qval"
+        if method == "wald":
+            print("Calculating differential expression analysis using wald test. Fitting generalized linear model...")
+            result = self.perform_diff_expression_analysis(column, group1, group2)
+            pvalue_column = "qval"
 
-        if method == "ttest":
+        elif method == "ttest":
             print("Calculating t-test...")
             result = self.calculate_ttest_fc(column, group1, group2)
             pvalue_column = "pvalue"
@@ -299,7 +300,7 @@ class Plot:
 
             #  check how column is ordered
             pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
-            if pvalue_column not in fc.columns.to_list():
+            if pvalue_column in fc.columns.to_list() == False:
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
             result = result.reset_index().merge(fc.reset_index(), on=self.index_column)
@@ -307,7 +308,7 @@ class Plot:
         else:
             raise ValueError(
                 f"{method} is not available."
-                + "Please select from 'ttest' or 'anova' for anova with follow up tukey."
+                + "Please select from 'ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test using."
             )
 
         result = result[(result["log2fc"] < 10) & (result["log2fc"] > -10)]
