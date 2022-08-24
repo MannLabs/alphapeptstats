@@ -15,7 +15,6 @@ import logging
 import numpy as np
 import pandas as pd
 import plotly
-import dash_bio
 from contextlib import contextmanager
 
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
@@ -336,16 +335,23 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             correlation_calculations_expected,
         )
 
-    def test_plot_volcano_figure_comparison(self):
+    def test_plot_clustermap(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_clustermap()
+        first_row = plot.data2d.iloc[0].to_list()
+        expected = [487618.5371077078, 1293013.103298046]
+        self.assertEqual(first_row, expected)
+    
+    def test_plot_clustermap_with_label_bar(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_clustermap(label_bar = [self.comparison_column])
+        first_row = plot.data2d.iloc[0].to_list()
+        expected = [487618.5371077078, 1293013.103298046]
+        self.assertEqual(first_row, expected)
+
+    #def test_plot_volcano_figure_comparison(self):
         #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
-        pass
-
-    def test_plot_sampledistribution_figure_comparison(self):
-        pass
-
-    def test_plot_correlation_matrix_figure_comparison(self):
-        pass
-
+        # pass
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -463,17 +469,10 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         with self.assertRaises(ValueError):
             self.obj.plot_intensity(id="A0A075B6H7", group="grouping1", method="wrong")
 
-    def test_plot_heatmap(self):
-        self.obj.preprocess(imputation="mean")
-        plot = self.obj.plot_heatmap()
-        plot_dict = plot.to_plotly_json()
-        #  check number of column and row clusters
-        self.assertEqual(len(plot_dict.get("data")), 26)
-
-    def test_plot_heatmap_noimputation(self):
+    def test_plot_clustermap_noimputation(self):
         # raises error when data is not imputed
         with self.assertRaises(ValueError):
-            self.obj.plot_heatmap()
+            self.obj.plot_clustermap()
 
     def test_plot_dendogram(self):
         self.obj.preprocess(imputation="mean")
@@ -491,6 +490,29 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_dendogram_not_imputed(self):
         with self.assertRaises(ValueError):
             self.obj.plot_dendogram()
+
+    def test_volcano_plot_anova(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_volcano(column = "grouping1", 
+        group1 = "Healthy", group2 = "Disease",
+        method = "anova")
+        expected_y_value = 0.09437708068494619
+        y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
+        self.assertAlmostEqual(y_value, expected_y_value)
+
+    def test_volcano_plot_ttest(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_volcano(column = "grouping1", 
+        group1 = "Healthy", group2 = "Disease",
+        method = "ttest")
+        y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
+        self.assertEqual(round(y_value,1), 0.1)
+    
+    def test_volcano_plot_wrongmethod(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_volcano(column = "grouping1", 
+            group1 = "Healthy", group2 = "Disease",
+            method = "wrongmethod")
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
