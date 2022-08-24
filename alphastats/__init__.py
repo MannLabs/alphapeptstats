@@ -1,16 +1,16 @@
 __project__ = "alphastats"
-__version__ = "0.0.1"
+__version__ = "0.0.5"
 __license__ = "Apache"
 __description__ = "An open-source Python package for Mass Spectrometry Analysis"
 __author__ = "Mann Labs"
-__author_email__ = "opensource@alphastats.com"
+__author_email__ = "elena.krismer@hotmail.com"
 __github__ = "https://github.com/MannLabs/alphastats"
 __keywords__ = [
     "bioinformatics",
     "software",
     "mass spectometry",
 ]
-__python_version__ = ">=3.8,<4"
+__python_version__ = ">=3.7,<4"
 __classifiers__ = [
     "Development Status :: 1 - Planning",
     # "Development Status :: 2 - Pre-Alpha",
