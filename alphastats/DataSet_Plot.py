@@ -3,12 +3,16 @@ import sklearn
 import logging
 import plotly.express as px
 import plotly
-import dash_bio
 import scipy
 import sklearn.manifold
 from alphastats.utils import ignore_warning, check_for_missing_values
 import plotly.graph_objects as go
 import numpy as np
+import plotly.figure_factory as ff
+import seaborn as sns
+import pandas as pd
+from scipy.spatial.distance import pdist, squareform
+import random
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -29,6 +33,15 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
+class plotly_object(plotly.graph_objs._figure.Figure):
+    plotting_data = None
+    preprocessing = None
+    method = None
+
+class seaborn_object(plotly.graph_objs._figure.Figure):
+    plotting_data = None
+    preprocessing = None
+    method = None
 
 class Plot:
     @staticmethod
@@ -70,6 +83,12 @@ class Plot:
             )
         return fig
 
+    def _update_figure_attributes(self,figure_object, plotting_data, method=None):
+        setattr(figure_object, "plotting_data", plotting_data)
+        setattr(figure_object, "preprocessing", self.preprocessing)
+        setattr(figure_object, "method", method)
+        return figure_object
+    
     @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
@@ -82,6 +101,7 @@ class Plot:
         # subset matrix so it matches with metadata
         if group:
             mat = self._subset()
+            self.metadata[group]= self.metadata[group].apply(str)
             group_color = self.metadata[group]
         else:
             mat = self.mat
@@ -109,6 +129,10 @@ class Plot:
             return
 
         fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
+        # save plotting data in figure object
+        fig = plotly_object(fig)
+        fig = self._update_figure_attributes(figure_object=fig, 
+            plotting_data= pd.DataFrame(components), method=method)
 
         # draw circles around plotted groups
         if circle is True and group is not None:
@@ -288,7 +312,16 @@ class Plot:
         result["color"]= np.select(condition, value, default = "non-significant")
 
         # create volcano plot
-        volcano_plot = px.scatter(result, x = "log2fc", y ="-log10(p-value)", color = "color", hover_data=[self.index_column])
+        volcano_plot = px.scatter(result, 
+        x = "log2fc",
+         y ="-log10(p-value)", 
+        color = "color", 
+        hover_data=[self.index_column])
+        
+        # save plotting data in figure object
+        volcano_plot = plotly_object(volcano_plot)
+        volcano_plot = self._update_figure_attributes(figure_object=volcano_plot, 
+            plotting_data= result, method=method)
         
         # update coloring
         color_dict = {
@@ -300,34 +333,45 @@ class Plot:
         volcano_plot.update_layout(showlegend=False)
         return volcano_plot
 
+    def _clustermap_get_colors_for_bar(self, columnname, color) -> pd.Series:
+        s = self.metadata[columnname]
+        su = s.unique()
+        colors = sns.light_palette(color, len(su))
+        lut = dict(zip(su, colors))
+        return s.map(lut)
+    
+    def _clustermap_create_label_bar(self, list_of_labels):
+        label_colors = []
+        colorway=[
+            "#009599",
+            "#005358",
+            "#772173",
+            "#B65EAF", 
+            "#A73A00",
+            "#6490C1",
+            "#FF894F"
+        ]
+        for label in list_of_labels:
+            color_label = self._clustermap_get_colors_for_bar(columnname = label, 
+            color=random.choice(colorway))
+            label_colors.append(color_label)
+        return label_colors
+
     @check_for_missing_values
-    def plot_heatmap(self):
-        """Plot Heatmap with samples as columns and Proteins as rows
+    def plot_clustermap(self, label_bar = None):
+        """Plot clustermap with samples as columns and Proteins as rows
+
+        Args:
+            label_bar (list, optional): List of columns/variables names described in the metadata. Will be plotted as bar above the heatmap to see wheteher groups are clustering together. Defaults to None.
 
         Returns:
-            _dash_bio.Clustergram: Dash Bio Clustergram object
+            _type_: _description_
         """
-        df = self.mat.transpose()
-        columns = list(df.columns.values)
-        rows = list(df.index)
+        if label_bar is not None:
+            label_bar= self._clustermap_create_label_bar(label_bar)
 
-        plot = dash_bio.Clustergram(
-            data=df.loc[rows].values,
-            row_labels=rows,
-            column_labels=columns,
-            color_threshold={"row": 250, "col": 700},
-            height=800,
-            width=1000,
-            color_map=[
-                [0.0, "#D0ECE7"],
-                [0.25, "#5AA28A"],
-                [0.5, "#6C79BB"],
-                [0.75, "#8B6CBB"],
-                [1.0, "#5B2C6F"],
-            ],
-            line_width=2,
-        )
-        return plot
+        fig = sns.clustermap(self.mat.transpose(), col_colors=label_bar)
+        return fig
 
     @check_for_missing_values
     def plot_dendogram(
