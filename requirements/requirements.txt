@@ -1,7 +1,6 @@
 pandas>=1.4.2
 sklearn
 data_cache
-dash_bio
 plotly>=5.7.0
 iteration_utilities
 openpyxl
