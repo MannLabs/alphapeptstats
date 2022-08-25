@@ -1,5 +1,4 @@
 from random import random
-from unittest.main import _TestRunner
 import pandas as pd
 import sklearn
 import logging
@@ -34,9 +33,9 @@ class Preprocess:
             logging.info("No columns to filter.")
             return
 
-        if self.contamination_filter != "Contaminations have not been removed.":
+        if self.preprocessing_info.get("Contaminations have been removed")== True:
             logging.info(
-                "Contaminatons have already been filtered: " + self.contamination_filter
+                "Contaminatons have already been filtered."
             )
             return
 

@@ -88,7 +88,7 @@ class Plot:
 
     def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
-        setattr(figure_object, "preprocessing", self.preprocessing)
+        setattr(figure_object, "preprocessing", self.preprocessing_info)
         setattr(figure_object, "method", method)
         return figure_object
 
@@ -296,7 +296,7 @@ class Plot:
 
             #  check how column is ordered
             pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
-            if pvalue_column in fc.columns.to_list() == False:
+            if pvalue_column not in fc.columns:
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
             result = result.reset_index().merge(fc.reset_index(), on=self.index_column)

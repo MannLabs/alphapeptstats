@@ -122,13 +122,13 @@ class BaseTestDataSet:
             # is warning raised when filter columns are none
             # is info printed if contamination columns get removed
             # is the new matrix smaller than the older matrix
-            self.assertEqual(
-                self.obj.contamination_filter, "Contaminations have not been removed."
+            self.assertFalse(
+                self.obj.preprocessing_info.get("Contaminations have been removed")
             )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
-            self.assertNotEqual(
-                self.obj.contamination_filter, "Contaminations have not been removed."
+            self.assertTrue(
+                self.obj.preprocessing_info.get("Contaminations have been removed")
             )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
@@ -163,12 +163,6 @@ class BaseTestDataSet:
                     self.obj.calculate_ttest_fc(
                         column=self.comparison_column, group1=group1, group2=group2
                     )
-
-        @patch.object(DataSet, "preprocess")
-        def test_plot_pca_normalization(self, mock):
-            # check if preprocess gets called when data is not normalized/standardized
-            self.obj.plot_pca()
-            mock.assert_called_once()
 
         def test_imputation_mean(self):
             self.obj.preprocess(imputation="mean")
