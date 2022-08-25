@@ -1,4 +1,5 @@
 from random import random
+from unittest.main import _TestRunner
 import pandas as pd
 import sklearn
 import logging
@@ -18,21 +19,15 @@ class Preprocess:
     def _subset(self):
         # filter matrix so only samples that are described in metadata
         # also found in matrix
+        self.preprocessing_info.update(
+            {"Matrix: Number of samples": self.metadata.shape[0]}
+        )
         return self.mat[self.mat.index.isin(self.metadata["sample"].tolist())]
 
     def preprocess_print_info(self):
         """Print summary of preprocessing steps
         """
-        n_proteins = self.rawdata.shape[0]
-        n_matrix = self.mat.shape[1]  #  remove filter columns etc.
-        text = (
-            f"Preprocessing: \nThe raw data contains {str(n_proteins)} Proteins/ProteinGroups.\n"
-            f"The filtered data contains {n_matrix} Proteins/ProteinGroups."
-        )
-        preprocessing_text = (
-            text + self.normalization + self.imputation + self.contamination_filter
-        )
-        print(preprocessing_text)
+        print(pd.DataFrame(self.preprocessing_info.items()))
 
     def _filter(self):
         if len(self.filter_columns) == 0:
@@ -53,11 +48,21 @@ class Preprocess:
         # remove columns with protin groups
         self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
 
-        self.contamination_filter = (
+        self.preprocessing_info.update(
+            {
+                "Number of removed ProteinGroups due to contaminaton": len(
+                    protein_groups_to_remove
+                ),
+                "Contaminations have been removed": True,
+                "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
+            }
+        )
+
+        filter_info = (
             f"Contaminations indicated in following columns: {self.filter_columns} were removed. "
             f"In total {str(len(protein_groups_to_remove))} observations have been removed."
         )
-        logging.info(self.contamination_filter)
+        logging.info(filter_info)
 
     @ignore_warning(RuntimeWarning)
     @ignore_warning(UserWarning)
@@ -126,8 +131,7 @@ class Preprocess:
         self.mat = pd.DataFrame(
             imputation_array, index=self.mat.index, columns=self.mat.columns
         )
-
-        self.imputation = f"Missing values were imputed using the {method}.\n"
+        self.preprocessing_info.update({"Imputation": method})
 
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
@@ -166,9 +170,7 @@ class Preprocess:
         self.mat = pd.DataFrame(
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
-        self.normalization = (
-            f"Data has been normalized using {method} normalization. \n"
-        )
+        self.preprocessing_info.update({"Normalization": method})
 
     @ignore_warning(RuntimeWarning)
     def preprocess(

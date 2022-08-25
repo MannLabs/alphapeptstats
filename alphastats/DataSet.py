@@ -19,6 +19,7 @@ from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
 
+
 # remove warning from openpyxl
 # only appears on mac
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
@@ -29,7 +30,7 @@ class DataSet(Preprocess, Statistics, Plot):
     """
 
     def __init__(self, loader, metadata_path: str = None, sample_column=None):
-        """Create proteinObjet/AnalysisObject
+        """Create DataSet
 
         Args:
             loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -53,13 +54,10 @@ class DataSet(Preprocess, Statistics, Plot):
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
 
         # save preprocessing settings
-        self.preprocessing = None
-        # update normalization when self.matrix is normalized, filtered
-        self.normalization, self.imputation, self.contamination_filter = (
-            "Data is not normalized.",
-            "Data is not imputed.",
-            "Contaminations have not been removed.",
-        )
+        self.preprocessing_info = self._save_dataset_info()
+
+        print("DataSet has been created.")
+        self.overview()
 
     def check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -139,7 +137,24 @@ class DataSet(Preprocess, Statistics, Plot):
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         self.metadata = df
 
-    def summary(self):
-        # print summary
-        # TODO look at keras model.summary()
-        pass
+    def _save_dataset_info(self):
+        n_proteingroups = self.mat.shape[1]
+        preprocessing_dict = {
+            "Raw data number of Protein Groups": n_proteingroups,
+            "Matrix: Number of samples": self.mat.shape[0],
+            "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
+            "Contaminations have been removed": False,
+            "Normalization": None,
+            "Imputation": None,
+            "Number of removed ProteinGroups due to contaminaton": 0,
+        }
+        return preprocessing_dict
+
+    def overview(self):
+        dataset_overview = (
+            "Attributes of the DataSet can be accessed using: \n"
+            + "DataSet.rawdata:\t Raw Protein data.\n"
+            + "DataSet.mat:\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
+            + "DataSet.metadata:\tMetadata for the samples in the matrix. Metadata will be matched with DataSet.mat when needed (for instance Volcano Plot)."
+        )
+        print(dataset_overview)

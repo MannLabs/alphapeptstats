@@ -35,34 +35,34 @@ class Statistics:
             * ``'coef_sd'``: the standard deviation of the coefficient in liker-space
             * ``'ll'``: the log-likelihood of the estimation
         """
-         # if a column has more than two groups matrix needs to be reduced to compare
-        group_samples = self.metadata[(self.metadata[column] == group1) | (self.metadata[column] == group2)][
-             "sample"
-         ].tolist()
+        #  if a column has more than two groups matrix needs to be reduced to compare
+        group_samples = self.metadata[
+            (self.metadata[column] == group1) | (self.metadata[column] == group2)
+        ]["sample"].tolist()
 
-         # reduce matrix
+        # reduce matrix
         reduced_matrix = self.mat.loc[group_samples]
-         # sort metadata according to matrix values
+        # sort metadata according to matrix values
         list_to_sort = reduced_matrix.index.to_list()
-         # reduce metadata
-        obs_metadata = self.metadata[self.metadata["sample"].isin(group_samples)].set_index("sample").loc[list_to_sort]
-         # change comparison group to 0/1
-        obs_metadata[column] = np.where(obs_metadata[column]==group1, 1, 0)
+        #  reduce metadata
+        obs_metadata = (
+            self.metadata[self.metadata["sample"].isin(group_samples)]
+            .set_index("sample")
+            .loc[list_to_sort]
+        )
+        # change comparison group to 0/1
+        obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
 
-         # create a annotated dataset
+        # create a annotated dataset
         d = anndata.AnnData(
-             X=reduced_matrix.values,
-             var=pd.DataFrame(index=self.mat.T.index.to_list()),
-             obs=obs_metadata,
-             dtype = reduced_matrix.values.dtype
-         )
+            X=reduced_matrix.values,
+            var=pd.DataFrame(index=self.mat.T.index.to_list()),
+            obs=obs_metadata,
+            dtype=reduced_matrix.values.dtype,
+        )
 
-        formula_loc = "~ 1 +"  + column
-        test = de.test.wald(
-             data=d,
-             formula_loc=formula_loc,
-             factor_loc_totest=column
-         )
+        formula_loc = "~ 1 +" + column
+        test = de.test.wald(data=d, formula_loc=formula_loc, factor_loc_totest=column)
         df = test.summary().rename(columns={"gene": self.index_column})
         return df
 

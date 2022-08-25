@@ -95,12 +95,6 @@ class Plot:
     @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
-        if self.normalization == "Data is not normalized.":
-            logging.info(
-                "Data has not been normalized. Data will be normalized using zscore-Normalization"
-            )
-            self.preprocess(normalization="zscore")
-
         # subset matrix so it matches with metadata
         if group:
             mat = self._subset()
@@ -275,7 +269,9 @@ class Plot:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
         if method == "wald":
-            print("Calculating differential expression analysis using wald test. Fitting generalized linear model...")
+            print(
+                "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
+            )
             result = self.perform_diff_expression_analysis(column, group1, group2)
             pvalue_column = "qval"
 
