@@ -48,25 +48,25 @@ class BaseTestDataSet:
 
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
-                self.obj.check_loader(loader=self.loader)
+                self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
             with self.assertRaises(ValueError):
                 self.loader.index_column = 100
-                self.obj.check_loader(loader=self.loader)
+                self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_empty_df(self):
             # empty dataframe
             with self.assertRaises(ValueError):
                 self.loader.rawdata = pd.DataFrame()
-                self.obj.check_loader(loader=self.loader)
+                self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
-                self.obj.check_loader(loader=df)
+                self.obj._check_loader(loader=df)
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -105,7 +105,7 @@ class BaseTestDataSet:
                 "C": [66, 72, np.inf, 68, -np.inf],
             }
             self.obj.mat = pd.DataFrame(data)
-            self.obj.check_matrix_values()
+            self.obj._check_matrix_values()
             mock.assert_called_once()
 
         @patch("logging.Logger.info")
@@ -511,7 +511,6 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 group2="Disease",
                 method="wrongmethod",
             )
-
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

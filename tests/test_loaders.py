@@ -36,20 +36,20 @@ class BaseTestLoader:
             # check if error gets raised when column is not present
             with self.assertRaises(KeyError):
                 self.obj.confidence_column = "wrong_column"
-                self.obj.check_if_columns_are_present()
+                self.obj._check_if_columns_are_present()
 
         def test_check_if_columns_are_present_no_error(self):
             # check if columns are present
             # check if error gets raised when column is not present
             with self.assertNotRaises(KeyError):
-                self.obj.check_if_columns_are_present()
+                self.obj._check_if_columns_are_present()
 
         @patch("logging.Logger.warning")
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
             self.obj.rawdata[self.obj.index_column] = "non unique"
-            self.obj.check_if_indexcolumn_is_unique()
+            self.obj._check_if_indexcolumn_is_unique()
             mock.assert_called_once()
 
         # @patch("logging.Logger.warning")
@@ -62,7 +62,7 @@ class BaseTestLoader:
             # check if error gets raised when file doesnt exist
             with self.assertRaises(OSError):
                 wrong_file_path = "wrong/file/path"
-                self.obj.check_if_file_exists(file=wrong_file_path)
+                self.obj._check_if_file_exists(file=wrong_file_path)
 
         def test_add_contaminantion_column(self):
             column_added = "contamination_library" in self.obj.rawdata
@@ -101,13 +101,13 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
         # test function with different entries
         entry_one = "sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN"
-        entry_one_protein_id = self.obj.standardize_protein_group_column(
+        entry_one_protein_id = self.obj._standardize_protein_group_column(
             entry=entry_one
         )
         self.assertEqual(entry_one_protein_id, "P0DMV9;P0DMV8")
 
         entry_two = "ENSEMBL:ENSBTAP00000007350"
-        entry_two_protein_id = self.obj.standardize_protein_group_column(
+        entry_two_protein_id = self.obj._standardize_protein_group_column(
             entry=entry_two
         )
         self.assertEqual(entry_two_protein_id, "ENSBTAP00000007350")
