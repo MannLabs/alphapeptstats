@@ -37,7 +37,7 @@ class DataSet(Preprocess, Statistics, Plot):
             metadata_path (str, optional): path to metadata file. Defaults to None.
             sample_column (_type_, optional): column in metadata file indicating the sample IDs. Defaults to None.
         """
-        self.check_loader(loader=loader)
+        self._check_loader(loader=loader)
         #  load data from loader object
         self.loader = loader
         self.rawdata = loader.rawdata
@@ -48,7 +48,7 @@ class DataSet(Preprocess, Statistics, Plot):
 
         # include filtering before
         self.create_matrix()
-        self.check_matrix_values()
+        self._check_matrix_values()
         self.metadata = None
         if metadata_path:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
@@ -59,7 +59,7 @@ class DataSet(Preprocess, Statistics, Plot):
         print("DataSet has been created.")
         self.overview()
 
-    def check_loader(self, loader):
+    def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
 
         Args:
@@ -82,7 +82,7 @@ class DataSet(Preprocess, Statistics, Plot):
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
 
-    def check_matrix_values(self):
+    def _check_matrix_values(self):
         if np.isinf(self.mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
 
@@ -151,6 +151,8 @@ class DataSet(Preprocess, Statistics, Plot):
         return preprocessing_dict
 
     def overview(self):
+        """Print overview of the DataSet
+        """
         dataset_overview = (
             "Attributes of the DataSet can be accessed using: \n"
             + "DataSet.rawdata:\t Raw Protein data.\n"
