@@ -53,6 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#0.-Import-AlphaStats">0. Import AlphaStats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#1.-Import-Data">1. Import Data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#2.-Create-a-DataSet">2. Create a DataSet</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#3.-Preprocess">3. Preprocess</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Unnormalized-data,-Sample-Distribution">Unnormalized data, Sample Distribution</a></li>
 </ul>
 </li>
@@ -799,7 +800,8 @@ DataSet.metadata:       Metadata for the samples in the matrix. Metadata will be
 </pre></div></div>
 </div>
 <p>AlphaStats will create a matrix of the Protein Intensities, which will be accessable using <code class="docutils literal notranslate"><span class="pre">ds.mat</span></code> and will save the metadta as a dataframe <code class="docutils literal notranslate"><span class="pre">ds.metadata</span></code>. Our original MaxQuant ProteinGroup file contains much more samples, than we have metadata for</p>
-<p>## 3. Preprocess</p>
+<section id="3.-Preprocess">
+<h3>3. Preprocess<a class="headerlink" href="#3.-Preprocess" title="Permalink to this heading"></a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
@@ -841,6 +843,7 @@ Number of samples in the matrix: 312, number of samples in metadata: 48.
 Number of samples in the matrix: 48, number of samples in metadata: 48.
 </pre></div></div>
 </div>
+</section>
 <section id="Unnormalized-data,-Sample-Distribution">
 <h3>Unnormalized data, Sample Distribution<a class="headerlink" href="#Unnormalized-data,-Sample-Distribution" title="Permalink to this heading"></a></h3>
 <div class="nbinput docutils container">

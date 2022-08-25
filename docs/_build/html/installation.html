@@ -105,6 +105,11 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
 <section id="pip">
 <h2>Pip<a class="headerlink" href="#pip" title="Permalink to this heading"></a></h2>
+<p>For any Python package, it is highly recommended to use a separate conda virtual environment, as otherwise dependancy conflicts can occur with already existing packages.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name alphastats
+conda activate alphastats
+</pre></div>
+</div>
 <p>AlphaStats can be installed in an existing Python 3.8 environment with a single <code class="docutils literal notranslate"><span class="pre">bash</span></code> command. <em>This <code class="docutils literal notranslate"><span class="pre">bash</span></code> command can also be run directly from within a Jupyter notebook by prepending it with a <code class="docutils literal notranslate"><span class="pre">!</span></code></em>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install alphastats
 </pre></div>
