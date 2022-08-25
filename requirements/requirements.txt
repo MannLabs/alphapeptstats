@@ -8,5 +8,4 @@ sklearn_pandas>=2.2.0
 pingouin>=0.5.2
 scipy>=1.8.1
 tqdm
-diffxpy
-anndata
+

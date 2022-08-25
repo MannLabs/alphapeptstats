@@ -8,63 +8,95 @@ import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
 
-import anndata
-import diffxpy.api as de
+# import anndata
+# import diffxpy.api as de
 
 
 class Statistics:
-    def perform_diff_expression_analysis(self, column, group1, group2):
-        """Perform differential expression analysis doing a Wald test. This will fit a generalized linear model.
+    # def perform_diff_expression_analysis(self, column, group1, group2):
+    #     """Perform differential expression analysis doing a Wald test. This will fit a generalized linear model.
 
-        Args:
-            column (str): column name in the metadata file with the two groups to compare
-            group1 (str): name of group to compare needs to be present in column
-            group2 (str): name of group to compare needs to be present in column
+    #     Args:
+    #         column (str): column name in the metadata file with the two groups to compare
+    #         group1 (str): name of group to compare needs to be present in column
+    #         group2 (str): name of group to compare needs to be present in column
 
-        Returns:
-            pandas.DataFrame: 
-            pandas Dataframe with foldchange, foldchange_log2 and pvalue
-            for each ProteinID/ProteinGroup between group1 and group2.
+    #     Returns:
+    #         pandas.DataFrame: 
+    #         pandas Dataframe with foldchange, foldchange_log2 and pvalue
+    #         for each ProteinID/ProteinGroup between group1 and group2.
 
-            * ``'Protein ID'``: ProteinID/ProteinGroup
-            * ``'pval'``: p-value of the ProteinID/ProteinGroup
-            * ``'qval'``: multiple testing - corrected p-value
-            * ``'log2fc'``: log2(foldchange)
-            * ``'grad'``: the gradient of the log-likelihood
-            * ``'coef_mle'``: the maximum-likelihood estimate of coefficient in liker-space
-            * ``'coef_sd'``: the standard deviation of the coefficient in liker-space
-            * ``'ll'``: the log-likelihood of the estimation
-        """
-        #  if a column has more than two groups matrix needs to be reduced to compare
-        group_samples = self.metadata[
-            (self.metadata[column] == group1) | (self.metadata[column] == group2)
-        ]["sample"].tolist()
+    #         * ``'Protein ID'``: ProteinID/ProteinGroup
+    #         * ``'pval'``: p-value of the ProteinID/ProteinGroup
+    #         * ``'qval'``: multiple testing - corrected p-value
+    #         * ``'log2fc'``: log2(foldchange)
+    #         * ``'grad'``: the gradient of the log-likelihood
+    #         * ``'coef_mle'``: the maximum-likelihood estimate of coefficient in liker-space
+    #         * ``'coef_sd'``: the standard deviation of the coefficient in liker-space
+    #         * ``'ll'``: the log-likelihood of the estimation
+    #     """
+    #     #  if a column has more than two groups matrix needs to be reduced to compare
+    #     group_samples = self.metadata[
+    #         (self.metadata[column] == group1) | (self.metadata[column] == group2)
+    #     ]["sample"].tolist()
 
-        # reduce matrix
-        reduced_matrix = self.mat.loc[group_samples]
-        # sort metadata according to matrix values
-        list_to_sort = reduced_matrix.index.to_list()
-        #  reduce metadata
-        obs_metadata = (
-            self.metadata[self.metadata["sample"].isin(group_samples)]
-            .set_index("sample")
-            .loc[list_to_sort]
-        )
-        # change comparison group to 0/1
-        obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
+    #     # reduce matrix
+    #     reduced_matrix = self.mat.loc[group_samples]
+    #     # sort metadata according to matrix values
+    #     list_to_sort = reduced_matrix.index.to_list()
+    #     #  reduce metadata
+    #     obs_metadata = (
+    #         self.metadata[self.metadata["sample"].isin(group_samples)]
+    #         .set_index("sample")
+    #         .loc[list_to_sort]
+    #     )
+    #     # change comparison group to 0/1
+    #     obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
 
-        # create a annotated dataset
-        d = anndata.AnnData(
-            X=reduced_matrix.values,
-            var=pd.DataFrame(index=self.mat.T.index.to_list()),
-            obs=obs_metadata,
-            dtype=reduced_matrix.values.dtype,
-        )
+    #     # create a annotated dataset
+    #     d = anndata.AnnData(
+    #         X=reduced_matrix.values,
+    #         var=pd.DataFrame(index=self.mat.T.index.to_list()),
+    #         obs=obs_metadata,
+    #         dtype=reduced_matrix.values.dtype,
+    #     )
 
-        formula_loc = "~ 1 +" + column
-        test = de.test.wald(data=d, formula_loc=formula_loc, factor_loc_totest=column)
-        df = test.summary().rename(columns={"gene": self.index_column})
-        return df
+    #     formula_loc = "~ 1 +" + column
+    #     test = de.test.wald(data=d, formula_loc=formula_loc, factor_loc_totest=column)
+    #     df = test.summary().rename(columns={"gene": self.index_column})
+    #     return df
+
+    # def perform_diff_expression_analysis(self, column, group1, group2):
+    #     # if a column has more than two groups matrix needs to be reduced to compare
+    #     group_samples = self.metadata[(self.metadata[column] == group1) | (self.metadata[column] == group2)][
+    #         "sample"
+    #     ].tolist()
+
+    #     # reduce matrix
+    #     reduced_matrix = self.mat.loc[group_samples]
+    #     # sort metadata according to matrix values
+    #     list_to_sort = reduced_matrix.index.to_list()
+    #     # reduce metadata
+    #     obs_metadata = self.metadata[self.metadata["sample"].isin(group_samples)].set_index("sample").loc[list_to_sort]
+    #     # change comparison group to 0/1
+    #     obs_metadata[column] = np.where(obs_metadata[column]==group1, 1, 0)
+
+    #     # create a annotated dataset
+    #     d = anndata.AnnData(
+    #         X=reduced_matrix.values,
+    #         var=pd.DataFrame(index=self.mat.T.index.to_list()),
+    #         obs=obs_metadata,
+    #         dtype = reduced_matrix.values.dtype
+    #     )
+
+    #     formula_loc = "~ 1 +"  + column
+    #     test = de.test.wald(
+    #         data=d,
+    #         formula_loc=formula_loc,
+    #         factor_loc_totest=column
+    #     )
+    #     df = test.summary().rename(columns={"gene": self.index_column})
+    #     return df
 
     def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
         mat_transpose += 0.00001
@@ -111,7 +143,14 @@ class Statistics:
         if len(group1_samples) == 1 or len(group2_samples) == 1:
             raise NotImplementedError("Sample number too low to calculate t-test")
 
+        # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.mat.transpose()
+        # add small value so no division by zero
+        # https://www.researchgate.net/post/can-anyone-tell-me-how-to-Calculate-fold-change-in-RNA-seq-data-if-we-have-change-fromzero-tosomething-and-something-to-zero-in
+        # https://github.com/swiri021/Difference_test_with_permutation
+        # Theis Lab: https://github.com/theislab/diffxpy
+        # https://github.com/staslist/A-Lister
+
         fc = self._calculate_foldchange(
             mat_transpose, group1_samples=group1_samples, group2_samples=group2_samples
         )
