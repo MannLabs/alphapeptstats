@@ -28,7 +28,7 @@ class AlphaPeptLoader(BaseLoader):
         """
 
         if file.endswith(".hdf"):
-            self.load_hdf_protein_table(file=file)
+            self._load_hdf_protein_table(file=file)
         else:
             self.rawdata = pd.read_csv(file, sep=sep)
 
@@ -38,18 +38,18 @@ class AlphaPeptLoader(BaseLoader):
         self.confidence_column = None
         self.software = "AlphaPept"
         # add contamination column "Reverse"
-        self.add_contamination_reverse_column()
-        self.add_contamination_column()
+        self._add_contamination_reverse_column()
+        self._add_contamination_column()
         #  make ProteinGroup column
         self.rawdata["ProteinGroup"] = self.rawdata[self.index_column].map(
-            self.standardize_protein_group_column
+            self._standardize_protein_group_column
         )
         self.index_column = "ProteinGroup"
 
-    def load_hdf_protein_table(self, file):
+    def _load_hdf_protein_table(self, file):
         self.rawdata = pd.read_hdf(file, "protein_table")
 
-    def add_contamination_reverse_column(self):
+    def _add_contamination_reverse_column(self):
         """adds column 'Reverse' to the rawdata for filtering
         """
         self.rawdata["Reverse"] = np.where(
@@ -61,7 +61,7 @@ class AlphaPeptLoader(BaseLoader):
             "These proteins should be filtered with `DataSet.preprocess(remove_contaminations=True)` later."
         )
 
-    def standardize_protein_group_column(self, entry):
+    def _standardize_protein_group_column(self, entry):
         #  make column with ProteinGroup to make comparison between softwares possible
         #  'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN', -> P0DMV9;P0DMV8
 

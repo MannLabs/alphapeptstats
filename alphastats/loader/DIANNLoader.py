@@ -26,10 +26,10 @@ class DIANNLoader(BaseLoader):
 
         super().__init__(file, intensity_column, index_column, sep)
         self.software = "DIA-NN"
-        self.add_tag_to_sample_columns()
-        self.add_contamination_column()
+        self._add_tag_to_sample_columns()
+        self._add_contamination_column()
 
-    def add_tag_to_sample_columns(self):
+    def _add_tag_to_sample_columns(self):
         # when creating matrix sample columns wont be found when it is only specified as [experiment]
         # TODO this is very fragile as changes in column names can break this
         no_sample_column = [
@@ -43,7 +43,7 @@ class DIANNLoader(BaseLoader):
             "Protein.Names",
             "Genes",
             "First.Protein.Description",
-            "contamination_library"
+            "contamination_library",
         ]
         self.rawdata.columns = [
             str(col) + "_Intensity" if col not in no_sample_column else str(col)
