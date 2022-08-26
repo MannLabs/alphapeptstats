@@ -14,7 +14,7 @@ class MaxQuantLoader(BaseLoader):
         index_column="Protein IDs",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
-        evidence_file = None,
+        evidence_file=None,
         sep="\t",
         **kwargs
     ):
@@ -33,15 +33,15 @@ class MaxQuantLoader(BaseLoader):
         self.filter_columns = filter_columns + self.filter_columns
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
-        self.set_filter_columns_to_true_false()
+        self._set_filter_columns_to_true_false()
         if evidence_file is not None:
-            self.load_evidence(evidence_file=evidence_file)
+            self._load_evidence(evidence_file=evidence_file)
 
-    def load_evidence(self, evidence_file, sep = "\t"):
+    def _load_evidence(self, evidence_file, sep="\t"):
         self.evidence_file = pd.read_csv(evidence_file, sep=sep, low_memory=False)
         # check if names match protien group file
 
-    def set_filter_columns_to_true_false(self):
+    def _set_filter_columns_to_true_false(self):
         """replaces the '+' with True, else False
         """
         if len(self.filter_columns) > 0:

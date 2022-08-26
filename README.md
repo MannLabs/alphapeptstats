@@ -3,7 +3,7 @@
 
 # AlphaStats
 
-An open-source Python package of the AlphaStats ecosystem from the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann).
+An open-source Python package of the AlphaStats ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
 The full documentation can be found [here](mannlabs.github.io/alphastats/).
 
@@ -18,7 +18,7 @@ The full documentation can be found [here](mannlabs.github.io/alphastats/).
 
 ---
 ## About
-An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann).
+An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
 
 ---
 
@@ -45,14 +45,9 @@ In case of issues, check out the following:
 * [Discussions](https://github.com/MannLabs/alphastats/discussions): Check if your problem or feature requests has been discussed before.
 
 ---
-## Citations
-
-There are currently no plans to draft a manuscript.
-
----
 ## License
 
-AlphaStats was developed by the [Mann Labs at the Max Planck Institute of Biochemistry](https://www.biochem.mpg.de/mann) and is freely available with an [Apache License](LICENSE.txt). External Python packages (available in the [requirements](requirements) folder) have their own licenses, which can be consulted on their respective websites.
+AlphaStats was developed by the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/) and is freely available with an [Apache License](LICENSE.txt). External Python packages (available in the [requirements](requirements) folder) have their own licenses, which can be consulted on their respective websites.
 
 ---
 ## How to contribute

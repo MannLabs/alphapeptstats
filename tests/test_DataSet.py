@@ -15,7 +15,6 @@ import logging
 import numpy as np
 import pandas as pd
 import plotly
-import dash_bio
 from contextlib import contextmanager
 
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
@@ -49,26 +48,25 @@ class BaseTestDataSet:
 
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
-                self.obj.check_loader(loader=self.loader)
+                self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
             with self.assertRaises(ValueError):
                 self.loader.index_column = 100
-                self.obj.check_loader(loader=self.loader)
+                self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_empty_df(self):
             # empty dataframe
             with self.assertRaises(ValueError):
                 self.loader.rawdata = pd.DataFrame()
-                self.obj.check_loader(loader=self.loader)
+                self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_loader(self):
             #  invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
-                self.obj.check_loader(loader=df)
-        
+                self.obj._check_loader(loader=df)
 
         def test_load_metadata(self):
             #  is dataframe loaded
@@ -107,7 +105,7 @@ class BaseTestDataSet:
                 "C": [66, 72, np.inf, 68, -np.inf],
             }
             self.obj.mat = pd.DataFrame(data)
-            self.obj.check_matrix_values()
+            self.obj._check_matrix_values()
             mock.assert_called_once()
 
         @patch("logging.Logger.info")
@@ -124,13 +122,13 @@ class BaseTestDataSet:
             # is warning raised when filter columns are none
             # is info printed if contamination columns get removed
             # is the new matrix smaller than the older matrix
-            self.assertEqual(
-                self.obj.contamination_filter, "Contaminations have not been removed."
+            self.assertFalse(
+                self.obj.preprocessing_info.get("Contaminations have been removed")
             )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
-            self.assertNotEqual(
-                self.obj.contamination_filter, "Contaminations have not been removed."
+            self.assertTrue(
+                self.obj.preprocessing_info.get("Contaminations have been removed")
             )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
@@ -165,12 +163,6 @@ class BaseTestDataSet:
                     self.obj.calculate_ttest_fc(
                         column=self.comparison_column, group1=group1, group2=group2
                     )
-
-        @patch.object(DataSet, "preprocess")
-        def test_plot_pca_normalization(self, mock):
-            # check if preprocess gets called when data is not normalized/standardized
-            self.obj.plot_pca()
-            mock.assert_called_once()
 
         def test_imputation_mean(self):
             self.obj.preprocess(imputation="mean")
@@ -336,15 +328,23 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             correlation_calculations_expected,
         )
 
-    def test_plot_volcano_figure_comparison(self):
-        #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
-        pass
+    def test_plot_clustermap(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_clustermap()
+        first_row = plot.data2d.iloc[0].to_list()
+        expected = [487618.5371077078, 1293013.103298046]
+        self.assertEqual(first_row, expected)
 
-    def test_plot_sampledistribution_figure_comparison(self):
-        pass
+    def test_plot_clustermap_with_label_bar(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_clustermap(label_bar=[self.comparison_column])
+        first_row = plot.data2d.iloc[0].to_list()
+        expected = [487618.5371077078, 1293013.103298046]
+        self.assertEqual(first_row, expected)
 
-    def test_plot_correlation_matrix_figure_comparison(self):
-        pass
+    # def test_plot_volcano_figure_comparison(self):
+    #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
+    # pass
 
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
@@ -414,6 +414,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
+
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
@@ -463,17 +464,10 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         with self.assertRaises(ValueError):
             self.obj.plot_intensity(id="A0A075B6H7", group="grouping1", method="wrong")
 
-    def test_plot_heatmap(self):
-        self.obj.preprocess(imputation="mean")
-        plot = self.obj.plot_heatmap()
-        plot_dict = plot.to_plotly_json()
-        #  check number of column and row clusters
-        self.assertEqual(len(plot_dict.get("data")), 26)
-
-    def test_plot_heatmap_noimputation(self):
+    def test_plot_clustermap_noimputation(self):
         # raises error when data is not imputed
         with self.assertRaises(ValueError):
-            self.obj.plot_heatmap()
+            self.obj.plot_clustermap()
 
     def test_plot_dendogram(self):
         self.obj.preprocess(imputation="mean")
@@ -491,6 +485,32 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_dendogram_not_imputed(self):
         with self.assertRaises(ValueError):
             self.obj.plot_dendogram()
+
+    def test_volcano_plot_anova(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_volcano(
+            column="grouping1", group1="Healthy", group2="Disease", method="anova"
+        )
+        expected_y_value = 0.09437708068494619
+        y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
+        self.assertAlmostEqual(y_value, expected_y_value)
+
+    def test_volcano_plot_ttest(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_volcano(
+            column="grouping1", group1="Healthy", group2="Disease", method="ttest"
+        )
+        y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
+        self.assertAlmostEqual(round(y_value, 1), 0.1)
+
+    def test_volcano_plot_wrongmethod(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_volcano(
+                column="grouping1",
+                group1="Healthy",
+                group2="Disease",
+                method="wrongmethod",
+            )
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

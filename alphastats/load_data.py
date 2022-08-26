@@ -15,5 +15,7 @@ def load_data(file, type, **kwargs):
     elif type == "fragpipe":
         loader = FragPipeLoader(file=file, **kwargs)
     else:
-        raise ValueError(f"type: {type} is invalid. Choose from maxquant, alphapept, diann, fragpipe")
+        raise ValueError(
+            f"type: {type} is invalid. Choose from maxquant, alphapept, diann, fragpipe"
+        )
     return loader

@@ -4,7 +4,6 @@ from typing import Type
 import logging
 
 
-
 def ignore_warning(warning: Type[Warning]):
     """
     Ignore a given warning occurring during method execution.
@@ -27,6 +26,7 @@ def ignore_warning(warning: Type[Warning]):
         return wrapper
 
     return inner
+
 
 class LoaderError(Exception):
     """Loader Exception that will be logged."""
