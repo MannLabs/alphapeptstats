@@ -12,6 +12,9 @@ jobs:
           pip install myst_parser
           pip install nbsphinx
           pip install pandoc 
+     - name: Install requirements
+        run: |
+          pip install -r docs/requirements_docs.txt
       - name: Sphinx build
         run: |
           sphinx-build docs _build

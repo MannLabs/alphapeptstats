@@ -1,0 +1,8 @@
+sphinx>=3.3
+sphinx-autodoc-typehints
+sphinx-argparse
+-e .
+sphinx sphinx_rtd_theme
+myst_parser
+nbsphinx
+pandoc 
