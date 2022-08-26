@@ -16,7 +16,7 @@
 
 
 # -- Project information -----------------------------------------------------
-
+import alphastats
 project = 'AlphaStats'
 copyright = '2022, Elena Krismer'
 author = 'Elena Krismer'

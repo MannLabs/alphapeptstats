@@ -11,6 +11,7 @@ jobs:
           pip install sphinx sphinx_rtd_theme
           pip install myst_parser
           pip install nbsphinx
+          pip install pandoc 
       - name: Sphinx build
         run: |
           sphinx-build docs _build
