@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -21,7 +21,7 @@ copyright = '2022, Elena Krismer'
 author = 'Elena Krismer'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.5'
+release = '0.0.6'
 
 
 # -- General configuration ---------------------------------------------------
