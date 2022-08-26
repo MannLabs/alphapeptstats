@@ -10,7 +10,7 @@ AlphaPeptLoader
 
 DIANNLoader
 ~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: loader.DIANNLoader
+.. automodule:: alphastats.DIANNLoader
     :members:
     :undoc-members:
     :show-inheritance:
