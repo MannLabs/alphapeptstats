@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2 
-     - name: Install requirements
+      - name: Install requirements
         run: |
           pip install -r docs/requirements_docs.txt
       - name: Sphinx build
