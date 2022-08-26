@@ -30,16 +30,16 @@ A description on how do customize your plots can be found `here <https://maegul.
 
 **Plot Distance between samples**
 
-* Plot correlation matrix :py:meth:`~alphastats.DataSet_Plot.Plot.plot_correlation_matrix`
-* Plot Dendogram :py:meth:`~alphastats.DataSet_Plot.Plot.plot_dendogram`
-* Plot Clustermap :py:meth:`~alphastats.DataSet_Plot.Plot.plot_clustermap`
+* Plot correlation matrix :py:meth:`~plot_correlation_matrix`
+* Plot Dendogram :py:meth:`~Plot.plot_dendogram`
+* Plot Clustermap :py:meth:`alphastats.DataSet_Plot.Plot.plot_clustermap`
 
 **Volcano Plot**
 
 To estimate the differential expression between two groups, the function plot_volcano() either performs a t-test, an ANOVA
 or a Wald-test using the package `diffxpy <https://github.com/theislab/diffxpy>`_ . 
 
-* Volcano Plot :py:meth:`~alphastats.DataSet_Plot.Plot.plot_volcano`
+* Volcano Plot :py:meth:`~DataSet.plot_volcano`
 
 The results of the statistical analysis for the volcano plot will be saved within the plot and can be accessed:
 
