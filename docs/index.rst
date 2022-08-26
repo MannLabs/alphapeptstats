@@ -23,9 +23,10 @@ The tool allows a structured workflow like importing data, preprocessing data an
    import_data.md
    data_preprocessing.md
    functions.rst
-   workflow_mq.ipynb
+   workflow_example.rst
    API <api_reference/index>
 
+..
 
 
 
