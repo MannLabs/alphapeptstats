@@ -25,7 +25,7 @@ A description on how do customize your plots can be found `here <https://maegul.
 
 **Dimensionality reduction plots:**
 
-* Principal Component Analysis (PCA): :py:meth:`~alphastats.DataSet_Plot.Plot.plot_pca`
+* Principal Component Analysis (PCA): :py:meth:`~DataSet_Plot.Plot.plot_pca`
 * t-SNE: :py:meth:`~alphastats.DataSet_Plot.Plot.plot_tsne`
 
 **Plot Distance between samples**
