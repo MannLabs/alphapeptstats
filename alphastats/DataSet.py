@@ -18,6 +18,7 @@ from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
+import streamlit as st
 
 
 # remove warning from openpyxl
@@ -29,13 +30,14 @@ class DataSet(Preprocess, Statistics, Plot):
     """Analysis Object
     """
 
-    def __init__(self, loader, metadata_path: str = None, sample_column=None):
+    def __init__(self, loader, metadata_path=None, sample_column=None):
         """Create DataSet
 
         Args:
             loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
             metadata_path (str, optional): path to metadata file. Defaults to None.
             sample_column (_type_, optional): column in metadata file indicating the sample IDs. Defaults to None.
+
         """
         self._check_loader(loader=loader)
         #  load data from loader object
@@ -60,6 +62,8 @@ class DataSet(Preprocess, Statistics, Plot):
 
         print("DataSet has been created.")
         self.overview()
+
+
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader

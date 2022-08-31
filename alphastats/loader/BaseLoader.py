@@ -4,6 +4,7 @@ import os
 import numpy as np
 from iteration_utilities import duplicates
 import pkg_resources
+ 
 
 
 class BaseLoader:
@@ -18,8 +19,11 @@ class BaseLoader:
             sep (str, optional): file separation. Defaults to "\t".
         """
 
-        self._check_if_file_exists(file=file)
-        self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
+       # self._check_if_file_exists(file=file)
+        if isinstance(file, pd.DataFrame):
+            self.rawdata = file
+        else:
+            self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.index_column = index_column
         self.filter_columns = []
@@ -58,7 +62,6 @@ class BaseLoader:
     def _check_if_file_exists(self, file):
         if os.path.isfile(file) == False:
             raise OSError(f"{file} does not exist.")
-            # raise OSError
 
     def _add_contamination_column(self):
         #  load df with potential contamination from fasta file
