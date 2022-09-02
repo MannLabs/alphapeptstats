@@ -372,7 +372,7 @@ class Plot:
             label_bar (list, optional): List of columns/variables names described in the metadata. Will be plotted as bar above the heatmap to see wheteher groups are clustering together. Defaults to None.
 
         Returns:
-            _type_: _description_
+            ClusterGrid: Clustermap
         """
         if label_bar is not None:
             label_bar = self._clustermap_create_label_bar(label_bar)
