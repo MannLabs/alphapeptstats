@@ -11,6 +11,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.DataSet import DataSet
 import logging
 from alphastats.AlphaStats import sidebar_info
+from alphastats.ui_utils.utils import *
 
 
 software_options = {
@@ -73,21 +74,7 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column):
         )
     return loader
 
-def read_uploaded_file_into_df(file):
-    filename = file.name
-    if filename.endswith(".xlsx"):
-        df = pd.read_excel(file)
-    elif filename.endswith(".txt") or filename.endswith(".tsv"):
-        df = pd.read_csv(file, delimiter="\t")
-    elif filename.endswith(".csv"):
-        df = pd.read_csv(file)
-    else:
-        df = None
-        logging.warning(
-                "WARNING: File could not be read. \nFile has to be a .xslx, .tsv, .csv or .txt file"
-            )
-        return
-    return df
+
 
 def select_sample_column_metadata(df):
     st.write(

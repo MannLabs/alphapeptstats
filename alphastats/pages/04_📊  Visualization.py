@@ -1,6 +1,8 @@
 import streamlit as st
 from alphastats.AlphaStats import sidebar_info
-
+from alphastats.ui_utils.utils import (
+    get_unique_values_from_column
+)
 
 def load_plotting_options():
     plotting_options = {
@@ -29,11 +31,6 @@ def load_plotting_options():
                     "label": "Color according to",
                 }},
                 "plotting_function": st.session_state.dataset.plot_sampledistribution,
-            },
-            "t-SNE": {
-                "settings":{ 
-
-                }
             },
             "PCA": {
                 "settings": {
@@ -64,9 +61,7 @@ def load_plotting_options():
         }
     return plotting_options
 
-def get_unique_values_from_column(column):
-    unique_values = st.session_state.dataset.metadata[column].unique().to_list()
-    return unique_values
+
 
 def dataset_info_as_markdown():
     
@@ -77,6 +72,7 @@ def dataset_info_as_markdown():
     markdown_string = ""
     for key, values in preprocessing_dict.items():
         markdown_string += "**" + key + ":** " + str(values) + " \n\n "
+    
     return markdown_string
 
 
@@ -178,6 +174,10 @@ st.sidebar.markdown(dataset_info_as_markdown())
 sidebar_info()
 
 if "dataset" in st.session_state:
+    if "plot_list" in st.session_state:
+        for p in st.session_state.plot_list:
+            display_plotly_figure(p)
+
     if "n_rows" not in st.session_state:
          st.session_state.n_rows = 1
     add = st.button(label="add")
