@@ -33,10 +33,8 @@ class Preprocess:
             logging.info("No columns to filter.")
             return
 
-        if self.preprocessing_info.get("Contaminations have been removed")== True:
-            logging.info(
-                "Contaminatons have already been filtered."
-            )
+        if self.preprocessing_info.get("Contaminations have been removed") == True:
+            logging.info("Contaminatons have already been filtered.")
             return
 
         #  print column names with contamination

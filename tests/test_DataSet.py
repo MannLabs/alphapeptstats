@@ -571,6 +571,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 method="wrongmethod",
             )
 
+
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(

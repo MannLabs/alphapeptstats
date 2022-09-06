@@ -4,7 +4,6 @@ import os
 import numpy as np
 from iteration_utilities import duplicates
 import pkg_resources
- 
 
 
 class BaseLoader:
@@ -19,7 +18,7 @@ class BaseLoader:
             sep (str, optional): file separation. Defaults to "\t".
         """
 
-       # self._check_if_file_exists(file=file)
+        # self._check_if_file_exists(file=file)
         if isinstance(file, pd.DataFrame):
             self.rawdata = file
         else:
