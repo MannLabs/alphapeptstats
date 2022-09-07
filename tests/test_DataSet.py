@@ -214,6 +214,20 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(self.obj.metadata.shape, (2, 2))
         mock.assert_called_once()
 
+            
+    def test_load_metadata_df(self):
+        if self.metadata_path.endswith(".csv"):
+            df = pd.read_csv(self.metadata_path)
+        else:
+            df = pd.read_excel(self.metadata_path)
+        obj = DataSet(
+                loader=self.loader,
+                metadata_path=df,
+                sample_column="sample",
+            )
+        self.assertIsInstance(obj.metadata, pd.DataFrame)
+        self.assertFalse(obj.metadata.empty)
+
     def test_preprocess_remove_samples(self):
         sample_list = ["A"]
         self.obj.preprocess(remove_samples=sample_list)
