@@ -2,8 +2,8 @@ import streamlit as st
 
 
 def sidebar_info():
-    st.sidebar.info("[AlphaStats on GitHub](https://github.com/MannLabs/alphastats)")
     st.sidebar.markdown(dataset_info_as_markdown())
+    st.sidebar.info("[AlphaStats on GitHub](https://github.com/MannLabs/alphastats)")
     st.sidebar.markdown(
         """ <head><style type ='text/css' > 
     .footer{ position: fixed;     
