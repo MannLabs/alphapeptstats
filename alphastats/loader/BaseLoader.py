@@ -25,7 +25,7 @@ class BaseLoader:
         self.filter_columns = []
         self.confidence_column = None
         self.software = None
-        self.ptm_df = None
+        self.evidence_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
 

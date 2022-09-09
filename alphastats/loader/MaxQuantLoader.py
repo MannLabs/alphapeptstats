@@ -40,14 +40,14 @@ class MaxQuantLoader(BaseLoader):
             self._load_evidence(evidence_file=evidence_file)
 
     def _load_evidence(self, evidence_file, sep="\t"):
-        self.evidence_file = pd.read_csv(evidence_file, sep=sep, low_memory=False)
+        self.evidence_df = pd.read_csv(evidence_file, sep=sep, low_memory=False)
 
-        evi_sample_names = self.evidence_file["Raw file"].to_list()
+        evi_sample_names = self.evidence_df["Raw file"].to_list()
         pg_sample_names = self._extract_sample_names()
 
         intersection_sample_names = list(set(evi_sample_names) & set(pg_sample_names))
         if len(intersection_sample_names) == 0:
-            raise logging.warning(
+            raise ValueError(
                 "Sample names in proteinGroups.txt do not match"
                 "sample names in evidence.txt file"
             )
