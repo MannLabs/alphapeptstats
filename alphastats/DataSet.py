@@ -50,7 +50,7 @@ class DataSet(Preprocess, Statistics, Plot):
         self.create_matrix()
         self._check_matrix_values()
         self.metadata = None
-        if metadata_path:
+        if metadata_path is not None:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
 
         # save preprocessing settings
@@ -115,8 +115,10 @@ class DataSet(Preprocess, Statistics, Plot):
             file_path (str): path to metadata file
             sample_column (str): column name with sample IDs
         """
+        if isinstance(file_path, pd.DataFrame):
+            df = file_path
         #  loading file needs to be more beautiful
-        if file_path.endswith(".xlsx"):
+        elif file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
             # find robust way to detect file format
             # else give file separation as variable
