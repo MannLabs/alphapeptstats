@@ -7,8 +7,9 @@ import logging
 import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
-#import anndata
-#import diffxpy.api as de
+
+# import anndata
+# import diffxpy.api as de
 
 
 class Statistics:
@@ -26,8 +27,8 @@ class Statistics:
     #     obs_metadata = self.metadata[self.metadata["sample"].isin(group_samples)].set_index("sample").loc[list_to_sort]
     #     # change comparison group to 0/1
     #     obs_metadata[column] = np.where(obs_metadata[column]==group1, 1, 0)
-        
-    #     # create a annotated dataset 
+
+    #     # create a annotated dataset
     #     d = anndata.AnnData(
     #         X=reduced_matrix.values,
     #         var=pd.DataFrame(index=self.mat.T.index.to_list()),
@@ -45,17 +46,18 @@ class Statistics:
     #     return df
 
     def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
-         mat_transpose += 0.00001
-         fc = (
-             mat_transpose[group1_samples].T.mean().values
-             / mat_transpose[group2_samples].T.mean().values
-         )
-         df = pd.DataFrame({"fc": fc, "log2fc": np.log2(fc)},  
-             index=mat_transpose.index, 
-             columns=["fc","log2fc"])
-         return df
+        mat_transpose += 0.00001
+        fc = (
+            mat_transpose[group1_samples].T.mean().values
+            / mat_transpose[group2_samples].T.mean().values
+        )
+        df = pd.DataFrame(
+            {"fc": fc, "log2fc": np.log2(fc)},
+            index=mat_transpose.index,
+            columns=["fc", "log2fc"],
+        )
+        return df
 
-    
     @ignore_warning(RuntimeWarning)
     def calculate_ttest_fc(self, column, group1, group2):
         """Calculate t-test and fold change between two groups
@@ -96,7 +98,9 @@ class Statistics:
         # Theis Lab: https://github.com/theislab/diffxpy
         # https://github.com/staslist/A-Lister
 
-        fc = self._calculate_foldchange(mat_transpose, group1_samples=group1_samples, group2_samples=group2_samples)
+        fc = self._calculate_foldchange(
+            mat_transpose, group1_samples=group1_samples, group2_samples=group2_samples
+        )
 
         p_values = mat_transpose.apply(
             lambda row: scipy.stats.ttest_ind(
@@ -145,12 +149,14 @@ class Statistics:
 
         try:
             tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
-            tukey_df["comparison"] = tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
+            tukey_df["comparison"] = (
+                tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
+            )
             tukey_df[self.index_column] = protein_id
-        
+
         except ValueError:
-            tukey_df =  pd.DataFrame()
-        
+            tukey_df = pd.DataFrame()
+
         return tukey_df
 
     @ignore_warning(RuntimeWarning)
