@@ -18,7 +18,7 @@ class BaseLoader:
             sep (str, optional): file separation. Defaults to "\t".
         """
 
-        self.check_if_file_exists(file=file)
+        self._check_if_file_exists(file=file)
         self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.index_column = index_column
@@ -26,10 +26,10 @@ class BaseLoader:
         self.confidence_column = None
         self.software = None
         self.ptm_df = None
-        self.add_contamination_column()
-        self.check_if_columns_are_present()
+        self._add_contamination_column()
+        self._check_if_columns_are_present()
 
-    def check_if_columns_are_present(self):
+    def _check_if_columns_are_present(self):
         """check if given columns present in rawdata
         """
         given_columns = list(filter(None, [self.index_column, self.confidence_column]))
@@ -44,7 +44,7 @@ class BaseLoader:
                 "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
 
-    def check_if_indexcolumn_is_unique(self):
+    def _check_if_indexcolumn_is_unique(self):
         # TODO make own duplicates functions to have less dependencies
         duplicated_values = list(duplicates(self.rawdata[self.index_column].to_list()))
         if len(duplicated_values) > 0:
@@ -54,12 +54,12 @@ class BaseLoader:
                 + ", ".join(duplicated_values)
             )
 
-    def check_if_file_exists(self, file):
+    def _check_if_file_exists(self, file):
         if os.path.isfile(file) == False:
             raise OSError(f"{file} does not exist.")
             # raise OSError
 
-    def add_contamination_column(self):
+    def _add_contamination_column(self):
         #  load df with potential contamination from fasta file
         contaminations_path = pkg_resources.resource_filename(
             __name__, "../data/contaminations.txt"

@@ -3,12 +3,16 @@ import sklearn
 import logging
 import plotly.express as px
 import plotly
-import dash_bio
 import scipy
 import sklearn.manifold
 from alphastats.utils import ignore_warning, check_for_missing_values
 import plotly.graph_objects as go
 import numpy as np
+import plotly.figure_factory as ff
+import seaborn as sns
+import pandas as pd
+from scipy.spatial.distance import pdist, squareform
+import random
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -28,6 +32,18 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 )
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
+
+
+class plotly_object(plotly.graph_objs._figure.Figure):
+    plotting_data = None
+    preprocessing = None
+    method = None
+
+
+class seaborn_object(plotly.graph_objs._figure.Figure):
+    plotting_data = None
+    preprocessing = None
+    method = None
 
 
 class Plot:
@@ -70,18 +86,19 @@ class Plot:
             )
         return fig
 
+    def _update_figure_attributes(self, figure_object, plotting_data, method=None):
+        setattr(figure_object, "plotting_data", plotting_data)
+        setattr(figure_object, "preprocessing", self.preprocessing_info)
+        setattr(figure_object, "method", method)
+        return figure_object
+
     @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
-        if self.normalization == "Data is not normalized.":
-            logging.info(
-                "Data has not been normalized. Data will be normalized using zscore-Normalization"
-            )
-            self.preprocess(normalization="zscore")
-
         # subset matrix so it matches with metadata
         if group:
             mat = self._subset()
+            self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
         else:
             mat = self.mat
@@ -109,6 +126,11 @@ class Plot:
             return
 
         fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
+        #  save plotting data in figure object
+        fig = plotly_object(fig)
+        fig = self._update_figure_attributes(
+            figure_object=fig, plotting_data=pd.DataFrame(components), method=method
+        )
 
         # draw circles around plotted groups
         if circle is True and group is not None:
@@ -241,20 +263,26 @@ class Plot:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
             group2 (str): name of group to compare needs to be present in column
-            method: "anova", "glm", "ttest"
+            method: "anova", "wald", "ttest"
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
-        # if method == "glm":
-        #   result = self.perform_diff_expression_analysis(column, group1, group2)
-        #    pvalue_column = "qval"
 
-        if method == "ttest":
+        if method == "wald":
+            print(
+                "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
+            )
+            result = self.perform_diff_expression_analysis(column, group1, group2)
+            pvalue_column = "qval"
+
+        elif method == "ttest":
+            print("Calculating t-test...")
             result = self.calculate_ttest_fc(column, group1, group2)
             pvalue_column = "pvalue"
 
         elif method == "anova":
+            print("Calculating ANOVA with follow-up tukey test...")
             result = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 "sample"
@@ -269,7 +297,7 @@ class Plot:
 
             #  check how column is ordered
             pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
-            if pvalue_column not in fc.columns.to_list():
+            if pvalue_column not in fc.columns:
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
             result = result.reset_index().merge(fc.reset_index(), on=self.index_column)
@@ -277,7 +305,7 @@ class Plot:
         else:
             raise ValueError(
                 f"{method} is not available."
-                + "Please select from 'ttest' or 'anova' for anova with follow up tukey."
+                + "Please select from 'ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test using."
             )
 
         result = result[(result["log2fc"] < 10) & (result["log2fc"] > -10)]
@@ -300,40 +328,57 @@ class Plot:
             hover_data=[self.index_column],
         )
 
+        #  save plotting data in figure object
+        volcano_plot = plotly_object(volcano_plot)
+        volcano_plot = self._update_figure_attributes(
+            figure_object=volcano_plot, plotting_data=result, method=method
+        )
         # update coloring
         color_dict = {"non-significant": "#404040", "up": "#B65EAF", "down": "#009599"}
         volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
         volcano_plot.update_layout(showlegend=False)
         return volcano_plot
 
+    def _clustermap_get_colors_for_bar(self, columnname, color) -> pd.Series:
+        s = self.metadata[columnname]
+        su = s.unique()
+        colors = sns.light_palette(color, len(su))
+        lut = dict(zip(su, colors))
+        return s.map(lut)
+
+    def _clustermap_create_label_bar(self, list_of_labels):
+        label_colors = []
+        colorway = [
+            "#009599",
+            "#005358",
+            "#772173",
+            "#B65EAF",
+            "#A73A00",
+            "#6490C1",
+            "#FF894F",
+        ]
+        for label in list_of_labels:
+            color_label = self._clustermap_get_colors_for_bar(
+                columnname=label, color=random.choice(colorway)
+            )
+            label_colors.append(color_label)
+        return label_colors
+
     @check_for_missing_values
-    def plot_heatmap(self):
-        """Plot Heatmap with samples as columns and Proteins as rows
+    def plot_clustermap(self, label_bar=None):
+        """Plot clustermap with samples as columns and Proteins as rows
+
+        Args:
+            label_bar (list, optional): List of columns/variables names described in the metadata. Will be plotted as bar above the heatmap to see wheteher groups are clustering together. Defaults to None.
 
         Returns:
-            _dash_bio.Clustergram: Dash Bio Clustergram object
+            ClusterGrid: Clustermap
         """
-        df = self.mat.transpose()
-        columns = list(df.columns.values)
-        rows = list(df.index)
+        if label_bar is not None:
+            label_bar = self._clustermap_create_label_bar(label_bar)
 
-        plot = dash_bio.Clustergram(
-            data=df.loc[rows].values,
-            row_labels=rows,
-            column_labels=columns,
-            color_threshold={"row": 250, "col": 700},
-            height=800,
-            width=1000,
-            color_map=[
-                [0.0, "#D0ECE7"],
-                [0.25, "#5AA28A"],
-                [0.5, "#6C79BB"],
-                [0.75, "#8B6CBB"],
-                [1.0, "#5B2C6F"],
-            ],
-            line_width=2,
-        )
-        return plot
+        fig = sns.clustermap(self.mat.transpose(), col_colors=label_bar)
+        return fig
 
     @check_for_missing_values
     def plot_dendogram(
