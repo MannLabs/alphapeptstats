@@ -5,7 +5,6 @@ import logging
 import http.client as httplib
 
 
-
 def ignore_warning(warning: Type[Warning]):
     """
     Ignore a given warning occurring during method execution.
@@ -28,6 +27,7 @@ def ignore_warning(warning: Type[Warning]):
         return wrapper
 
     return inner
+
 
 class LoaderError(Exception):
     """Loader Exception that will be logged."""
@@ -62,4 +62,11 @@ def check_internetconnection():
         connection.close()
 
 
+def check_if_df_empty(f):
+    # decorator to check for missing values
+    def inner(*args, **kwargs):
+        if args[0].empty is True:
+            raise ValueError("DataFrame is empty. No significant GO-terms found.")
+        return f(*args, **kwargs)
 
+    return inner
