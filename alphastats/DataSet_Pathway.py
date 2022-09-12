@@ -292,7 +292,7 @@ class Enrichment:
 
     def go_genome(self, tax_id=9606, fg_sample=None, protein_list=None):
         """
-        Gene Ontology Enrichement Analysis using the a Background from UniProt Reference Proteomes.
+        Gene Ontology Enrichement Analysis using a Background from UniProt Reference Proteomes.
         Using the API connection from a GO tool: https://agotool.org
 
         Args:

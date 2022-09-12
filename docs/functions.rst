@@ -31,7 +31,7 @@ A description on how do customize your plots can be found `here <https://maegul.
 **Plot Distance between samples**
 
 * Plot correlation matrix :py:meth:`~plot_correlation_matrix`
-* Plot Dendogram :py:meth:`~Plot.plot_dendogram`
+* Plot Dendrogram :py:meth:`~Plot.plot_dendogram`
 * Plot Clustermap :py:meth:`alphastats.DataSet_Plot.Plot.plot_clustermap`
 
 **Volcano Plot**
@@ -53,7 +53,7 @@ The results of the statistical analysis for the volcano plot will be saved withi
 The plots will return a plotly object, thus you can use write_image() from plotly.
 More details on how to save plotly figures you can find `here <https://plotly.com/python/static-image-export/>`_.
 
-.. code-block:: 
+.. code-block::python
     
     plot = DataSet.plot_volcano(column = "disease", group1 = "healthy", group2 = "cancer")
     plot.write_image("images/volcano_plot.svg")
@@ -67,6 +67,23 @@ Statistical Analysis
 * ANCOVA  :py:meth:`~alphastats.DataSet_Statistics.Statistics.ancova`
 * Tukey - test :py:meth:`~alphastats.DataSet_Statistics.Statistics.calculate_tukey`
 * T-test :py:meth:`~alphastats.DataSet_Statistics.Statistics.calculate_ttest_fc`
+
+
+GO Analysis
+----------------------
+The GO Analysis uses the API from `aGOtool <https://agotool.org/>`_.
+
+* Characterize foreground without performing a statistical test: :py:meth:`~alphastats.DataSet_Pathway.Enrichment.go_characterize_foreground`
+* Gene Ontology Enrichment Analysis with abundance correction: :py:meth:`~alphastats.DataSet_Pathway.Enrichment.go_abundance_correction`
+* Gene Ontology Enrichment Analysis without abundance correction: :py:meth:`~alphastats.DataSet_Pathway.Enrichment.go_compare_samples`
+* Gene Ontology Enrichement Analysis using a Background from UniProt Reference Proteomes: :py:meth:`~alphastats.DataSet_Pathway.Enrichment.go_genome`
+
+**Visualization of GO Analysis results**
+
+All GO-analysis functions will return a DataFrame with the results. 
+
+* Plot Scatterplot with -log10(p-value) on x-axis and effect size on y-axis. `df.plot_scatter()`
+* Plot p-values as Barplot `df.plot_bar`
 
 
 Misc 
