@@ -342,9 +342,6 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
 
-    # def test_plot_volcano_figure_comparison(self):
-    #  https://campus.datacamp.com/courses/unit-testing-for-data-science-in-python/testing-models-plots-and-much-more?ex=11
-    # pass
 
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
@@ -370,6 +367,17 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
         # are there 5 circles drawn - for each group
         number_of_groups = len(pca_plot.to_plotly_json().get("layout").get("shapes"))
+        self.assertEqual(number_of_groups, 5)
+
+    def test_plot_umap_group(self):
+        umap_plot = self.obj.plot_umap(group=self.comparison_column)
+        # 5 different disease
+        self.assertEqual(len(umap_plot.to_plotly_json().get("data")), 5)
+
+    def test_plot_umap_circles(self):
+        umap_plot = self.obj.plot_umap(group=self.comparison_column, circle=True)
+        # are there 5 circles drawn - for each group
+        number_of_groups = len(umap_plot.to_plotly_json().get("layout").get("shapes"))
         self.assertEqual(number_of_groups, 5)
 
     def test_preprocess_subset(self):

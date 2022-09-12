@@ -13,6 +13,7 @@ import seaborn as sns
 import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
+from umap import UMAP
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -121,10 +122,14 @@ class Plot:
                 "1": "Dimension 2",
             }
 
-        else:
-            # TODO implement UMAP??
-            return
-
+        elif method == "umap":
+            umap_2d = UMAP(n_components=2, init='random', random_state=0)
+            components = umap_2d.fit_transform(mat)
+            labels = {
+                "0": "",
+                "1": "",
+            }
+    
         fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
         #  save plotting data in figure object
         fig = plotly_object(fig)
@@ -168,6 +173,22 @@ class Plot:
             circle=circle,
             perplexity=perplexity,
             n_iter=n_iter,
+        )
+
+    def plot_umap(self, group=None, circle=False):
+        """Plot Uniform Manifold Approximation and Projection for Dimension Reduction
+
+        Args:
+            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+            circle (bool, optional): draw circle around each group. Defaults to False.
+
+        Returns:
+            plotly.graph_objects._figure.Figure: UMAP plot
+        """
+        return self._plot_dimensionality_reduction(
+            group=group,
+            method="umap",
+            circle=circle
         )
 
     def plot_correlation_matrix(self, method="pearson"):
