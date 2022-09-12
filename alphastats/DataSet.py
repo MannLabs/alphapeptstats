@@ -52,6 +52,7 @@ class DataSet(Preprocess, Statistics, Plot):
         self.metadata = None
         if metadata_path:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
+            self._remove_misc_samples_in_metadata()
 
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
@@ -85,6 +86,16 @@ class DataSet(Preprocess, Statistics, Plot):
     def _check_matrix_values(self):
         if np.isinf(self.mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
+
+    def _remove_misc_samples_in_metadata(self):
+        samples_matrix = self.mat.index.to_list()
+        samples_metadata = self.metadata["sample"].to_list()
+        misc_samples = list(set(samples_metadata) - set(samples_matrix))
+        if len(misc_samples) > 0:
+            self.metadata = self.metadata[~self.metadata["sample"].isin(misc_samples)]
+            logging.warning(f"{misc_samples} are not described in the protein data and" 
+            "are removed from the metadata.")
+        
 
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and

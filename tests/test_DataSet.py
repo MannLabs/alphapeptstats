@@ -218,6 +218,20 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
+    
+    @patch("logging.Logger.warning")
+    def test_remove_misc_samples_in_metadata(self, mock):
+        df = pd.DataFrame(
+            {"sample": ["A", "B", "C"], "b": ["disease", "health", "disease"]}
+        )
+        obj = DataSet(
+            loader=self.loader,
+            metadata_path=df,
+            sample_column="sample",
+        )
+        # is sample C removed
+        self.assertEqual(self.obj.metadata.shape, (2, 2))
+        mock.assert_called_once()
 
     def test_preprocess_remove_samples(self):
         sample_list = ["A"]
