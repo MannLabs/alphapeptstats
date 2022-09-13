@@ -45,6 +45,7 @@ class DataSet(Preprocess, Statistics, Plot):
         self.index_column = loader.index_column
         self.intensity_column = loader.intensity_column
         self.filter_columns = loader.filter_columns
+        self.gene_names = loader.gene_names
 
         # include filtering before
         self.create_matrix()

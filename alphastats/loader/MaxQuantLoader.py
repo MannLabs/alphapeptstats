@@ -12,6 +12,7 @@ class MaxQuantLoader(BaseLoader):
         file,
         intensity_column="LFQ intensity [sample]",
         index_column="Protein IDs",
+        gene_names_column = "Gene names",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
         evidence_file=None,
@@ -34,6 +35,8 @@ class MaxQuantLoader(BaseLoader):
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
+        if gene_names_column in self.rawdata.columns.to_list():
+            self.gene_names = gene_names_column
         if evidence_file is not None:
             self._load_evidence(evidence_file=evidence_file)
 

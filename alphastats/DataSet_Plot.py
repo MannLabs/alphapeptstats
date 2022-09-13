@@ -93,6 +93,9 @@ class Plot:
         setattr(figure_object, "method", method)
         return figure_object
 
+    def _add_labels(self, figure_object):
+        pass
+
     @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
         # function for plot_pca and plot_tsne
@@ -277,7 +280,7 @@ class Plot:
         return fig
 
     @ignore_warning(RuntimeWarning)
-    def plot_volcano(self, column, group1, group2, method="anova"):
+    def plot_volcano(self, column, group1, group2, method="anova", labels=False):
         """Plot Volcano Plot
 
         Args:
@@ -339,13 +342,18 @@ class Plot:
         value = ["down", "up"]
         result["color"] = np.select(condition, value, default="non-significant")
 
+        # additional labeling with gene names
+        hover_data=[self.index_column]
+        if self.gene_names is not None:
+            hover_data.append(self.gene_names)
+        
         # create volcano plot
         volcano_plot = px.scatter(
             result,
             x="log2fc",
             y="-log10(p-value)",
             color="color",
-            hover_data=[self.index_column],
+            hover_data=hover_data,
         )
 
         #  save plotting data in figure object
