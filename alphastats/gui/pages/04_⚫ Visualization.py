@@ -1,7 +1,5 @@
 import streamlit as st
-import datetime
 from alphastats.gui.utils.analysis_helper import (
-    get_unique_values_from_column,
     get_analysis,
 )
 from alphastats.gui.utils.ui_helper import sidebar_info
@@ -9,18 +7,11 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 
 
 def display_plotly_figure(plot):
-    
+
     st.plotly_chart(plot)
 
-
-
 def save_plot_to_session_state(plot, method):
-    #st.write(method)
-    #plot_list =  st.session_state["plot_list"]
-    st.write(len(st.session_state.plot_list))
-    #plot_list = plot_list + [(method, plot)]
     st.session_state["plot_list"] +=  [(method, plot)]
-    st.write(len(st.session_state["plot_list"]))
 
 def make_plot():
     method = st.selectbox(
@@ -51,9 +42,7 @@ if "plot_list" not in st.session_state:
 if "dataset" in st.session_state:
 
     from alphastats.gui.utils.options import plotting_options as options_dict
-
-
-    
+ 
     # if "plot_list" in st.session_state:
     #     show_previous_plots = st.button(label="Show previous plots")
     #     if show_previous_plots:

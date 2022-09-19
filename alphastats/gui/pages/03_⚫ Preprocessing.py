@@ -1,7 +1,6 @@
 import streamlit as st
 from alphastats.gui.utils.ui_helper import sidebar_info
 
-
 def preprocessing():
     
     with st.form("preprocessing"):

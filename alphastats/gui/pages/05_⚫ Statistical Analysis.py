@@ -1,4 +1,3 @@
-from tracemalloc import Statistic
 import streamlit as st
 from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -20,28 +19,28 @@ if "dataset" in st.session_state:
 
     from alphastats.gui.utils.options import statistic_options as options_dict
 
-    if "n_rows" not in st.session_state:
-        st.session_state.n_rows = 1
-    add = st.button(label="add")
+    # if "n_rows" not in st.session_state:
+    #     st.session_state.n_rows = 1
+    # add = st.button(label="add")
 
-    if add:
-        st.session_state.n_rows += 1
-        st.experimental_rerun()
+    # if add:
+    #     st.session_state.n_rows += 1
+    #     st.experimental_rerun()
 
-    for i in range(st.session_state.n_rows):
-        # add text inputs here
-        statistic = st.selectbox(
+    # for i in range(st.session_state.n_rows):
+    #     # add text inputs here
+    st.selectbox(
             "Statistical Analysis",
             options=list(options_dict.keys()),
-            key= "statistic" + str(i),
+            key= "statistic",
         )  # Pass index as ke
-        df =  get_analysis(method=statistic, options_dict=options_dict)
-        if df is not None:
-            display_df(df)
+    df =  get_analysis(method=st.session_state.statistic, options_dict=options_dict)
+    if df is not None:
+        display_df(df)
             
-            filename = statistic + ".csv"
-            csv = convert_df(df)
-            st.download_button(
+        filename = st.session_state.statistic + ".csv"
+        csv = convert_df(df)
+        st.download_button(
             "Download as .csv",
             csv,
             filename,

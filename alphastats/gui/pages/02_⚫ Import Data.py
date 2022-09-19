@@ -1,12 +1,6 @@
 import streamlit as st
-import os
-import pandas as pd
-import datetime
-import yaml
-from typing import Union, Tuple
 
 from alphastats.DataSet import DataSet
-import logging
 from alphastats.gui.AlphaStats import sidebar_info
 from alphastats.gui.utils.analysis_helper import read_uploaded_file_into_df
 from alphastats.gui.utils.software_options import software_options
@@ -25,7 +19,7 @@ def select_columns_for_loaders():
     will be saved in session state
     """
     st.write("\n\n")
-    st.markdown("### Columns used for further analysis.")
+    st.markdown("### 2. Select columns used for further analysis.")
     st.markdown("Select intensity columns for further analysis")
 
     st.selectbox(
@@ -61,7 +55,7 @@ def select_sample_column_metadata(df):
     
     with st.form("sample_column"):
         st.selectbox("Sample Column", options=df.columns.to_list(), key="sample_column")
-        submitted = st.form_submit_button("Submit")
+        submitted = st.form_submit_button("Create DataSet")
 
     if submitted:
         return True
@@ -98,7 +92,7 @@ def upload_softwarefile():
 def upload_metadatafile():
     
     st.write("\n\n")
-    st.markdown("### Upload corresponding metadata/experiment design data.")
+    st.markdown("### 3. Upload corresponding metadata.")
     st.file_uploader(
         "Upload metadata file. with information about your samples", key="metadatafile",
     )
@@ -120,13 +114,13 @@ def upload_metadatafile():
             )
             st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
 
-    if st.button("Continue without metadata"):
+    if st.button("Create a DataSet without metadata"):
         st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
 
 
 def import_data():
     
-    st.markdown("### Import Data")
+    st.markdown("### 1. Import Proteomics Data")
     
     st.selectbox(
         "Select your Proteomics Software",
@@ -142,17 +136,20 @@ def import_data():
 
 
 def display_loaded_dataset():
-    st.markdown("### Data was successfully imported")
-    st.markdown("### DataSet has been created")
+    st.info("Data was successfully imported")
+    st.info("DataSet has been created")
     st.markdown(f"Raw data from {st.session_state.dataset.software}")
     display_file(st.session_state.dataset.rawdata)
     st.markdown(f"Metadata")
     display_file(st.session_state.dataset.metadata)
+    st.markdown(f"Matrix")
+    display_file(st.session_state.dataset.mat)
 
 
 sidebar_info()
 
 if "dataset" not in st.session_state:
+    st.markdown("Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). ")
     import_data()
 
 elif st.button("Import new dataset"):

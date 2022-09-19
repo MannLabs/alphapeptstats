@@ -1,14 +1,15 @@
 import streamlit as st
-
+import pandas as pd
 
 def sidebar_info():
-    st.sidebar.markdown(dataset_info_as_markdown())
+    display_sidebar_html_table()
+    st.sidebar.markdown("\n\n")
     st.sidebar.info("[AlphaStats on GitHub](https://github.com/MannLabs/alphastats)")
     st.sidebar.markdown(
         """ <head><style type ='text/css' > 
     .footer{ position: fixed;     
         text-align: left;    
-        bottom: 20px; 
+        bottom: 14px; 
         width: 100%;
     }  
     </style>
@@ -20,14 +21,18 @@ def sidebar_info():
     )
 
 
-def dataset_info_as_markdown():
-
+def display_sidebar_html_table():
+    
     if "dataset" not in st.session_state:
-        return ""
+        return 
 
     preprocessing_dict = st.session_state.dataset.preprocessing_info
-    markdown_string = "**My DataSet overview:**\n\n"
+    
+    html_string = ("<style>.mytable th, td{ font-size:10px;color:#8C878D; border-color:#96D4D4;}</style>" 
+        "<table class='mytable'>")
+    
     for key, values in preprocessing_dict.items():
-        markdown_string += "" + key + ": " + str(values) + " \n\n "
-
-    return markdown_string
+        html_string += "<tr><td>" + key + "</td><td>" + str(values) + "</td>" + "</tr>"
+    
+    html_string += "</table>"
+    st.sidebar.markdown(html_string, unsafe_allow_html=True)
