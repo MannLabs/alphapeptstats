@@ -287,7 +287,7 @@ class Plot:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
             group2 (str): name of group to compare needs to be present in column
-            method: "anova", "wald", "ttest"
+            method (str): "anova", "wald", "ttest"
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
