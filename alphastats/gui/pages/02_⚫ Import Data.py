@@ -5,6 +5,7 @@ from alphastats.gui.AlphaStats import sidebar_info
 from alphastats.gui.utils.analysis_helper import read_uploaded_file_into_df
 from alphastats.gui.utils.software_options import software_options
 
+
 def print_software_import_info():
     import_file = software_options.get(st.session_state.software).get("import_file")
     string_output = (
@@ -47,12 +48,12 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column):
 
 
 def select_sample_column_metadata(df):
-    
+
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
         + f"in {software_options.get(st.session_state.software).get('import_file')}"
     )
-    
+
     with st.form("sample_column"):
         st.selectbox("Sample Column", options=df.columns.to_list(), key="sample_column")
         submitted = st.form_submit_button("Create DataSet")
@@ -66,14 +67,16 @@ def display_file(df):
 
 
 def upload_softwarefile():
-    
+
     st.file_uploader(print_software_import_info(), key="softwarefile")
-    
+
     if st.session_state.softwarefile is not None:
-        
+
         softwarefile_df = read_uploaded_file_into_df(st.session_state.softwarefile)
         # display head a protein data
-        st.write(f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]} , Number of columns: {softwarefile_df.shape[1]}.")
+        st.write(
+            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]} , Number of columns: {softwarefile_df.shape[1]}."
+        )
         display_file(softwarefile_df)
         select_columns_for_loaders()
 
@@ -90,18 +93,20 @@ def upload_softwarefile():
 
 
 def upload_metadatafile():
-    
+
     st.write("\n\n")
     st.markdown("### 3. Upload corresponding metadata.")
     st.file_uploader(
         "Upload metadata file. with information about your samples", key="metadatafile",
     )
-    
+
     if st.session_state.metadatafile is not None:
-        
+
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
-        st.write(f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]} , Number of columns: {metadatafile_df.shape[1]}.")
+        st.write(
+            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]} , Number of columns: {metadatafile_df.shape[1]}."
+        )
         display_file(metadatafile_df)
         # pick sample column
 
@@ -119,9 +124,9 @@ def upload_metadatafile():
 
 
 def import_data():
-    
+
     st.markdown("### 1. Import Proteomics Data")
-    
+
     st.selectbox(
         "Select your Proteomics Software",
         options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"],
@@ -149,7 +154,9 @@ def display_loaded_dataset():
 sidebar_info()
 
 if "dataset" not in st.session_state:
-    st.markdown("Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). ")
+    st.markdown(
+        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+    )
     import_data()
 
 elif st.button("Import new dataset"):

@@ -2,7 +2,6 @@ import streamlit as st
 
 
 plotting_options = {
-    
     "Sampledistribution": {
         "settings": {
             "method": {"options": ["violin", "box"], "label": "Plot layout"},
@@ -13,7 +12,6 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_sampledistribution,
     },
-
     "Intensity": {
         "settings": {
             "id": {
@@ -31,7 +29,6 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_intensity,
     },
-
     "PCA": {
         "settings": {
             "group": {
@@ -42,7 +39,6 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_pca,
     },
-
     "t-SNE": {
         "settings": {
             "group": {
@@ -53,29 +49,23 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_tsne,
     },
-
     "Volcano": {
         "between_two_groups": True,
         "function": st.session_state.dataset.plot_volcano,
-
     },
-
     "Clustermap": {"function": st.session_state.dataset.plot_clustermap},
     "Dendrogram": {"function": st.session_state.dataset.plot_dendogram},
 }
 
 statistic_options = {
-
     "Differential Expression Analysis - Wald-test": {
         "between_two_groups": True,
         "function": st.session_state.dataset.perform_diff_expression_analysis,
     },
-
     "t-test": {
         "between_two_groups": True,
-        "function":  st.session_state.dataset.calculate_ttest_fc
-     },
-
+        "function": st.session_state.dataset.calculate_ttest_fc,
+    },
     "Tukey - Test": {
         "settings": {
             "protein_id": {
@@ -89,7 +79,6 @@ statistic_options = {
         },
         "function": st.session_state.dataset.calculate_tukey,
     },
-
     "ANOVA": {
         "settings": {
             "column": {
@@ -104,7 +93,6 @@ statistic_options = {
         },
         "function": st.session_state.dataset.anova,
     },
-
     "ANCOVA": {
         "settings": {
             "protein_id": {

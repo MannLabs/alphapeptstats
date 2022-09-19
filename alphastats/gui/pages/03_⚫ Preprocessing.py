@@ -1,8 +1,9 @@
 import streamlit as st
 from alphastats.gui.utils.ui_helper import sidebar_info
 
+
 def preprocessing():
-    
+
     with st.form("preprocessing"):
         dataset = st.session_state["dataset"]
 
@@ -37,10 +38,10 @@ def preprocessing():
 
 
 def main_preprocessing():
-    
+
     if "dataset" in st.session_state:
         preprocessing()
-    
+
     else:
         st.info("Import Data first")
 

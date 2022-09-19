@@ -35,12 +35,12 @@ def get_analysis_options_from_dict(method, options_dict):
     # extract plotting options from dict amd display as selectbox or checkbox
     # give selceted options to plotting function
     method_dict = options_dict.get(method)
-  
+
     if "settings" not in method_dict.keys():
-        
+
         if "between_two_groups" in method_dict.keys():
             return between_two_groups(method=method, options_dict=options_dict)
-        
+
         else:
             return method_dict["function"]()
 
@@ -54,17 +54,17 @@ def get_analysis_options_from_dict(method, options_dict):
         if "options" in parameter_dict.keys():
             chosen_parameter = st.selectbox(
                 parameter_dict.get("label"),
-                options=parameter_dict.get("options")#,
-                #key=method + parameter  + str(datetime.datetime.now()),
+                options=parameter_dict.get("options")  # ,
+                # key=method + parameter  + str(datetime.datetime.now()),
             )
         else:
-            chosen_parameter = st.checkbox(parameter_dict.get("label"))#,
-            #key = method + parameter  + str(datetime.datetime.now()))
+            chosen_parameter = st.checkbox(parameter_dict.get("label"))  # ,
+            # key = method + parameter  + str(datetime.datetime.now()))
 
         chosen_parameter_dict[parameter] = chosen_parameter
 
     submitted = st.button("Submit")
-        
+
     if submitted:
         return method_dict["function"](**chosen_parameter_dict)
 
@@ -77,31 +77,30 @@ def between_two_groups(method, options_dict):
 
     chosen_parameter_dict = {}
     group = st.selectbox(
-            "Grouping variable",
-            options= st.session_state.dataset.metadata.columns.to_list(),
-        )
+        "Grouping variable",
+        options=st.session_state.dataset.metadata.columns.to_list(),
+    )
     if group is not None:
 
         unique_values = get_unique_values_from_column(group)
 
-        group1 = st.selectbox("Group 1", options= unique_values)
+        group1 = st.selectbox("Group 1", options=unique_values)
 
-        group2 = st.selectbox("Group 2", options= unique_values)
+        group2 = st.selectbox("Group 2", options=unique_values)
 
     if method == "Volcano":
         analysis_method = st.selectbox(
-                 "Differential Analysis using:",
-                options=["anova", "wald", "ttest"],
-                 )
-        chosen_parameter_dict.update({"method":analysis_method})
-
+            "Differential Analysis using:", options=["anova", "wald", "ttest"],
+        )
+        chosen_parameter_dict.update({"method": analysis_method})
 
     chosen_parameter_dict.update({"column": group, "group1": group1, "group2": group2})
-        
+
     submitted = st.button("Submit")
-        
+
     if submitted:
         return options_dict.get(method)["function"](**chosen_parameter_dict)
+
 
 def remove_misc_session_state():
     pass
@@ -112,5 +111,3 @@ def get_analysis(method, options_dict):
     if method in options_dict.keys():
         obj = get_analysis_options_from_dict(method, options_dict=options_dict)
         return obj
-
-

@@ -7,9 +7,11 @@ from alphastats.gui.utils.analysis_helper import get_analysis
 def display_df(df):
     st.dataframe(df)
 
+
 @st.cache
 def convert_df(df):
-   return df.to_csv().encode('utf-8')
+    return df.to_csv().encode("utf-8")
+
 
 st.markdown("### Statistical Analysis")
 
@@ -30,23 +32,17 @@ if "dataset" in st.session_state:
     # for i in range(st.session_state.n_rows):
     #     # add text inputs here
     st.selectbox(
-            "Statistical Analysis",
-            options=list(options_dict.keys()),
-            key= "statistic",
-        )  # Pass index as ke
-    df =  get_analysis(method=st.session_state.statistic, options_dict=options_dict)
+        "Statistical Analysis", options=list(options_dict.keys()), key="statistic",
+    )  # Pass index as ke
+    df = get_analysis(method=st.session_state.statistic, options_dict=options_dict)
     if df is not None:
         display_df(df)
-            
+
         filename = st.session_state.statistic + ".csv"
         csv = convert_df(df)
         st.download_button(
-            "Download as .csv",
-            csv,
-            filename,
-            "text/csv",
-            key='download-csv'
-            )
+            "Download as .csv", csv, filename, "text/csv", key="download-csv"
+        )
 
 
 else:

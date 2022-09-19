@@ -4,34 +4,32 @@ import kaleido
 import io
 from alphastats.gui.utils.ui_helper import sidebar_info
 
+
 def display_plotly_figure(plot):
     st.plotly_chart(plot)
+
 
 def save_plotly_to_pdf(plot):
     # Create an in-memory buffer
     buffer = io.BytesIO()
     # Save the figure as a pdf to the buffer
     plot[1].write_image(file=buffer, format="pdf")
-    #plot[1].write_image(plot[0]+".pdf", engine="kaleido")
-    st.download_button(
-    label="Download as PDF",
-    data=buffer,
-    file_name= plot[0]+".pdf"
-    )
+    # plot[1].write_image(plot[0]+".pdf", engine="kaleido")
+    st.download_button(label="Download as PDF", data=buffer, file_name=plot[0] + ".pdf")
+
 
 def save_plotly_to_svg(plot):
     buffer = io.BytesIO()
     # Save the figure as a pdf to the buffer
     plot[1].write_image(file=buffer, format="svg")
-    #plot[1].write_image(plot[0]+".pdf", engine="kaleido")
-    st.download_button(
-    label="Download as svg",
-    data=buffer,
-    file_name= plot[0]+".svg"
-    )
+    # plot[1].write_image(plot[0]+".pdf", engine="kaleido")
+    st.download_button(label="Download as svg", data=buffer, file_name=plot[0] + ".svg")
+
+
 @st.cache
 def convert_df(df):
-   return df.to_csv().encode('utf-8')
+    return df.to_csv().encode("utf-8")
+
 
 def download_preprocessing_info(plot, count):
     preprocesing_dict = plot[1].preprocessing
@@ -40,11 +38,12 @@ def download_preprocessing_info(plot, count):
     csv = convert_df(df)
     st.download_button(
         "Download DataSet Info as .csv",
-            csv,
-            filename,
-            "text/csv",
-            key= "preprocessing" + count
-            )
+        csv,
+        filename,
+        "text/csv",
+        key="preprocessing" + count,
+    )
+
 
 st.markdown("### Results")
 
@@ -53,29 +52,28 @@ sidebar_info()
 if "plot_list" in st.session_state:
     for count, plot in enumerate(st.session_state.plot_list):
         count = str(count)
-        
+
         st.markdown("\n\n")
         st.write(plot[0])
-        
+
         display_plotly_figure(plot[1])
-        
-        col1, col2, col3 = st.columns([1,1,1])
+
+        col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
             save_plotly_to_pdf(plot)
             # st.button('Save as pdf', key = "save_to_pdf" + count)
             # if "save_to_pdf" + count in st.session_state:
             #     save_plotly_to_pdf(plot)
-       
+
         with col2:
             save_plotly_to_svg(plot)
             # st.button('Save as svg', key = "save_to_svg" + count)
             # if "save_to_svg" + count in st.session_state:
             #     save_plotly_to_svg(plot)
-        
+
         with col3:
             download_preprocessing_info(plot, count)
-            
 
 
 else:
