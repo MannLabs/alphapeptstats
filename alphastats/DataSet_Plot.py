@@ -94,7 +94,24 @@ class Plot:
         return figure_object
 
     def _add_labels(self, result_df, figure_object):
-        pass
+        
+        if self.gene_names is not None:
+            label_column = self.gene_names
+        else:
+            label_column = self.index_column
+        
+        result_df["label"] = np.where(result_df["color"] != "non-significant",result_df[label_column], "")
+            # replace nas with empty string (can cause error when plotting with gene names)
+        result_df["label"] = result_df["label"].fillna("") 
+            
+        for x,y,label_column in result_df[["log2fc", "-log10(p-value)", label_column]].itertuples(index=False):
+            figure_object.add_annotation(
+                    x=x, y=y,
+                    text=label_column,
+                    showarrow=False,
+                    yshift=10
+                )
+        return figure_object
 
     @check_for_missing_values
     def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
@@ -288,6 +305,7 @@ class Plot:
             group1 (str): name of group to compare needs to be present in column
             group2 (str): name of group to compare needs to be present in column
             method (str): "anova", "wald", "ttest"
+            labels (bool): Add text labels to significant Proteins, Default False.
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
@@ -296,17 +314,17 @@ class Plot:
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
             )
-            result = self.perform_diff_expression_analysis(column, group1, group2)
+            result_df = self.perform_diff_expression_analysis(column, group1, group2)
             pvalue_column = "qval"
 
         elif method == "ttest":
             print("Calculating t-test...")
-            result = self.calculate_ttest_fc(column, group1, group2)
+            result_df = self.calculate_ttest_fc(column, group1, group2)
             pvalue_column = "pvalue"
 
         elif method == "anova":
             print("Calculating ANOVA with follow-up tukey test...")
-            result = self.anova(column=column, protein_ids="all", tukey=True)
+            result_df = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 "sample"
             ].tolist()
@@ -323,7 +341,7 @@ class Plot:
             if pvalue_column not in fc.columns:
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
-            result = result.reset_index().merge(fc.reset_index(), on=self.index_column)
+            result_df = result_df.reset_index().merge(fc.reset_index(), on=self.index_column)
 
         else:
             raise ValueError(
@@ -331,47 +349,39 @@ class Plot:
                 + "Please select from 'ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test using."
             )
 
-        result = result[(result["log2fc"] < 10) & (result["log2fc"] > -10)]
-        result["-log10(p-value)"] = -np.log10(result[pvalue_column])
+        result_df = result_df[(result_df["log2fc"] < 10) & (result_df["log2fc"] > -10)]
+        result_df["-log10(p-value)"] = -np.log10(result_df[pvalue_column])
 
         # add color variable to plot
         condition = [
-            (result["log2fc"] < -1) & (result["-log10(p-value)"] > 1),
-            (result["log2fc"] > 1) & (result["-log10(p-value)"] > 1),
+            (result_df["log2fc"] < -1) & (result_df["-log10(p-value)"] > 1),
+            (result_df["log2fc"] > 1) & (result_df["-log10(p-value)"] > 1),
         ]
         value = ["down", "up"]
-        result["color"] = np.select(condition, value, default="non-significant")
-
+        result_df["color"] = np.select(condition, value, default="non-significant")
+        
         # additional labeling with gene names
         hover_data=[self.index_column]
         if self.gene_names is not None:
+            result_df = pd.merge(result_df, self.rawdata[[self.gene_names, self.index_column]], on=self.index_column, how ="left")
             hover_data.append(self.gene_names)
-       
-        label_text = None
-
-        if labels:
-            if self.gene_names is not None:
-                result = pd.merge(result, self.rawdata[[self.gene_names,self.index_column]], on=self.index_column, how ="left")
-                label_column = self.gene_names
-            else:
-                label_column = self.index_column
-            result["label"] = np.where(result["color"] != "non-significant",result[label_column], "")
-            label_text = "label"
-
+    
         # create volcano plot
         volcano_plot = px.scatter(
-            result,
+            result_df,
             x="log2fc",
             y="-log10(p-value)",
             color="color",
-            text = label_text,
             hover_data=hover_data,
         ) 
 
+        if labels:
+            volcano_plot = self._add_labels(result_df=result_df, figure_object=volcano_plot)
+            
         #  save plotting data in figure object
         volcano_plot = plotly_object(volcano_plot)
         volcano_plot = self._update_figure_attributes(
-            figure_object=volcano_plot, plotting_data=result, method=method
+            figure_object=volcano_plot, plotting_data=result_df, method=method
         )
 
         # update coloring

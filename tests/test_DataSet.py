@@ -4,8 +4,6 @@ from math import remainder
 
 # from multiprocessing.sharedctypes import Value
 from random import sample
-from ssl import TLSVersion
-from tracemalloc import Statistic
 import unittest
 from xml.sax.handler import property_interning_dict
 import pandas as pd
@@ -436,6 +434,21 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
+    def test_plot_volcano_with_labels(self):
+        plot = self.obj.plot_volcano(
+            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True
+        )
+        n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
+        self.assertTrue(n_labels > 20)
+
+    def test_plot_volcano_with_labels_proteins(self):
+        # remove gene names
+        self.obj.gene_names = None
+        plot = self.obj.plot_volcano(
+            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True
+        )
+        n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
+        self.assertTrue(n_labels > 20)
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
