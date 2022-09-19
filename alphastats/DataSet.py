@@ -156,11 +156,13 @@ class DataSet(Preprocess, Statistics, Plot):
         n_proteingroups = self.mat.shape[1]
         preprocessing_dict = {
             "Raw data number of Protein Groups": n_proteingroups,
-            "Matrix: Number of samples": self.mat.shape[0],
             "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
-            "Contaminations have been removed": False,
+            "Matrix: Number of samples": self.mat.shape[0],
+            "Intensity used for analysis": self.intensity_column,
             "Normalization": None,
             "Imputation": None,
+            "Contaminations have been removed": False,
+            "Contamination columns": self.filter_columns,
             "Number of removed ProteinGroups due to contaminaton": 0,
         }
         return preprocessing_dict
