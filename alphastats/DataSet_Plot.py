@@ -93,7 +93,7 @@ class Plot:
         setattr(figure_object, "method", method)
         return figure_object
 
-    def _add_labels(self, figure_object):
+    def _add_labels(self, result_df, figure_object):
         pass
 
     @check_for_missing_values
@@ -346,15 +346,27 @@ class Plot:
         hover_data=[self.index_column]
         if self.gene_names is not None:
             hover_data.append(self.gene_names)
-        
+       
+        label_text = None
+
+        if labels:
+            if self.gene_names is not None:
+                result = pd.merge(result, self.rawdata[[self.gene_names,self.index_column]], on=self.index_column, how ="left")
+                label_column = self.gene_names
+            else:
+                label_column = self.index_column
+            result["label"] = np.where(result["color"] != "non-significant",result[label_column], "")
+            label_text = "label"
+
         # create volcano plot
         volcano_plot = px.scatter(
             result,
             x="log2fc",
             y="-log10(p-value)",
             color="color",
+            text = label_text,
             hover_data=hover_data,
-        )
+        ) 
 
         #  save plotting data in figure object
         volcano_plot = plotly_object(volcano_plot)
@@ -433,10 +445,4 @@ class Plot:
         )
         return fig
 
-    # def plot_line(self):
-    #   pass
-
-    # def plot_upset(self):
-    #    pass
-    # Plotly update figures
-    # https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html
+    
