@@ -2,7 +2,7 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.AlphaStats import sidebar_info
-from alphastats.gui.utils.analysis_helper import read_uploaded_file_into_df
+from alphastats.gui.utils.analysis_helper import read_uploaded_file_into_df, check_software_file
 from alphastats.gui.utils.software_options import software_options
 
 
@@ -65,7 +65,6 @@ def select_sample_column_metadata(df):
 def display_file(df):
     st.dataframe(df.head(5))
 
-
 def upload_softwarefile():
 
     st.file_uploader(print_software_import_info(), key="softwarefile")
@@ -74,6 +73,7 @@ def upload_softwarefile():
 
         softwarefile_df = read_uploaded_file_into_df(st.session_state.softwarefile)
         # display head a protein data
+        check_software_file(softwarefile_df)
         st.write(
             f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]} , Number of columns: {softwarefile_df.shape[1]}."
         )
