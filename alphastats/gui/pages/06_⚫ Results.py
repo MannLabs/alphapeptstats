@@ -62,15 +62,9 @@ if "plot_list" in st.session_state:
 
         with col1:
             save_plotly_to_pdf(plot)
-            # st.button('Save as pdf', key = "save_to_pdf" + count)
-            # if "save_to_pdf" + count in st.session_state:
-            #     save_plotly_to_pdf(plot)
 
         with col2:
             save_plotly_to_svg(plot)
-            # st.button('Save as svg', key = "save_to_svg" + count)
-            # if "save_to_svg" + count in st.session_state:
-            #     save_plotly_to_svg(plot)
 
         with col3:
             download_preprocessing_info(plot, count)

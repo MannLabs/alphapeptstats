@@ -1,6 +1,5 @@
 import streamlit as st
 from alphastats.gui.utils.ui_helper import sidebar_info
-
 from alphastats.gui.utils.analysis_helper import get_analysis
 
 
@@ -21,16 +20,6 @@ if "dataset" in st.session_state:
 
     from alphastats.gui.utils.options import statistic_options as options_dict
 
-    # if "n_rows" not in st.session_state:
-    #     st.session_state.n_rows = 1
-    # add = st.button(label="add")
-
-    # if add:
-    #     st.session_state.n_rows += 1
-    #     st.experimental_rerun()
-
-    # for i in range(st.session_state.n_rows):
-    #     # add text inputs here
     st.selectbox(
         "Statistical Analysis", options=list(options_dict.keys()), key="statistic",
     )  # Pass index as ke

@@ -41,22 +41,6 @@ if "dataset" in st.session_state:
 
     from alphastats.gui.utils.options import plotting_options as options_dict
 
-    # if "plot_list" in st.session_state:
-    #     show_previous_plots = st.button(label="Show previous plots")
-    #     if show_previous_plots:
-    #         for p in st.session_state.plot_list:
-    #             display_plotly_figure(p)
-
-    # if "n_rows" not in st.session_state:
-    #     st.session_state.n_rows = 1
-    # add = st.button(label="Add new plot")
-
-    # if add:
-    #     st.session_state.n_rows += 1
-    #     st.experimental_rerun()
-
-    # for i in range(st.session_state.n_rows):
-    # add text inputs here
     plot = make_plot()
 
     if plot is not None:

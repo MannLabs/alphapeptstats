@@ -1,8 +1,9 @@
 import streamlit as st
 
 from alphastats.DataSet import DataSet
-from alphastats.gui.AlphaStats import sidebar_info
-from alphastats.gui.utils.analysis_helper import (read_uploaded_file_into_df, 
+from alphastats.gui.utils.ui_helper import sidebar_info
+from alphastats.gui.utils.analysis_helper import (
+    read_uploaded_file_into_df, 
 check_software_file,
 get_sample_names_from_software_file)
 from alphastats.gui.utils.software_options import software_options
@@ -154,12 +155,16 @@ def import_data():
 
 
 def display_loaded_dataset():
+    
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
+    
     st.markdown(f"Raw data from {st.session_state.dataset.software}")
     display_file(st.session_state.dataset.rawdata)
+    
     st.markdown(f"Metadata")
     display_file(st.session_state.dataset.metadata)
+    
     st.markdown(f"Matrix")
     display_file(st.session_state.dataset.mat)
 
