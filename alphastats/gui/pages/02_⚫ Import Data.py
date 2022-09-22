@@ -2,7 +2,9 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.AlphaStats import sidebar_info
-from alphastats.gui.utils.analysis_helper import read_uploaded_file_into_df, check_software_file
+from alphastats.gui.utils.analysis_helper import (read_uploaded_file_into_df, 
+check_software_file,
+get_sample_names_from_software_file)
 from alphastats.gui.utils.software_options import software_options
 
 
@@ -48,6 +50,17 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column):
 
 
 def select_sample_column_metadata(df):
+    samples_proteomics_data = get_sample_names_from_software_file()
+    valid_sample_columns = []
+
+    for col in df.columns.to_list():
+        if bool(set(samples_proteomics_data) & set(df[col].to_list())):
+            valid_sample_columns.append(col)
+    
+    if len(valid_sample_columns):
+        st.error(f"Metadata does not match Proteomics data." 
+        f"Information for the samples: {samples_proteomics_data} is required.")
+
 
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
@@ -55,7 +68,7 @@ def select_sample_column_metadata(df):
     )
 
     with st.form("sample_column"):
-        st.selectbox("Sample Column", options=df.columns.to_list(), key="sample_column")
+        st.selectbox("Sample Column", options=valid_sample_columns, key="sample_column")
         submitted = st.form_submit_button("Create DataSet")
 
     if submitted:

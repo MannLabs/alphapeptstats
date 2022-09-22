@@ -138,9 +138,16 @@ def between_two_groups(method, options_dict):
         return options_dict.get(method)["function"](**chosen_parameter_dict)
 
 
-def remove_misc_session_state():
-    pass
+def get_sample_names_from_software_file():
+    regex_find_intensity_columns = st.session_state.loader.intensity_column.replace("[sample]", ".*")
 
+    df = st.session_state.loader.rawdata
+    df = df.set_index(st.session_state.loader.index_column)
+    df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+    # remove Intensity so only sample names remain
+    substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+    df.columns = df.columns.str.replace(substring_to_remove, "")
+    return df.columns.to_list()
 
 def get_analysis(method, options_dict):
 
