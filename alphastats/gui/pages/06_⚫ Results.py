@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import kaleido
 import io
 from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -9,22 +8,12 @@ def display_plotly_figure(plot):
     st.plotly_chart(plot)
 
 
-def save_plotly_to_pdf(plot):
+def save_plotly(plot, format):
     # Create an in-memory buffer
     buffer = io.BytesIO()
     # Save the figure as a pdf to the buffer
-    plot[1].write_image(file=buffer, format="pdf")
-    # plot[1].write_image(plot[0]+".pdf", engine="kaleido")
-    st.download_button(label="Download as PDF", data=buffer, file_name=plot[0] + ".pdf")
-
-
-def save_plotly_to_svg(plot):
-    buffer = io.BytesIO()
-    # Save the figure as a pdf to the buffer
-    plot[1].write_image(file=buffer, format="svg")
-    # plot[1].write_image(plot[0]+".pdf", engine="kaleido")
-    st.download_button(label="Download as svg", data=buffer, file_name=plot[0] + ".svg")
-
+    plot[1].write_image(file=buffer, format=format)
+    st.download_button(label="Download as" + format, data=buffer, file_name=plot[0] + "." + format)
 
 @st.cache
 def convert_df(df):
@@ -61,10 +50,10 @@ if "plot_list" in st.session_state:
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
-            save_plotly_to_pdf(plot)
+            save_plotly(plot, format="pdf")
 
         with col2:
-            save_plotly_to_svg(plot)
+            save_plotly(plot,format="svg")
 
         with col3:
             download_preprocessing_info(plot, count)

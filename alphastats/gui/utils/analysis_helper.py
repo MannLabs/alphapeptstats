@@ -75,7 +75,7 @@ def get_analysis_options_from_dict(method, options_dict):
     if "settings" not in method_dict.keys():
 
         if "between_two_groups" in method_dict.keys():
-            return between_two_groups(method=method, options_dict=options_dict)
+            return helper_compare_two_groups(method=method, options_dict=options_dict)
 
         else:
             return method_dict["function"]()
@@ -105,9 +105,10 @@ def get_analysis_options_from_dict(method, options_dict):
         return method_dict["function"](**chosen_parameter_dict)
 
 
-def between_two_groups(method, options_dict):
+def helper_compare_two_groups(method, options_dict):
     """
-    for Volcano Plot, Differetial Expression Analysis and t-test
+    Helper function to compare two groups for example
+    Volcano Plot, Differetial Expression Analysis and t-test
     selectbox based on selected column
     """
 

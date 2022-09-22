@@ -25,6 +25,7 @@ if "dataset" in st.session_state:
     )  # Pass index as ke
     df = get_analysis(method=st.session_state.statistic, options_dict=options_dict)
     if df is not None:
+        
         display_df(df)
 
         filename = st.session_state.statistic + ".csv"

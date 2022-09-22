@@ -77,7 +77,7 @@ def create_pip_wheel():
         ],
         packages=["alphastats"],
         include_package_data=True,
-        entry_points={"console_scripts": "alphastats=alphastats.cli:run",},
+        entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},
         install_requires=requirements,
         extras_require=extra_requirements,
         python_requires=">=3.7,<4",

@@ -1,9 +1,5 @@
 import streamlit as st
-from streamlit_multipage import MultiPage
 from alphastats.gui.utils.ui_helper import sidebar_info, img_to_bytes
-import os
-import base64
-
 
 # centering with streamlit is not really centered
 img_center = """

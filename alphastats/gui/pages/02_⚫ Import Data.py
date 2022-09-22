@@ -58,10 +58,9 @@ def select_sample_column_metadata(df):
         if bool(set(samples_proteomics_data) & set(df[col].to_list())):
             valid_sample_columns.append(col)
     
-    if len(valid_sample_columns):
+    if len(valid_sample_columns) == 0:
         st.error(f"Metadata does not match Proteomics data." 
         f"Information for the samples: {samples_proteomics_data} is required.")
-
 
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
@@ -75,10 +74,6 @@ def select_sample_column_metadata(df):
     if submitted:
         return True
 
-
-def display_file(df):
-    st.dataframe(df.head(5))
-
 def upload_softwarefile():
 
     st.file_uploader(print_software_import_info(), key="softwarefile")
@@ -89,9 +84,9 @@ def upload_softwarefile():
         # display head a protein data
         check_software_file(softwarefile_df)
         st.write(
-            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]} , Number of columns: {softwarefile_df.shape[1]}."
+            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]} , Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
         )
-        display_file(softwarefile_df)
+        st.dataframe(softwarefile_df.head(5))
         select_columns_for_loaders()
 
         if (
@@ -119,9 +114,9 @@ def upload_metadatafile():
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
         st.write(
-            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]} , Number of columns: {metadatafile_df.shape[1]}."
+            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]} , Number of columns: {metadatafile_df.shape[1]}. \nPreview:"
         )
-        display_file(metadatafile_df)
+        st.dataframe(metadatafile_df.head(5))
         # pick sample column
 
         if select_sample_column_metadata(metadatafile_df):
@@ -159,14 +154,14 @@ def display_loaded_dataset():
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
     
-    st.markdown(f"Raw data from {st.session_state.dataset.software}")
-    display_file(st.session_state.dataset.rawdata)
+    st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
+    st.dataframe(st.session_state.dataset.rawdata.head(5))
     
-    st.markdown(f"Metadata")
-    display_file(st.session_state.dataset.metadata)
+    st.markdown(f"*Preview:* Metadata")
+    st.dataframe(st.session_state.dataset.metadata.head(5))
     
-    st.markdown(f"Matrix")
-    display_file(st.session_state.dataset.mat)
+    st.markdown(f"*Preview:* Matrix")
+    st.dataframe(st.session_state.dataset.mat.head(5))
 
 
 sidebar_info()

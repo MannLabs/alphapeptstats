@@ -1,25 +1,24 @@
 from ast import Not
 from cmath import isinf
-from importlib.abc import Loader
 from multiprocessing.sharedctypes import Value
 from random import sample
 import re
 import pandas as pd
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 import os
 import numpy as np
 import logging
 from sklearn_pandas import DataFrameMapper
 import warnings
+
+from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
+from alphastats.loader.DIANNLoader import DIANNLoader
+from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-import streamlit as st
-
 
 # remove warning from openpyxl
 # only appears on mac
