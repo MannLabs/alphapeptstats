@@ -1,3 +1,4 @@
+from tkinter import E
 import pandas as pd
 import logging
 import streamlit as st
@@ -33,7 +34,8 @@ def check_software_file(df):
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error("This is not a valid MaxQuant file. Please check: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable")
+            st.error("This is not a valid MaxQuant file. Please check:" 
+            "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable")
 
     elif software == "AlphaPept":
         if "object" in df.iloc[:,1:].dtypes.to_list():
@@ -59,7 +61,8 @@ def check_software_file(df):
     elif software == "Fragpipe":
         expected_columns = ["Protein Probability","Indistinguishable Proteins"]
         if  (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error("This is not a valid FragPipe file. Please check: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv")
+            st.error("This is not a valid FragPipe file. Please check:" 
+            "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv")
 
 
 def get_unique_values_from_column(column):
@@ -115,9 +118,10 @@ def helper_compare_two_groups(method, options_dict):
     chosen_parameter_dict = {}
     group = st.selectbox(
         "Grouping variable",
-        options=st.session_state.dataset.metadata.columns.to_list(),
+        options= ["< select >"] + st.session_state.dataset.metadata.columns.to_list(),
     )
-    if group is not None:
+
+    if group !=  "< select >":
 
         unique_values = get_unique_values_from_column(group)
 
@@ -125,13 +129,22 @@ def helper_compare_two_groups(method, options_dict):
 
         group2 = st.selectbox("Group 2", options=unique_values)
 
+        chosen_parameter_dict.update({"column": group, "group1": group1, "group2": group2})
+
+    else:
+
+        group1_list = st.multiselect("Group 1 samples:", options= st.session_state.dataset.metadata["sample"].to_list())
+
+        group2_list = st.multiselect("Group 2 samples:", options= st.session_state.dataset.metadata["sample"].to_list())
+
+        chosen_parameter_dict.update({"group1_list": group1_list, "group2_list": group2_list})
+
+
     if method == "Volcano":
         analysis_method = st.selectbox(
             "Differential Analysis using:", options=["anova", "wald", "ttest"],
         )
         chosen_parameter_dict.update({"method": analysis_method})
-
-    chosen_parameter_dict.update({"column": group, "group1": group1, "group2": group2})
 
     submitted = st.button("Submit")
 

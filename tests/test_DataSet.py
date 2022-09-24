@@ -403,6 +403,17 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         number_of_groups = len(umap_plot.to_plotly_json().get("layout").get("shapes"))
         self.assertEqual(number_of_groups, 5)
 
+    def test_plot_volcano_with_grouplist(self):
+        fig = self.obj.plot_volcano(method = "ttest", 
+            group1_list=["1_31_C6", "1_42_D9", "1_57_E8"], 
+            group2_list=["1_71_F10", "1_73_F12"])
+
+    def test_plot_volcano_with_grouplist_wrong_names(self):
+        with self.assertRaises(ValueError):
+            fig = self.obj.plot_volcano(method = "ttest", 
+            group1_list=["wrong_sample_name", "1_42_D9", "1_57_E8"], 
+            group2_list=["1_71_F10", "1_73_F12"])
+
     def test_preprocess_subset(self):
         df = self.obj._subset()
         self.assertEqual(df.shape, (48, 2611))

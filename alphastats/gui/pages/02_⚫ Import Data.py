@@ -189,14 +189,14 @@ def load_sample_data():
 sidebar_info()
 
 if st.button("Load sample DataSet - PXD011839"):
-    
+
     st.write("""
 
     ### Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease
 
     **Description**
 
-    Non-alcoholic fatty liver disease (NAFLD) affects 25% of the population and can progress to cirrhosis, 
+    Non-alcoholic fatty liver disease (NAFLD) affects 25 percent of the population and can progress to cirrhosis, 
     where treatment options are limited. As the liver secrets most of the blood plasma proteins its diseases 
     should affect the plasma proteome. Plasma proteome profiling on 48 patients with cirrhosis or NAFLD with 
     normal glucose tolerance or diabetes, revealed 8 significantly changing (ALDOB, APOM, LGALS3BP, PIGR, VTN, 

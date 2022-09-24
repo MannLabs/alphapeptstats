@@ -12,8 +12,27 @@ from tqdm import tqdm
 
 
 class Statistics:
-    def perform_diff_expression_analysis(self, column, group1, group2, method="ttest"):
-        """Perform differential expression analysis doing a Wald test. This will fit a generalized linear model.
+    def _add_metadata_column(self, group1_list, group2_list):
+        
+        # create new column in metadata with defined groups
+        metadata = self.metadata
+        
+        sample_names =metadata["sample"].to_list()
+        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
+        if len(misc_samples) > 0:
+            raise ValueError(f"Sample names: {misc_samples} are not described in Metadata.")
+
+        column = "comparison_column"
+        conditons = [metadata["sample"].isin(group1_list), metadata["sample"].isin(group2_list)]
+        choices = ["group1", "group2"]
+        metadata[column] = np.select(conditons, choices, default = np.nan)
+        self.metadata = metadata
+        
+        return column, "group1", "group2"
+
+
+    def perform_diff_expression_analysis(self, column=None, group1=None, group2=None, method="ttest", group1_list=None, group2_list=None):
+        """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
@@ -36,8 +55,17 @@ class Statistics:
             * ``'ll'``: the log-likelihood of the estimation
         """
         
+
         import anndata
         import diffxpy.api as de
+
+        if group1_list is not None and group2_list is not None:
+            column, group1, group2 = self._add_metadata_column(group1_list, group2_list)
+
+        if column is None or group1 is None or group2 is None:
+            raise ValueError("Please specify: column, group1 and group2 or define groups with group1_list and group2_list")
+        
+
         #  if a column has more than two groups matrix needs to be reduced to compare
         group_samples = self.metadata[
             (self.metadata[column] == group1) | (self.metadata[column] == group2)
@@ -79,6 +107,19 @@ class Statistics:
         df = test.summary().rename(columns={"gene": self.index_column})
         return df
 
+
+    def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
+        mat_transpose += 0.00001
+        fc = (
+            mat_transpose[group1_samples].T.mean().values
+            / mat_transpose[group2_samples].T.mean().values
+        )
+        df = pd.DataFrame(
+            {"fc": fc, "log2fc": np.log2(fc)},
+            index=mat_transpose.index,
+            columns=["fc", "log2fc"],
+        )
+        return df
 
     @ignore_warning(RuntimeWarning)
     def calculate_tukey(self, protein_id, group, df=None):

@@ -390,9 +390,8 @@ class Plot:
         
         return column, "group1", "group2"
 
-
     @ignore_warning(RuntimeWarning)
-    def plot_volcano(self, column, group1, group2, method="ttest", labels=False, min_fc=1, alpha=0.05, draw_line=True):
+    def plot_volcano(self, column=None, group1=None, group2=None, method="ttest", group1_list=None, group2_list=None, labels=False, min_fc=1, alpha=0.05, draw_line=True):
         """Plot Volcano Plot
 
         Args:
@@ -404,11 +403,16 @@ class Plot:
             alpha(float,optional): p-value cut off.
             min_fc (float): Minimum fold change
             draw_line(boolean): whether to draw cut off lines.
-
+            group1_list (list): list of sample names to compare Default None.
+            group2_list (list): list of sample names to compare Default None.
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
+
+        if group1_list is not None and group2_list is not None:
+            column, group1, group2 = self._add_metadata_column(group1_list, group2_list)
+
         if method == "wald":
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
