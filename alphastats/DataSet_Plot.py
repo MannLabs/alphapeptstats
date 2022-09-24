@@ -123,9 +123,11 @@ class Plot:
             mat = self._subset()
             self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
+            sample_names = self.metadata["sample"]
         else:
             mat = self.mat
             group_color = group
+            sample_names = self.mat.reset_index(level=0)["index"]
         mat = mat.fillna(0)
 
         if method == "pca":
@@ -152,7 +154,16 @@ class Plot:
                 "1": "",
             }
     
-        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
+        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color, hover_data=[sample_names])
+
+        # rename hover_data_0 to sample
+        fig_dict = fig.to_plotly_json()
+        data = fig_dict.get("data")
+        for count, d in enumerate(data):
+            hover = d.get("hovertemplate").replace("hover_data_0", "sample")
+            fig_dict["data"][count]["hovertemplate"] = hover
+        fig = go.Figure(fig_dict)
+
         #  save plotting data in figure object
         fig = plotly_object(fig)
         fig = self._update_figure_attributes(
