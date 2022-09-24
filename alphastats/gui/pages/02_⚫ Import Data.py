@@ -1,3 +1,5 @@
+from curses import meta
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 import streamlit as st
 
 from alphastats.DataSet import DataSet
@@ -84,7 +86,8 @@ def upload_softwarefile():
         # display head a protein data
         check_software_file(softwarefile_df)
         st.write(
-            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]} , Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
+            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}" 
+            f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
         )
         st.dataframe(softwarefile_df.head(5))
         select_columns_for_loaders()
@@ -114,7 +117,8 @@ def upload_metadatafile():
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
         st.write(
-            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]} , Number of columns: {metadatafile_df.shape[1]}. \nPreview:"
+            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}" 
+            f", Number of columns: {metadatafile_df.shape[1]}. \nPreview:"
         )
         st.dataframe(metadatafile_df.head(5))
         # pick sample column
@@ -148,6 +152,15 @@ def import_data():
     if "loader" in st.session_state:
         upload_metadatafile()
 
+@st.cache
+def preview_metadata():
+    df = st.session_state.dataset.mat.head(5)
+    return df
+
+@st.cache
+def preview_rawdata():
+    df = st.session_state.dataset.mat.head(5)
+    return df
 
 def display_loaded_dataset():
     
@@ -155,25 +168,66 @@ def display_loaded_dataset():
     st.info("DataSet has been created")
     
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    st.dataframe(st.session_state.dataset.rawdata.head(5))
+    #st.dataframe(preview_rawdata())
     
     st.markdown(f"*Preview:* Metadata")
     st.dataframe(st.session_state.dataset.metadata.head(5))
     
     st.markdown(f"*Preview:* Matrix")
-    st.dataframe(st.session_state.dataset.mat.head(5))
+    #st.dataframe(preview_metadata())
+
+
+def load_sample_data():
+    loader = MaxQuantLoader(file = "sample_data/proteinGroups.txt")
+    ds = DataSet(loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample")
+    st.session_state["loader"] = loader
+    st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
+    st.session_state["dataset"] = ds
+
 
 
 sidebar_info()
 
+if st.button("Load sample DataSet - PXD011839"):
+    
+    st.write("""
+
+    ### Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease
+
+    **Description**
+
+    Non-alcoholic fatty liver disease (NAFLD) affects 25% of the population and can progress to cirrhosis, 
+    where treatment options are limited. As the liver secrets most of the blood plasma proteins its diseases 
+    should affect the plasma proteome. Plasma proteome profiling on 48 patients with cirrhosis or NAFLD with 
+    normal glucose tolerance or diabetes, revealed 8 significantly changing (ALDOB, APOM, LGALS3BP, PIGR, VTN, 
+    IGHD, FCGBP and AFM), two of which are already linked to liver disease. Polymeric immunoglobulin receptor (PIGR) 
+    was significantly elevated in both cohorts with a 2.7-fold expression change in NAFLD and 4-fold change in 
+    cirrhosis and was further validated in mouse models. Furthermore, a global correlation map of clinical and 
+    proteomic data strongly associated DPP4, ANPEP, TGFBI, PIGR, and APOE to NAFLD and cirrhosis. DPP4 is a known 
+    drug target in diabetes. ANPEP and TGFBI are of interest because of their potential role in extracellular matrix 
+    remodeling in fibrosis.
+
+    **Publication**
+
+    Niu L, Geyer PE, Wewer Albrechtsen NJ, Gluud LL, Santos A, Doll S, Treit PV, Holst JJ, Knop FK, Vilsbøll T, Junker A, 
+    Sachs S, Stemmer K, Müller TD, Tschöp MH, Hofmann SM, Mann M, Plasma proteome profiling discovers novel proteins 
+    associated with non-alcoholic fatty liver disease. Mol Syst Biol, 15(3):e8793(2019)
+    """)
+
+    load_sample_data()
+
+
 if "dataset" not in st.session_state:
     st.markdown(
-        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
-    )
+            "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+        )
+
     import_data()
 
 elif st.button("Import new dataset"):
     del st.session_state["dataset"]
+    del st.session_state["loader"]
+    del st.session_state["metadata_columns"]
     import_data()
 
 else:
