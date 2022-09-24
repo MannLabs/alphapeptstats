@@ -371,8 +371,6 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
 
-
-
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")

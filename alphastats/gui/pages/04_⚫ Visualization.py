@@ -26,7 +26,7 @@ def make_plot():
         ],
         key="plot_method",
     )
-    plot = get_analysis(method=method, options_dict=options_dict)
+    plot = get_analysis(method=method, options_dict=st.session_state.plotting_options)
     return plot
 
 
@@ -38,8 +38,6 @@ if "plot_list" not in st.session_state:
     st.session_state["plot_list"] = []
 
 if "dataset" in st.session_state:
-
-    from alphastats.gui.utils.options import plotting_options as options_dict
 
     plot = make_plot()
 

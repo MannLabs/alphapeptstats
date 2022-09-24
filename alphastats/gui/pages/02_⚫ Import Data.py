@@ -131,10 +131,33 @@ def upload_metadatafile():
                 sample_column=st.session_state.sample_column,
             )
             st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
-
+            
+            from alphastats.gui.utils.options import plotting_options, statistic_options 
+            st.session_state["plotting_options"] = plotting_options
+            st.session_state["statistic_options"] = statistic_options
+            
+            display_loaded_dataset()
+    
     if st.button("Create a DataSet without metadata"):
         st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
+        st.session_state["metadata_columns"] = ["sample"]
+        
+        from alphastats.gui.utils.options import plotting_options, statistic_options
+        st.session_state["plotting_options"] = plotting_options 
+        st.session_state["statistic_options"] = statistic_options
+            
+        display_loaded_dataset()
 
+def load_sample_data():
+    loader = MaxQuantLoader(file = "sample_data/proteinGroups.txt")
+    ds = DataSet(loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample")
+    st.session_state["loader"] = loader
+    st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
+    st.session_state["dataset"] = ds
+
+    from alphastats.gui.utils.options import plotting_options, statistic_options
+    st.session_state["plotting_options"] = plotting_options 
+    st.session_state["statistic_options"] = statistic_options
 
 def import_data():
 
@@ -177,14 +200,9 @@ def display_loaded_dataset():
     #st.dataframe(preview_metadata())
 
 
-def load_sample_data():
-    loader = MaxQuantLoader(file = "sample_data/proteinGroups.txt")
-    ds = DataSet(loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample")
-    st.session_state["loader"] = loader
-    st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
-    st.session_state["dataset"] = ds
-
-
+def reset():
+    for key in st.session_state.keys():
+        del st.session_state[key]
 
 sidebar_info()
 
@@ -215,6 +233,8 @@ if st.button("Load sample DataSet - PXD011839"):
     """)
 
     load_sample_data()
+    display_loaded_dataset()
+
 
 
 if "dataset" not in st.session_state:
@@ -224,10 +244,10 @@ if "dataset" not in st.session_state:
 
     import_data()
 
-elif st.button("Import new dataset"):
-    del st.session_state["dataset"]
-    del st.session_state["loader"]
-    del st.session_state["metadata_columns"]
+elif st.button("New Session: Import new dataset"):
+    
+    reset()
+   
     import_data()
 
 else:

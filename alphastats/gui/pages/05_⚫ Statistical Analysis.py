@@ -18,12 +18,10 @@ sidebar_info()
 
 if "dataset" in st.session_state:
 
-    from alphastats.gui.utils.options import statistic_options as options_dict
-
     st.selectbox(
-        "Statistical Analysis", options=list(options_dict.keys()), key="statistic",
+        "Statistical Analysis", options=list(st.session_state.statistic_options.keys()), key="statistic",
     )  # Pass index as ke
-    df = get_analysis(method=st.session_state.statistic, options_dict=options_dict)
+    df = get_analysis(method=st.session_state.statistic, options_dict=st.session_state.statistic_options)
     if df is not None:
         
         display_df(df)
