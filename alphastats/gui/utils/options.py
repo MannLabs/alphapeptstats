@@ -22,7 +22,7 @@ plotting_options = {
                 "options": ["violin", "box", "scatter"],
                 "label": "Plot layout",
             },
-            "color": {
+            "group": {
                 "options": [None] + st.session_state.metadata_columns,
                 "label": "Color according to",
             },

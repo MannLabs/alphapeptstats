@@ -55,11 +55,19 @@ class DataSet(Preprocess, Statistics, Plot):
         if metadata_path is not None:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
             self._remove_misc_samples_in_metadata()
+
+        else:
+            self._create_metadata()
+
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
 
         print("DataSet has been created.")
         self.overview()
+
+    def _create_metadata(self):
+        samples = list(self.mat.index)
+        self.metadata = pd.DataFrame({"sample": samples})
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader

@@ -185,6 +185,12 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim_filtered = (2, 3707)
         #  metadata column to compare for PCA, t-test, etc.
         self.comparison_column = "disease"
+    
+    def test_dataset_without_metadata(self):
+        obj = DataSet(
+            loader=self.loader
+        )
+        self.assertEqual(obj.mat.shape[0], obj.metadata.shape[0])
 
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
