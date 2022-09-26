@@ -19,11 +19,16 @@ sidebar_info()
 if "dataset" in st.session_state:
 
     st.selectbox(
-        "Statistical Analysis", options=list(st.session_state.statistic_options.keys()), key="statistic",
+        "Statistical Analysis",
+        options=list(st.session_state.statistic_options.keys()),
+        key="statistic",
     )  # Pass index as ke
-    df = get_analysis(method=st.session_state.statistic, options_dict=st.session_state.statistic_options)
+    df = get_analysis(
+        method=st.session_state.statistic,
+        options_dict=st.session_state.statistic_options,
+    )
     if df is not None:
-        
+
         display_df(df)
 
         filename = st.session_state.statistic + ".csv"

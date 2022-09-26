@@ -123,11 +123,11 @@ class Plot:
             mat = self._subset()
             self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
-            sample_names = self.metadata["sample"]
+            sample_names = self.metadata["sample"].to_list()
         else:
             mat = self.mat
             group_color = group
-            sample_names = self.mat.reset_index(level=0)["index"]
+            sample_names = mat.reset_index(level=0)["index"].to_list()
         mat = mat.fillna(0)
 
         if method == "pca":
@@ -146,6 +146,7 @@ class Plot:
                 "1": "Dimension 2",
             }
 
+
         elif method == "umap":
             umap_2d = UMAP(n_components=2, init='random', random_state=0)
             components = umap_2d.fit_transform(mat)
@@ -154,11 +155,16 @@ class Plot:
                 "1": "",
             }
     
-        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color, hover_data=[sample_names])
+    
+        components = pd.DataFrame(components)
+        components["sample"] = sample_names
+
+        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color, hover_data=[components["sample"]])
 
         # rename hover_data_0 to sample
         fig_dict = fig.to_plotly_json()
         data = fig_dict.get("data")
+        
         for count, d in enumerate(data):
             hover = d.get("hovertemplate").replace("hover_data_0", "sample")
             fig_dict["data"][count]["hovertemplate"] = hover

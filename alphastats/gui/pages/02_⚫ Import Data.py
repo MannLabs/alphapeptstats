@@ -5,9 +5,10 @@ import streamlit as st
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import sidebar_info
 from alphastats.gui.utils.analysis_helper import (
-    read_uploaded_file_into_df, 
-check_software_file,
-get_sample_names_from_software_file)
+    read_uploaded_file_into_df,
+    check_software_file,
+    get_sample_names_from_software_file,
+)
 from alphastats.gui.utils.software_options import software_options
 
 
@@ -59,10 +60,12 @@ def select_sample_column_metadata(df):
     for col in df.columns.to_list():
         if bool(set(samples_proteomics_data) & set(df[col].to_list())):
             valid_sample_columns.append(col)
-    
+
     if len(valid_sample_columns) == 0:
-        st.error(f"Metadata does not match Proteomics data." 
-        f"Information for the samples: {samples_proteomics_data} is required.")
+        st.error(
+            f"Metadata does not match Proteomics data."
+            f"Information for the samples: {samples_proteomics_data} is required."
+        )
 
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
@@ -76,6 +79,7 @@ def select_sample_column_metadata(df):
     if submitted:
         return True
 
+
 def upload_softwarefile():
 
     st.file_uploader(print_software_import_info(), key="softwarefile")
@@ -86,7 +90,7 @@ def upload_softwarefile():
         # display head a protein data
         check_software_file(softwarefile_df)
         st.write(
-            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}" 
+            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
             f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
         )
         st.dataframe(softwarefile_df.head(5))
@@ -117,7 +121,7 @@ def upload_metadatafile():
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
         st.write(
-            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}" 
+            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
             f", Number of columns: {metadatafile_df.shape[1]}. \nPreview:"
         )
         st.dataframe(metadatafile_df.head(5))
@@ -131,33 +135,40 @@ def upload_metadatafile():
                 sample_column=st.session_state.sample_column,
             )
             st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
-            
-            from alphastats.gui.utils.options import plotting_options, statistic_options 
+
+            from alphastats.gui.utils.options import plotting_options, statistic_options
+
             st.session_state["plotting_options"] = plotting_options
             st.session_state["statistic_options"] = statistic_options
-            
+
             display_loaded_dataset()
-    
+
     if st.button("Create a DataSet without metadata"):
         st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
         st.session_state["metadata_columns"] = ["sample"]
-        
+
         from alphastats.gui.utils.options import plotting_options, statistic_options
-        st.session_state["plotting_options"] = plotting_options 
+
+        st.session_state["plotting_options"] = plotting_options
         st.session_state["statistic_options"] = statistic_options
-            
+
         display_loaded_dataset()
 
+
 def load_sample_data():
-    loader = MaxQuantLoader(file = "sample_data/proteinGroups.txt")
-    ds = DataSet(loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample")
+    loader = MaxQuantLoader(file="sample_data/proteinGroups.txt")
+    ds = DataSet(
+        loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample"
+    )
     st.session_state["loader"] = loader
     st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
     st.session_state["dataset"] = ds
 
     from alphastats.gui.utils.options import plotting_options, statistic_options
-    st.session_state["plotting_options"] = plotting_options 
+
+    st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
+
 
 def import_data():
 
@@ -175,40 +186,45 @@ def import_data():
     if "loader" in st.session_state:
         upload_metadatafile()
 
+
 @st.cache
 def preview_metadata():
     df = st.session_state.dataset.mat.head(5)
     return df
+
 
 @st.cache
 def preview_rawdata():
     df = st.session_state.dataset.mat.head(5)
     return df
 
+
 def display_loaded_dataset():
-    
+
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
-    
+
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    #st.dataframe(preview_rawdata())
-    
+    # st.dataframe(preview_rawdata())
+
     st.markdown(f"*Preview:* Metadata")
     st.dataframe(st.session_state.dataset.metadata.head(5))
-    
+
     st.markdown(f"*Preview:* Matrix")
-    #st.dataframe(preview_metadata())
+    # st.dataframe(preview_metadata())
 
 
 def reset():
     for key in st.session_state.keys():
         del st.session_state[key]
 
+
 sidebar_info()
 
 if st.button("Load sample DataSet - PXD011839"):
 
-    st.write("""
+    st.write(
+        """
 
     ### Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease
 
@@ -230,24 +246,24 @@ if st.button("Load sample DataSet - PXD011839"):
     Niu L, Geyer PE, Wewer Albrechtsen NJ, Gluud LL, Santos A, Doll S, Treit PV, Holst JJ, Knop FK, Vilsbøll T, Junker A, 
     Sachs S, Stemmer K, Müller TD, Tschöp MH, Hofmann SM, Mann M, Plasma proteome profiling discovers novel proteins 
     associated with non-alcoholic fatty liver disease. Mol Syst Biol, 15(3):e8793(2019)
-    """)
+    """
+    )
 
     load_sample_data()
     display_loaded_dataset()
 
 
-
 if "dataset" not in st.session_state:
     st.markdown(
-            "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
-        )
+        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+    )
 
     import_data()
 
 elif st.button("New Session: Import new dataset"):
-    
+
     reset()
-   
+
     import_data()
 
 else:

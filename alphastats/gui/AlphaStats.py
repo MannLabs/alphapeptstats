@@ -16,7 +16,7 @@ img {
 """
 
 header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes("alphastats_logo.png") 
+    img_to_bytes("alphastats_logo.png")
 )
 
 st.markdown(
@@ -24,7 +24,8 @@ st.markdown(
 )
 
 
-st.markdown("""\n\n
+st.markdown(
+    """\n\n
 An open-source Python package for the analysis of mass spectrometry based proteomics data 
 from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
 
@@ -45,4 +46,3 @@ sidebar_info(show_logo=False)
 # https://icons.getbootstrap.com/
 # https://medium.com/codex/create-a-multi-page-app-with-the-new-streamlit-option-menu-component-3e3edaf7e7ad
 #  https://lightrun.com/answers/streamlit-streamlit-set-multipage-app-emoji-in-stpage_config-not-filename
-

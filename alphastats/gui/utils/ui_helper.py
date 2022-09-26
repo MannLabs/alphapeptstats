@@ -21,10 +21,11 @@ def sidebar_logo():
     </head>  
     """
     header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes("alphastats_logo_2.png"))
+        img_to_bytes("alphastats_logo_2.png")
+    )
     st.sidebar.markdown(
-    header_html, unsafe_allow_html=True,)
-
+        header_html, unsafe_allow_html=True,
+    )
 
 
 def sidebar_info(show_logo=True):
@@ -66,6 +67,7 @@ def display_sidebar_html_table():
 
     html_string += "</table>"
     st.sidebar.markdown(html_string, unsafe_allow_html=True)
+
 
 def img_to_bytes(img_path):
     with open(img_path, "rb") as image_file:

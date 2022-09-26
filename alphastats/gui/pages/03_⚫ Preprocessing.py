@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from alphastats.gui.utils.ui_helper import sidebar_info
 
 
@@ -34,7 +35,9 @@ def preprocessing():
             normalization=normalization,
             imputation=imputation,
         )
-        st.write("Data processed.")
+        preprocessing = st.session_state.dataset.preprocessing_info
+        st.info("Data has been processed.")
+        st.write(pd.DataFrame.from_dict(preprocessing, orient="index").astype(str))
 
 
 def main_preprocessing():

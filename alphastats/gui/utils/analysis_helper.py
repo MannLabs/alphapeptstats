@@ -26,19 +26,22 @@ def read_uploaded_file_into_df(file):
 
     return df
 
+
 def check_software_file(df):
     # check if software files are in right format
     # can be fragile when different settings are used or software is updated
     software = st.session_state.software
-    
+
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error("This is not a valid MaxQuant file. Please check:" 
-            "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable")
+            st.error(
+                "This is not a valid MaxQuant file. Please check:"
+                "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
+            )
 
     elif software == "AlphaPept":
-        if "object" in df.iloc[:,1:].dtypes.to_list():
+        if "object" in df.iloc[:, 1:].dtypes.to_list():
             st.error("This is not a valid AlphaPept file.")
 
     elif software == "DIANN":
@@ -59,10 +62,12 @@ def check_software_file(df):
             st.error("This is not a valid DIA-NN file.")
 
     elif software == "Fragpipe":
-        expected_columns = ["Protein Probability","Indistinguishable Proteins"]
-        if  (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error("This is not a valid FragPipe file. Please check:" 
-            "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv")
+        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error(
+                "This is not a valid FragPipe file. Please check:"
+                "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
+            )
 
 
 def get_unique_values_from_column(column):
@@ -81,6 +86,9 @@ def get_analysis_options_from_dict(method, options_dict):
             return helper_compare_two_groups(method=method, options_dict=options_dict)
 
         else:
+            if st.session_state.dataset.mat.isna().values.any()==True:
+                st.error("Data contains missing values impute your data before plotting (Preprocessing - Imputation).")
+                return
             return method_dict["function"]()
 
     settings_dict = method_dict.get("settings")
@@ -105,7 +113,8 @@ def get_analysis_options_from_dict(method, options_dict):
     submitted = st.button("Submit")
 
     if submitted:
-        return method_dict["function"](**chosen_parameter_dict)
+        with st.spinner("Calculating..."):
+            return method_dict["function"](**chosen_parameter_dict)
 
 
 def helper_compare_two_groups(method, options_dict):
@@ -118,10 +127,10 @@ def helper_compare_two_groups(method, options_dict):
     chosen_parameter_dict = {}
     group = st.selectbox(
         "Grouping variable",
-        options= ["< select >"] + st.session_state.dataset.metadata.columns.to_list(),
+        options=["< None >"] + st.session_state.dataset.metadata.columns.to_list(),
     )
 
-    if group !=  "< select >":
+    if group != "< None >":
 
         unique_values = get_unique_values_from_column(group)
 
@@ -129,16 +138,25 @@ def helper_compare_two_groups(method, options_dict):
 
         group2 = st.selectbox("Group 2", options=unique_values)
 
-        chosen_parameter_dict.update({"column": group, "group1": group1, "group2": group2})
+        chosen_parameter_dict.update(
+            {"column": group, "group1": group1, "group2": group2}
+        )
 
     else:
 
-        group1_list = st.multiselect("Group 1 samples:", options= st.session_state.dataset.metadata["sample"].to_list())
+        group1_list = st.multiselect(
+            "Group 1 samples:",
+            options=st.session_state.dataset.metadata["sample"].to_list(),
+        )
 
-        group2_list = st.multiselect("Group 2 samples:", options= st.session_state.dataset.metadata["sample"].to_list())
+        group2_list = st.multiselect(
+            "Group 2 samples:",
+            options=st.session_state.dataset.metadata["sample"].to_list(),
+        )
 
-        chosen_parameter_dict.update({"group1_list": group1_list, "group2_list": group2_list})
-
+        chosen_parameter_dict.update(
+            {"group1_list": group1_list, "group2_list": group2_list}
+        )
 
     if method == "Volcano":
         analysis_method = st.selectbox(
@@ -149,11 +167,14 @@ def helper_compare_two_groups(method, options_dict):
     submitted = st.button("Submit")
 
     if submitted:
-        return options_dict.get(method)["function"](**chosen_parameter_dict)
+        with st.spinner("Calculating..."):
+            return options_dict.get(method)["function"](**chosen_parameter_dict)
 
 
 def get_sample_names_from_software_file():
-    regex_find_intensity_columns = st.session_state.loader.intensity_column.replace("[sample]", ".*")
+    regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
+        "[sample]", ".*"
+    )
 
     df = st.session_state.loader.rawdata
     df = df.set_index(st.session_state.loader.index_column)
@@ -162,6 +183,7 @@ def get_sample_names_from_software_file():
     substring_to_remove = regex_find_intensity_columns.replace(".*", "")
     df.columns = df.columns.str.replace(substring_to_remove, "")
     return df.columns.to_list()
+
 
 def get_analysis(method, options_dict):
 

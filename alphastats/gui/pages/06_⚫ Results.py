@@ -13,7 +13,10 @@ def save_plotly(plot, format):
     buffer = io.BytesIO()
     # Save the figure as a pdf to the buffer
     plot[1].write_image(file=buffer, format=format)
-    st.download_button(label="Download as" + format, data=buffer, file_name=plot[0] + "." + format)
+    st.download_button(
+        label="Download as " + format, data=buffer, file_name=plot[0] + "." + format
+    )
+
 
 @st.cache
 def convert_df(df):
@@ -53,7 +56,7 @@ if "plot_list" in st.session_state:
             save_plotly(plot, format="pdf")
 
         with col2:
-            save_plotly(plot,format="svg")
+            save_plotly(plot, format="svg")
 
         with col3:
             download_preprocessing_info(plot, count)
