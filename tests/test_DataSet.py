@@ -409,14 +409,14 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_volcano_with_grouplist(self):
         fig = self.obj.plot_volcano(method = "ttest", 
-            group1_list=["1_31_C6", "1_42_D9", "1_57_E8"], 
-            group2_list=["1_71_F10", "1_73_F12"])
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"], 
+            group2=["1_71_F10", "1_73_F12"])
 
     def test_plot_volcano_with_grouplist_wrong_names(self):
         with self.assertRaises(ValueError):
-            fig = self.obj.plot_volcano(method = "ttest", 
-            group1_list=["wrong_sample_name", "1_42_D9", "1_57_E8"], 
-            group2_list=["1_71_F10", "1_73_F12"])
+            self.obj.plot_volcano(method = "ttest", 
+            group1=["wrong_sample_name", "1_42_D9", "1_57_E8"], 
+            group2=["1_71_F10", "1_73_F12"])
 
     def test_preprocess_subset(self):
         df = self.obj._subset()
@@ -499,9 +499,16 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
             
-            df = self.obj.perform_diff_expression_analysis(
+            self.obj.perform_diff_expression_analysis(
                         column=self.comparison_column, group1=group1, group2=group2, method="wrong_method"
                     )  # check if dataframe gets created
+
+    def test_perform_diff_expression_analysis_nocolumn(self):
+        with self.assertRaises(ValueError):
+            self.obj.perform_diff_expression_analysis(
+            group1="healthy", group2="liver cirrhosis"
+            )
+
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -591,6 +598,13 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
         self.assertAlmostEqual(round(y_value, 1), 0.1)
 
+    def test_volcano_plot_ttest_no_column(self):
+        with self.assertRaises(ValueError):
+            self.obj.preprocess(imputation="knn")
+            self.obj.plot_volcano(
+            group1="Healthy", group2="Disease", method="ttest"
+            ) 
+
     def test_volcano_plot_wrongmethod(self):
         with self.assertRaises(ValueError):
             self.obj.plot_volcano(
@@ -599,7 +613,20 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 group2="Disease",
                 method="wrongmethod",
             )
-
+    def test_perform_diff_expression_analysis_with_list(self):
+        self.obj.preprocess(imputation="knn")
+        column="grouping1"
+        group1="Healthy"
+        group2="Disease"
+        group1_samples = self.obj.metadata[self.obj.metadata[column] == group1][
+                "sample"
+            ].tolist()
+        group2_samples = self.obj.metadata[self.obj.metadata[column] == group2][
+                "sample"
+            ].tolist()
+        self.obj.perform_diff_expression_analysis(
+            group1=group1_samples,
+            group2=group2_samples)
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

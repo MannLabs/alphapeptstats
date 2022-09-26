@@ -132,11 +132,17 @@ def helper_compare_two_groups(method, options_dict):
 
     if group != "< None >":
 
+        col1, col2 = st.columns(2)
+
         unique_values = get_unique_values_from_column(group)
+        
+        with col1:
 
-        group1 = st.selectbox("Group 1", options=unique_values)
+            group1 = st.selectbox("Group 1", options=unique_values)
 
-        group2 = st.selectbox("Group 2", options=unique_values)
+        with col2:
+            
+            group2 = st.selectbox("Group 2", options=unique_values)
 
         chosen_parameter_dict.update(
             {"column": group, "group1": group1, "group2": group2}
@@ -144,15 +150,21 @@ def helper_compare_two_groups(method, options_dict):
 
     else:
 
-        group1_list = st.multiselect(
-            "Group 1 samples:",
-            options=st.session_state.dataset.metadata["sample"].to_list(),
-        )
+        col1, col2 = st.columns(2)
 
-        group2_list = st.multiselect(
-            "Group 2 samples:",
-            options=st.session_state.dataset.metadata["sample"].to_list(),
-        )
+        with col1:
+
+            group1_list = st.multiselect(
+                "Group 1 samples:",
+                options=st.session_state.dataset.metadata["sample"].to_list(),
+            )
+
+        with col2:
+
+            group2_list = st.multiselect(
+                "Group 2 samples:",
+                options=st.session_state.dataset.metadata["sample"].to_list(),
+            )
 
         chosen_parameter_dict.update(
             {"group1_list": group1_list, "group2_list": group2_list}

@@ -397,42 +397,45 @@ class Plot:
         return column, "group1", "group2"
 
     @ignore_warning(RuntimeWarning)
-    def plot_volcano(self, column=None, group1=None, group2=None, method="ttest", group1_list=None, group2_list=None, labels=False, min_fc=1, alpha=0.05, draw_line=True):
+    def plot_volcano(self,  group1, group2, column=None, method="ttest", labels=False, min_fc=1, alpha=0.05, draw_line=True):
         """Plot Volcano Plot
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
-            group1 (str): name of group to compare needs to be present in column
-            group2 (str): name of group to compare needs to be present in column
+            group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
+            group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
             method (str): "anova", "wald", "ttest", Defaul ttest.
             labels (bool): Add text labels to significant Proteins, Default False.
             alpha(float,optional): p-value cut off.
             min_fc (float): Minimum fold change
             draw_line(boolean): whether to draw cut off lines.
-            group1_list (list): list of sample names to compare Default None.
-            group2_list (list): list of sample names to compare Default None.
+           
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
 
-        if group1_list is not None and group2_list is not None:
-            column, group1, group2 = self._add_metadata_column(group1_list, group2_list)
+        if isinstance(group1, list) and isinstance(group2,list):
+            column, group1, group2 = self._add_metadata_column(group1, group2)
 
         if method == "wald":
+
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
             )
-            result_df = self.perform_diff_expression_analysis(column, group1, group2, method="wald")
+            result = self.perform_diff_expression_analysis(column=column, group1=group1, group2=group2, method="wald")
             pvalue_column = "qval"
 
         elif method == "ttest":
+
             print("Calculating t-test...")
             result_df = self.perform_diff_expression_analysis(column, group1, group2, method="ttest")
             pvalue_column = "pval"
 
         elif method == "anova":
+
             print("Calculating ANOVA with follow-up tukey test...")
+
             result_df = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 "sample"
@@ -440,6 +443,7 @@ class Plot:
             group2_samples = self.metadata[self.metadata[column] == group2][
                 "sample"
             ].tolist()
+
             mat_transpose = self.mat.transpose()
             fc = self._calculate_foldchange(
                 mat_transpose, group1_samples, group2_samples
@@ -447,6 +451,7 @@ class Plot:
 
             #  check how column is ordered
             pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
+            
             if pvalue_column not in fc.columns:
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
