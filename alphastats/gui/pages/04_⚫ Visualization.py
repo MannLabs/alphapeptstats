@@ -4,8 +4,12 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 
 
 def display_plotly_figure(plot):
+    try:
+        st.plotly_chart(plot)
+    except:
+        st.pyplot(plot)
 
-    st.plotly_chart(plot)
+
 
 
 def save_plot_to_session_state(plot, method):

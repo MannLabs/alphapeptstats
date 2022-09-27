@@ -19,6 +19,7 @@ def get_requirements():
     extra_requirements = {}
     requirement_file_names = {
         "development": "requirements_development.txt",
+        "gui": "requirements_gui.txt",
     }
     requirement_file_names[""] = "requirements.txt"
     for extra, requirement_file_name in requirement_file_names.items():

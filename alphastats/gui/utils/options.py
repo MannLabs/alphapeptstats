@@ -15,7 +15,7 @@ plotting_options = {
     "Intensity": {
         "settings": {
             "id": {
-                "options": st.session_state.metadata_columns,
+                "options": st.session_state.dataset.mat.columns.to_list(),
                 "label": "ProteinID/ProteinGroup",
             },
             "method": {

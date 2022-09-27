@@ -188,14 +188,14 @@ def import_data():
 
 
 @st.cache
-def preview_metadata():
+def preview_matrix():
     df = st.session_state.dataset.mat.head(5)
     return df
 
 
 @st.cache
 def preview_rawdata():
-    df = st.session_state.dataset.mat.head(5)
+    df = st.session_state.dataset.rawdata.head(5)
     return df
 
 
@@ -205,13 +205,17 @@ def display_loaded_dataset():
     st.info("DataSet has been created")
 
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    # st.dataframe(preview_rawdata())
+    st.dataframe(preview_rawdata())
 
     st.markdown(f"*Preview:* Metadata")
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
-    # st.dataframe(preview_metadata())
+    #st.dataframe(preview_metadata())
+    st.write(type(st.session_state.dataset.mat))
+    df = st.session_state.dataset.mat.head(5)
+
+    st.write(df)
 
 
 def reset():
@@ -250,7 +254,7 @@ if st.button("Load sample DataSet - PXD011839"):
     )
 
     load_sample_data()
-    display_loaded_dataset()
+   
 
 
 if "dataset" not in st.session_state:
