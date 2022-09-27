@@ -211,7 +211,7 @@ def display_loaded_dataset():
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
-    #st.dataframe(preview_metadata())
+    st.dataframe(preview_matrix())
     st.write(type(st.session_state.dataset.mat))
     df = st.session_state.dataset.mat.head(5)
 
