@@ -10,6 +10,7 @@ from alphastats.gui.utils.analysis_helper import (
     get_sample_names_from_software_file,
 )
 from alphastats.gui.utils.software_options import software_options
+import pandas as pd
 
 
 def print_software_import_info():
@@ -186,36 +187,20 @@ def import_data():
     if "loader" in st.session_state:
         upload_metadatafile()
 
-
-@st.cache
-def preview_matrix():
-    df = st.session_state.dataset.mat.head(5)
-    return df
-
-
-@st.cache
-def preview_rawdata():
-    df = st.session_state.dataset.rawdata.head(5)
-    return df
-
-
 def display_loaded_dataset():
 
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
 
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    st.dataframe(preview_rawdata())
+    st.dataframe(st.session_state.dataset.rawdata.head(5))
 
     st.markdown(f"*Preview:* Metadata")
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
-    st.dataframe(preview_matrix())
-    st.write(type(st.session_state.dataset.mat))
-    df = st.session_state.dataset.mat.head(5)
-
-    st.write(df)
+    df = pd.DataFrame(st.session_state.dataset.mat.values, index=st.session_state.dataset.mat.index.to_list()).head(5)
+    st.dataframe(df)
 
 
 def reset():

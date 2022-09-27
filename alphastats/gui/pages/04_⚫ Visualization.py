@@ -5,7 +5,7 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 
 def display_plotly_figure(plot):
     try:
-        st.plotly_chart(plot)
+        st.plotly_chart(plot.update_layout(plot_bgcolor = "white"))
     except:
         st.pyplot(plot)
 
@@ -37,6 +37,21 @@ def make_plot():
 st.markdown("### Visualization")
 
 sidebar_info()
+
+
+# set background to white so downloaded pngs dont have grey background
+styl = f"""
+    <style>
+        .css-jc5rf5 {{
+            position: absolute;
+            background: rgb(255, 255, 255);
+            color: rgb(48, 46, 48);
+            inset: 0px;
+            overflow: hidden;
+        }}
+    </style>
+    """
+st.markdown(styl, unsafe_allow_html=True)
 
 if "plot_list" not in st.session_state:
     st.session_state["plot_list"] = []

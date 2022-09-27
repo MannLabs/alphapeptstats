@@ -24,6 +24,24 @@ st.markdown(
 )
 
 
+# styl = f"""
+#     <style>
+#         .css-79elbk {{
+#         background-image: url("alphastats_logo.png");
+#         min-height: 100%;
+#         position: absolute;
+#         }}
+#         .e1fqkh3o8 {{
+#         background-image: url("alphastats_logo.png");
+#         min-height: 100%;
+#         position: absolute;
+#         }}
+        
+#     </style>
+
+#     """  
+# st.markdown(styl , unsafe_allow_html=True)
+
 st.markdown(
     """\n\n
 An open-source Python package for the analysis of mass spectrometry based proteomics data 

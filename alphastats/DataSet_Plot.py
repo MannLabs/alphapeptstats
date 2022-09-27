@@ -19,6 +19,8 @@ from umap import UMAP
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         colorway=[
             "#009599",
             "#005358",
