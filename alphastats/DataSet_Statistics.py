@@ -10,7 +10,6 @@ from tqdm import tqdm
 
 
 
-
 class Statistics:
     def _add_metadata_column(self, group1_list, group2_list):
         
