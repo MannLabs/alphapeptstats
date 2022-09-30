@@ -1,11 +1,13 @@
 [![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
 
-
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/70535771/193259270-27af8f13-bfea-4e8e-9563-0af2046e1860.png" />
+</p>
 # AlphaStats
 
 An open-source Python package of the AlphaStats ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
-The full documentation can be found [here](mannlabs.github.io/alphastats/).
+The full documentation can be found [here](https://mannlabs.github.io/alphastats/).
 
 * [**About**](#about)
 * [**Installation**](#installation)
