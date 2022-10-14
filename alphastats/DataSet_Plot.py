@@ -259,31 +259,90 @@ class Plot:
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
         return fig
+    
+    @staticmethod
+    def _add_significance(plot):
+        # add sginficance pvalue, and stars to pairwise intensity plot
+        plot_dict = plot.to_plotly_json()
+        data = plot_dict.get("data")
+        
+        if len(data) != 2:
+            import logging
+            logging.warning("Signficane can only be estimated when there are two groups plotted.")
+            return plot
+        
+        group1, group2 = data[0]["name"], data[1]["name"]
+        y_array1, y_array2 = data[0]["y"], data[1]["y"]
+        # do ttest
+        pvalue = scipy.stats.ttest_ind(y_array1, y_array2).pvalue
+        
+        if pvalue < 0.001:
+            significance_level = "***"
+        elif pvalue < 0.01:
+            significance_level = "**"
+        elif pvalue < 0.05:
+            significance_level = "*"
+        else:
+            significance_level = "-"
+        
+        pvalue_text = "<i>p=" + str(round(pvalue,4)) + "</i>"
+            
+        y_max = np.concatenate((y_array1, y_array2)).max()
+        # add connecting bar for pvalue
+        plot.add_trace(go.Scatter(x=[group1, group1, group2, group2],
+                            y=[y_max * 1.1, y_max *1.15, y_max*1.15, y_max*1,1],
+                            fill=None, mode="lines", line=dict(color='rgba(0,0,0,1)',width=2),
+                            showlegend=False)
+                    )
+                
+        # Add p-values
+        plot.add_annotation(text=pvalue_text,
+                    name="p-value",                                  
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.95, showarrow=False,
+                    font=dict(size=12, color="black")
+                        )
 
-    def plot_intensity(self, id, group=None, method="violin", log_scale=False):
+        plot.add_annotation(text=significance_level,
+                    name="significance",                                  
+                    xref="paper", yref="paper",
+                    x=0.5, y=1.05, showarrow=False,
+                    font=dict(size=12, color="black")
+                        )
+        return plot
+
+    def plot_intensity(self,protein_id, group=None, subgroups=None, method="box", add_significance=False, log_scale=False):
         """Plot Intensity of individual Protein/ProteinGroup 
 
         Args:
-            id (str): ProteinGroup ID
+            ID (str): ProteinGroup ID
             group (str, optional): A metadata column used for grouping. Defaults to None.
-            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "violin".
+            subgroups (list, optional): Select variables from the group column. Defaults to None.
+            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "box".
+            add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Default False.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
             plotly.graph_objects._figure.Figure: Plotly Plot
         """
         #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
-        df = self.mat[[id]].reset_index().rename(columns={"index": "sample"})
+        df = self.mat[[protein_id]].reset_index().rename(columns={"index": "sample"})
         df = df.merge(self.metadata, how="inner", on=["sample"])
 
+        if subgroups is not None:
+            df = df[df[group].isin(subgroups)]
+        
+
+        y_label = protein_id + " " + self.intensity_column.replace("[sample]", "")
+
         if method == "violin":
-            fig = px.violin(df, x=id, y=group, color=group)
+            fig = px.violin(df, x=protein_id, y=group, color=group, labels={protein_id:y_label})
 
         elif method == "box":
-            fig = px.box(df, x=id, y=group, color=group)
+            fig = px.box(df, x=protein_id, y=group, color=group, labels={protein_id:y_label})
 
         elif method == "scatter":
-            fig = px.scatter(df, x=id, y=group, color=group)
+            fig = px.scatter(df, x=protein_id, y=group, color=group, labels={protein_id:y_label})
 
         else:
             raise ValueError(
@@ -293,8 +352,30 @@ class Plot:
 
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
+        
+        if add_significance:
+            fig = self._add_significance(fig)
 
         return fig
+
+    def _add_metadata_column(self, group1_list, group2_list):
+        
+        # create new column in metadata with defined groups
+        metadata = self.metadata
+        
+        sample_names =metadata["sample"].to_list()
+        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
+        if len(misc_samples) > 0:
+            raise ValueError(f"Sample names: {misc_samples} are not described in Metadata.")
+
+        column = "comparison_column"
+        conditons = [metadata["sample"].isin(group1_list), metadata["sample"].isin(group2_list)]
+        choices = ["group1", "group2"]
+        metadata[column] = np.select(conditons, choices, default = np.nan)
+        self.metadata = metadata
+        
+        return column, "group1", "group2"
+
 
     @ignore_warning(RuntimeWarning)
     def plot_volcano(self, column, group1, group2, method="anova", labels=False):
