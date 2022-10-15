@@ -100,9 +100,10 @@ class Plot:
         else:
             label_column = self.index_column
         
-        result_df["label"] = np.where(result_df["color"] != "non-significant",result_df[label_column], "")
+        result_df["label"] = np.where(result_df.color != "non-significant",result_df[label_column], "")
             # replace nas with empty string (can cause error when plotting with gene names)
         result_df["label"] = result_df["label"].fillna("") 
+        result_df = result_df[result_df["label"] != ""]
             
         for x,y,label_column in result_df[["log2fc", "-log10(p-value)", label_column]].itertuples(index=False):
             figure_object.add_annotation(
@@ -290,8 +291,8 @@ class Plot:
         y_max = np.concatenate((y_array1, y_array2)).max()
         # add connecting bar for pvalue
         plot.add_trace(go.Scatter(x=[group1, group1, group2, group2],
-                            y=[y_max * 1.1, y_max *1.15, y_max*1.15, y_max*1,1],
-                            fill=None, mode="lines", line=dict(color='rgba(0,0,0,1)',width=2),
+                            y=[y_max * 1.1, y_max *1.15, y_max*1.15, y_max*1.1],
+                            fill=None, mode="lines", line=dict(color='rgba(0,0,0,1)',width=1),
                             showlegend=False)
                     )
                 
@@ -306,9 +307,11 @@ class Plot:
         plot.add_annotation(text=significance_level,
                     name="significance",                                  
                     xref="paper", yref="paper",
-                    x=0.5, y=1.05, showarrow=False,
+                    x=0.5, y=1.002, showarrow=False,
                     font=dict(size=12, color="black")
                         )
+
+        plot.update_layout(width=600, height=700)
         return plot
 
     def plot_intensity(self,protein_id, group=None, subgroups=None, method="box", add_significance=False, log_scale=False):
@@ -333,16 +336,16 @@ class Plot:
             df = df[df[group].isin(subgroups)]
         
 
-        y_label = protein_id + " " + self.intensity_column.replace("[sample]", "")
+        y_label = protein_id + " - " + self.intensity_column.replace("[sample]", "")
 
         if method == "violin":
-            fig = px.violin(df, x=protein_id, y=group, color=group, labels={protein_id:y_label})
+            fig = px.violin(df, y=protein_id, x=group, color=group, labels={protein_id:y_label})
 
         elif method == "box":
-            fig = px.box(df, x=protein_id, y=group, color=group, labels={protein_id:y_label})
+            fig = px.box(df, y=protein_id, x=group, color=group, labels={protein_id:y_label})
 
         elif method == "scatter":
-            fig = px.scatter(df, x=protein_id, y=group, color=group, labels={protein_id:y_label})
+            fig = px.scatter(df, y=protein_id, x=group, color=group, labels={protein_id:y_label})
 
         else:
             raise ValueError(
@@ -378,15 +381,19 @@ class Plot:
 
 
     @ignore_warning(RuntimeWarning)
-    def plot_volcano(self, column, group1, group2, method="anova", labels=False):
+    def plot_volcano(self, column, group1, group2, method="ttest", labels=False, min_fc=1, alpha=0.05, draw_line=True):
         """Plot Volcano Plot
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str): name of group to compare needs to be present in column
             group2 (str): name of group to compare needs to be present in column
-            method (str): "anova", "wald", "ttest"
+            method (str): "anova", "wald", "ttest", Defaul ttest.
             labels (bool): Add text labels to significant Proteins, Default False.
+            alpha(float,optional): p-value cut off.
+            min_fc (float): Minimum fold change
+            draw_line(boolean): whether to draw cut off lines.
+
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
@@ -395,13 +402,13 @@ class Plot:
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
             )
-            result_df = self.perform_diff_expression_analysis(column, group1, group2)
+            result_df = self.perform_diff_expression_analysis(column, group1, group2, method="wald")
             pvalue_column = "qval"
 
         elif method == "ttest":
             print("Calculating t-test...")
-            result_df = self.calculate_ttest_fc(column, group1, group2)
-            pvalue_column = "pvalue"
+            result_df = self.perform_diff_expression_analysis(column, group1, group2, method="ttest")
+            pvalue_column = "pval"
 
         elif method == "anova":
             print("Calculating ANOVA with follow-up tukey test...")
@@ -433,10 +440,11 @@ class Plot:
         result_df = result_df[(result_df["log2fc"] < 10) & (result_df["log2fc"] > -10)]
         result_df["-log10(p-value)"] = -np.log10(result_df[pvalue_column])
 
+        alpha = -np.log10(alpha)
         # add color variable to plot
         condition = [
-            (result_df["log2fc"] < -1) & (result_df["-log10(p-value)"] > 1),
-            (result_df["log2fc"] > 1) & (result_df["-log10(p-value)"] > 1),
+            (result_df["log2fc"] < -min_fc) & (result_df["-log10(p-value)"] > alpha),
+            (result_df["log2fc"] > min_fc) & (result_df["-log10(p-value)"] > alpha),
         ]
         value = ["down", "up"]
         result_df["color"] = np.select(condition, value, default="non-significant")
@@ -465,10 +473,17 @@ class Plot:
             figure_object=volcano_plot, plotting_data=result_df, method=method
         )
 
+        if draw_line:
+            volcano_plot.add_hline(y = alpha, line_width=1, line_dash="dash", line_color="#8c8c8c")
+            volcano_plot.add_vline(x = min_fc, line_width=1, line_dash="dash", line_color="#8c8c8c")
+            volcano_plot.add_vline(x = -min_fc, line_width=1, line_dash="dash", line_color="#8c8c8c")
+
+
         # update coloring
         color_dict = {"non-significant": "#404040", "up": "#B65EAF", "down": "#009599"}
         volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
         volcano_plot.update_layout(showlegend=False)
+        volcano_plot.update_layout(width=600, height=700)
         return volcano_plot
 
     def _clustermap_get_colors_for_bar(self, columnname, color) -> pd.Series:
