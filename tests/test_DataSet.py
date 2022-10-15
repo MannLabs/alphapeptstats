@@ -271,6 +271,20 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
 
+    def test_preprocess_normalize_vst(self):
+        self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
+        # Linear Normalization
+        self.obj.preprocess(normalization="vst")
+        expected_mat = pd.DataFrame(
+            {
+                "a": [-1.30773413,  1.12010046, 0.18763367],
+                "b": [1.41421361, -0.70710674, -0.70710674],
+                "c": [-1.39384919, 0.90401955,  0.48982964],
+            }
+        )
+        pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
+        
+
     def test_preprocess_imputation_mean_values(self):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}

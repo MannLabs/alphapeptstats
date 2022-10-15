@@ -157,11 +157,15 @@ class Preprocess:
             normalized_array = sklearn.preprocessing.normalize(
                 self.mat.values, norm="l2"
             )
+        
+        elif method == "vst":
+            scaler = sklearn.preprocessing.PowerTransformer()
+            normalized_array = scaler.fit_transform(self.mat.values)
 
         else:
             raise ValueError(
                 "Normalization method: {method} is invalid"
-                "Choose from 'zscore', 'quantile' or 'linear' normalization."
+                "Choose from 'zscore', 'quantile', 'linear' normalization. or 'vst' for variance stabilization transformation"
             )
 
         # TODO logarithimic normalization
@@ -188,14 +192,17 @@ class Preprocess:
 
         Normalization:
 
-        "zscore", "quantile", "linear"
+        "zscore", "quantile", "linear", "vst"
 
         Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
         
         Z-score normalization equals standaridzation using StandardScaler: 
         https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+
+        Variance stabilization transformation uses:
+        https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PowerTransformer.html
         
-        For more information visit.
+        For more information visit. 
         Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
 
         Imputation:
