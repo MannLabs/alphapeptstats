@@ -1,4 +1,5 @@
 from audioop import add
+from turtle import color
 import sklearn
 import logging
 import plotly.express as px
@@ -486,15 +487,7 @@ class Plot:
         volcano_plot.update_layout(width=600, height=700)
         return volcano_plot
 
-    def _clustermap_get_colors_for_bar(self, columnname, color) -> pd.Series:
-        s = self.metadata[columnname]
-        su = s.unique()
-        colors = sns.light_palette(color, len(su))
-        lut = dict(zip(su, colors))
-        return s.map(lut)
-
-    def _clustermap_create_label_bar(self, list_of_labels):
-        label_colors = []
+    def _clustermap_create_label_bar(self, label, metadata_df):
         colorway = [
             "#009599",
             "#005358",
@@ -504,15 +497,17 @@ class Plot:
             "#6490C1",
             "#FF894F",
         ]
-        for label in list_of_labels:
-            color_label = self._clustermap_get_colors_for_bar(
-                columnname=label, color=random.choice(colorway)
-            )
-            label_colors.append(color_label)
-        return label_colors
+
+        s = metadata_df[label]
+        su = s.unique()
+        colors = sns.light_palette(random.choice(colorway), len(su))
+        lut = dict(zip(su, colors))
+        color_label = s.map(lut)
+     
+        return color_label
 
     @check_for_missing_values
-    def plot_clustermap(self, label_bar=None):
+    def plot_clustermap(self, label_bar=None, only_significant=False, group=None, subgroups=None):
         """Plot clustermap with samples as columns and Proteins as rows
 
         Args:
@@ -521,10 +516,32 @@ class Plot:
         Returns:
             ClusterGrid: Clustermap
         """
-        if label_bar is not None:
-            label_bar = self._clustermap_create_label_bar(label_bar)
+        df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
 
-        fig = sns.clustermap(self.mat.transpose(), col_colors=label_bar)
+        if group is not None and subgroups is not None:
+            metadata_df = self.metadata[self.metadata[group].isin(subgroups + ["sample"])]
+            samples = metadata_df["sample"]
+            df = df.filter(items=samples, axis = 0)
+        
+        else:
+            metadata_df = self.metadata
+
+        if only_significant and group is not None:
+            anova_df = self.anova(column = group, tukey=False)
+            significant_proteins = anova_df[anova_df["ANOVA_pvalue"] < 0.05][self.index_column].to_list()
+            df = df[significant_proteins]
+
+        if label_bar is not None:
+            label_bar, lut, s = self._clustermap_create_label_bar(label_bar)
+        
+        df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+
+        fig = sns.clustermap(df.transpose(), col_colors=label_bar)
+
+        for label in s.unique():
+            fig.ax_col_dendrogram.bar(0, 0, color=lut[label],
+                                label=label, linewidth=0)
+            fig.ax_col_dendrogram.legend(loc="center", ncol=6)
         return fig
 
     @check_for_missing_values
