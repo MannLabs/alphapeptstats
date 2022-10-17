@@ -94,7 +94,7 @@ class Plot:
         setattr(figure_object, "method", method)
         return figure_object
 
-    def _add_labels(self, result_df, figure_object):
+    def _volcano_add_labels(self, result_df, figure_object):
         
         if self.gene_names is not None:
             label_column = self.gene_names
@@ -269,7 +269,6 @@ class Plot:
         data = plot_dict.get("data")
         
         if len(data) != 2:
-            import logging
             logging.warning("Signficane can only be estimated when there are two groups plotted.")
             return plot
         
@@ -466,7 +465,7 @@ class Plot:
         ) 
 
         if labels:
-            volcano_plot = self._add_labels(result_df=result_df, figure_object=volcano_plot)
+            volcano_plot = self._volcano_add_labels(result_df=result_df, figure_object=volcano_plot)
             
         #  save plotting data in figure object
         volcano_plot = plotly_object(volcano_plot)
@@ -504,7 +503,7 @@ class Plot:
         lut = dict(zip(su, colors))
         color_label = s.map(lut)
      
-        return color_label
+        return color_label, lut, s
 
     @check_for_missing_values
     def plot_clustermap(self, label_bar=None, only_significant=False, group=None, subgroups=None):
@@ -532,16 +531,17 @@ class Plot:
             df = df[significant_proteins]
 
         if label_bar is not None:
-            label_bar, lut, s = self._clustermap_create_label_bar(label_bar)
+            label_bar, lut, s = self._clustermap_create_label_bar(label_bar,metadata_df)
         
         df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
 
         fig = sns.clustermap(df.transpose(), col_colors=label_bar)
 
-        for label in s.unique():
-            fig.ax_col_dendrogram.bar(0, 0, color=lut[label],
-                                label=label, linewidth=0)
-            fig.ax_col_dendrogram.legend(loc="center", ncol=6)
+        if label_bar is not None:
+            for label in s.unique():
+                fig.ax_col_dendrogram.bar(0, 0, color=lut[label],
+                                    label=label, linewidth=0)
+                fig.ax_col_dendrogram.legend(loc="center", ncol=6)
         return fig
 
     @check_for_missing_values

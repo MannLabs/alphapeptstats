@@ -145,23 +145,6 @@ class BaseTestDataSet:
             with self.assertRaises(ValueError):
                 self.obj.preprocess(imputation="wrong method")
 
-        def test_calculate_ttest_fc(self):
-            # get groups from comparison column
-            groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
-            group1, group2 = groups[0], groups[1]
-            if self.obj.software != "AlphaPept":
-                df = self.obj.calculate_ttest_fc(
-                    column=self.comparison_column, group1=group1, group2=group2
-                )  # check if dataframe gets created
-                self.assertTrue(isinstance(df, pd.DataFrame))
-                self.assertFalse(df.empty)
-            else:
-                with self.assertRaises(NotImplementedError):
-                    # alphapept has only two samples should throw error
-                    self.obj.calculate_ttest_fc(
-                        column=self.comparison_column, group1=group1, group2=group2
-                    )
-
         def test_imputation_mean(self):
             self.obj.preprocess(imputation="mean")
             self.assertFalse(self.obj.mat.isna().values.any())
@@ -363,7 +346,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_clustermap_with_label_bar(self):
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_clustermap(label_bar=[self.comparison_column])
+        plot = self.obj.plot_clustermap(label_bar=self.comparison_column)
         first_row = plot.data2d.iloc[0].to_list()
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
@@ -421,13 +404,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intenstity_subgroup(self):
         plot = self.obj.plot_intensity(protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1", group="disease",subgroups=["healthy", "liver cirrhosis"], add_significance=True)
         plot_dict = plot.to_plotly_json()
-        self.assertEqual(len(plot_dict.get("data")), 2)
+        self.assertEqual(len(plot_dict.get("data")), 3)
 
     @patch("logging.Logger.warning")
     def test_plot_intenstity_subgroup_significance_warning(self, mock):
-        plot = self.obj.plot_intensity(protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1", group="disease", add_significance=True)
+        plot = self.obj.plot_intensity(protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1", group="disease",add_significance=True)
         plot_dict = plot.to_plotly_json()
-        self.assertEqual(len(plot_dict.get("data")), 2)
+        self.assertEqual(len(plot_dict.get("data")), 5)
         mock.assert_called_once()
 
     def test_anova_with_tukey(self):
@@ -467,6 +450,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
 
+    def test_plot_clustermap_significant(self):
+        self.obj.preprocess(imputation="knn")
+        plot = self.obj.plot_clustermap(label_bar=self.comparison_column, only_significant=True, group=self.comparison_column, subgroups=["healthy", "liver cirrhosis"])
+    
     def test_plot_volcano_with_labels_proteins(self):
         # remove gene names
         self.obj.gene_names = None
@@ -475,6 +462,19 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
+
+    def test_calculate_wald(self):
+            # get groups from comparison column
+        self.obj.preprocess(imputation="knn")
+        groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
+        group1, group2 = groups[0], groups[1]
+        
+        df = self.obj.perform_diff_expression_analysis(
+                    column=self.comparison_column, group1=group1, group2=group2, method="wald"
+                )  # check if dataframe gets created
+        self.assertTrue(isinstance(df, pd.DataFrame))
+        self.assertFalse(df.empty)
+           
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
