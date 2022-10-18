@@ -463,18 +463,16 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
 
-    def test_calculate_wald(self):
+    def test_calculate_diff_exp_wrong(self):
             # get groups from comparison column
-        self.obj.preprocess(imputation="knn")
-        groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
-        group1, group2 = groups[0], groups[1]
-        
-        df = self.obj.perform_diff_expression_analysis(
-                    column=self.comparison_column, group1=group1, group2=group2, method="wald"
-                )  # check if dataframe gets created
-        self.assertTrue(isinstance(df, pd.DataFrame))
-        self.assertFalse(df.empty)
-           
+        with self.assertRaises(ValueError):
+            self.obj.preprocess(imputation="knn")
+            groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
+            group1, group2 = groups[0], groups[1]
+            
+            df = self.obj.perform_diff_expression_analysis(
+                        column=self.comparison_column, group1=group1, group2=group2, method="wrong_method"
+                    )  # check if dataframe gets created
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
