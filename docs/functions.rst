@@ -27,6 +27,7 @@ A description on how do customize your plots can be found `here <https://maegul.
 
 * Principal Component Analysis (PCA): :py:meth:`~DataSet_Plot.Plot.plot_pca`
 * t-SNE: :py:meth:`~alphastats.DataSet_Plot.Plot.plot_tsne`
+* UMAP :py:meth:`~alphastats.DataSet_Plot.Plot.plot_umap`
 
 **Plot Distance between samples**
 

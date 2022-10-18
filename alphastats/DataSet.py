@@ -45,13 +45,15 @@ class DataSet(Preprocess, Statistics, Plot):
         self.index_column = loader.index_column
         self.intensity_column = loader.intensity_column
         self.filter_columns = loader.filter_columns
+        self.gene_names = loader.gene_names
 
         # include filtering before
         self.create_matrix()
         self._check_matrix_values()
         self.metadata = None
-        if metadata_path:
+        if metadata_path is not None:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
+            self._remove_misc_samples_in_metadata()
 
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
@@ -86,6 +88,16 @@ class DataSet(Preprocess, Statistics, Plot):
         if np.isinf(self.mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
 
+    def _remove_misc_samples_in_metadata(self):
+        samples_matrix = self.mat.index.to_list()
+        samples_metadata = self.metadata["sample"].to_list()
+        misc_samples = list(set(samples_metadata) - set(samples_matrix))
+        if len(misc_samples) > 0:
+            self.metadata = self.metadata[~self.metadata["sample"].isin(misc_samples)]
+            logging.warning(f"{misc_samples} are not described in the protein data and" 
+            "are removed from the metadata.")
+        
+
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
@@ -115,8 +127,10 @@ class DataSet(Preprocess, Statistics, Plot):
             file_path (str): path to metadata file
             sample_column (str): column name with sample IDs
         """
+        if isinstance(file_path, pd.DataFrame):
+            df = file_path
         #  loading file needs to be more beautiful
-        if file_path.endswith(".xlsx"):
+        elif file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
             # find robust way to detect file format
             # else give file separation as variable

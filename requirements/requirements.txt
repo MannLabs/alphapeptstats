@@ -10,3 +10,4 @@ scipy>=1.8.1
 tqdm
 diffxpy
 anndata
+umap-learn>=0.5.3
