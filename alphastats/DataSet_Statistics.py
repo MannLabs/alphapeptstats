@@ -61,7 +61,7 @@ class Statistics:
         # create a annotated dataset
         d = anndata.AnnData(
             X=reduced_matrix.values,
-            var=pd.DataFrame(index=self.mat.T.index.to_list()),
+            var=pd.DataFrame(index=reduced_matrix.columns.to_list()),
             obs=obs_metadata,
             dtype=reduced_matrix.values.dtype,
         )
