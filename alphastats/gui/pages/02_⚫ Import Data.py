@@ -161,6 +161,8 @@ def load_sample_data():
     ds = DataSet(
         loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample"
     )
+    ds.metadata = ds.metadata[["sample", "disease", "Drug therapy (procedure) (416608005)", "Lipid-lowering therapy (134350008)"]]
+    ds.preprocess(subset=True)
     st.session_state["loader"] = loader
     st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
     st.session_state["dataset"] = ds

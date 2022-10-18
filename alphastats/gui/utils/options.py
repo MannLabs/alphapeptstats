@@ -14,7 +14,7 @@ plotting_options = {
     },
     "Intensity": {
         "settings": {
-            "id": {
+            "protein_id": {
                 "options": st.session_state.dataset.mat.columns.to_list(),
                 "label": "ProteinID/ProteinGroup",
             },
@@ -39,6 +39,16 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_pca,
     },
+    "UMAP": {
+        "settings": {
+            "group": {
+                "options": [None] + st.session_state.metadata_columns,
+                "label": "Color according to",
+            },
+            "circle": {"label": "Circle"},
+        },
+        "function": st.session_state.dataset.plot_umap,
+    },
     "t-SNE": {
         "settings": {
             "group": {
@@ -54,17 +64,17 @@ plotting_options = {
         "function": st.session_state.dataset.plot_volcano,
     },
     "Clustermap": {"function": st.session_state.dataset.plot_clustermap},
-    "Dendrogram": {"function": st.session_state.dataset.plot_dendogram},
+    "Dendrogram": {"function": st.session_state.dataset.plot_dendrogram},
 }
 
 statistic_options = {
-    "Differential Expression Analysis - Wald-test": {
+    "Differential Expression Analysis - T-test": {
         "between_two_groups": True,
         "function": st.session_state.dataset.perform_diff_expression_analysis,
     },
-    "t-test": {
+    "Differential Expression Analysis - Wald-test": {
         "between_two_groups": True,
-        "function": st.session_state.dataset.calculate_ttest_fc,
+        "function":  st.session_state.dataset.perform_diff_expression_analysis,
     },
     "Tukey - Test": {
         "settings": {

@@ -5,6 +5,7 @@ from math import remainder
 # from multiprocessing.sharedctypes import Value
 from random import sample
 import unittest
+from unittest.main import _TestRunner
 from xml.sax.handler import property_interning_dict
 import pandas as pd
 import logging
@@ -474,7 +475,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_volcano_with_labels(self):
         plot = self.obj.plot_volcano(
-            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True
+            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True, draw_line=False
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
@@ -564,9 +565,9 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         with self.assertRaises(ValueError):
             self.obj.plot_clustermap()
 
-    def test_plot_dendogram(self):
+    def test_plot_dendrogram(self):
         self.obj.preprocess(imputation="mean")
-        fig = self.obj.plot_dendogram()
+        fig = self.obj.plot_dendrogram()
 
     def test_plot_tsne(self):
         plot_dict = self.obj.plot_tsne().to_plotly_json()

@@ -22,7 +22,7 @@ software_options = {
         "index_column": ["Protein.Group"],
         "loader_function": DIANNLoader,
     },
-    "Fragpipe": {
+    "FragPipe": {
         "import_file": "combined_protein.tsv",
         "intensity_column": ["[sample] MaxLFQ Intensity "],
         "index_column": ["Protein"],

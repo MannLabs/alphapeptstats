@@ -2,7 +2,7 @@ from tkinter import E
 import pandas as pd
 import logging
 import streamlit as st
-import datetime
+from datetime import datetime
 
 
 def read_uploaded_file_into_df(file):
@@ -61,7 +61,7 @@ def check_software_file(df):
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error("This is not a valid DIA-NN file.")
 
-    elif software == "Fragpipe":
+    elif software == "FragPipe":
         expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error(
@@ -79,6 +79,9 @@ def get_analysis_options_from_dict(method, options_dict):
     # extract plotting options from dict amd display as selectbox or checkbox
     # give selceted options to plotting function
     method_dict = options_dict.get(method)
+
+    if method == "t-SNE":
+        get_tsne_options(method_dict)
 
     if "settings" not in method_dict.keys():
 
@@ -101,12 +104,10 @@ def get_analysis_options_from_dict(method, options_dict):
         if "options" in parameter_dict.keys():
             chosen_parameter = st.selectbox(
                 parameter_dict.get("label"),
-                options=parameter_dict.get("options")  # ,
-                # key=method + parameter  + str(datetime.datetime.now()),
+                options=parameter_dict.get("options")  
             )
         else:
-            chosen_parameter = st.checkbox(parameter_dict.get("label"))  # ,
-            # key = method + parameter  + str(datetime.datetime.now()))
+            chosen_parameter = st.checkbox(parameter_dict.get("label")) 
 
         chosen_parameter_dict[parameter] = chosen_parameter
 
@@ -175,6 +176,12 @@ def helper_compare_two_groups(method, options_dict):
             "Differential Analysis using:", options=["anova", "wald", "ttest"],
         )
         chosen_parameter_dict.update({"method": analysis_method})
+    
+    elif method ==  "Differential Expression Analysis - T-test":
+        chosen_parameter_dict.update({"method": "ttest"})
+    
+    elif method ==  "Differential Expression Analysis - Wald-test":
+        chosen_parameter_dict.update({"method": "wald"})
 
     submitted = st.button("Submit")
 
@@ -202,3 +209,27 @@ def get_analysis(method, options_dict):
     if method in options_dict.keys():
         obj = get_analysis_options_from_dict(method, options_dict=options_dict)
         return obj
+
+
+def get_tsne_options(method_dict):
+   
+    group = st.selectbox(
+                method_dict["settings"]["group"].get("label"),
+                options=method_dict["settings"]["group"].get("options"),
+                key= datetime.now().strftime("%H:%M:%S")
+            )
+    
+    circle = st.checkbox("circle", key=datetime.now().strftime("%H:%M:%S"))
+  
+    n_iter= st.select_slider("Maximum number of iterations for the optimization", range(250, 2001), value=1000)
+    perplexity= st.select_slider("Perplexity", range(5,51), value=30)
+
+    submitted = st.button("Submit", key=datetime.now().strftime("%H:%M:%S"))
+    chosen_parameter_dict = {"circle": circle,
+         "n_iter": n_iter,
+         "perplexity": perplexity,
+         "group": group}
+    if submitted:
+        with st.spinner("Calculating..."):
+            return method_dict["function"](**chosen_parameter_dict)
+

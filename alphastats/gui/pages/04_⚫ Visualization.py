@@ -19,15 +19,7 @@ def save_plot_to_session_state(plot, method):
 def make_plot():
     method = st.selectbox(
         "Plot",
-        options=[
-            "PCA",
-            "t-SNE",
-            "Sampledistribution",
-            "Intensity",
-            "Volcano",
-            "Clustermap",
-            "Dendrogram",
-        ],
+        options=list(st.session_state.plotting_options.keys()),
         key="plot_method",
     )
     plot = get_analysis(method=method, options_dict=st.session_state.plotting_options)
