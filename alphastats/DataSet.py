@@ -120,7 +120,9 @@ class DataSet(Preprocess, Statistics, Plot):
         substring_to_remove = regex_find_intensity_columns.replace(".*", "")
         df.columns = df.columns.str.replace(substring_to_remove, "")
         # transpose dataframe
-        self.mat = df.transpose()
+        mat = df.transpose()
+        # remove proteins with only zero
+        self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         # reset preproccessing info
         self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized",
