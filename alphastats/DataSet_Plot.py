@@ -419,19 +419,22 @@ class Plot:
 
         if isinstance(group1, list) and isinstance(group2,list):
             column, group1, group2 = self._add_metadata_column(group1, group2)
+        
+        if column is None:
+            raise ValueError("Column containing group1 and group2 needs to be specified")
 
         if method == "wald":
 
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
             )
-            result = self.perform_diff_expression_analysis(column=column, group1=group1, group2=group2, method="wald")
+            result_df = self.perform_diff_expression_analysis(column=column, group1=group1, group2=group2, method="wald")
             pvalue_column = "qval"
 
         elif method == "ttest":
 
             print("Calculating t-test...")
-            result_df = self.perform_diff_expression_analysis(column, group1, group2, method="ttest")
+            result_df = self.perform_diff_expression_analysis(column=column, group1=group1, group2=group2, method="ttest")
             pvalue_column = "pval"
 
         elif method == "anova":
@@ -479,6 +482,7 @@ class Plot:
         
         # additional labeling with gene names
         hover_data=[self.index_column]
+
         if self.gene_names is not None:
             result_df = pd.merge(result_df, self.rawdata[[self.gene_names, self.index_column]], on=self.index_column, how ="left")
             hover_data.append(self.gene_names)

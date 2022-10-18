@@ -590,14 +590,6 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
         self.assertAlmostEqual(y_value, expected_y_value)
 
-    def test_volcano_plot_ttest(self):
-        self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_volcano(
-            column="grouping1", group1="Healthy", group2="Disease", method="ttest"
-        )
-        y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
-        self.assertAlmostEqual(round(y_value, 1), 0.1)
-
     def test_volcano_plot_ttest_no_column(self):
         with self.assertRaises(ValueError):
             self.obj.preprocess(imputation="knn")
