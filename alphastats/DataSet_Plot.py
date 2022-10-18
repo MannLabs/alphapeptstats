@@ -505,16 +505,22 @@ class Plot:
      
         return color_label, lut, s
 
+
+
     @check_for_missing_values
     def plot_clustermap(self, label_bar=None, only_significant=False, group=None, subgroups=None):
-        """Plot clustermap with samples as columns and Proteins as rows
+        """Plot a matrix dataset as a hierarchically-clustered heatmap
 
         Args:
-            label_bar (list, optional): List of columns/variables names described in the metadata. Will be plotted as bar above the heatmap to see wheteher groups are clustering together. Defaults to None.
+            label_bar (str, optional): column/variable name described in the metadata. Will be plotted as bar above the heatmap to see wheteher groups are clustering together. Defaults to None.. Defaults to None.
+            only_significant (bool, optional): performs ANOVA and only signficantly different proteins will be clustered (p<0.05). Defaults to False.
+            group (str, optional): group containing subgroups that should be clustered. Defaults to None.
+            subgroups (list, optional): variables in group that should be plotted. Defaults to None.
 
         Returns:
-            ClusterGrid: Clustermap
+             ClusterGrid: Clustermap
         """
+
         df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
 
         if group is not None and subgroups is not None:
