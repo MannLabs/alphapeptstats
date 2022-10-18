@@ -45,6 +45,7 @@ class Statistics:
 
         # reduce matrix
         reduced_matrix = self.mat.loc[group_samples]
+        reduced_matrix = reduced_matrix.loc[:, (reduced_matrix != 0).any(axis=0)]
         # sort metadata according to matrix values
         list_to_sort = reduced_matrix.index.to_list()
         #  reduce metadata
