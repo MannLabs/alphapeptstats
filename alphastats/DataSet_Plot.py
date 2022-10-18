@@ -182,6 +182,9 @@ class Plot:
         if circle is True and group is not None:
             fig = self._add_circles_to_scatterplot(fig)
 
+        if group:
+            fig.update_layout(legend_title_text=group)
+
         return fig
 
     def plot_pca(self, group=None, circle=False):
@@ -583,10 +586,10 @@ class Plot:
         return fig
 
     @check_for_missing_values
-    def plot_dendogram(
+    def plot_dendrogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
-        """Plot Hierarichical Clustering Dendogram. This is a wrapper around: 
+        """Plot Hierarichical Clustering Dendrogram. This is a wrapper around: 
         https://plotly.com/python-api-reference/generated/plotly.figure_factory.create_dendrogram.html
 
         Args:
