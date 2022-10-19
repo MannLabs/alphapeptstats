@@ -13,17 +13,17 @@ class FragPipeLoader(BaseLoader):
         file,
         intensity_column="[sample] MaxLFQ Intensity ",
         index_column="Protein",
-        gene_names_column = "Gene Names",
+        gene_names_column="Gene Names",
         confidence_column="Protein Probability",
         sep="\t",
         **kwargs
     ):
 
         super().__init__(file, intensity_column, index_column, sep)
-        
+
         if gene_names_column in self.rawdata.columns.to_list():
             self.gene_names = gene_names_column
-        
+
         self.confidence_column = confidence_column
         self.software = "MSFragger_Philosopher"
 

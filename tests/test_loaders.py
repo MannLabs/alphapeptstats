@@ -136,9 +136,9 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
             self.obj.rawdata.filter(like="_Intensity").columns.to_list()
         )
         self.assertEqual(n_taged_samples, 20)
-    
+
     def test_load_protein_data_df(self):
-        df = pd.read_csv("testfiles/diann/report_final.pg_matrix.tsv", sep = "\t")
+        df = pd.read_csv("testfiles/diann/report_final.pg_matrix.tsv", sep="\t")
         obj = DIANNLoader(df)
         self.assertIsInstance(obj.rawdata, pd.DataFrame)
         self.assertFalse(obj.rawdata.empty)

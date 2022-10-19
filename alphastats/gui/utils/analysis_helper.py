@@ -89,8 +89,10 @@ def get_analysis_options_from_dict(method, options_dict):
             return helper_compare_two_groups(method=method, options_dict=options_dict)
 
         else:
-            if st.session_state.dataset.mat.isna().values.any()==True:
-                st.error("Data contains missing values impute your data before plotting (Preprocessing - Imputation).")
+            if st.session_state.dataset.mat.isna().values.any() == True:
+                st.error(
+                    "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
+                )
                 return
             return method_dict["function"]()
 
@@ -103,11 +105,10 @@ def get_analysis_options_from_dict(method, options_dict):
 
         if "options" in parameter_dict.keys():
             chosen_parameter = st.selectbox(
-                parameter_dict.get("label"),
-                options=parameter_dict.get("options")  
+                parameter_dict.get("label"), options=parameter_dict.get("options")
             )
         else:
-            chosen_parameter = st.checkbox(parameter_dict.get("label")) 
+            chosen_parameter = st.checkbox(parameter_dict.get("label"))
 
         chosen_parameter_dict[parameter] = chosen_parameter
 
@@ -136,13 +137,13 @@ def helper_compare_two_groups(method, options_dict):
         col1, col2 = st.columns(2)
 
         unique_values = get_unique_values_from_column(group)
-        
+
         with col1:
 
             group1 = st.selectbox("Group 1", options=unique_values)
 
         with col2:
-            
+
             group2 = st.selectbox("Group 2", options=unique_values)
 
         chosen_parameter_dict.update(
@@ -176,11 +177,11 @@ def helper_compare_two_groups(method, options_dict):
             "Differential Analysis using:", options=["anova", "wald", "ttest"],
         )
         chosen_parameter_dict.update({"method": analysis_method})
-    
-    elif method ==  "Differential Expression Analysis - T-test":
+
+    elif method == "Differential Expression Analysis - T-test":
         chosen_parameter_dict.update({"method": "ttest"})
-    
-    elif method ==  "Differential Expression Analysis - Wald-test":
+
+    elif method == "Differential Expression Analysis - Wald-test":
         chosen_parameter_dict.update({"method": "wald"})
 
     submitted = st.button("Submit")
@@ -212,24 +213,29 @@ def get_analysis(method, options_dict):
 
 
 def get_tsne_options(method_dict):
-   
+
     group = st.selectbox(
-                method_dict["settings"]["group"].get("label"),
-                options=method_dict["settings"]["group"].get("options"),
-                key= datetime.now().strftime("%H:%M:%S")
-            )
-    
+        method_dict["settings"]["group"].get("label"),
+        options=method_dict["settings"]["group"].get("options"),
+        key=datetime.now().strftime("%H:%M:%S"),
+    )
+
     circle = st.checkbox("circle", key=datetime.now().strftime("%H:%M:%S"))
-  
-    n_iter= st.select_slider("Maximum number of iterations for the optimization", range(250, 2001), value=1000)
-    perplexity= st.select_slider("Perplexity", range(5,51), value=30)
+
+    n_iter = st.select_slider(
+        "Maximum number of iterations for the optimization",
+        range(250, 2001),
+        value=1000,
+    )
+    perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
 
     submitted = st.button("Submit", key=datetime.now().strftime("%H:%M:%S"))
-    chosen_parameter_dict = {"circle": circle,
-         "n_iter": n_iter,
-         "perplexity": perplexity,
-         "group": group}
+    chosen_parameter_dict = {
+        "circle": circle,
+        "n_iter": n_iter,
+        "perplexity": perplexity,
+        "group": group,
+    }
     if submitted:
         with st.spinner("Calculating..."):
             return method_dict["function"](**chosen_parameter_dict)
-

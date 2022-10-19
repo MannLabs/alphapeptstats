@@ -184,11 +184,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim_filtered = (2, 3707)
         #  metadata column to compare for PCA, t-test, etc.
         self.comparison_column = "disease"
-    
+
     def test_dataset_without_metadata(self):
-        obj = DataSet(
-            loader=self.loader
-        )
+        obj = DataSet(loader=self.loader)
         self.assertEqual(obj.mat.shape[0], obj.metadata.shape[0])
 
     def test_load_metadata_fileformats(self):
@@ -204,32 +202,23 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
         self.assertEqual(self.obj.metadata.shape, (2, 2))
-    
+
     @patch("logging.Logger.warning")
     def test_remove_misc_samples_in_metadata(self, mock):
         df = pd.DataFrame(
             {"sample": ["A", "B", "C"], "b": ["disease", "health", "disease"]}
         )
-        obj = DataSet(
-            loader=self.loader,
-            metadata_path=df,
-            sample_column="sample",
-        )
-        # is sample C removed
+        obj = DataSet(loader=self.loader, metadata_path=df, sample_column="sample",)
+        #  is sample C removed
         self.assertEqual(self.obj.metadata.shape, (2, 2))
         mock.assert_called_once()
 
-            
     def test_load_metadata_df(self):
         if self.metadata_path.endswith(".csv"):
             df = pd.read_csv(self.metadata_path)
         else:
             df = pd.read_excel(self.metadata_path)
-        obj = DataSet(
-                loader=self.loader,
-                metadata_path=df,
-                sample_column="sample",
-            )
+        obj = DataSet(loader=self.loader, metadata_path=df, sample_column="sample",)
         self.assertIsInstance(obj.metadata, pd.DataFrame)
         self.assertFalse(obj.metadata.empty)
 
@@ -279,13 +268,12 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(normalization="vst")
         expected_mat = pd.DataFrame(
             {
-                "a": [-1.30773413,  1.12010046, 0.18763367],
+                "a": [-1.30773413, 1.12010046, 0.18763367],
                 "b": [1.41421361, -0.70710674, -0.70710674],
-                "c": [-1.39384919, 0.90401955,  0.48982964],
+                "c": [-1.39384919, 0.90401955, 0.48982964],
             }
         )
         pd.util.testing.assert_frame_equal(self.obj.mat, expected_mat)
-        
 
     def test_preprocess_imputation_mean_values(self):
         self.obj.mat = pd.DataFrame(
@@ -370,6 +358,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
 
+
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
@@ -407,15 +396,19 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(number_of_groups, 5)
 
     def test_plot_volcano_with_grouplist(self):
-        fig = self.obj.plot_volcano(method = "ttest", 
-            group1=["1_31_C6", "1_32_C7", "1_57_E8"], 
-            group2=["1_71_F10", "1_73_F12"])
+        fig = self.obj.plot_volcano(
+            method="ttest",
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"],
+            group2=["1_71_F10", "1_73_F12"],
+        )
 
     def test_plot_volcano_with_grouplist_wrong_names(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_volcano(method = "ttest", 
-            group1=["wrong_sample_name", "1_42_D9", "1_57_E8"], 
-            group2=["1_71_F10", "1_73_F12"])
+            self.obj.plot_volcano(
+                method="ttest",
+                group1=["wrong_sample_name", "1_42_D9", "1_57_E8"],
+                group2=["1_71_F10", "1_73_F12"],
+            )
 
     def test_preprocess_subset(self):
         df = self.obj._subset()
@@ -430,13 +423,22 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         mock.assert_not_called()
 
     def test_plot_intenstity_subgroup(self):
-        plot = self.obj.plot_intensity(protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1", group="disease",subgroups=["healthy", "liver cirrhosis"], add_significance=True)
+        plot = self.obj.plot_intensity(
+            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            group="disease",
+            subgroups=["healthy", "liver cirrhosis"],
+            add_significance=True,
+        )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 3)
 
     @patch("logging.Logger.warning")
     def test_plot_intenstity_subgroup_significance_warning(self, mock):
-        plot = self.obj.plot_intensity(protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1", group="disease",add_significance=True)
+        plot = self.obj.plot_intensity(
+            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            group="disease",
+            add_significance=True,
+        )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 5)
         mock.assert_called_once()
@@ -473,39 +475,56 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_volcano_with_labels(self):
         plot = self.obj.plot_volcano(
-            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True, draw_line=False
+            column="disease",
+            group1="healthy",
+            group2="liver cirrhosis",
+            method="ttest",
+            labels=True,
+            draw_line=False,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
 
     def test_plot_clustermap_significant(self):
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_clustermap(label_bar=self.comparison_column, only_significant=True, group=self.comparison_column, subgroups=["healthy", "liver cirrhosis"])
-    
+        plot = self.obj.plot_clustermap(
+            label_bar=self.comparison_column,
+            only_significant=True,
+            group=self.comparison_column,
+            subgroups=["healthy", "liver cirrhosis"],
+        )
+
     def test_plot_volcano_with_labels_proteins(self):
         # remove gene names
         self.obj.gene_names = None
         plot = self.obj.plot_volcano(
-            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True
+            column="disease",
+            group1="healthy",
+            group2="liver cirrhosis",
+            method="ttest",
+            labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
 
     def test_calculate_diff_exp_wrong(self):
-            # get groups from comparison column
+        # get groups from comparison column
         with self.assertRaises(ValueError):
             self.obj.preprocess(imputation="knn")
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
-            
+
             self.obj.perform_diff_expression_analysis(
-                        column=self.comparison_column, group1=group1, group2=group2, method="wrong_method"
-                    )  # check if dataframe gets created
+                column=self.comparison_column,
+                group1=group1,
+                group2=group2,
+                method="wrong_method",
+            )  # check if dataframe gets created
 
     def test_perform_diff_expression_analysis_nocolumn(self):
         with self.assertRaises(ValueError):
             self.obj.perform_diff_expression_analysis(
-            group1="healthy", group2="liver cirrhosis"
+                group1="healthy", group2="liver cirrhosis"
             )
 
 
@@ -556,7 +575,9 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intensity_wrong_method(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_intensity(protein_id="A0A075B6H7", group="grouping1", method="wrong")
+            self.obj.plot_intensity(
+                protein_id="A0A075B6H7", group="grouping1", method="wrong"
+            )
 
     def test_plot_clustermap_noimputation(self):
         # raises error when data is not imputed
@@ -592,9 +613,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_volcano_plot_ttest_no_column(self):
         with self.assertRaises(ValueError):
             self.obj.preprocess(imputation="knn")
-            self.obj.plot_volcano(
-            group1="Healthy", group2="Disease", method="ttest"
-            ) 
+            self.obj.plot_volcano(group1="Healthy", group2="Disease", method="ttest")
 
     def test_volcano_plot_wrongmethod(self):
         with self.assertRaises(ValueError):
@@ -604,6 +623,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 group2="Disease",
                 method="wrongmethod",
             )
+
     # def test_perform_diff_expression_analysis_with_list(self):
     #     self.obj.preprocess(imputation="knn")
     #     column="grouping1"
@@ -618,6 +638,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     #     self.obj.perform_diff_expression_analysis(
     #         group1=group1_samples,
     #         group2=group2_samples)
+
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):

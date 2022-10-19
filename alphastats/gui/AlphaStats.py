@@ -36,10 +36,10 @@ st.markdown(
 #         min-height: 100%;
 #         position: absolute;
 #         }}
-        
+
 #     </style>
 
-#     """  
+#     """
 # st.markdown(styl , unsafe_allow_html=True)
 
 st.markdown(

@@ -42,7 +42,9 @@ class Preprocess:
             (self.rawdata[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
 
-        protein_groups_to_remove = list(set(protein_groups_to_remove) & set(self.mat.columns.to_list()))
+        protein_groups_to_remove = list(
+            set(protein_groups_to_remove) & set(self.mat.columns.to_list())
+        )
 
         # remove columns with protein groups
         self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
@@ -157,7 +159,7 @@ class Preprocess:
             normalized_array = sklearn.preprocessing.normalize(
                 self.mat.values, norm="l2"
             )
-        
+
         elif method == "vst":
             scaler = sklearn.preprocessing.PowerTransformer()
             normalized_array = scaler.fit_transform(self.mat.values)
@@ -225,17 +227,17 @@ class Preprocess:
         """
         if remove_contaminations:
             self._filter()
-        
+
         if subset:
             self.mat = self._subset()
-        
+
         if normalization is not None:
             self._normalization(method=normalization)
-        
+
         if imputation is not None:
             self._imputation(method=imputation)
-        
+
         if remove_samples is not None:
             self._remove_sampels(sample_list=remove_samples)
-        
+
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]

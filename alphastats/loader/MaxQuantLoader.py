@@ -12,7 +12,7 @@ class MaxQuantLoader(BaseLoader):
         file,
         intensity_column="LFQ intensity [sample]",
         index_column="Protein IDs",
-        gene_names_column = "Gene names",
+        gene_names_column="Gene names",
         filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column="Q-value",
         evidence_file=None,

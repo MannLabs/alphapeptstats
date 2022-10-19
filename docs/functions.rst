@@ -32,7 +32,7 @@ A description on how do customize your plots can be found `here <https://maegul.
 **Plot Distance between samples**
 
 * Plot correlation matrix :py:meth:`~plot_correlation_matrix`
-* Plot Dendogram :py:meth:`~Plot.plot_dendogram`
+* Plot Dendrogram :py:meth:`~Plot.plot_dendrogram`
 * Plot Clustermap :py:meth:`alphastats.DataSet_Plot.Plot.plot_clustermap`
 
 **Volcano Plot**
@@ -63,11 +63,11 @@ More details on how to save plotly figures you can find `here <https://plotly.co
 Statistical Analysis
 ----------------------
 
-* Perform Differential Expression Analysis with a Wald test using `diffxpy <https://github.com/theislab/diffxpy>`_.  :py:meth:`~alphastats.DataSet_Statistics.Statistics.perform_diff_expression_analysis`
+* Perform Differential Expression Analysis a Wald test or t-test `diffxpy <https://github.com/theislab/diffxpy>`_.  :py:meth:`~alphastats.DataSet_Statistics.Statistics.perform_diff_expression_analysis`
 * ANOVA  :py:meth:`~alphastats.DataSet_Statistics.Statistics.anova`
 * ANCOVA  :py:meth:`~alphastats.DataSet_Statistics.Statistics.ancova`
 * Tukey - test :py:meth:`~alphastats.DataSet_Statistics.Statistics.calculate_tukey`
-* T-test :py:meth:`~alphastats.DataSet_Statistics.Statistics.calculate_ttest_fc`
+
 
 
 Misc 

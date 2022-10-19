@@ -102,9 +102,10 @@ class DataSet(Preprocess, Statistics, Plot):
         misc_samples = list(set(samples_metadata) - set(samples_matrix))
         if len(misc_samples) > 0:
             self.metadata = self.metadata[~self.metadata["sample"].isin(misc_samples)]
-            logging.warning(f"{misc_samples} are not described in the protein data and" 
-            "are removed from the metadata.")
-        
+            logging.warning(
+                f"{misc_samples} are not described in the protein data and"
+                "are removed from the metadata."
+            )
 
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and

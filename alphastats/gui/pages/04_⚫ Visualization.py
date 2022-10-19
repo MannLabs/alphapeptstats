@@ -5,11 +5,9 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 
 def display_plotly_figure(plot):
     try:
-        st.plotly_chart(plot.update_layout(plot_bgcolor = "white"))
+        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
     except:
         st.pyplot(plot)
-
-
 
 
 def save_plot_to_session_state(plot, method):

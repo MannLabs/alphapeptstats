@@ -9,27 +9,33 @@ from alphastats.utils import ignore_warning
 from tqdm import tqdm
 
 
-
 class Statistics:
     def _add_metadata_column(self, group1_list, group2_list):
-        
+
         # create new column in metadata with defined groups
         metadata = self.metadata
-        
-        sample_names =metadata["sample"].to_list()
+
+        sample_names = metadata["sample"].to_list()
         misc_samples = list(set(group1_list + group2_list) - set(sample_names))
         if len(misc_samples) > 0:
-            raise ValueError(f"Sample names: {misc_samples} are not described in Metadata.")
+            raise ValueError(
+                f"Sample names: {misc_samples} are not described in Metadata."
+            )
 
         column = "_comparison_column"
-        conditons = [metadata["sample"].isin(group1_list), metadata["sample"].isin(group2_list)]
+        conditons = [
+            metadata["sample"].isin(group1_list),
+            metadata["sample"].isin(group2_list),
+        ]
         choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default = np.nan)
+        metadata[column] = np.select(conditons, choices, default=np.nan)
         self.metadata = metadata
-        
+
         return column, "group1", "group2"
 
-    def perform_diff_expression_analysis(self, group1, group2, column=None, method="ttest"):
+    def perform_diff_expression_analysis(
+        self, group1, group2, column=None, method="ttest"
+    ):
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
@@ -56,11 +62,13 @@ class Statistics:
         import anndata
         import diffxpy.api as de
 
-        if isinstance(group1, list) and isinstance(group2,list):
+        if isinstance(group1, list) and isinstance(group2, list):
             column, group1, group2 = self._add_metadata_column(group1, group2)
-        
+
         elif column is None:
-            raise ValueError("Column containing group1 and group2 needs to be specified")
+            raise ValueError(
+                "Column containing group1 and group2 needs to be specified"
+            )
 
         #  if a column has more than two groups matrix needs to be reduced to compare
         group_samples = self.metadata[
@@ -81,7 +89,7 @@ class Statistics:
 
         # change comparison group to 0/1
         obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
- 
+
         # create a annotated dataset
         d = anndata.AnnData(
             X=reduced_matrix.values,
@@ -92,17 +100,20 @@ class Statistics:
 
         if method == "wald":
             formula_loc = "~ 1 +" + column
-            test = de.test.wald(data=d, formula_loc=formula_loc, factor_loc_totest=column)
-        
+            test = de.test.wald(
+                data=d, formula_loc=formula_loc, factor_loc_totest=column
+            )
+
         elif method == "ttest":
             test = de.test.t_test(data=d, grouping=column)
-        
+
         else:
-            raise ValueError(f"{method} is invalid choose between 'wald' for Wald-test and 'ttest'")
+            raise ValueError(
+                f"{method} is invalid choose between 'wald' for Wald-test and 'ttest'"
+            )
 
         df = test.summary().rename(columns={"gene": self.index_column})
         return df
-
 
     def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
         mat_transpose += 0.00001
@@ -160,7 +171,7 @@ class Statistics:
             tukey_df = pd.DataFrame()
 
         return tukey_df
-    
+
     def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
         mat_transpose += 0.00001
         fc = (

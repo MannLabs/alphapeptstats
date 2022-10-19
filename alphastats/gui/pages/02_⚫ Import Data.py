@@ -161,7 +161,14 @@ def load_sample_data():
     ds = DataSet(
         loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample"
     )
-    ds.metadata = ds.metadata[["sample", "disease", "Drug therapy (procedure) (416608005)", "Lipid-lowering therapy (134350008)"]]
+    ds.metadata = ds.metadata[
+        [
+            "sample",
+            "disease",
+            "Drug therapy (procedure) (416608005)",
+            "Lipid-lowering therapy (134350008)",
+        ]
+    ]
     ds.preprocess(subset=True)
     st.session_state["loader"] = loader
     st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
@@ -189,6 +196,7 @@ def import_data():
     if "loader" in st.session_state:
         upload_metadatafile()
 
+
 def display_loaded_dataset():
 
     st.info("Data was successfully imported")
@@ -201,7 +209,10 @@ def display_loaded_dataset():
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
-    df = pd.DataFrame(st.session_state.dataset.mat.values, index=st.session_state.dataset.mat.index.to_list()).head(5)
+    df = pd.DataFrame(
+        st.session_state.dataset.mat.values,
+        index=st.session_state.dataset.mat.index.to_list(),
+    ).head(5)
     st.dataframe(df)
 
 
@@ -241,7 +252,6 @@ if st.button("Load sample DataSet - PXD011839"):
     )
 
     load_sample_data()
-   
 
 
 if "dataset" not in st.session_state:
