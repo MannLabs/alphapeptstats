@@ -1,5 +1,6 @@
 [![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
 
+![image](alphastats/gui/alphastats_logo.png)
 
 # AlphaStats
 

@@ -19,6 +19,8 @@ from umap import UMAP
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         colorway=[
             "#009599",
             "#005358",
@@ -123,9 +125,11 @@ class Plot:
             mat = self._subset()
             self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
+            sample_names = self.metadata["sample"].to_list()
         else:
             mat = self.mat
             group_color = group
+            sample_names = mat.reset_index(level=0)["index"].to_list()
         mat = mat.fillna(0)
 
         if method == "pca":
@@ -144,6 +148,7 @@ class Plot:
                 "1": "Dimension 2",
             }
 
+
         elif method == "umap":
             umap_2d = UMAP(n_components=2, init='random', random_state=0)
             components = umap_2d.fit_transform(mat)
@@ -152,7 +157,21 @@ class Plot:
                 "1": "",
             }
     
-        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color,)
+    
+        components = pd.DataFrame(components)
+        components["sample"] = sample_names
+
+        fig = px.scatter(components, x=0, y=1, labels=labels, color=group_color, hover_data=[components["sample"]])
+
+        # rename hover_data_0 to sample
+        fig_dict = fig.to_plotly_json()
+        data = fig_dict.get("data")
+        
+        for count, d in enumerate(data):
+            hover = d.get("hovertemplate").replace("hover_data_0", "sample")
+            fig_dict["data"][count]["hovertemplate"] = hover
+        fig = go.Figure(fig_dict)
+
         #  save plotting data in figure object
         fig = plotly_object(fig)
         fig = self._update_figure_attributes(
@@ -162,6 +181,9 @@ class Plot:
         # draw circles around plotted groups
         if circle is True and group is not None:
             fig = self._add_circles_to_scatterplot(fig)
+
+        if group:
+            fig.update_layout(legend_title_text=group)
 
         return fig
 
@@ -379,39 +401,49 @@ class Plot:
         
         return column, "group1", "group2"
 
-
     @ignore_warning(RuntimeWarning)
-    def plot_volcano(self, column, group1, group2, method="ttest", labels=False, min_fc=1, alpha=0.05, draw_line=True):
+    def plot_volcano(self,  group1, group2, column=None, method="ttest", labels=False, min_fc=1, alpha=0.05, draw_line=True):
         """Plot Volcano Plot
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
-            group1 (str): name of group to compare needs to be present in column
-            group2 (str): name of group to compare needs to be present in column
+            group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
+            group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
             method (str): "anova", "wald", "ttest", Defaul ttest.
             labels (bool): Add text labels to significant Proteins, Default False.
             alpha(float,optional): p-value cut off.
             min_fc (float): Minimum fold change
             draw_line(boolean): whether to draw cut off lines.
-
+           
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
+
+        if isinstance(group1, list) and isinstance(group2,list):
+            column, group1, group2 = self._add_metadata_column(group1, group2)
+        
+        if column is None:
+            raise ValueError("Column containing group1 and group2 needs to be specified")
+
         if method == "wald":
+
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
             )
-            result_df = self.perform_diff_expression_analysis(column, group1, group2, method="wald")
+            result_df = self.perform_diff_expression_analysis(column=column, group1=group1, group2=group2, method="wald")
             pvalue_column = "qval"
 
         elif method == "ttest":
+
             print("Calculating t-test...")
-            result_df = self.perform_diff_expression_analysis(column, group1, group2, method="ttest")
+            result_df = self.perform_diff_expression_analysis(column=column, group1=group1, group2=group2, method="ttest")
             pvalue_column = "pval"
 
         elif method == "anova":
+
             print("Calculating ANOVA with follow-up tukey test...")
+
             result_df = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 "sample"
@@ -419,6 +451,7 @@ class Plot:
             group2_samples = self.metadata[self.metadata[column] == group2][
                 "sample"
             ].tolist()
+
             mat_transpose = self.mat.transpose()
             fc = self._calculate_foldchange(
                 mat_transpose, group1_samples, group2_samples
@@ -426,6 +459,7 @@ class Plot:
 
             #  check how column is ordered
             pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
+            
             if pvalue_column not in fc.columns:
                 pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
 
@@ -451,6 +485,7 @@ class Plot:
         
         # additional labeling with gene names
         hover_data=[self.index_column]
+
         if self.gene_names is not None:
             result_df = pd.merge(result_df, self.rawdata[[self.gene_names, self.index_column]], on=self.index_column, how ="left")
             hover_data.append(self.gene_names)
@@ -551,10 +586,10 @@ class Plot:
         return fig
 
     @check_for_missing_values
-    def plot_dendogram(
+    def plot_dendrogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
-        """Plot Hierarichical Clustering Dendogram. This is a wrapper around: 
+        """Plot Hierarichical Clustering Dendrogram. This is a wrapper around: 
         https://plotly.com/python-api-reference/generated/plotly.figure_factory.create_dendrogram.html
 
         Args:

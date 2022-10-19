@@ -5,7 +5,6 @@ from math import remainder
 # from multiprocessing.sharedctypes import Value
 from random import sample
 import unittest
-from xml.sax.handler import property_interning_dict
 import pandas as pd
 import logging
 from unittest.mock import patch
@@ -185,6 +184,12 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim_filtered = (2, 3707)
         #  metadata column to compare for PCA, t-test, etc.
         self.comparison_column = "disease"
+    
+    def test_dataset_without_metadata(self):
+        obj = DataSet(
+            loader=self.loader
+        )
+        self.assertEqual(obj.mat.shape[0], obj.metadata.shape[0])
 
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
@@ -213,6 +218,20 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         # is sample C removed
         self.assertEqual(self.obj.metadata.shape, (2, 2))
         mock.assert_called_once()
+
+            
+    def test_load_metadata_df(self):
+        if self.metadata_path.endswith(".csv"):
+            df = pd.read_csv(self.metadata_path)
+        else:
+            df = pd.read_excel(self.metadata_path)
+        obj = DataSet(
+                loader=self.loader,
+                metadata_path=df,
+                sample_column="sample",
+            )
+        self.assertIsInstance(obj.metadata, pd.DataFrame)
+        self.assertFalse(obj.metadata.empty)
 
     def test_preprocess_remove_samples(self):
         sample_list = ["A"]
@@ -351,8 +370,6 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
 
-
-
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
@@ -363,8 +380,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             sample_column="sample",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (312, 2611)
-        self.matrix_dim_filtered = (312, 2409)
+        self.matrix_dim = (312, 2596)
+        self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
 
     def test_plot_pca_group(self):
@@ -389,15 +406,26 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         number_of_groups = len(umap_plot.to_plotly_json().get("layout").get("shapes"))
         self.assertEqual(number_of_groups, 5)
 
+    def test_plot_volcano_with_grouplist(self):
+        fig = self.obj.plot_volcano(method = "ttest", 
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"], 
+            group2=["1_71_F10", "1_73_F12"])
+
+    def test_plot_volcano_with_grouplist_wrong_names(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_volcano(method = "ttest", 
+            group1=["wrong_sample_name", "1_42_D9", "1_57_E8"], 
+            group2=["1_71_F10", "1_73_F12"])
+
     def test_preprocess_subset(self):
         df = self.obj._subset()
-        self.assertEqual(df.shape, (48, 2611))
+        self.assertEqual(df.shape, (48, 2596))
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
         anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
-        self.assertEqual(anova_results.shape, (2615, 2))
+        self.assertEqual(anova_results.shape, (2600, 2))
         # check if tukey isnt called
         mock.assert_not_called()
 
@@ -445,7 +473,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_volcano_with_labels(self):
         plot = self.obj.plot_volcano(
-            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True
+            column="disease", group1="healthy", group2="liver cirrhosis", method="ttest", labels=True, draw_line=False
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
@@ -470,9 +498,16 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
             
-            df = self.obj.perform_diff_expression_analysis(
+            self.obj.perform_diff_expression_analysis(
                         column=self.comparison_column, group1=group1, group2=group2, method="wrong_method"
                     )  # check if dataframe gets created
+
+    def test_perform_diff_expression_analysis_nocolumn(self):
+        with self.assertRaises(ValueError):
+            self.obj.perform_diff_expression_analysis(
+            group1="healthy", group2="liver cirrhosis"
+            )
+
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -528,22 +563,22 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         with self.assertRaises(ValueError):
             self.obj.plot_clustermap()
 
-    def test_plot_dendogram(self):
+    def test_plot_dendrogram(self):
         self.obj.preprocess(imputation="mean")
-        fig = self.obj.plot_dendogram()
+        fig = self.obj.plot_dendrogram()
 
     def test_plot_tsne(self):
         plot_dict = self.obj.plot_tsne().to_plotly_json()
         # check if everything get plotted
         self.assertEqual(len(plot_dict.get("data")[0].get("x")), 20)
 
-    def test_plot_dendogram_navalues(self):
+    def test_plot_dendrogram_navalues(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_dendogram()
+            self.obj.plot_dendrogram()
 
-    def test_plot_dendogram_not_imputed(self):
+    def test_plot_dendrogram_not_imputed(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_dendogram()
+            self.obj.plot_dendrogram()
 
     def test_volcano_plot_anova(self):
         self.obj.preprocess(imputation="knn")
@@ -554,13 +589,12 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
         self.assertAlmostEqual(y_value, expected_y_value)
 
-    def test_volcano_plot_ttest(self):
-        self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_volcano(
-            column="grouping1", group1="Healthy", group2="Disease", method="ttest"
-        )
-        y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
-        self.assertAlmostEqual(round(y_value, 1), 0.1)
+    def test_volcano_plot_ttest_no_column(self):
+        with self.assertRaises(ValueError):
+            self.obj.preprocess(imputation="knn")
+            self.obj.plot_volcano(
+            group1="Healthy", group2="Disease", method="ttest"
+            ) 
 
     def test_volcano_plot_wrongmethod(self):
         with self.assertRaises(ValueError):
@@ -570,6 +604,20 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 group2="Disease",
                 method="wrongmethod",
             )
+    # def test_perform_diff_expression_analysis_with_list(self):
+    #     self.obj.preprocess(imputation="knn")
+    #     column="grouping1"
+    #     group1="Healthy"
+    #     group2="Disease"
+    #     group1_samples = self.obj.metadata[self.obj.metadata[column] == group1][
+    #             "sample"
+    #         ].tolist()
+    #     group2_samples = self.obj.metadata[self.obj.metadata[column] == group2][
+    #             "sample"
+    #         ].tolist()
+    #     self.obj.perform_diff_expression_analysis(
+    #         group1=group1_samples,
+    #         group2=group2_samples)
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
@@ -584,8 +632,8 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (20, 10)
-        self.matrix_dim_filtered = (20, 10)
+        self.matrix_dim = (20, 6)
+        self.matrix_dim_filtered = (20, 6)
         self.comparison_column = "grouping1"
 
 

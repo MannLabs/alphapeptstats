@@ -11,3 +11,6 @@ tqdm
 diffxpy
 anndata
 umap-learn>=0.5.3
+streamlit>=1.12.2
+
+

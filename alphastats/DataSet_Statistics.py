@@ -10,16 +10,33 @@ from tqdm import tqdm
 
 
 
-
 class Statistics:
-    def perform_diff_expression_analysis(self, column, group1, group2, method="ttest"):
-        """Perform differential expression analysis doing a Wald test. This will fit a generalized linear model.
+    def _add_metadata_column(self, group1_list, group2_list):
+        
+        # create new column in metadata with defined groups
+        metadata = self.metadata
+        
+        sample_names =metadata["sample"].to_list()
+        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
+        if len(misc_samples) > 0:
+            raise ValueError(f"Sample names: {misc_samples} are not described in Metadata.")
+
+        column = "_comparison_column"
+        conditons = [metadata["sample"].isin(group1_list), metadata["sample"].isin(group2_list)]
+        choices = ["group1", "group2"]
+        metadata[column] = np.select(conditons, choices, default = np.nan)
+        self.metadata = metadata
+        
+        return column, "group1", "group2"
+
+    def perform_diff_expression_analysis(self, group1, group2, column=None, method="ttest"):
+        """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
             column (str): column name in the metadata file with the two groups to compare
-            group1 (str): name of group to compare needs to be present in column
-            group2 (str): name of group to compare needs to be present in column
-            methodd (str,optional): statistical method to calculate differential expression, for Wald-test 'wald'. Default 'ttest'.
+            group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
+            group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
+            method (str,optional): statistical method to calculate differential expression, for Wald-test 'wald'. Default 'ttest'
 
         Returns:
             pandas.DataFrame: 
@@ -35,9 +52,16 @@ class Statistics:
             * ``'coef_sd'``: the standard deviation of the coefficient in liker-space
             * ``'ll'``: the log-likelihood of the estimation
         """
-        
+
         import anndata
         import diffxpy.api as de
+
+        if isinstance(group1, list) and isinstance(group2,list):
+            column, group1, group2 = self._add_metadata_column(group1, group2)
+        
+        elif column is None:
+            raise ValueError("Column containing group1 and group2 needs to be specified")
+
         #  if a column has more than two groups matrix needs to be reduced to compare
         group_samples = self.metadata[
             (self.metadata[column] == group1) | (self.metadata[column] == group2)
@@ -54,10 +78,10 @@ class Statistics:
             .set_index("sample")
             .loc[list_to_sort]
         )
-     
+
         # change comparison group to 0/1
         obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
-    
+ 
         # create a annotated dataset
         d = anndata.AnnData(
             X=reduced_matrix.values,
@@ -79,6 +103,19 @@ class Statistics:
         df = test.summary().rename(columns={"gene": self.index_column})
         return df
 
+
+    def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
+        mat_transpose += 0.00001
+        fc = (
+            mat_transpose[group1_samples].T.mean().values
+            / mat_transpose[group2_samples].T.mean().values
+        )
+        df = pd.DataFrame(
+            {"fc": fc, "log2fc": np.log2(fc)},
+            index=mat_transpose.index,
+            columns=["fc", "log2fc"],
+        )
+        return df
 
     @ignore_warning(RuntimeWarning)
     def calculate_tukey(self, protein_id, group, df=None):

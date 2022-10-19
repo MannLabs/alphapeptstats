@@ -33,10 +33,8 @@ class Preprocess:
             logging.info("No columns to filter.")
             return
 
-        if self.preprocessing_info.get("Contaminations have been removed")== True:
-            logging.info(
-                "Contaminatons have already been filtered."
-            )
+        if self.preprocessing_info.get("Contaminations have been removed") == True:
+            logging.info("Contaminatons have already been filtered.")
             return
 
         #  print column names with contamination
@@ -44,7 +42,9 @@ class Preprocess:
             (self.rawdata[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
 
-        # remove columns with protin groups
+        protein_groups_to_remove = list(set(protein_groups_to_remove) & set(self.mat.columns.to_list()))
+
+        # remove columns with protein groups
         self.mat = self.mat.drop(protein_groups_to_remove, axis=1)
 
         self.preprocessing_info.update(
@@ -225,11 +225,17 @@ class Preprocess:
         """
         if remove_contaminations:
             self._filter()
+        
         if subset:
             self.mat = self._subset()
+        
         if normalization is not None:
             self._normalization(method=normalization)
+        
         if imputation is not None:
             self._imputation(method=imputation)
+        
         if remove_samples is not None:
             self._remove_sampels(sample_list=remove_samples)
+        
+        self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
