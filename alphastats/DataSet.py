@@ -1,24 +1,24 @@
 from ast import Not
 from cmath import isinf
-from importlib.abc import Loader
 from multiprocessing.sharedctypes import Value
 from random import sample
 import re
 import pandas as pd
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 import os
 import numpy as np
 import logging
 from sklearn_pandas import DataFrameMapper
 import warnings
+
+from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
+from alphastats.loader.DIANNLoader import DIANNLoader
+from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-
 
 # remove warning from openpyxl
 # only appears on mac
@@ -29,13 +29,14 @@ class DataSet(Preprocess, Statistics, Plot):
     """Analysis Object
     """
 
-    def __init__(self, loader, metadata_path: str = None, sample_column=None):
+    def __init__(self, loader, metadata_path=None, sample_column=None):
         """Create DataSet
 
         Args:
             loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
             metadata_path (str, optional): path to metadata file. Defaults to None.
             sample_column (_type_, optional): column in metadata file indicating the sample IDs. Defaults to None.
+
         """
         self._check_loader(loader=loader)
         #  load data from loader object
@@ -45,19 +46,28 @@ class DataSet(Preprocess, Statistics, Plot):
         self.index_column = loader.index_column
         self.intensity_column = loader.intensity_column
         self.filter_columns = loader.filter_columns
+        self.gene_names = loader.gene_names
 
         # include filtering before
         self.create_matrix()
         self._check_matrix_values()
         self.metadata = None
-        if metadata_path:
+        if metadata_path is not None:
             self.load_metadata(file_path=metadata_path, sample_column=sample_column)
+            self._remove_misc_samples_in_metadata()
+
+        else:
+            self._create_metadata()
 
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
 
         print("DataSet has been created.")
         self.overview()
+
+    def _create_metadata(self):
+        samples = list(self.mat.index)
+        self.metadata = pd.DataFrame({"sample": samples})
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -86,6 +96,17 @@ class DataSet(Preprocess, Statistics, Plot):
         if np.isinf(self.mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
 
+    def _remove_misc_samples_in_metadata(self):
+        samples_matrix = self.mat.index.to_list()
+        samples_metadata = self.metadata["sample"].to_list()
+        misc_samples = list(set(samples_metadata) - set(samples_matrix))
+        if len(misc_samples) > 0:
+            self.metadata = self.metadata[~self.metadata["sample"].isin(misc_samples)]
+            logging.warning(
+                f"{misc_samples} are not described in the protein data and"
+                "are removed from the metadata."
+            )
+
     def create_matrix(self):
         """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
@@ -100,7 +121,9 @@ class DataSet(Preprocess, Statistics, Plot):
         substring_to_remove = regex_find_intensity_columns.replace(".*", "")
         df.columns = df.columns.str.replace(substring_to_remove, "")
         # transpose dataframe
-        self.mat = df.transpose()
+        mat = df.transpose()
+        # remove proteins with only zero
+        self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         # reset preproccessing info
         self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized",
@@ -115,8 +138,10 @@ class DataSet(Preprocess, Statistics, Plot):
             file_path (str): path to metadata file
             sample_column (str): column name with sample IDs
         """
+        if isinstance(file_path, pd.DataFrame):
+            df = file_path
         #  loading file needs to be more beautiful
-        if file_path.endswith(".xlsx"):
+        elif file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
             # find robust way to detect file format
             # else give file separation as variable
@@ -141,11 +166,13 @@ class DataSet(Preprocess, Statistics, Plot):
         n_proteingroups = self.mat.shape[1]
         preprocessing_dict = {
             "Raw data number of Protein Groups": n_proteingroups,
-            "Matrix: Number of samples": self.mat.shape[0],
             "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
-            "Contaminations have been removed": False,
+            "Matrix: Number of samples": self.mat.shape[0],
+            "Intensity used for analysis": self.intensity_column,
             "Normalization": None,
             "Imputation": None,
+            "Contaminations have been removed": False,
+            "Contamination columns": self.filter_columns,
             "Number of removed ProteinGroups due to contaminaton": 0,
         }
         return preprocessing_dict

@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://user-images.githubusercontent.com/70535771/193259270-27af8f13-bfea-4e8e-9563-0af2046e1860.png" />
 </p>
-# AlphaStats
+
 
 An open-source Python package of the AlphaStats ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
@@ -33,6 +33,12 @@ pip install alphastats
 ```
 ---
 ## Usage
+
+For the Graphical User Interface
+ 
+```bash
+alphastats gui
+```
 
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 

@@ -18,13 +18,17 @@ class BaseLoader:
             sep (str, optional): file separation. Defaults to "\t".
         """
 
-        self._check_if_file_exists(file=file)
-        self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
+        # self._check_if_file_exists(file=file)
+        if isinstance(file, pd.DataFrame):
+            self.rawdata = file
+        else:
+            self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.index_column = index_column
         self.filter_columns = []
         self.confidence_column = None
         self.software = None
+        self.gene_names = None
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
@@ -57,7 +61,6 @@ class BaseLoader:
     def _check_if_file_exists(self, file):
         if os.path.isfile(file) == False:
             raise OSError(f"{file} does not exist.")
-            # raise OSError
 
     def _add_contamination_column(self):
         #  load df with potential contamination from fasta file
