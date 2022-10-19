@@ -5,7 +5,7 @@
 * clustermap with seaborn, adding bar labels is possible
 * save plotting data, preprocessing, method in figure object (accessible using figure.plotting_data, figure.method, figure.preprocessing)
 
-## 0.1.6
+## 0.1.1
 * Graphical User Interface
 * Volcano Plot can be plotted with cut off lines, add labels to significant enriched proteins
 * plot-intensity with t-test between two groups
