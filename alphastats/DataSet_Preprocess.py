@@ -134,6 +134,7 @@ class Preprocess:
         )
         self.preprocessing_info.update({"Imputation": method})
 
+    @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
         # Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.

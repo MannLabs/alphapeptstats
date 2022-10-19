@@ -438,6 +438,7 @@ class Plot:
 
         return column, "group1", "group2"
 
+    @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
@@ -607,6 +608,7 @@ class Plot:
 
         return color_label, lut, s
 
+    @ignore_warning(UserWarning)
     @check_for_missing_values
     def plot_clustermap(
         self, label_bar=None, only_significant=False, group=None, subgroups=None
