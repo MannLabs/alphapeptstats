@@ -380,8 +380,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             sample_column="sample",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (312, 2611)
-        self.matrix_dim_filtered = (312, 2409)
+        self.matrix_dim = (312, 2596)
+        self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
 
     def test_plot_pca_group(self):
@@ -419,13 +419,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_preprocess_subset(self):
         df = self.obj._subset()
-        self.assertEqual(df.shape, (48, 2611))
+        self.assertEqual(df.shape, (48, 2596))
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
         anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
-        self.assertEqual(anova_results.shape, (2615, 2))
+        self.assertEqual(anova_results.shape, (2600, 2))
         # check if tukey isnt called
         mock.assert_not_called()
 
@@ -572,13 +572,13 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         # check if everything get plotted
         self.assertEqual(len(plot_dict.get("data")[0].get("x")), 20)
 
-    def test_plot_dendogram_navalues(self):
+    def test_plot_dendrogram_navalues(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_dendogram()
+            self.obj.plot_dendrogram()
 
-    def test_plot_dendogram_not_imputed(self):
+    def test_plot_dendrogram_not_imputed(self):
         with self.assertRaises(ValueError):
-            self.obj.plot_dendogram()
+            self.obj.plot_dendrogram()
 
     def test_volcano_plot_anova(self):
         self.obj.preprocess(imputation="knn")
@@ -632,8 +632,8 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (20, 10)
-        self.matrix_dim_filtered = (20, 10)
+        self.matrix_dim = (20, 6)
+        self.matrix_dim_filtered = (20, 6)
         self.comparison_column = "grouping1"
 
 
