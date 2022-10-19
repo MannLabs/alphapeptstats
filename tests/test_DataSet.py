@@ -5,8 +5,6 @@ from math import remainder
 # from multiprocessing.sharedctypes import Value
 from random import sample
 import unittest
-from unittest.main import _TestRunner
-from xml.sax.handler import property_interning_dict
 import pandas as pd
 import logging
 from unittest.mock import patch
