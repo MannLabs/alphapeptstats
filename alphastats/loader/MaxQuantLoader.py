@@ -35,7 +35,7 @@ class MaxQuantLoader(BaseLoader):
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
-        if gene_names_column in self.rawdata.columns.to_list():
+        if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names = gene_names_column
         if evidence_file is not None:
             self._load_evidence(evidence_file=evidence_file)
@@ -49,6 +49,6 @@ class MaxQuantLoader(BaseLoader):
         """
         if len(self.filter_columns) > 0:
             for filter_column in self.filter_columns:
-                self.rawdata[filter_column] = np.where(
-                    self.rawdata[filter_column] == "+", True, False
+                self.rawinput[filter_column] = np.where(
+                    self.rawinput[filter_column] == "+", True, False
                 )

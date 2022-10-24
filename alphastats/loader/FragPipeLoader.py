@@ -21,7 +21,7 @@ class FragPipeLoader(BaseLoader):
 
         super().__init__(file, intensity_column, index_column, sep)
 
-        if gene_names_column in self.rawdata.columns.to_list():
+        if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names = gene_names_column
 
         self.confidence_column = confidence_column

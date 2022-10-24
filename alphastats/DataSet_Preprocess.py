@@ -38,8 +38,8 @@ class Preprocess:
             return
 
         #  print column names with contamination
-        protein_groups_to_remove = self.rawdata[
-            (self.rawdata[self.filter_columns] == True).any(1)
+        protein_groups_to_remove = self.rawinput[
+            (self.rawinput[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
 
         protein_groups_to_remove = list(

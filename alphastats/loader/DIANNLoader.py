@@ -45,8 +45,8 @@ class DIANNLoader(BaseLoader):
             "First.Protein.Description",
             "contamination_library",
         ]
-        self.rawdata.columns = [
+        self.rawinput.columns = [
             str(col) + "_Intensity" if col not in no_sample_column else str(col)
-            for col in self.rawdata.columns
+            for col in self.rawinput.columns
         ]
         self.intensity_column = "[sample]_Intensity"

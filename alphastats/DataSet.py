@@ -41,7 +41,7 @@ class DataSet(Preprocess, Statistics, Plot):
         self._check_loader(loader=loader)
         #  load data from loader object
         self.loader = loader
-        self.rawdata = loader.rawdata
+        self.rawinput = loader.rawinput
         self.software = loader.software
         self.index_column = loader.index_column
         self.intensity_column = loader.intensity_column
@@ -82,9 +82,9 @@ class DataSet(Preprocess, Statistics, Plot):
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
             )
 
-        if not isinstance(loader.rawdata, pd.DataFrame) or loader.rawdata.empty:
+        if not isinstance(loader.rawinput, pd.DataFrame) or loader.rawinput.empty:
             raise ValueError(
-                "Error in rawdata, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+                "Error in rawinput, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
             )
 
         if not isinstance(loader.index_column, str):
@@ -114,7 +114,7 @@ class DataSet(Preprocess, Statistics, Plot):
 
         regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
 
-        df = self.rawdata
+        df = self.rawinput
         df = df.set_index(self.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
         # remove Intensity so only sample names remain
@@ -182,7 +182,7 @@ class DataSet(Preprocess, Statistics, Plot):
         """
         dataset_overview = (
             "Attributes of the DataSet can be accessed using: \n"
-            + "DataSet.rawdata:\t Raw Protein data.\n"
+            + "DataSet.rawinput:\t Raw Protein data.\n"
             + "DataSet.mat:\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
             + "DataSet.metadata:\tMetadata for the samples in the matrix. Metadata will be matched with DataSet.mat when needed (for instance Volcano Plot)."
         )

@@ -56,7 +56,7 @@ class BaseTestDataSet:
         def test_check_loader_error_empty_df(self):
             # empty dataframe
             with self.assertRaises(ValueError):
-                self.loader.rawdata = pd.DataFrame()
+                self.loader.rawinput = pd.DataFrame()
                 self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_loader(self):

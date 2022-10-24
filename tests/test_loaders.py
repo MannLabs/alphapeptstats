@@ -29,7 +29,7 @@ class BaseTestLoader:
 
         def test_dataformat(self):
             # check if loaded data is pandas dataframe
-            self.assertIsInstance(self.obj.rawdata, pd.DataFrame)
+            self.assertIsInstance(self.obj.rawinput, pd.DataFrame)
 
         def test_check_if_columns_are_present_error(self):
             # check if columns are present
@@ -48,7 +48,7 @@ class BaseTestLoader:
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
-            self.obj.rawdata[self.obj.index_column] = "non unique"
+            self.obj.rawinput[self.obj.index_column] = "non unique"
             self.obj._check_if_indexcolumn_is_unique()
             mock.assert_called_once()
 
@@ -65,38 +65,38 @@ class BaseTestLoader:
                 self.obj._check_if_file_exists(file=wrong_file_path)
 
         def test_add_contaminantion_column(self):
-            column_added = "contamination_library" in self.obj.rawdata
+            column_added = "contamination_library" in self.obj.rawinput
             self.assertTrue(column_added)
-            self.assertEqual(self.obj.rawdata["contamination_library"].dtype, "bool")
+            self.assertEqual(self.obj.rawinput["contamination_library"].dtype, "bool")
 
         def test_df_dimensions(self):
             # test if dataframe gets loaded correctly
             # are there as many rows and column we expect
-            self.assertEqual(self.obj.rawdata.shape, self.df_dim)
+            self.assertEqual(self.obj.rawinput.shape, self.df_dim)
 
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
         self.hdf_file = "testfiles/alphapept/results.hdf"
-        # expected dim of rawdata df
+        # expected dim of rawinput df
         self.df_dim = (3781, 8)
 
     def test_load_hdf_protein_table(self):
         hdf_format = AlphaPeptLoader(file=self.hdf_file)
         # test if hdf file gets loaded
-        self.assertEqual(hdf_format.rawdata.shape, self.df_dim)
+        self.assertEqual(hdf_format.rawinput.shape, self.df_dim)
 
     def test_add_contamination_reverse_column(self):
         # check if contamination column has been added
-        column_added = "Reverse" in self.obj.rawdata
+        column_added = "Reverse" in self.obj.rawinput
         self.assertTrue(column_added)
         # check if column contains True and False
-        self.assertEqual(self.obj.rawdata.Reverse.dtype, "bool")
+        self.assertEqual(self.obj.rawinput.Reverse.dtype, "bool")
 
     def test_standardize_protein_group_column(self):
         # check if column ProteinGroup has been added
-        column_added = "ProteinGroup" in self.obj.rawdata
+        column_added = "ProteinGroup" in self.obj.rawinput
         self.assertTrue(column_added)
 
         # test function with different entries
@@ -120,9 +120,9 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
 
     def test_set_filter_columns_to_true_false(self):
         # check if + has been replaced by TRUE FALSE
-        self.assertEqual(self.obj.rawdata["Reverse"].dtype, "bool")
-        self.assertEqual(self.obj.rawdata["Only identified by site"].dtype, "bool")
-        self.assertEqual(self.obj.rawdata["Potential contaminant"].dtype, "bool")
+        self.assertEqual(self.obj.rawinput["Reverse"].dtype, "bool")
+        self.assertEqual(self.obj.rawinput["Only identified by site"].dtype, "bool")
+        self.assertEqual(self.obj.rawinput["Potential contaminant"].dtype, "bool")
 
 
 class TestDIANNLoader(BaseTestLoader.BaseTest):
@@ -133,15 +133,15 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
     def add_tag_to_sample_columns(self):
         # get number of columns that have tag
         n_taged_samples = len(
-            self.obj.rawdata.filter(like="_Intensity").columns.to_list()
+            self.obj.rawinput.filter(like="_Intensity").columns.to_list()
         )
         self.assertEqual(n_taged_samples, 20)
 
     def test_load_protein_data_df(self):
         df = pd.read_csv("testfiles/diann/report_final.pg_matrix.tsv", sep="\t")
         obj = DIANNLoader(df)
-        self.assertIsInstance(obj.rawdata, pd.DataFrame)
-        self.assertFalse(obj.rawdata.empty)
+        self.assertIsInstance(obj.rawinput, pd.DataFrame)
+        self.assertFalse(obj.rawinput.empty)
 
 
 class TestFragPipeLoader(BaseTestLoader.BaseTest):

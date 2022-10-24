@@ -545,7 +545,7 @@ class Plot:
         if self.gene_names is not None:
             result_df = pd.merge(
                 result_df,
-                self.rawdata[[self.gene_names, self.index_column]],
+                self.rawinput[[self.gene_names, self.index_column]],
                 on=self.index_column,
                 how="left",
             )

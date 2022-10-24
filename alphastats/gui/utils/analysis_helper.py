@@ -196,7 +196,7 @@ def get_sample_names_from_software_file():
         "[sample]", ".*"
     )
 
-    df = st.session_state.loader.rawdata
+    df = st.session_state.loader.rawinput
     df = df.set_index(st.session_state.loader.index_column)
     df = df.filter(regex=(regex_find_intensity_columns), axis=1)
     # remove Intensity so only sample names remain
