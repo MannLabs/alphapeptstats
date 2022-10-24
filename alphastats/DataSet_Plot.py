@@ -305,16 +305,17 @@ class Plot:
         #  do ttest
         pvalue = scipy.stats.ttest_ind(y_array1, y_array2).pvalue
 
+        pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
+
         if pvalue < 0.001:
             significance_level = "***"
+            pvalue_text = "<i>p < 0.001</i>"
         elif pvalue < 0.01:
             significance_level = "**"
         elif pvalue < 0.05:
             significance_level = "*"
         else:
             significance_level = "-"
-
-        pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
 
         y_max = np.concatenate((y_array1, y_array2)).max()
         # add connecting bar for pvalue
