@@ -12,4 +12,7 @@
 * Differential Expression analysis + Volcano Plot can be calcultated/plotted with list of sample names
 * UMAP
 
+## 0.1.2
+* rawdata renamed to rawinput
+
 
