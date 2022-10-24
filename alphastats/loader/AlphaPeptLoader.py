@@ -38,6 +38,7 @@ class AlphaPeptLoader(BaseLoader):
         self.confidence_column = None
         self.software = "AlphaPept"
         self.evidence_df = None 
+        self.gene_names = None
         # add contamination column "Reverse"
         self._add_contamination_reverse_column()
         self._add_contamination_column()

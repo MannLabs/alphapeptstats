@@ -19,6 +19,7 @@ def get_requirements():
     extra_requirements = {}
     requirement_file_names = {
         "development": "requirements_development.txt",
+        "gui": "requirements_gui.txt",
     }
     requirement_file_names[""] = "requirements.txt"
     for extra, requirement_file_name in requirement_file_names.items():
@@ -45,7 +46,7 @@ def create_pip_wheel():
     requirements, extra_requirements = get_requirements()
     setuptools.setup(
         name="alphastats",
-        version="0.0.5",
+        version="0.1.1",
         license="Apache",
         description="An open-source Python package for Mass Spectrometry Analysis",
         long_description=get_long_description(),
@@ -77,7 +78,7 @@ def create_pip_wheel():
         ],
         packages=["alphastats"],
         include_package_data=True,
-        entry_points={"console_scripts": "alphastats=alphastats.cli:run",},
+        entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},
         install_requires=requirements,
         extras_require=extra_requirements,
         python_requires=">=3.7,<4",

@@ -33,6 +33,7 @@ AlphaStats has the following Normalization methods implemented:
  - **Quantile Normalization**: Aims to correct technical bias by adjusting the distribution of protein intensities for each sample. This normalization method is suitable when it is assumed that only a small portion of the protein expression varies among certain conditions, while the majority of the proteome remains stable ([Dubois et al., 2022](https://doi.org/10.1016/j.biosystems.2022.104661) ).
  
  - **Linear Normalization** 
+ - **Variance Stablization Transformation**
 
 
 > **Note**
