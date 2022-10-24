@@ -126,7 +126,7 @@ class Plot:
             mat = self._subset()
             self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
-            sample_names = self.metadata["sample"].to_list()
+            sample_names = self.metadata[self.sample].to_list()
         else:
             mat = self.mat
             group_color = group
@@ -158,7 +158,7 @@ class Plot:
             }
 
         components = pd.DataFrame(components)
-        components["sample"] = sample_names
+        components[self.sample] = sample_names
 
         fig = px.scatter(
             components,
@@ -166,7 +166,7 @@ class Plot:
             y=1,
             labels=labels,
             color=group_color,
-            hover_data=[components["sample"]],
+            hover_data=[components[self.sample]],
         )
 
         # rename hover_data_0 to sample
@@ -267,16 +267,16 @@ class Plot:
 
         # create long df
         df = self.mat.unstack().reset_index()
-        df.rename(columns={"level_1": "sample", 0: "Intensity"}, inplace=True)
+        df.rename(columns={"level_1": self.sample, 0: "Intensity"}, inplace=True)
 
         if color is not None:
-            df = df.merge(self.metadata, how="inner", on=["sample"])
+            df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if method == "violin":
-            fig = px.violin(df, x="sample", y="Intensity", color=color)
+            fig = px.violin(df, x=self.sample, y="Intensity", color=color)
 
         elif method == "box":
-            fig = px.box(df, x="sample", y="Intensity", color=color)
+            fig = px.box(df, x=self.sample, y="Intensity", color=color)
 
         else:
             raise ValueError(
@@ -378,8 +378,8 @@ class Plot:
             plotly.graph_objects._figure.Figure: Plotly Plot
         """
         #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
-        df = self.mat[[protein_id]].reset_index().rename(columns={"index": "sample"})
-        df = df.merge(self.metadata, how="inner", on=["sample"])
+        df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
+        df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if subgroups is not None:
             df = df[df[group].isin(subgroups)]
@@ -420,7 +420,7 @@ class Plot:
         # create new column in metadata with defined groups
         metadata = self.metadata
 
-        sample_names = metadata["sample"].to_list()
+        sample_names = metadata[self.sample].to_list()
         misc_samples = list(set(group1_list + group2_list) - set(sample_names))
         if len(misc_samples) > 0:
             raise ValueError(
@@ -429,8 +429,8 @@ class Plot:
 
         column = "comparison_column"
         conditons = [
-            metadata["sample"].isin(group1_list),
-            metadata["sample"].isin(group2_list),
+            metadata[self.sample].isin(group1_list),
+            metadata[self.sample].isin(group2_list),
         ]
         choices = ["group1", "group2"]
         metadata[column] = np.select(conditons, choices, default=np.nan)
@@ -500,10 +500,10 @@ class Plot:
 
             result_df = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
-                "sample"
+                self.sample
             ].tolist()
             group2_samples = self.metadata[self.metadata[column] == group2][
-                "sample"
+                self.sample
             ].tolist()
 
             mat_transpose = self.mat.transpose()
@@ -629,9 +629,9 @@ class Plot:
 
         if group is not None and subgroups is not None:
             metadata_df = self.metadata[
-                self.metadata[group].isin(subgroups + ["sample"])
+                self.metadata[group].isin(subgroups + [self.sample])
             ]
-            samples = metadata_df["sample"]
+            samples = metadata_df[self.sample]
             df = df.filter(items=samples, axis=0)
 
         else:

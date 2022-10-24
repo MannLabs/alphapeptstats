@@ -13,7 +13,7 @@ class Preprocess:
     def _remove_sampels(self, sample_list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
-        self.metadata = self.metadata[~self.metadata["sample"].isin(sample_list)]
+        self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
 
     def _subset(self):
         # filter matrix so only samples that are described in metadata
@@ -21,7 +21,7 @@ class Preprocess:
         self.preprocessing_info.update(
             {"Matrix: Number of samples": self.metadata.shape[0]}
         )
-        return self.mat[self.mat.index.isin(self.metadata["sample"].tolist())]
+        return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
     def preprocess_print_info(self):
         """Print summary of preprocessing steps

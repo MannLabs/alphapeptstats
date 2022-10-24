@@ -74,14 +74,15 @@ class BaseTestDataSet:
         def test_load_metadata_missing_sample_column(self, mock):
             # is error raised when name of sample column is missing
             path = self.metadata_path
-            self.obj.load_metadata(file_path=path, sample_column="wrong_sample_column")
+            self.obj.sample = "wrong_sample_column"
+            self.obj.load_metadata(file_path=path)
             mock.assert_called_once()
 
         @patch("logging.Logger.warning")
         def test_load_metadata_warning(self, mock):
             # is dataframe None and is warning produced
             file_path = "wrong/file.xxx"
-            self.obj.load_metadata(file_path=file_path, sample_column="sample")
+            self.obj.load_metadata(file_path=file_path)
             mock.assert_called_once()
 
         def test_create_matrix(self):
@@ -192,15 +193,15 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
         metadata_path = "testfiles/alphapept/metadata.txt"
-        self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
+        self.obj.load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
         metadata_path = "testfiles/alphapept/metadata.tsv"
-        self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
+        self.obj.load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
         metadata_path = "testfiles/alphapept/metadata.csv"
-        self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
+        self.obj.load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
     @patch("logging.Logger.warning")

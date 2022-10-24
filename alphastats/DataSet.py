@@ -35,7 +35,7 @@ class DataSet(Preprocess, Statistics, Plot):
         Args:
             loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
             metadata_path (str, optional): path to metadata file. Defaults to None.
-            sample_column (_type_, optional): column in metadata file indicating the sample IDs. Defaults to None.
+            sample_column (str, optional): column in metadata file indicating the sample IDs. Defaults to None.
 
         """
         self._check_loader(loader=loader)
@@ -53,7 +53,8 @@ class DataSet(Preprocess, Statistics, Plot):
         self._check_matrix_values()
         self.metadata = None
         if metadata_path is not None:
-            self.load_metadata(file_path=metadata_path, sample_column=sample_column)
+            self.sample = sample_column
+            self.load_metadata(file_path=metadata_path)
             self._remove_misc_samples_in_metadata()
 
         else:
@@ -68,6 +69,7 @@ class DataSet(Preprocess, Statistics, Plot):
     def _create_metadata(self):
         samples = list(self.mat.index)
         self.metadata = pd.DataFrame({"sample": samples})
+        self.sample = "sample"
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -98,10 +100,10 @@ class DataSet(Preprocess, Statistics, Plot):
 
     def _remove_misc_samples_in_metadata(self):
         samples_matrix = self.mat.index.to_list()
-        samples_metadata = self.metadata["sample"].to_list()
+        samples_metadata = self.metadata[self.sample].to_list()
         misc_samples = list(set(samples_metadata) - set(samples_matrix))
         if len(misc_samples) > 0:
-            self.metadata = self.metadata[~self.metadata["sample"].isin(misc_samples)]
+            self.metadata = self.metadata[~self.metadata[self.sample].isin(misc_samples)]
             logging.warning(
                 f"{misc_samples} are not described in the protein data and"
                 "are removed from the metadata."
@@ -131,12 +133,11 @@ class DataSet(Preprocess, Statistics, Plot):
             "Contaminations have not been removed.",
         )
 
-    def load_metadata(self, file_path, sample_column):
+    def load_metadata(self, file_path):
         """Load metadata either xlsx, txt, csv or txt file
 
         Args:
             file_path (str): path to metadata file
-            sample_column (str): column name with sample IDs
         """
         if isinstance(file_path, pd.DataFrame):
             df = file_path
@@ -155,9 +156,9 @@ class DataSet(Preprocess, Statistics, Plot):
                 "WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file"
             )
             return
-        if df is not None and sample_column not in df.columns:
-            logging.error(f"sample_column: {sample_column} not found in {file_path}")
-        df.columns = df.columns.str.replace(sample_column, "sample")
+        if df is not None and self.sample not in df.columns:
+            logging.error(f"sample_column: {self.sample} not found in {file_path}")
+    
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         self.metadata = df

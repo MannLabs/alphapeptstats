@@ -15,7 +15,7 @@ class Statistics:
         # create new column in metadata with defined groups
         metadata = self.metadata
 
-        sample_names = metadata["sample"].to_list()
+        sample_names = metadata[self.sample].to_list()
         misc_samples = list(set(group1_list + group2_list) - set(sample_names))
         if len(misc_samples) > 0:
             raise ValueError(
@@ -24,8 +24,8 @@ class Statistics:
 
         column = "_comparison_column"
         conditons = [
-            metadata["sample"].isin(group1_list),
-            metadata["sample"].isin(group2_list),
+            metadata[self.sample].isin(group1_list),
+            metadata[self.sample].isin(group2_list),
         ]
         choices = ["group1", "group2"]
         metadata[column] = np.select(conditons, choices, default=np.nan)
@@ -73,7 +73,7 @@ class Statistics:
         #  if a column has more than two groups matrix needs to be reduced to compare
         group_samples = self.metadata[
             (self.metadata[column] == group1) | (self.metadata[column] == group2)
-        ]["sample"].tolist()
+        ][self.sample].tolist()
 
         # reduce matrix
         reduced_matrix = self.mat.loc[group_samples]
@@ -82,8 +82,8 @@ class Statistics:
         list_to_sort = reduced_matrix.index.to_list()
         #  reduce metadata
         obs_metadata = (
-            self.metadata[self.metadata["sample"].isin(group_samples)]
-            .set_index("sample")
+            self.metadata[self.metadata[self.sample].isin(group_samples)]
+            .set_index(self.sample)
             .loc[list_to_sort]
         )
 
@@ -156,9 +156,9 @@ class Statistics:
         """
         if df is None:
             df = (
-                self.mat[[protein_id]].reset_index().rename(columns={"index": "sample"})
+                self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
             )
-            df = df.merge(self.metadata, how="inner", on=["sample"])
+            df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         try:
             tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
@@ -211,7 +211,7 @@ class Statistics:
         subgroup = self.metadata[column].unique().tolist()
         all_groups = []
         for sub in subgroup:
-            group_list = self.metadata[self.metadata[column] == sub]["sample"].tolist()
+            group_list = self.metadata[self.metadata[column] == sub][self.sample].tolist()
             all_groups.append(group_list)
 
         mat_transpose = self.mat[protein_ids_list].transpose()
@@ -241,9 +241,9 @@ class Statistics:
     def _create_tukey_df(self, anova_df, protein_ids_list, group):
         #  combine tukey results with anova results
         df = (
-            self.mat[protein_ids_list].reset_index().rename(columns={"index": "sample"})
+            self.mat[protein_ids_list].reset_index().rename(columns={"index":self.sample})
         )
-        df = df.merge(self.metadata, how="inner", on=["sample"])
+        df = df.merge(self.metadata, how="inner", on=[self.sample])
         tukey_df_list = []
         for protein_id in tqdm(protein_ids_list):
             tukey_df_list.append(
@@ -285,7 +285,7 @@ class Statistics:
             * ``'p-unc'``: Uncorrected p-values
             * ``'np2'``: Partial eta-squared
         """
-        df = self.mat[protein_id].reset_index().rename(columns={"index": "sample"})
-        df = self.metadata.merge(df, how="inner", on=["sample"])
+        df = self.mat[protein_id].reset_index().rename(columns={"index": self.sample})
+        df = self.metadata.merge(df, how="inner", on=[self.sample])
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
