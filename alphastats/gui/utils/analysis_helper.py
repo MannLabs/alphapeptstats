@@ -156,20 +156,20 @@ def helper_compare_two_groups(method, options_dict):
 
         with col1:
 
-            group1_list = st.multiselect(
+            group1 = st.multiselect(
                 "Group 1 samples:",
                 options=st.session_state.dataset.metadata["sample"].to_list(),
             )
 
         with col2:
 
-            group2_list = st.multiselect(
+            group2 = st.multiselect(
                 "Group 2 samples:",
                 options=st.session_state.dataset.metadata["sample"].to_list(),
             )
 
         chosen_parameter_dict.update(
-            {"group1_list": group1_list, "group2_list": group2_list}
+            {"group1": group1, "group2": group2}
         )
 
     if method == "Volcano":
