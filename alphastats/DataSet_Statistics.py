@@ -174,18 +174,6 @@ class Statistics:
 
         return tukey_df
 
-    def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
-        mat_transpose += 0.00001
-        fc = (
-            mat_transpose[group1_samples].T.mean().values
-            / mat_transpose[group2_samples].T.mean().values
-        )
-        df = pd.DataFrame(
-            {"fc": fc, "log2fc": np.log2(fc)},
-            index=mat_transpose.index,
-            columns=["fc", "log2fc"],
-        )
-        return df
 
     @ignore_warning(RuntimeWarning)
     def anova(self, column, protein_ids="all", tukey=True):

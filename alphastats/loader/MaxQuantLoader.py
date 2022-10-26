@@ -22,7 +22,7 @@ class MaxQuantLoader(BaseLoader):
         """Loader MaxQuant output 
 
         Args:
-            file (_type_): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
+            file (str): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
             intensity_column (str, optional): columns with Intensity values for each sample. Defaults to "LFQ intentsity [experiment]".
             index_column (str, optional): column with Protein IDs . Defaults to "Protein IDs".
             filter_columns (list, optional): columns that should be used for filtering. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].

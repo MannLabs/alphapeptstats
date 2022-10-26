@@ -94,6 +94,9 @@ class BaseTestDataSet:
             )
             self.assertEqual(is_dtype_numeric, [True])
 
+        def test_preprocess_print_info(self):
+            self.obj.preprocess_print_info()
+
         @patch("logging.Logger.warning")
         def test_check_values_warning(self, mock):
             # is dataframe None and is warning produced
@@ -138,6 +141,9 @@ class BaseTestDataSet:
             mock.assert_called_once()
 
         def test_preprocess_normalization_invalid_method(self):
+            """
+            Raises Error when method is not available for Normalization
+            """
             with self.assertRaises(ValueError):
                 self.obj.preprocess(normalization="wrong method")
 
@@ -156,6 +162,13 @@ class BaseTestDataSet:
         def test_imputation_knn(self):
             self.obj.preprocess(imputation="knn")
             self.assertFalse(self.obj.mat.isna().values.any())
+
+        def test_plot_sampledistribution_wrong_method(self):
+            """
+            Raises Error when method is not available for plotting Sampledistribution
+            """
+            with self.assertRaises(ValueError):
+                self.obj.plot_sampledistribution(method="wrong_method")
 
         def test_plot_sampledistribution(self):
             plot = self.obj.plot_sampledistribution(log_scale=True)
@@ -412,8 +425,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             )
 
     def test_preprocess_subset(self):
-        df = self.obj._subset()
-        self.assertEqual(df.shape, (48, 2596))
+        self.obj.preprocess(subset=True)
+        self.assertEqual(self.obj.mat, (48, 2596))
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
@@ -486,6 +499,17 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
 
+    def test_plot_volcano_wald(self):
+        """
+        Volcano Plot with wald test and list of samples
+        """
+        self.obj.preprocess(imputation="knn")
+        self.obj.plot_volcano(group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
+                    group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="wald")
+
+        column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
+        self.assertTrue(column_added)   
+
     def test_plot_clustermap_significant(self):
         self.obj.preprocess(imputation="knn")
         plot = self.obj.plot_clustermap(
@@ -527,6 +551,63 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             self.obj.perform_diff_expression_analysis(
                 group1="healthy", group2="liver cirrhosis"
             )
+
+    def test_perform_diff_expression_analysis_list(self):
+        self.obj.perform_diff_expression_analysis(
+            group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
+            group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
+
+        column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
+        self.assertTrue(column_added)  
+
+    def test_plot_intensity_non_sign(self):
+        """
+        No significant label is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="S6BAR0", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "-")
+
+    def test_plot_intensity_sign(self):
+        """
+        Significant label * is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="Q9UL94", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "*")
+
+    def test_plot_intensity_sign_01(self):
+        """
+        Significant label ** is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="Q96JD0;Q96JD1;P01721", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "**")
+
+    def test_plot_intensity_sign_001(self):
+        """
+        Highly significant label is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "***")
+       
 
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):

@@ -221,10 +221,11 @@ class Preprocess:
         https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor
 
         Args:
-            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination. Defaults to False.
+            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
+            subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
         """
         if remove_contaminations:
             self._filter()

@@ -19,7 +19,7 @@ class DIANNLoader(BaseLoader):
         """Import DIA-NN output data report.pg_matrix.tsv
 
         Args:
-            file (_type_): DIA-NN output file report.pg_matrix.tsv
+            file (str): DIA-NN output file report.pg_matrix.tsv
             intensity_column (str, optional): columns containing the intensity column for each experiment. Defaults to "[experiment]".
             index_column (str, optional): column with the Protein IDs. Defaults to "Protein.Group".
             sep (str, optional): file separation of the input file. Defaults to "\t".

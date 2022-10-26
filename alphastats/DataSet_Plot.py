@@ -258,7 +258,7 @@ class Plot:
 
         Args:
             method (str, optional): Violinplot = "violin", Boxplot = "box". Defaults to "violin".
-            color (_type_, optional): A metadata column used to color the boxes. Defaults to None.
+            color (str, optional): A metadata column used to color the boxes. Defaults to None.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
@@ -372,7 +372,7 @@ class Plot:
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "box".
-            add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Default False.
+            add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Defaults False.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
@@ -415,29 +415,6 @@ class Plot:
             fig = self._add_significance(fig)
 
         return fig
-
-    def _add_metadata_column(self, group1_list, group2_list):
-
-        # create new column in metadata with defined groups
-        metadata = self.metadata
-
-        sample_names = metadata[self.sample].to_list()
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
-
-        column = "comparison_column"
-        conditons = [
-            metadata[self.sample].isin(group1_list),
-            metadata[self.sample].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
-
-        return column, "group1", "group2"
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)

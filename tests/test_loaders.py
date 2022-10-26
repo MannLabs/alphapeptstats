@@ -124,7 +124,6 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
         self.assertEqual(self.obj.rawinput["Only identified by site"].dtype, "bool")
         self.assertEqual(self.obj.rawinput["Potential contaminant"].dtype, "bool")
 
-
 class TestDIANNLoader(BaseTestLoader.BaseTest):
     def setUp(self):
         self.obj = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
