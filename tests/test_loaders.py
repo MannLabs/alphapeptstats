@@ -143,6 +143,38 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
         self.assertIsInstance(obj.rawinput, pd.DataFrame)
         self.assertFalse(obj.rawinput.empty)
 
+    def test_remove_filepath_windows(self):
+        column_list = [
+            "D:\\user\\path\\raw_A.d",
+            "D:\\user\\path\\raw_B.d",
+            "D:\\user\\path\\raw_C.d",
+            "D:\\user\\path\\raw_D.d",
+            "D:\\user\\path\\raw_F.d",
+        ]
+        expected_names = ["raw_A.d", "raw_B.d", "raw_C.d", "raw_D.d", "raw_F.d"]
+        data = [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]
+
+        df = pd.DataFrame(data, columns=column_list)
+        self.obj.rawinput = df
+        self.obj._remove_filepath_from_name()
+        self.assertEqual(self.obj.rawinput.columns.to_list(), expected_names)
+
+    def test_remove_filepath_unix(self):
+        column_list = [
+            "path/to/file/raw_A.d",
+            "path/to/file/raw_B.d",
+            "path/to/file/raw_C.d",
+            "path/to/file/raw_D.d",
+            "path/to/file/raw_F.d",
+        ]
+        expected_names = ["raw_A.d", "raw_B.d", "raw_C.d", "raw_D.d", "raw_F.d"]
+        data = [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]
+
+        df = pd.DataFrame(data, columns=column_list)
+        self.obj.rawinput = df
+        self.obj._remove_filepath_from_name()
+        self.assertEqual(self.obj.rawinput.columns.to_list(), expected_names)
+
 
 class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUp(self):
