@@ -156,7 +156,9 @@ class Statistics:
         """
         if df is None:
             df = (
-                self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
+                self.mat[[protein_id]]
+                .reset_index()
+                .rename(columns={"index": self.sample})
             )
             df = df.merge(self.metadata, how="inner", on=[self.sample])
 
@@ -211,7 +213,9 @@ class Statistics:
         subgroup = self.metadata[column].unique().tolist()
         all_groups = []
         for sub in subgroup:
-            group_list = self.metadata[self.metadata[column] == sub][self.sample].tolist()
+            group_list = self.metadata[self.metadata[column] == sub][
+                self.sample
+            ].tolist()
             all_groups.append(group_list)
 
         mat_transpose = self.mat[protein_ids_list].transpose()
@@ -241,7 +245,9 @@ class Statistics:
     def _create_tukey_df(self, anova_df, protein_ids_list, group):
         #  combine tukey results with anova results
         df = (
-            self.mat[protein_ids_list].reset_index().rename(columns={"index":self.sample})
+            self.mat[protein_ids_list]
+            .reset_index()
+            .rename(columns={"index": self.sample})
         )
         df = df.merge(self.metadata, how="inner", on=[self.sample])
         tukey_df_list = []

@@ -103,7 +103,9 @@ class DataSet(Preprocess, Statistics, Plot):
         samples_metadata = self.metadata[self.sample].to_list()
         misc_samples = list(set(samples_metadata) - set(samples_matrix))
         if len(misc_samples) > 0:
-            self.metadata = self.metadata[~self.metadata[self.sample].isin(misc_samples)]
+            self.metadata = self.metadata[
+                ~self.metadata[self.sample].isin(misc_samples)
+            ]
             logging.warning(
                 f"{misc_samples} are not described in the protein data and"
                 "are removed from the metadata."
@@ -158,7 +160,7 @@ class DataSet(Preprocess, Statistics, Plot):
             return
         if df is not None and self.sample not in df.columns:
             logging.error(f"sample_column: {self.sample} not found in {file_path}")
-    
+
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         self.metadata = df

@@ -309,7 +309,7 @@ class Plot:
 
         if pvalue < 0.001:
             significance_level = "***"
-            pvalue_text = "<i>p < 0.001</i>"
+            pvalue_text = "<i>p<0.001</i>"
         elif pvalue < 0.01:
             significance_level = "**"
         elif pvalue < 0.05:

@@ -168,9 +168,7 @@ def helper_compare_two_groups(method, options_dict):
                 options=st.session_state.dataset.metadata["sample"].to_list(),
             )
 
-        chosen_parameter_dict.update(
-            {"group1": group1, "group2": group2}
-        )
+        chosen_parameter_dict.update({"group1": group1, "group2": group2})
 
     if method == "Volcano":
         analysis_method = st.selectbox(
