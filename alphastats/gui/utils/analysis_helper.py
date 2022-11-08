@@ -156,21 +156,19 @@ def helper_compare_two_groups(method, options_dict):
 
         with col1:
 
-            group1_list = st.multiselect(
+            group1 = st.multiselect(
                 "Group 1 samples:",
                 options=st.session_state.dataset.metadata["sample"].to_list(),
             )
 
         with col2:
 
-            group2_list = st.multiselect(
+            group2 = st.multiselect(
                 "Group 2 samples:",
                 options=st.session_state.dataset.metadata["sample"].to_list(),
             )
 
-        chosen_parameter_dict.update(
-            {"group1_list": group1_list, "group2_list": group2_list}
-        )
+        chosen_parameter_dict.update({"group1": group1, "group2": group2})
 
     if method == "Volcano":
         analysis_method = st.selectbox(
@@ -196,7 +194,7 @@ def get_sample_names_from_software_file():
         "[sample]", ".*"
     )
 
-    df = st.session_state.loader.rawdata
+    df = st.session_state.loader.rawinput
     df = df.set_index(st.session_state.loader.index_column)
     df = df.filter(regex=(regex_find_intensity_columns), axis=1)
     # remove Intensity so only sample names remain
