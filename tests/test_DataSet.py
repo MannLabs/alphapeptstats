@@ -426,7 +426,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True)
-        self.assertEqual(self.obj.mat, (48, 2596))
+        self.assertEqual(self.obj.mat.shape, (48, 2596))
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
@@ -505,7 +505,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         """
         self.obj.preprocess(imputation="knn")
         self.obj.plot_volcano(group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
-                    group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="wald")
+                    group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
 
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
         self.assertTrue(column_added)   
@@ -607,7 +607,15 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
         self.assertEqual(annotation, "***")
-       
+
+    # def test_perform_gsea(self):
+    #     df = self.obj.perform_gsea(column="disease", 
+    #                             group1="healthy", 
+    #                                     group2="liver cirrhosis",
+    #                                     gene_sets= 'KEGG_2019_Human')
+
+    #     cholesterol_enhanced = 'Cholesterol metabolism' in df.index.to_list()
+    #     self.assertTrue(cholersterol_enhanced)
 
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
