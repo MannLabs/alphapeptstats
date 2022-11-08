@@ -4,4 +4,3 @@ sphinx-argparse
 -e .
 myst_parser
 nbsphinx
-pandoc 
