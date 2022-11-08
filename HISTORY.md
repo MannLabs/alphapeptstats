@@ -14,5 +14,5 @@
 
 ## 0.1.2
 * rawdata renamed to rawinput
-
+* GUI bug fix
 
