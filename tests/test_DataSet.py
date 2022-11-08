@@ -426,7 +426,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True)
-        self.assertEqual(self.obj.mat.shape, (48, 2596))
+        self.assertEqual(self.obj.mat.shape, (48, 1364))
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
