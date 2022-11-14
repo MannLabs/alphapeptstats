@@ -58,7 +58,7 @@ class MaxQuantLoader(BaseLoader):
 
     def _extract_sample_names(self):
         regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
-        df = self.rawdata
+        df = self.rawinput
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
         # remove Intensity so only sample names remain
         substring_to_remove = regex_find_intensity_columns.replace(".*", "")
