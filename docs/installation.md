@@ -2,7 +2,7 @@
 
 ### Pip
 
-For any Python package, it is highly recommended to use a separate conda virtual environment, as otherwise dependancy conflicts can occur with already existing packages.
+For any Python package, it is highly recommended to use a separate conda virtual environment, as otherwise, dependency conflicts can occur with already existing packages.
 
 ```bash
 conda create --name alphastats
