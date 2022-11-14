@@ -36,10 +36,8 @@ class MaxQuantLoader(BaseLoader):
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
-        gene_names_column in self.rawdata.columns.to_list():
 
         if gene_names_column in self.rawinput.columns.to_list():
-
             self.gene_names = gene_names_column
 
         if evidence_file is not None:
