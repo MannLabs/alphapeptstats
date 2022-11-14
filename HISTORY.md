@@ -16,3 +16,5 @@
 * rawdata renamed to rawinput
 * GUI bug fix
 
+## 0.2.0
+* Gene Ontology Enrichment Analysis using a GO tool
