@@ -33,7 +33,7 @@ class BaseTestDataSet:
 
         def test_go_characterize_foreground(self):
             df = self.obj.go_characterize_foreground(
-                tax_id=9606, protein_list=self.obj.mat.columns.to_list()[200:400]
+                tax_id=9606, protein_list=self.obj.mat.columns.to_list()[600:700]
             )
             self.assertFalse(df.empty)
 
@@ -54,10 +54,10 @@ class BaseTestDataSet:
             df = self.obj.go_abundance_correction(
                 bg_sample=self.bg_sample, fg_protein_list=self.obj.mat.columns.to_list()[200:300]
             )
-            self.assertFalse(df.empty)
+            self.assertTrue(df.empty)
 
         def test_go_genome_list(self):
-            df = self.obj.go_genome(protein_list=self.obj.mat.columns.to_list()[200:400])
+            df = self.obj.go_genome(protein_list=self.obj.mat.columns.to_list()[600:700])
             self.assertFalse(df.empty)
 
         def test_go_genome_sample(self):

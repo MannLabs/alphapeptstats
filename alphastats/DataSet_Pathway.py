@@ -163,7 +163,7 @@ class Enrichment:
 
         """
         check_internetconnection()
-
+        protein_list = [self._extract_protein_ids(protein)for protein in protein_list]
         protein_list = "%0d".join(protein_list)
         url = r"https://agotool.org/api_orig"
 
@@ -223,6 +223,8 @@ class Enrichment:
         # get PTMs for fg_sample
         if fg_protein_list is None:
             fg_protein_list = self._get_ptm_proteins(sample=fg_sample)
+        
+        fg_protein_list = [self._extract_protein_ids(protein) for protein in fg_protein_list]
         fg_protein_list = "%0d".join(fg_protein_list)
 
         # get intensity for bg_sample
@@ -327,6 +329,7 @@ class Enrichment:
         if protein_list is None:
             protein_list = self._get_ptm_proteins(sample=fg_sample)
 
+        protein_list = [self._extract_protein_ids(protein)for protein in protein_list]    
         protein_list = "%0d".join(protein_list)
         url = r"https://agotool.org/api_orig"
 
