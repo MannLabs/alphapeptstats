@@ -387,6 +387,18 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
 
+    def test_load_evidence_wrong_sample_names(self):
+        with self.assertRaises(ValueError):
+            loader = MaxQuantLoader(
+                file="testfiles/maxquant/proteinGroups.txt",
+                evidence_file="testfiles/maxquant_go/evidence.txt"
+            )
+            DataSet(
+                loader=loader,
+                metadata_path=self.metadata_path,
+                sample_column="sample",
+            )
+
     def test_plot_pca_group(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column)
         # 5 different disease

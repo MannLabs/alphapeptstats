@@ -1,7 +1,7 @@
 # Data preprocessing
 
 Preprocessing of the data is substantial for the results of the downstream analysis.
-Data preprocessing available in AlphaStats compromises: removal of contaminations, normalization, imputation and subsetting and removal of samples.
+Data preprocessing available in AlphaStats compromises: the removal of contaminants, normalization, imputation and subsetting and removal of samples.
 
 ```python
 DataSet.preprocess(
@@ -17,7 +17,7 @@ DataSet.preprocess(
 
 - Should I remove contaminations/ `remove_contaminations=True`? Generally speaking - Yes (source)
 
-Various proteomics software annotate contaminations differently or not at all. MaxQuant describes contaminations or ProteinGroups that should be removed in `Only identified by site`, `Reverse`, `Potential contaminant`. Likewise MaxQuant, AlphaPept flags spurious proteins as `Reverse`. 
+Various proteomics software annotates contaminants differently or not at all. MaxQuant describes contaminations or ProteinGroups that should be removed in `Only identified by site`, `Reverse`, `Potential contaminant`. Likewise MaxQuant, AlphaPept flags spurious proteins as `Reverse`. 
 
 In addition, AlphaStats identifies contaminations based on the contamination library created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full).
 
@@ -33,11 +33,11 @@ AlphaStats has the following Normalization methods implemented:
  - **Quantile Normalization**: Aims to correct technical bias by adjusting the distribution of protein intensities for each sample. This normalization method is suitable when it is assumed that only a small portion of the protein expression varies among certain conditions, while the majority of the proteome remains stable ([Dubois et al., 2022](https://doi.org/10.1016/j.biosystems.2022.104661) ).
  
  - **Linear Normalization** 
- - **Variance Stablization Transformation**
+ - **Variance Stabilization Transformation**
 
 
 > **Note**
-> It has been shown that normalizing the data first and than imputing the data performs better, then the other way around 
+> It has been shown that normalizing the data first and then imputing the data performs better, than the other way around 
 ([Karpievitch et al. 2012](https://doi.org/10.1186/1471-2105-13-S16-S5)). This preprocessing order is also acquired in
 AlphaStats (unless preprocessing is done in several steps).
 

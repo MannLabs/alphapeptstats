@@ -2,7 +2,7 @@ import functools
 import warnings
 from typing import Type
 import logging
-
+import http.client as httplib
 
 def ignore_warning(warning: Type[Warning]):
     """
@@ -45,6 +45,27 @@ def check_for_missing_values(f):
                 "Data contains missing values. Consider Imputation:"
                 "for instance `DataSet.preprocess(imputation='mean')`."
             )
+        return f(*args, **kwargs)
+
+    return inner
+
+
+def check_internetconnection():
+    connection = httplib.HTTPSConnection("8.8.8.8", timeout=5)
+    try:
+        connection.request("HEAD", "/")
+        return True
+    except Exception:
+        raise ConnectionError("No internet connection available.")
+    finally:
+        connection.close()
+
+
+def check_if_df_empty(f):
+    # decorator to check for missing values
+    def inner(*args, **kwargs):
+        if args[0].empty is True:
+            raise ValueError("DataFrame is empty. No significant GO-terms found.")
         return f(*args, **kwargs)
 
     return inner

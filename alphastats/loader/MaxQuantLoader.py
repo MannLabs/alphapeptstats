@@ -1,6 +1,7 @@
 from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
+import logging
 
 
 class MaxQuantLoader(BaseLoader):
@@ -35,14 +36,34 @@ class MaxQuantLoader(BaseLoader):
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
+
         if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names = gene_names_column
+
         if evidence_file is not None:
             self._load_evidence(evidence_file=evidence_file)
 
     def _load_evidence(self, evidence_file, sep="\t"):
-        self.evidence_file = pd.read_csv(evidence_file, sep=sep, low_memory=False)
-        # check if names match protien group file
+        self.evidence_df = pd.read_csv(evidence_file, sep=sep, low_memory=False)
+
+        evi_sample_names = self.evidence_df["Raw file"].to_list()
+        pg_sample_names = self._extract_sample_names()
+
+        intersection_sample_names = list(set(evi_sample_names) & set(pg_sample_names))
+        if len(intersection_sample_names) == 0:
+            raise ValueError(
+                "Sample names in proteinGroups.txt do not match"
+                "sample names in evidence.txt file"
+            )
+
+    def _extract_sample_names(self):
+        regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
+        df = self.rawinput
+        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+        # remove Intensity so only sample names remain
+        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+        df.columns = df.columns.str.replace(substring_to_remove, "")
+        return df.columns.to_list()
 
     def _set_filter_columns_to_true_false(self):
         """replaces the '+' with True, else False

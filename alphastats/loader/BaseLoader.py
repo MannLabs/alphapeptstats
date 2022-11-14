@@ -28,6 +28,7 @@ class BaseLoader:
         self.filter_columns = []
         self.confidence_column = None
         self.software = None
+        self.evidence_df = None
         self.gene_names = None
         self.ptm_df = None
         self._add_contamination_column()
@@ -78,5 +79,6 @@ class BaseLoader:
 
         logging.info(
             "Column 'contamination_library' has been added, to indicate contaminations.\n"
-            + "The contaminant library was created by Frankenfield et al. :https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
+            + "The contaminant library was created by Frankenfield et al."
+            + ":https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
         )

@@ -1,26 +1,26 @@
 # Data import
 
-Currently AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe and MaxQuant. As the output of these softwares differs signficantly data needs to be loaded in customized loaders.
+Currently, AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe and MaxQuant. As the output of these software differs significantly data needs to be loaded in customized loaders.
 
 
 
 ## Importing data from a Proteomics software
-In order to import data from these softwares the columns describing intensity and Protein/ProteinGroups have to specified when loading. Each loader has a default for the `intensity_column`and the `index_column`, however the column naming can vary depending on the version of the software and personalized settings.
+To import data from these software the columns describing intensity and Protein/ProteinGroups have to be specified when loading. Each loader has a default for the `intensity_column`and the `index_column`, however, the column naming can vary depending on the version of the software and personalized settings.
 
 As we are dealing with wide data, a column represents the intensity for one sample. Thus the `intensity_column` must be specified as follow: For MaxQuant `"LFQ intensity [sample]"` or for AlphaPept `"[sample]_LFQ"` (this is already set as default).
 
-Upon data import the proteomics data gets processed to an internal format.
+Upon data import, the proteomics data gets processed in an internal format.
 
 ## Additional modifications by AlphaStats
 
-When importing the data, AlphaStats will identify potential contaminations based on a contaminant library, reated by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full). This information will be added as extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.
+When importing the data, AlphaStats will identify potential contaminations based on a contaminant library, created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full). This information will be added as an extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.
 
 
-### Alphapept
+### AlphaPept
 [Alphapept](https://github.com/MannLabs/alphapept) output can either be imported as `results_proteins.csv` or `results.hdf`. 
 
 **Intensity types**
-AlphaPept either described the raw intensity or the free quantifitcation (LFQ) intensity. As default AlphaStats uses the LFQ-Intensity for the downstream analysis.
+AlphaPept either described the raw intensity or the free quantification (LFQ) intensity. By default AlphaStats uses the LFQ-Intensity for the downstream analysis.
 
 Further, AlphaStats will identify "Reverse" - Proteins.
 
@@ -32,10 +32,10 @@ alphapept_data = alphastats.AlphaPeptLoader(file="testfiles/alphapept_results_pr
 ```
 
 ### MaxQuant
-[MaxQuant](https://www.maxquant.org/) generates multiple files as output. For the downstream anaylsis the `proteinGroups.txt` file, containing the aggregated protein intensities is sufficient. 
+[MaxQuant](https://www.maxquant.org/) generates multiple files as output. For the downstream analysis the `proteinGroups.txt` file, containing the aggregated protein intensities is sufficient. 
 
 **Intensity types** 
-MaxQuant annotates different intensity types: the raw intensity, label - free quantifitcation (LFQ) intensity and intensity-based absolute quantification (iBAQ) intensity. The default settings are "LFQ intensity [sample]".
+MaxQuant annotates different intensity types: raw intensity, label - free quantification (LFQ) intensity and intensity-based absolute quantification (iBAQ) intensity. The default settings are "LFQ intensity [sample]".
 
 Find more details about the file format [here](http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable)
 
@@ -65,4 +65,4 @@ fragpipe_data = alphastats.FragPipeLoader(file="testfiles/fragpipe_combined_prot
 ```
 
 ## Preparing metadata
-To compare samples across various conditions in the downstream analysis, a metadata file in form of a table (excel, csv, tsv) is required. This file should contain a column with the smaple IDs (raw file names) matching the sample names annotated in the output file of your proteomics software. Further, information can be provided like disease and various clinical parameters. Examples of metadata files can  be found in the [testfiles-folder](https://github.com/MannLabs/alphastats/tree/main/testfiles).
+To compare samples across various conditions in the downstream analysis, a metadata file in form of a table (excel, csv, tsv) is required. This file should contain a column with the sample IDs (raw file names) matching the sample names annotated in the output file of your proteomics software. Further, information can be provided like disease and various clinical parameters. Examples of metadata files can be found in the [testfiles-folder](https://github.com/MannLabs/alphastats/tree/main/testfiles).

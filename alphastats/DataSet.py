@@ -17,6 +17,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
+from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
 
@@ -25,7 +26,7 @@ from alphastats.utils import LoaderError
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 
-class DataSet(Preprocess, Statistics, Plot):
+class DataSet(Preprocess, Statistics, Plot, Enrichment):
     """Analysis Object
     """
 
@@ -46,6 +47,7 @@ class DataSet(Preprocess, Statistics, Plot):
         self.index_column = loader.index_column
         self.intensity_column = loader.intensity_column
         self.filter_columns = loader.filter_columns
+        self.evidence_df = loader.evidence_df
         self.gene_names = loader.gene_names
 
         # include filtering before
