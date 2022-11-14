@@ -13,7 +13,7 @@ class Preprocess:
     def _remove_sampels(self, sample_list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
-        self.metadata = self.metadata[~self.metadata["sample"].isin(sample_list)]
+        self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
 
     def _subset(self):
         # filter matrix so only samples that are described in metadata
@@ -21,7 +21,7 @@ class Preprocess:
         self.preprocessing_info.update(
             {"Matrix: Number of samples": self.metadata.shape[0]}
         )
-        return self.mat[self.mat.index.isin(self.metadata["sample"].tolist())]
+        return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
     def preprocess_print_info(self):
         """Print summary of preprocessing steps
@@ -38,8 +38,8 @@ class Preprocess:
             return
 
         #  print column names with contamination
-        protein_groups_to_remove = self.rawdata[
-            (self.rawdata[self.filter_columns] == True).any(1)
+        protein_groups_to_remove = self.rawinput[
+            (self.rawinput[self.filter_columns] == True).any(1)
         ][self.index_column].tolist()
 
         protein_groups_to_remove = list(
@@ -134,6 +134,7 @@ class Preprocess:
         )
         self.preprocessing_info.update({"Imputation": method})
 
+    @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
         # Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
@@ -220,10 +221,11 @@ class Preprocess:
         https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor
 
         Args:
-            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination. Defaults to False.
+            remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
+            subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
         """
         if remove_contaminations:
             self._filter()

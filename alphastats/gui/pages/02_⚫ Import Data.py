@@ -203,7 +203,7 @@ def display_loaded_dataset():
     st.info("DataSet has been created")
 
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    st.dataframe(st.session_state.dataset.rawdata.head(5))
+    st.dataframe(st.session_state.dataset.rawinput.head(5))
 
     st.markdown(f"*Preview:* Metadata")
     st.dataframe(st.session_state.dataset.metadata.head(5))

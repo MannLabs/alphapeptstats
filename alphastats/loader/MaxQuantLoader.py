@@ -23,7 +23,7 @@ class MaxQuantLoader(BaseLoader):
         """Loader MaxQuant output 
 
         Args:
-            file (_type_): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
+            file (str): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
             intensity_column (str, optional): columns with Intensity values for each sample. Defaults to "LFQ intentsity [experiment]".
             index_column (str, optional): column with Protein IDs . Defaults to "Protein IDs".
             filter_columns (list, optional): columns that should be used for filtering. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].
@@ -36,8 +36,10 @@ class MaxQuantLoader(BaseLoader):
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
-        
-        if gene_names_column in self.rawdata.columns.to_list():
+        gene_names_column in self.rawdata.columns.to_list():
+
+        if gene_names_column in self.rawinput.columns.to_list():
+
             self.gene_names = gene_names_column
 
         if evidence_file is not None:
@@ -70,6 +72,6 @@ class MaxQuantLoader(BaseLoader):
         """
         if len(self.filter_columns) > 0:
             for filter_column in self.filter_columns:
-                self.rawdata[filter_column] = np.where(
-                    self.rawdata[filter_column] == "+", True, False
+                self.rawinput[filter_column] = np.where(
+                    self.rawinput[filter_column] == "+", True, False
                 )

@@ -56,7 +56,7 @@ class BaseTestDataSet:
         def test_check_loader_error_empty_df(self):
             # empty dataframe
             with self.assertRaises(ValueError):
-                self.loader.rawdata = pd.DataFrame()
+                self.loader.rawinput = pd.DataFrame()
                 self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_loader(self):
@@ -74,14 +74,15 @@ class BaseTestDataSet:
         def test_load_metadata_missing_sample_column(self, mock):
             # is error raised when name of sample column is missing
             path = self.metadata_path
-            self.obj.load_metadata(file_path=path, sample_column="wrong_sample_column")
+            self.obj.sample = "wrong_sample_column"
+            self.obj.load_metadata(file_path=path)
             mock.assert_called_once()
 
         @patch("logging.Logger.warning")
         def test_load_metadata_warning(self, mock):
             # is dataframe None and is warning produced
             file_path = "wrong/file.xxx"
-            self.obj.load_metadata(file_path=file_path, sample_column="sample")
+            self.obj.load_metadata(file_path=file_path)
             mock.assert_called_once()
 
         def test_create_matrix(self):
@@ -92,6 +93,9 @@ class BaseTestDataSet:
                 set(list(map(pd.api.types.is_numeric_dtype, self.obj.mat.dtypes)))
             )
             self.assertEqual(is_dtype_numeric, [True])
+
+        def test_preprocess_print_info(self):
+            self.obj.preprocess_print_info()
 
         @patch("logging.Logger.warning")
         def test_check_values_warning(self, mock):
@@ -137,6 +141,9 @@ class BaseTestDataSet:
             mock.assert_called_once()
 
         def test_preprocess_normalization_invalid_method(self):
+            """
+            Raises Error when method is not available for Normalization
+            """
             with self.assertRaises(ValueError):
                 self.obj.preprocess(normalization="wrong method")
 
@@ -155,6 +162,13 @@ class BaseTestDataSet:
         def test_imputation_knn(self):
             self.obj.preprocess(imputation="knn")
             self.assertFalse(self.obj.mat.isna().values.any())
+
+        def test_plot_sampledistribution_wrong_method(self):
+            """
+            Raises Error when method is not available for plotting Sampledistribution
+            """
+            with self.assertRaises(ValueError):
+                self.obj.plot_sampledistribution(method="wrong_method")
 
         def test_plot_sampledistribution(self):
             plot = self.obj.plot_sampledistribution(log_scale=True)
@@ -192,15 +206,15 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
         metadata_path = "testfiles/alphapept/metadata.txt"
-        self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
+        self.obj.load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
         metadata_path = "testfiles/alphapept/metadata.tsv"
-        self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
+        self.obj.load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
         metadata_path = "testfiles/alphapept/metadata.csv"
-        self.obj.load_metadata(file_path=metadata_path, sample_column="sample")
+        self.obj.load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
     @patch("logging.Logger.warning")
@@ -423,8 +437,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             )
 
     def test_preprocess_subset(self):
-        df = self.obj._subset()
-        self.assertEqual(df.shape, (48, 2596))
+        self.obj.preprocess(subset=True)
+        self.assertEqual(self.obj.mat.shape, (48, 1364))
 
     @patch.object(Statistics, "calculate_tukey")
     def test_anova_without_tukey(self, mock):
@@ -497,6 +511,17 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
 
+    def test_plot_volcano_wald(self):
+        """
+        Volcano Plot with wald test and list of samples
+        """
+        self.obj.preprocess(imputation="knn")
+        self.obj.plot_volcano(group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
+                    group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
+
+        column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
+        self.assertTrue(column_added)   
+
     def test_plot_clustermap_significant(self):
         self.obj.preprocess(imputation="knn")
         plot = self.obj.plot_clustermap(
@@ -538,6 +563,71 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             self.obj.perform_diff_expression_analysis(
                 group1="healthy", group2="liver cirrhosis"
             )
+
+    def test_perform_diff_expression_analysis_list(self):
+        self.obj.perform_diff_expression_analysis(
+            group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
+            group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
+
+        column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
+        self.assertTrue(column_added)  
+
+    def test_plot_intensity_non_sign(self):
+        """
+        No significant label is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="S6BAR0", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "-")
+
+    def test_plot_intensity_sign(self):
+        """
+        Significant label * is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="Q9UL94", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "*")
+
+    def test_plot_intensity_sign_01(self):
+        """
+        Significant label ** is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="Q96JD0;Q96JD1;P01721", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "**")
+
+    def test_plot_intensity_sign_001(self):
+        """
+        Highly significant label is added to intensity plot
+        """
+        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            add_significance=True)
+
+        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        self.assertEqual(annotation, "***")
+
+    # def test_perform_gsea(self):
+    #     df = self.obj.perform_gsea(column="disease", 
+    #                             group1="healthy", 
+    #                                     group2="liver cirrhosis",
+    #                                     gene_sets= 'KEGG_2019_Human')
+
+    #     cholesterol_enhanced = 'Cholesterol metabolism' in df.index.to_list()
+    #     self.assertTrue(cholersterol_enhanced)
 
 
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):

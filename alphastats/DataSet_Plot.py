@@ -126,7 +126,7 @@ class Plot:
             mat = self._subset()
             self.metadata[group] = self.metadata[group].apply(str)
             group_color = self.metadata[group]
-            sample_names = self.metadata["sample"].to_list()
+            sample_names = self.metadata[self.sample].to_list()
         else:
             mat = self.mat
             group_color = group
@@ -158,7 +158,7 @@ class Plot:
             }
 
         components = pd.DataFrame(components)
-        components["sample"] = sample_names
+        components[self.sample] = sample_names
 
         fig = px.scatter(
             components,
@@ -166,7 +166,7 @@ class Plot:
             y=1,
             labels=labels,
             color=group_color,
-            hover_data=[components["sample"]],
+            hover_data=[components[self.sample]],
         )
 
         # rename hover_data_0 to sample
@@ -258,7 +258,7 @@ class Plot:
 
         Args:
             method (str, optional): Violinplot = "violin", Boxplot = "box". Defaults to "violin".
-            color (_type_, optional): A metadata column used to color the boxes. Defaults to None.
+            color (str, optional): A metadata column used to color the boxes. Defaults to None.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
@@ -267,16 +267,16 @@ class Plot:
 
         # create long df
         df = self.mat.unstack().reset_index()
-        df.rename(columns={"level_1": "sample", 0: "Intensity"}, inplace=True)
+        df.rename(columns={"level_1": self.sample, 0: "Intensity"}, inplace=True)
 
         if color is not None:
-            df = df.merge(self.metadata, how="inner", on=["sample"])
+            df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if method == "violin":
-            fig = px.violin(df, x="sample", y="Intensity", color=color)
+            fig = px.violin(df, x=self.sample, y="Intensity", color=color)
 
         elif method == "box":
-            fig = px.box(df, x="sample", y="Intensity", color=color)
+            fig = px.box(df, x=self.sample, y="Intensity", color=color)
 
         else:
             raise ValueError(
@@ -305,16 +305,17 @@ class Plot:
         #  do ttest
         pvalue = scipy.stats.ttest_ind(y_array1, y_array2).pvalue
 
+        pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
+
         if pvalue < 0.001:
             significance_level = "***"
+            pvalue_text = "<i>p<0.001</i>"
         elif pvalue < 0.01:
             significance_level = "**"
         elif pvalue < 0.05:
             significance_level = "*"
         else:
             significance_level = "-"
-
-        pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
 
         y_max = np.concatenate((y_array1, y_array2)).max()
         # add connecting bar for pvalue
@@ -371,15 +372,15 @@ class Plot:
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "box".
-            add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Default False.
+            add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Defaults False.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 
         Returns:
             plotly.graph_objects._figure.Figure: Plotly Plot
         """
         #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
-        df = self.mat[[protein_id]].reset_index().rename(columns={"index": "sample"})
-        df = df.merge(self.metadata, how="inner", on=["sample"])
+        df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
+        df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if subgroups is not None:
             df = df[df[group].isin(subgroups)]
@@ -415,29 +416,7 @@ class Plot:
 
         return fig
 
-    def _add_metadata_column(self, group1_list, group2_list):
-
-        # create new column in metadata with defined groups
-        metadata = self.metadata
-
-        sample_names = metadata["sample"].to_list()
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
-
-        column = "comparison_column"
-        conditons = [
-            metadata["sample"].isin(group1_list),
-            metadata["sample"].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
-
-        return column, "group1", "group2"
-
+    @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
@@ -499,10 +478,10 @@ class Plot:
 
             result_df = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
-                "sample"
+                self.sample
             ].tolist()
             group2_samples = self.metadata[self.metadata[column] == group2][
-                "sample"
+                self.sample
             ].tolist()
 
             mat_transpose = self.mat.transpose()
@@ -544,7 +523,7 @@ class Plot:
         if self.gene_names is not None:
             result_df = pd.merge(
                 result_df,
-                self.rawdata[[self.gene_names, self.index_column]],
+                self.rawinput[[self.gene_names, self.index_column]],
                 on=self.index_column,
                 how="left",
             )
@@ -607,6 +586,7 @@ class Plot:
 
         return color_label, lut, s
 
+    @ignore_warning(UserWarning)
     @check_for_missing_values
     def plot_clustermap(
         self, label_bar=None, only_significant=False, group=None, subgroups=None
@@ -627,9 +607,9 @@ class Plot:
 
         if group is not None and subgroups is not None:
             metadata_df = self.metadata[
-                self.metadata[group].isin(subgroups + ["sample"])
+                self.metadata[group].isin(subgroups + [self.sample])
             ]
-            samples = metadata_df["sample"]
+            samples = metadata_df[self.sample]
             df = df.filter(items=samples, axis=0)
 
         else:

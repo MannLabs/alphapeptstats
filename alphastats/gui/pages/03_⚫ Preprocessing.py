@@ -14,7 +14,7 @@ def preprocessing():
         )
 
         subset = st.selectbox(
-            "Subset data so it matches with metadata. Remove miscellanous samples in rawdata.",
+            "Subset data so it matches with metadata. Remove miscellanous samples in rawinput.",
             options=[True, False],
         )
 

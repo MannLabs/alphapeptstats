@@ -23,7 +23,7 @@ copyright = "2022, Elena Krismer"
 author = "Elena Krismer"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.6"
+release = "0.1.2"
 
 
 # -- General configuration ---------------------------------------------------

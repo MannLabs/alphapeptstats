@@ -20,9 +20,9 @@ class BaseLoader:
 
         # self._check_if_file_exists(file=file)
         if isinstance(file, pd.DataFrame):
-            self.rawdata = file
+            self.rawinput = file
         else:
-            self.rawdata = pd.read_csv(file, sep=sep, low_memory=False)
+            self.rawinput = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.index_column = index_column
         self.filter_columns = []
@@ -35,10 +35,10 @@ class BaseLoader:
         self._check_if_columns_are_present()
 
     def _check_if_columns_are_present(self):
-        """check if given columns present in rawdata
+        """check if given columns present in rawinput
         """
         given_columns = list(filter(None, [self.index_column, self.confidence_column]))
-        wrong_columns = list(set(given_columns) - set(self.rawdata.columns.to_list()))
+        wrong_columns = list(set(given_columns) - set(self.rawinput.columns.to_list()))
         if len(wrong_columns) > 0:
             raise KeyError(
                 ", ".join(wrong_columns) + " columns do not exist.\n"
@@ -51,7 +51,7 @@ class BaseLoader:
 
     def _check_if_indexcolumn_is_unique(self):
         # TODO make own duplicates functions to have less dependencies
-        duplicated_values = list(duplicates(self.rawdata[self.index_column].to_list()))
+        duplicated_values = list(duplicates(self.rawinput[self.index_column].to_list()))
         if len(duplicated_values) > 0:
             # error or warning, duplicates could be resolved with preprocessing/filtering
             logging.warning(
@@ -72,8 +72,8 @@ class BaseLoader:
         contaminations_ids = contaminations["Uniprot ID"].to_list()
         #  add column with True False
 
-        self.rawdata["contamination_library"] = np.where(
-            self.rawdata[self.index_column].isin(contaminations_ids), True, False
+        self.rawinput["contamination_library"] = np.where(
+            self.rawinput[self.index_column].isin(contaminations_ids), True, False
         )
         self.filter_columns = self.filter_columns + ["contamination_library"]
 
