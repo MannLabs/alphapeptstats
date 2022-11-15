@@ -13,6 +13,7 @@ import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
 from umap import UMAP
+import plotly.figure_factory 
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -474,7 +475,7 @@ class Plot:
 
             print("Calculating ANOVA with follow-up tukey test...")
 
-            result_df = self.calculate_anova(column=column, protein_ids="all", tukey=True)
+            result_df = self.anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 self.sample
             ].tolist()

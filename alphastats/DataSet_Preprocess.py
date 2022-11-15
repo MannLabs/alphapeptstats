@@ -6,7 +6,7 @@ import numpy as np
 import sklearn.ensemble
 import sklearn.impute
 from alphastats.utils import ignore_warning
-
+from sklearn.experimental import enable_iterative_imputer
 
 class Preprocess:
     def _remove_sampels(self, sample_list):
