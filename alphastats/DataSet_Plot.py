@@ -1,5 +1,4 @@
-from audioop import add
-from turtle import color
+
 import sklearn
 import logging
 import plotly.express as px
@@ -9,7 +8,6 @@ import sklearn.manifold
 from alphastats.utils import ignore_warning, check_for_missing_values
 import plotly.graph_objects as go
 import numpy as np
-import plotly.figure_factory as ff
 import seaborn as sns
 import pandas as pd
 from scipy.spatial.distance import pdist, squareform
@@ -459,7 +457,7 @@ class Plot:
             print(
                 "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
             )
-            result_df = self.perform_diff_expression_analysis(
+            result_df = self.diff_expression_analysis(
                 column=column, group1=group1, group2=group2, method="wald"
             )
             pvalue_column = "qval"
@@ -467,7 +465,7 @@ class Plot:
         elif method == "ttest":
 
             print("Calculating t-test...")
-            result_df = self.perform_diff_expression_analysis(
+            result_df = self.diff_expression_analysis(
                 column=column, group1=group1, group2=group2, method="ttest"
             )
             pvalue_column = "pval"
@@ -476,7 +474,7 @@ class Plot:
 
             print("Calculating ANOVA with follow-up tukey test...")
 
-            result_df = self.anova(column=column, protein_ids="all", tukey=True)
+            result_df = self.calculate_anova(column=column, protein_ids="all", tukey=True)
             group1_samples = self.metadata[self.metadata[column] == group1][
                 self.sample
             ].tolist()

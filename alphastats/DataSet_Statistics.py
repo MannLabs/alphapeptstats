@@ -3,7 +3,6 @@ from itertools import permutations
 import pandas as pd
 import scipy.stats
 import numpy as np
-import logging
 import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
@@ -33,7 +32,7 @@ class Statistics:
 
         return column, "group1", "group2"
 
-    def perform_diff_expression_analysis(
+    def diff_expression_analysis(
         self, group1, group2, column=None, method="ttest"
     ):
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
@@ -129,7 +128,7 @@ class Statistics:
         return df
 
     @ignore_warning(RuntimeWarning)
-    def calculate_tukey(self, protein_id, group, df=None):
+    def tukey_test(self, protein_id, group, df=None):
         """Calculate Pairwise Tukey-HSD post-hoc test
         Wrapper around: 
         https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
@@ -241,7 +240,7 @@ class Statistics:
         tukey_df_list = []
         for protein_id in tqdm(protein_ids_list):
             tukey_df_list.append(
-                self.calculate_tukey(df=df, protein_id=protein_id, group=group)
+                self.tukey_test(df=df, protein_id=protein_id, group=group)
             )
         # combine all tukey test results
         tukey_df = pd.concat(tukey_df_list)
