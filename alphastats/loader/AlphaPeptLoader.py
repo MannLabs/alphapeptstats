@@ -1,4 +1,3 @@
-from operator import index
 from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np

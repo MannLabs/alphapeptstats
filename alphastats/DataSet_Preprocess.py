@@ -5,7 +5,6 @@ import logging
 import numpy as np
 import sklearn.ensemble
 import sklearn.impute
-from sklearn.experimental import enable_iterative_imputer
 from alphastats.utils import ignore_warning
 
 
