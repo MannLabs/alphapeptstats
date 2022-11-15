@@ -1,6 +1,3 @@
-import os
-
-from zmq import EVENT_HANDSHAKE_FAILED_NO_DETAIL
 import plotly.express as px
 import requests
 import pandas as pd

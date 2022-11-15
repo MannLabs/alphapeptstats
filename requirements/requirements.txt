@@ -1,15 +1,15 @@
 pandas>=1.4.2
 sklearn
-data_cache
+data_cache>=0.1.6
 plotly>=5.7.0
 iteration_utilities
-openpyxl
+openpyxl>=3.0.10
 sklearn_pandas>=2.2.0
 pingouin>=0.5.2
 scipy>=1.8.1
-tqdm
-diffxpy
-anndata
+tqdm>=4.64.0
+diffxpy>=0.7.4
+anndata>=0.8.0
 umap-learn>=0.5.3
 streamlit>=1.12.2
 

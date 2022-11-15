@@ -65,10 +65,10 @@ More details on how to save plotly figures you can find `here <https://plotly.co
 Statistical Analysis
 ----------------------
 
-* Perform Differential Expression Analysis a Wald test or t-test `diffxpy <https://github.com/theislab/diffxpy>`_.  :py:meth:`~alphastats.DataSet_Statistics.Statistics.perform_diff_expression_analysis`
+* Perform Differential Expression Analysis a Wald test or t-test `diffxpy <https://github.com/theislab/diffxpy>`_.  :py:meth:`~alphastats.DataSet_Statistics.Statistics.diff_expression_analysis`
 * ANOVA  :py:meth:`~alphastats.DataSet_Statistics.Statistics.anova`
 * ANCOVA  :py:meth:`~alphastats.DataSet_Statistics.Statistics.ancova`
-* Tukey - test :py:meth:`~alphastats.DataSet_Statistics.Statistics.calculate_tukey`
+* Tukey - test :py:meth:`~alphastats.DataSet_Statistics.Statistics.tukey_test`
 
 
 

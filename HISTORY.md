@@ -18,3 +18,7 @@
 
 ## 0.2.0
 * Gene Ontology Enrichment Analysis using a GO tool
+
+## 0.2.1
+* fix requirements
+* function renaming perform_diff_expr_analysis > perform_diff_expr_analysis, calculate_tukey -> tukey_test

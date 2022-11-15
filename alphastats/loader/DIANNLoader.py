@@ -1,4 +1,3 @@
-from inspect import getfile
 from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 

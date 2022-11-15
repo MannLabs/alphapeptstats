@@ -440,7 +440,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(subset=True)
         self.assertEqual(self.obj.mat.shape, (48, 1364))
 
-    @patch.object(Statistics, "calculate_tukey")
+    @patch.object(Statistics, "tukey_test")
     def test_anova_without_tukey(self, mock):
         anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
@@ -481,9 +481,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         results = self.obj.anova(column="disease", protein_ids=protein_id, tukey=True)
         self.assertEqual(results.shape[1], 10)
 
-    def test_calculate_tukey(self):
+    def test_tukey_test(self):
         protein_id = "K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1"
-        tukey_df = self.obj.calculate_tukey(
+        tukey_df = self.obj.tukey_test(
             protein_id=protein_id, group="disease", df=None
         )
         self.assertEqual(tukey_df["p-tukey"][0], 0.674989009816342)
@@ -551,21 +551,21 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             groups = list(set(self.obj.metadata[self.comparison_column].to_list()))
             group1, group2 = groups[0], groups[1]
 
-            self.obj.perform_diff_expression_analysis(
+            self.obj.diff_expression_analysis(
                 column=self.comparison_column,
                 group1=group1,
                 group2=group2,
                 method="wrong_method",
             )  # check if dataframe gets created
 
-    def test_perform_diff_expression_analysis_nocolumn(self):
+    def test_diff_expression_analysis_nocolumn(self):
         with self.assertRaises(ValueError):
-            self.obj.perform_diff_expression_analysis(
+            self.obj.diff_expression_analysis(
                 group1="healthy", group2="liver cirrhosis"
             )
 
-    def test_perform_diff_expression_analysis_list(self):
-        self.obj.perform_diff_expression_analysis(
+    def test_diff_expression_analysis_list(self):
+        self.obj.diff_expression_analysis(
             group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
             group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
 
@@ -726,7 +726,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 method="wrongmethod",
             )
 
-    # def test_perform_diff_expression_analysis_with_list(self):
+    # def test_diff_expression_analysis_with_list(self):
     #     self.obj.preprocess(imputation="knn")
     #     column="grouping1"
     #     group1="Healthy"
@@ -737,7 +737,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     #     group2_samples = self.obj.metadata[self.obj.metadata[column] == group2][
     #             "sample"
     #         ].tolist()
-    #     self.obj.perform_diff_expression_analysis(
+    #     self.obj.diff_expression_analysis(
     #         group1=group1_samples,
     #         group2=group2_samples)
 
