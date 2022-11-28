@@ -22,6 +22,7 @@ The tool allows a structured workflow like importing data, preprocessing data an
    installation.md
    import_data.md
    data_preprocessing.md
+   go_analysis.md
    functions.rst
    workflow_example.rst
    API <api_reference/index>
