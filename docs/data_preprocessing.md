@@ -1,7 +1,7 @@
 # Data preprocessing
 
 Preprocessing of the data is substantial for the results of the downstream analysis.
-Data preprocessing available in AlphaStats compromises: the removal of contaminants, normalization, imputation and subsetting and removal of samples.
+Data preprocessing available in AlphaStats covers: the removal of contaminants, normalization, imputation and subsetting and removal of samples.
 
 ```python
 DataSet.preprocess(
