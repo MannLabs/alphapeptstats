@@ -9,20 +9,15 @@ jobs:
       with:
         python-version: '3.8'
         architecture: 'x64'
-    - name: Install the library
+    - name: Install dependencies
       run: |
-        pip install -U setuptools
-        pip install -U wheel
-        pip install nbdev jupyter
-    - name: Install requirements
+        python -m pip install --upgrade pip
+        pip install coverage
+    - name: Build package
       run: |
-        pip install -r requirements/requirements.txt
-    - name: Install package
-      run: |
-        pip install -e .
+        pip wheel .
     - name: Run tests
       run: |
-        pip install coverage
         coverage run -m unittest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2
