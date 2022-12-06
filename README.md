@@ -1,8 +1,5 @@
 [![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/70535771/193259270-27af8f13-bfea-4e8e-9563-0af2046e1860.png" />
-</p>
 
 <p align="center">
   <img src="https://github.com/MannLabs/alphapeptstats/blob/renaming/alphastats/gui/alphapeptstats_logo.png?raw=true" />
