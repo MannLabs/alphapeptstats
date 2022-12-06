@@ -19,7 +19,7 @@ def preprocessing():
         )
 
         normalization = st.selectbox(
-            "Normalization", options=[None, "zscore", "quantile", "linear"]
+            "Normalization", options=[None, "zscore", "quantile", "vst", "linear"]
         )
 
         imputation = st.selectbox(

@@ -1,13 +1,14 @@
 [![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
 
+
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/70535771/193259270-27af8f13-bfea-4e8e-9563-0af2046e1860.png" />
+  <img src="https://github.com/MannLabs/alphapeptstats/blob/renaming/alphastats/gui/alphapeptstats_logo.png?raw=true" />
 </p>
 
 
-An open-source Python package of the AlphaStats ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
+An open-source Python package of the AlphaPept ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
-The full documentation can be found [here](https://mannlabs.github.io/alphastats/).
+The full documentation can be found [here](https://mannlabs.github.io/alphapeptstats/).
 
 * [**About**](#about)
 * [**Installation**](#installation)
@@ -49,8 +50,8 @@ A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API
 
 In case of issues, check out the following:
 
-* [Issues](https://github.com/MannLabs/alphastats/issues): Try a few different search terms to find out if a similar problem has been encountered before
-* [Discussions](https://github.com/MannLabs/alphastats/discussions): Check if your problem or feature requests has been discussed before.
+* [Issues](https://github.com/MannLabs/alphapeptstats/issues): Try a few different search terms to find out if a similar problem has been encountered before
+* [Discussions](https://github.com/MannLabs/alphapeptstats/discussions): Check if your problem or feature requests has been discussed before.
 
 ---
 ## License
@@ -60,7 +61,7 @@ AlphaStats was developed by the [Mann Group at the University of Copenhagen](htt
 ---
 ## How to contribute
 
-If you like this software, you can give us a [star](https://github.com/MannLabs/alphastats/stargazers) to boost our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphastats/issues) or clone the repository and create a [pull request](https://github.com/MannLabs/alphastats/pulls) with a new branch. For an even more interactive participation, check out the [discussions](https://github.com/MannLabs/alphastats/discussions) and the [the Contributors License Agreement](misc/CLA.md).
+If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues) or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the [the Contributors License Agreement](misc/CLA.md).
 
 ---
 ## Changelog

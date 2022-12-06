@@ -16,31 +16,13 @@ img {
 """
 
 header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes("alphastats_logo.png")
+    img_to_bytes("alphapeptstats_logo.png")
 )
 
 st.markdown(
     header_html, unsafe_allow_html=True,
 )
 
-
-# styl = f"""
-#     <style>
-#         .css-79elbk {{
-#         background-image: url("alphastats_logo.png");
-#         min-height: 100%;
-#         position: absolute;
-#         }}
-#         .e1fqkh3o8 {{
-#         background-image: url("alphastats_logo.png");
-#         min-height: 100%;
-#         position: absolute;
-#         }}
-
-#     </style>
-
-#     """
-# st.markdown(styl , unsafe_allow_html=True)
 
 st.markdown(
     """\n\n
@@ -49,10 +31,10 @@ from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/rese
 
 ### How to contribute
 
-If you like this software, you can give us a [star](https://github.com/MannLabs/alphastats/stargazers) to boost 
-our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphastats/issues) 
-or clone the repository and create a [pull request](https://github.com/MannLabs/alphastats/pulls) with a new branch. For an even more 
-interactive participation, check out the [discussions](https://github.com/MannLabs/alphastats/discussions) and the 
+If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost 
+our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues) 
+or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more 
+interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the 
 [the Contributors License Agreement](misc/CLA.md).
 """
 )

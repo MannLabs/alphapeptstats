@@ -70,11 +70,11 @@ plotting_options = {
 statistic_options = {
     "Differential Expression Analysis - T-test": {
         "between_two_groups": True,
-        "function": st.session_state.dataset.perform_diff_expression_analysis,
+        "function": st.session_state.dataset.diff_expression_analysis,
     },
     "Differential Expression Analysis - Wald-test": {
         "between_two_groups": True,
-        "function": st.session_state.dataset.perform_diff_expression_analysis,
+        "function": st.session_state.dataset.diff_expression_analysis,
     },
     "Tukey - Test": {
         "settings": {
@@ -87,7 +87,7 @@ statistic_options = {
                 "label": "A metadata variable to calculate pairwise tukey",
             },
         },
-        "function": st.session_state.dataset.calculate_tukey,
+        "function": st.session_state.dataset.tukey_test,
     },
     "ANOVA": {
         "settings": {

@@ -22,3 +22,7 @@
 ## 0.2.1
 * fix requirements
 * function renaming perform_diff_expr_analysis > perform_diff_expr_analysis, calculate_tukey -> tukey_test
+
+## 0.2.2
+* rename AlphaStats to AlphaPeptStats
+* GUI bug fix

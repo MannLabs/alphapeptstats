@@ -1,10 +1,10 @@
 __project__ = "alphastats"
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __license__ = "Apache"
 __description__ = "An open-source Python package for Mass Spectrometry Analysis"
 __author__ = "Mann Labs"
 __author_email__ = "elena.krismer@hotmail.com"
-__github__ = "https://github.com/MannLabs/alphastats"
+__github__ = "https://github.com/MannLabs/alphapeptstats"
 __keywords__ = [
     "bioinformatics",
     "software",
@@ -28,7 +28,7 @@ __classifiers__ = [
 __urls__ = {
     "Mann Labs at MPIB": "https://www.biochem.mpg.de/mann",
     "GitHub": __github__,
-    "ReadTheDocs": "https://mannlabs.github.io/alphastats/",
+    "ReadTheDocs": "https://mannlabs.github.io/alphapeptstats/",
     "PyPi": "https://pypi.org/project/alphastats/"
     # "Scientific paper": None,
 }

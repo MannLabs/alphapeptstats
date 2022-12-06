@@ -5,6 +5,19 @@ import streamlit as st
 from datetime import datetime
 
 
+
+
+def check_if_options_are_loaded(f):
+    # decorator to check for missing values
+    def inner(*args, **kwargs):
+        if hasattr(st.session_state, "plotting_options") is False:
+            load_options()
+            
+        return f(*args, **kwargs)
+
+    return inner
+
+
 def read_uploaded_file_into_df(file):
     filename = file.name
 
@@ -174,7 +187,31 @@ def helper_compare_two_groups(method, options_dict):
         analysis_method = st.selectbox(
             "Differential Analysis using:", options=["anova", "wald", "ttest"],
         )
-        chosen_parameter_dict.update({"method": analysis_method})
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            labels = st.checkbox("Add label")
+        
+        with col2:
+            draw_line = st.checkbox("Draw line")
+        
+        col3, col4 = st.columns(2)
+        
+        with col3:
+            alpha =  st.number_input(label ="alpha", min_value =0.001, max_value=0.050, value=0.050 )
+
+        with col4:
+            min_fc =  st.select_slider("Foldchange cutoff", range(0, 3), value=1)
+
+        chosen_parameter_dict = {
+            "method": analysis_method,
+            "labels": labels,
+            "draw_line": draw_line,
+            "alpha": alpha,
+            "min_fc": min_fc
+        }
+
 
     elif method == "Differential Expression Analysis - T-test":
         chosen_parameter_dict.update({"method": "ttest"})
@@ -237,3 +274,11 @@ def get_tsne_options(method_dict):
     if submitted:
         with st.spinner("Calculating..."):
             return method_dict["function"](**chosen_parameter_dict)
+
+
+def load_options():
+    
+    from alphastats.gui.utils.options import plotting_options, statistic_options
+
+    st.session_state["plotting_options"] = plotting_options
+    st.session_state["statistic_options"] = statistic_options
