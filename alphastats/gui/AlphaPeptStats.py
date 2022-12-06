@@ -16,7 +16,7 @@ img {
 """
 
 header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes("alphastats_logo.png")
+    img_to_bytes("alphapeptstats_logo.png")
 )
 
 st.markdown(
