@@ -4,13 +4,23 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import sidebar_info
-from alphastats.gui.utils.analysis_helper import (
-    read_uploaded_file_into_df,
-    check_software_file,
-    get_sample_names_from_software_file,
-)
+from alphastats.gui.utils.analysis_helper import * # (
+#    read_uploaded_file_into_df,
+#    check_software_file,
+#    get_sample_names_from_software_file,
+#    load_options,
+#)
 from alphastats.gui.utils.software_options import software_options
 import pandas as pd
+
+
+
+def load_options():
+    
+    from alphastats.gui.utils.options import plotting_options, statistic_options
+
+    st.session_state["plotting_options"] = plotting_options
+    st.session_state["statistic_options"] = statistic_options
 
 
 def print_software_import_info():
@@ -137,10 +147,7 @@ def upload_metadatafile():
             )
             st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
 
-            from alphastats.gui.utils.options import plotting_options, statistic_options
-
-            st.session_state["plotting_options"] = plotting_options
-            st.session_state["statistic_options"] = statistic_options
+            load_options()
 
             display_loaded_dataset()
 
@@ -148,10 +155,7 @@ def upload_metadatafile():
         st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
         st.session_state["metadata_columns"] = ["sample"]
 
-        from alphastats.gui.utils.options import plotting_options, statistic_options
-
-        st.session_state["plotting_options"] = plotting_options
-        st.session_state["statistic_options"] = statistic_options
+        load_options()
 
         display_loaded_dataset()
 
@@ -174,11 +178,7 @@ def load_sample_data():
     st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
     st.session_state["dataset"] = ds
 
-    from alphastats.gui.utils.options import plotting_options, statistic_options
-
-    st.session_state["plotting_options"] = plotting_options
-    st.session_state["statistic_options"] = statistic_options
-
+    load_options()
 
 def import_data():
 

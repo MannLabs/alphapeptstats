@@ -1,7 +1,17 @@
 import streamlit as st
-from alphastats.gui.utils.analysis_helper import get_analysis
+from alphastats.gui.utils.analysis_helper import get_analysis, load_options #, check_if_options_are_loaded
 from alphastats.gui.utils.ui_helper import sidebar_info
+import alphastats.gui.utils.analysis_helper
 
+def check_if_options_are_loaded(f):
+    # decorator to check for missing values
+    def inner(*args, **kwargs):
+        if hasattr(st.session_state, "plotting_options") is False:
+            alphastats.gui.utils.analysis_helper.load_options()
+            
+        return f(*args, **kwargs)
+
+    return inner
 
 def display_plotly_figure(plot):
     try:
@@ -14,6 +24,7 @@ def save_plot_to_session_state(plot, method):
     st.session_state["plot_list"] += [(method, plot)]
 
 
+@check_if_options_are_loaded
 def make_plot():
     method = st.selectbox(
         "Plot",
