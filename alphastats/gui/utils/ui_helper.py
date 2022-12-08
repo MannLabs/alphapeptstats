@@ -31,7 +31,8 @@ def sidebar_logo():
 def sidebar_info(show_logo=True):
     display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
-    st.sidebar.info("[AlphaStats on GitHub](https://github.com/MannLabs/alphastats)")
+    st.sidebar.info("[AlphaPeptStats on GitHub](https://github.com/MannLabs/alphapeptstats)")
+    st.sidebar.info("[Documentation](https://alphapeptstats.readthedocs.io/en/latest/index.html)")
     st.sidebar.markdown(
         """ <head><style type ='text/css' > 
     .footer{ position: fixed;     
