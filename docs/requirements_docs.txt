@@ -85,7 +85,7 @@ sklearn_pandas==2.2.0
 smmap==5.0.0 
 sparse==0.13.0 
 sphinx-argparse==0.3.2 
-sphinx-autodoc-typehints==1.19.4 
+sphinx-autodoc-typehints==1.19.5 
 statsmodels==0.13.2 
 streamlit==1.13.0 
 tables==3.7.0 
