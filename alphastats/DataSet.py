@@ -28,7 +28,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         """Create DataSet
 
         Args:
-            loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
+            loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader
             metadata_path (str, optional): path to metadata file. Defaults to None.
             sample_column (str, optional): column in metadata file indicating the sample IDs. Defaults to None.
 
