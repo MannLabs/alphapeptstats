@@ -25,3 +25,10 @@ MaxQuantLoader
 .. automodule:: alphastats.loader.MaxQuantLoader
     :members:
     :undoc-members:
+
+
+SpectronautLoader
+~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: alphastats.loader.SpectronautLoader
+    :members:
+    :undoc-members:

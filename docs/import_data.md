@@ -1,6 +1,6 @@
 # Data import
 
-Currently, AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe and MaxQuant. As the output of these software differs significantly data needs to be loaded in customized loaders.
+Currently, AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe, MaxQuant and Spectronaut. As the output of these software differs significantly data needs to be loaded in customized loaders.
 
 
 
@@ -62,6 +62,24 @@ Find more details about the file format [here](https://fragpipe.nesvilab.org/doc
 ```python
 import alphastats 
 fragpipe_data = alphastats.FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
+```
+
+### Spectronaut
+
+Find more details about the file format [here](https://biognosys.com/content/uploads/2022/12/Spectronaut17_UserManual.pdf).
+
+```python
+import alphastats
+spectronaut_data = alphastats.FragPipeLoader(file="testfiles/spectronaut/results.tsv")
+```
+As default alphastats will use "PG.ProteinGroups" and "PG.Quantity" for the analysis. For an ananlysis on a peptide level the "F.PeakArea" and the peptide sequences ("PEP.StrippedSequence") can be used.
+
+```python
+spectronaut_data = alphastats.FragPipeLoader(
+    file="testfiles/spectronaut/results.tsv",
+    intensity_column = "F.PeakArea",
+    index_column = "PEP.StrippedSequence"
+    )
 ```
 
 ## Preparing metadata
