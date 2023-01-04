@@ -13,7 +13,9 @@ import numpy as np
 import pandas as pd
 import plotly
 from contextlib import contextmanager
-
+import shutil
+import os
+import copy
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
 from alphastats.loader.BaseLoader import BaseLoader
@@ -21,6 +23,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.SpectronautLoader import SpectronautLoader
 from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
@@ -758,6 +761,38 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
         self.matrix_dim = (20, 6)
         self.matrix_dim_filtered = (20, 6)
         self.comparison_column = "grouping1"
+
+
+class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        
+        if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
+            shutil.unpack_archive("testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/")
+        
+        cls.cls_loader = SpectronautLoader(file="testfiles/spectronaut/results.tsv", filter_qvalue=False)
+        cls.cls_metadata_path = "testfiles/spectronaut/metadata.xlsx"
+        cls.cls_obj = DataSet(
+            loader=cls.cls_loader,
+            metadata_path=cls.cls_metadata_path,
+            sample_column="sample"
+        )
+
+    def setUp(self):
+        self.loader = copy.deepcopy(self.cls_loader)
+        self.metadata_path = copy.deepcopy(self.cls_metadata_path)
+        self.obj = copy.deepcopy(self.cls_obj)
+        self.matrix_dim = (9,2453)
+        self.matrix_dim_filtered = (9, 2453)
+        self.comparison_column = "condition"
+    
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.isdir("testfiles/spectronaut/__MACOSX"):
+            shutil.rmtree("testfiles/spectronaut/__MACOSX")
+
+        os.remove("testfiles/spectronaut/results.tsv")
+
 
 
 if __name__ == "__main__":
