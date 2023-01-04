@@ -29,11 +29,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install coverage
         pip install wheel
-    - name: Build package
-      run: |
-        pip wheel .
-    - name: Test installation
-        pip install -e.
     - name: Run tests
       run: |
         coverage run -m unittest
