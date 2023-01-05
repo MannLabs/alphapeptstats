@@ -206,7 +206,7 @@ class Plot:
             group=group, method="pca", circle=circle
         )
 
-    def plot_tsne(self, group=None, circle=False, perplexity=30, n_iter=1000):
+    def plot_tsne(self, group=None, circle=False, perplexity=5, n_iter=1000):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)
 
         Args:

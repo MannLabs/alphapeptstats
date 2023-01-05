@@ -782,7 +782,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
         self.loader = copy.deepcopy(self.cls_loader)
         self.metadata_path = copy.deepcopy(self.cls_metadata_path)
         self.obj = copy.deepcopy(self.cls_obj)
-        self.matrix_dim = (9,2453)
+        self.matrix_dim = (9,2458)
         self.matrix_dim_filtered = (9, 2453)
         self.comparison_column = "condition"
     
