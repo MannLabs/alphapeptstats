@@ -26,3 +26,6 @@
 ## 0.2.2
 * rename AlphaStats to AlphaPeptStats
 * GUI bug fix
+
+## 0.3.0
+* Spectronaut support

@@ -2,6 +2,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
+from alphastats.loader.SpectronautLoader import SpectronautLoader
 
 software_options = {
     "MaxQuant": {
@@ -27,5 +28,11 @@ software_options = {
         "intensity_column": ["[sample] MaxLFQ Intensity "],
         "index_column": ["Protein"],
         "loader_function": FragPipeLoader,
+    },
+    "Spectronaut": {
+        "import_file": "spectronaut.tsv",
+        "intensity_column": ["PG.Quantity", "F.PeakArea", "PG.Log2Quantity"],
+        "index_column": ["PG.ProteinGroups", "PEP.StrippedSequence"],
+        "loader_function": SpectronautLoader,
     },
 }
