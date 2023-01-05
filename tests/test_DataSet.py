@@ -526,6 +526,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertTrue(column_added)   
 
     def test_plot_clustermap_significant(self):
+        import sys
+        sys.setrecursionlimit(100000)
         self.obj.preprocess(imputation="knn")
         plot = self.obj.plot_clustermap(
             label_bar=self.comparison_column,
