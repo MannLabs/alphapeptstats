@@ -12,7 +12,8 @@ import seaborn as sns
 import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
-from umap import UMAP
+import umap.umap_ as umap
+#import umap
 import plotly.figure_factory 
 
 # make own alphastats theme
@@ -149,7 +150,7 @@ class Plot:
             }
 
         elif method == "umap":
-            umap_2d = UMAP(n_components=2, init="random", random_state=0)
+            umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
             components = umap_2d.fit_transform(mat)
             labels = {
                 "0": "",
