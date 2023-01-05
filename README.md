@@ -8,7 +8,7 @@
 
 An open-source Python package of the AlphaPept ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
-The full documentation can be found [here](https://mannlabs.github.io/alphapeptstats/).
+The full documentation can be found [here](https://alphapeptstats.readthedocs.io/en/latest/).
 
 * [**About**](#about)
 * [**Installation**](#installation)

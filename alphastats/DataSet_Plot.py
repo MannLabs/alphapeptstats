@@ -12,7 +12,8 @@ import seaborn as sns
 import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
-from umap import UMAP
+import umap.umap_ as umap
+#import umap
 import plotly.figure_factory 
 
 # make own alphastats theme
@@ -149,7 +150,7 @@ class Plot:
             }
 
         elif method == "umap":
-            umap_2d = UMAP(n_components=2, init="random", random_state=0)
+            umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
             components = umap_2d.fit_transform(mat)
             labels = {
                 "0": "",
@@ -206,7 +207,7 @@ class Plot:
             group=group, method="pca", circle=circle
         )
 
-    def plot_tsne(self, group=None, circle=False, perplexity=30, n_iter=1000):
+    def plot_tsne(self, group=None, circle=False, perplexity=5, n_iter=1000):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)
 
         Args:
