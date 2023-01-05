@@ -37,9 +37,3 @@ jobs:
         coverage run -m unittest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2
-Footer
-© 2023 GitHub, Inc.
-Footer navigation
-Terms
-Privacy
-Security
