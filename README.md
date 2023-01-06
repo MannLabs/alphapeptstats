@@ -46,6 +46,10 @@ AlphaStats can be imported as a Python package into any Python script or noteboo
 A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
 ---
+
+## GUI
+
+
 ## Troubleshooting
 
 In case of issues, check out the following:
