@@ -2,7 +2,7 @@
 
 
 <p align="center">
-  <img src="https://github.com/MannLabs/alphapeptstats/blob/renaming/alphastats/gui/alphapeptstats_logo.png?raw=true" />
+  <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/gui/alphapeptstats_logo.png?raw=true" />
 </p>
 
 
@@ -46,6 +46,13 @@ AlphaStats can be imported as a Python package into any Python script or noteboo
 A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
 ---
+
+## GUI
+![Screenshot 2023-01-05 at 17 15 46](https://user-images.githubusercontent.com/70535771/210976707-f6b8daa8-f6e9-4177-a01f-c18df37c4bec.png)
+
+![Screenshot 2023-01-05 at 17 23 51](https://user-images.githubusercontent.com/70535771/210976730-af59c3bf-d092-4cc1-8de8-212fce9e6faa.png)
+
+
 ## Troubleshooting
 
 In case of issues, check out the following:

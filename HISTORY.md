@@ -26,3 +26,8 @@
 ## 0.2.2
 * rename AlphaStats to AlphaPeptStats
 * GUI bug fix
+
+## 0.2.3
+* fix umap import
+* version report in GUI
+* Bug fix GUI
