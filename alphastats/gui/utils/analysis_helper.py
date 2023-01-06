@@ -204,13 +204,13 @@ def helper_compare_two_groups(method, options_dict):
         with col4:
             min_fc =  st.select_slider("Foldchange cutoff", range(0, 3), value=1)
 
-        chosen_parameter_dict = {
+        chosen_parameter_dict.update( {
             "method": analysis_method,
             "labels": labels,
             "draw_line": draw_line,
             "alpha": alpha,
             "min_fc": min_fc
-        }
+        })
 
 
     elif method == "Differential Expression Analysis - T-test":
