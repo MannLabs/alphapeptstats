@@ -1,5 +1,10 @@
+[![PyPI version](https://badge.fury.io/py/alphastats.svg)](https://badge.fury.io/py/alphastats)
+
 [![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
 
+[![Downloads](https://static.pepy.tech/badge/alphastats)](https://pepy.tech/project/alphastats)
+[![Downloads](https://static.pepy.tech/badge/alphastats/week)](https://pepy.tech/project/alphastats)
+[![Python package](https://github.com/MannLabs/alphapeptstats/actions/workflows/python-package.yml/badge.svg)](https://github.com/MannLabs/alphapeptstats/actions/workflows/python-package.yml)
 
 <p align="center">
   <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/gui/alphapeptstats_logo.png?raw=true" />
