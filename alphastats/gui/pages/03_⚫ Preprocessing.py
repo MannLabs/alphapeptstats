@@ -1,9 +1,13 @@
 import streamlit as st
 import pandas as pd
 from alphastats.gui.utils.ui_helper import sidebar_info
+import datetime
 
 
 def preprocessing():
+
+    st.markdown("Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. " +
+    "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats [documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html).")
 
     with st.form("preprocessing"):
         dataset = st.session_state["dataset"]
@@ -36,8 +40,8 @@ def preprocessing():
             imputation=imputation,
         )
         preprocessing = st.session_state.dataset.preprocessing_info
-        st.info("Data has been processed.")
-        st.write(pd.DataFrame.from_dict(preprocessing, orient="index").astype(str))
+        st.info("Data has been processed. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S") )
+        st.dataframe(pd.DataFrame.from_dict(preprocessing, orient="index").astype(str), use_container_width=True)
 
 
 def main_preprocessing():

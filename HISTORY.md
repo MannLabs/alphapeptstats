@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.2.4
+* added kaleido dependency
 
 ## 0.2.3
 * fix umap import
