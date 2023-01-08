@@ -9,15 +9,19 @@
   <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/gui/alphapeptstats_logo.png?raw=true" />
 </p>
 
+
+<div align = center>
 <br>
 <br>
 
-[<kbd> <br> Documentation <br> </kbd>][https://alphapeptstats.readthedocs.io/en/main/]
+[<kbd> <br> Documentation <br> </kbd>][link]
+
 </div>
 
 <br>
 <br>
 
+[link]:https://alphapeptstats.readthedocs.io/en/main/
 
 An open-source Python package of the AlphaPept ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
