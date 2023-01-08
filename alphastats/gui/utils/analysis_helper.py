@@ -94,20 +94,25 @@ def get_analysis_options_from_dict(method, options_dict):
     method_dict = options_dict.get(method)
 
     if method == "t-SNE":
-        get_tsne_options(method_dict)
+        get_tsne_options(method=method, options_dict=options_dict)
+    
+    if method == "Differential Expression Analysis - T-test":
+        st_plot_volcano(method=method, options_dict=options_dict)
+    
+    if method == "Differential Expression Analysis - Wald-test":
+        st_calculate_waldtest(method=method, options_dict=options_dict)
+
+    if method == "Volcano":
+        st_calculate_ttest(method=method, options_dict=options_dict)
 
     if "settings" not in method_dict.keys():
 
-        if "between_two_groups" in method_dict.keys():
-            return helper_compare_two_groups(method=method, options_dict=options_dict)
-
-        else:
-            if st.session_state.dataset.mat.isna().values.any() == True:
-                st.error(
+        if st.session_state.dataset.mat.isna().values.any() == True:
+            st.error(
                     "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
-                )
-                return
-            return method_dict["function"]()
+            )
+            return
+
 
     settings_dict = method_dict.get("settings")
     chosen_parameter_dict = {}
@@ -132,7 +137,67 @@ def get_analysis_options_from_dict(method, options_dict):
             return method_dict["function"](**chosen_parameter_dict)
 
 
-def helper_compare_two_groups(method, options_dict):
+def st_plot_volcano(method, options_dict):
+    chosen_parameter_dict = helper_compare_two_groups()
+    analysis_method = st.selectbox(
+            "Differential Analysis using:", options=["ttest","anova", "wald"],
+        )
+        
+    col1, col2 = st.columns(2)
+        
+    with col1:
+        labels = st.checkbox("Add label")
+        
+    with col2:
+        draw_line = st.checkbox("Draw line")
+        
+    col3, col4 = st.columns(2)
+        
+    with col3:
+        alpha =  st.number_input(label ="alpha", min_value =0.001, max_value=0.050, value=0.050 )
+
+    with col4:
+        min_fc =  st.select_slider("Foldchange cutoff", range(0, 3), value=1)
+
+    chosen_parameter_dict.update( {
+            "method": analysis_method,
+            "labels": labels,
+            "draw_line": draw_line,
+            "alpha": alpha,
+            "min_fc": min_fc
+        })
+
+    submitted = st.button("Submit")
+
+    if submitted:
+        with st.spinner("Calculating..."):
+            return options_dict.get(method)["function"](**chosen_parameter_dict)
+
+
+def st_calculate_ttest(method, options_dict):
+    chosen_parameter_dict = helper_compare_two_groups()
+    chosen_parameter_dict.update({"method": "ttest"})
+
+    submitted = st.button("Submit")
+
+    if submitted:
+        with st.spinner("Calculating..."):
+            return options_dict.get(method)["function"](**chosen_parameter_dict)
+
+
+def st_calculate_waldtest(method, options_dict):
+    chosen_parameter_dict = helper_compare_two_groups()
+    chosen_parameter_dict.update({"method": "wald"})
+
+    submitted = st.button("Submit")
+
+    if submitted:
+        with st.spinner("Calculating..."):
+            return options_dict.get(method)["function"](**chosen_parameter_dict)
+
+
+
+def helper_compare_two_groups():
     """
     Helper function to compare two groups for example
     Volcano Plot, Differetial Expression Analysis and t-test
@@ -182,48 +247,9 @@ def helper_compare_two_groups(method, options_dict):
             )
 
         chosen_parameter_dict.update({"group1": group1, "group2": group2})
+    
+    return chosen_parameter_dict
 
-    if method == "Volcano":
-        analysis_method = st.selectbox(
-            "Differential Analysis using:", options=["anova", "wald", "ttest"],
-        )
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            labels = st.checkbox("Add label")
-        
-        with col2:
-            draw_line = st.checkbox("Draw line")
-        
-        col3, col4 = st.columns(2)
-        
-        with col3:
-            alpha =  st.number_input(label ="alpha", min_value =0.001, max_value=0.050, value=0.050 )
-
-        with col4:
-            min_fc =  st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-
-        chosen_parameter_dict.update( {
-            "method": analysis_method,
-            "labels": labels,
-            "draw_line": draw_line,
-            "alpha": alpha,
-            "min_fc": min_fc
-        })
-
-
-    elif method == "Differential Expression Analysis - T-test":
-        chosen_parameter_dict.update({"method": "ttest"})
-
-    elif method == "Differential Expression Analysis - Wald-test":
-        chosen_parameter_dict.update({"method": "wald"})
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return options_dict.get(method)["function"](**chosen_parameter_dict)
 
 
 def get_sample_names_from_software_file():
