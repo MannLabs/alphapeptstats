@@ -44,7 +44,7 @@ mdurl==0.1.2
 mistune==2.0.4
 myst_parser==0.18.1
 natsort==8.2.0 
-nbclient==0.7.0 
+nbclient==0.7.2 
 nbconvert==7.2.2 
 nbformat==5.7.0 
 nbsphinx==0.8.9 
