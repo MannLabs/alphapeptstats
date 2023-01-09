@@ -94,18 +94,24 @@ def get_analysis_options_from_dict(method, options_dict):
     method_dict = options_dict.get(method)
 
     if method == "t-SNE":
-        get_tsne_options(method=method, options_dict=options_dict)
+        get_tsne_options(method_dict)
     
-    if method == "Differential Expression Analysis - T-test":
-        st_plot_volcano(method=method, options_dict=options_dict)
+    elif method == "Differential Expression Analysis - T-test":
+        st_calculate_ttest(method=method, options_dict=options_dict)
     
-    if method == "Differential Expression Analysis - Wald-test":
+    elif method == "Differential Expression Analysis - Wald-test":
         st_calculate_waldtest(method=method, options_dict=options_dict)
 
-    if method == "Volcano":
-        st_calculate_ttest(method=method, options_dict=options_dict)
+    elif method == "Volcano":
+        st_plot_volcano(method=method, options_dict=options_dict)
 
-    if "settings" not in method_dict.keys():
+    elif method == "PCA":
+        st_plot_pca(method_dict)
+    
+    elif method == "UMAP":
+        st_plot_umap(method_dict)
+
+    elif "settings" not in method_dict.keys():
 
         if st.session_state.dataset.mat.isna().values.any() == True:
             st.error(
@@ -113,29 +119,47 @@ def get_analysis_options_from_dict(method, options_dict):
             )
             return
 
+    else:
+        settings_dict = method_dict.get("settings")
+        chosen_parameter_dict = {}
 
-    settings_dict = method_dict.get("settings")
-    chosen_parameter_dict = {}
+        for parameter in settings_dict:
 
-    for parameter in settings_dict:
+            parameter_dict = settings_dict[parameter]
 
-        parameter_dict = settings_dict[parameter]
+            if "options" in parameter_dict.keys():
+                chosen_parameter = st.selectbox(
+                    parameter_dict.get("label"), options=parameter_dict.get("options")
+                )
+            else:
+                chosen_parameter = st.checkbox(parameter_dict.get("label"))
 
-        if "options" in parameter_dict.keys():
-            chosen_parameter = st.selectbox(
-                parameter_dict.get("label"), options=parameter_dict.get("options")
-            )
-        else:
-            chosen_parameter = st.checkbox(parameter_dict.get("label"))
+            chosen_parameter_dict[parameter] = chosen_parameter
 
-        chosen_parameter_dict[parameter] = chosen_parameter
+        submitted = st.button("Submit")
 
+        if submitted:
+            with st.spinner("Calculating..."):
+                return method_dict["function"](**chosen_parameter_dict)
+
+def st_plot_pca(method_dict):
+    chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict)
+    
     submitted = st.button("Submit")
 
     if submitted:
         with st.spinner("Calculating..."):
             return method_dict["function"](**chosen_parameter_dict)
 
+
+def st_plot_umap(method_dict):
+    chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict) 
+
+    submitted = st.button("Submit")
+
+    if submitted:
+        with st.spinner("Calculating..."):
+            return method_dict["function"](**chosen_parameter_dict)  
 
 def st_plot_volcano(method, options_dict):
     chosen_parameter_dict = helper_compare_two_groups()
@@ -196,6 +220,24 @@ def st_calculate_waldtest(method, options_dict):
             return options_dict.get(method)["function"](**chosen_parameter_dict)
 
 
+def helper_plot_dimensionality_reduction(method_dict):
+    group = st.selectbox(
+        method_dict["settings"]["group"].get("label"),
+        options=method_dict["settings"]["group"].get("options")
+    )
+    
+    circle = False
+
+    if group is not None:
+
+        circle = st.checkbox("circle")
+    
+    chosen_parameter_dict = {
+        "circle": circle,
+        "group": group,
+    }
+    return chosen_parameter_dict
+
 
 def helper_compare_two_groups():
     """
@@ -222,11 +264,14 @@ def helper_compare_two_groups():
 
         with col2:
 
-            group2 = st.selectbox("Group 2", options=unique_values)
+            group2 = st.selectbox("Group 2", options= list(reversed(unique_values)))
 
         chosen_parameter_dict.update(
             {"column": group, "group1": group1, "group2": group2}
         )
+
+        if group1 == group2:
+            st.error("Group 1 and Group 2 can not be the same please select different group.")
 
     else:
 
@@ -243,8 +288,13 @@ def helper_compare_two_groups():
 
             group2 = st.multiselect(
                 "Group 2 samples:",
-                options=st.session_state.dataset.metadata["sample"].to_list(),
+                options= list(reversed(st.session_state.dataset.metadata["sample"].to_list())),
             )
+
+        intersection_list = list(set(group1).intersection(set(group2)))
+        
+        if len(intersection_list) > 0:
+            st.warning("Group 1 and Group 2 contain same samples: " + str(intersection_list))
 
         chosen_parameter_dict.update({"group1": group1, "group2": group2})
     
@@ -274,14 +324,7 @@ def get_analysis(method, options_dict):
 
 
 def get_tsne_options(method_dict):
-
-    group = st.selectbox(
-        method_dict["settings"]["group"].get("label"),
-        options=method_dict["settings"]["group"].get("options"),
-        key=datetime.now().strftime("%H:%M:%S"),
-    )
-
-    circle = st.checkbox("circle", key=datetime.now().strftime("%H:%M:%S"))
+    chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict)
 
     n_iter = st.select_slider(
         "Maximum number of iterations for the optimization",
@@ -290,13 +333,12 @@ def get_tsne_options(method_dict):
     )
     perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
 
-    submitted = st.button("Submit", key=datetime.now().strftime("%H:%M:%S"))
-    chosen_parameter_dict = {
-        "circle": circle,
+    submitted = st.button("Submit")
+    chosen_parameter_dict.update({
         "n_iter": n_iter,
         "perplexity": perplexity,
-        "group": group,
-    }
+    })
+
     if submitted:
         with st.spinner("Calculating..."):
             return method_dict["function"](**chosen_parameter_dict)
