@@ -94,22 +94,22 @@ def get_analysis_options_from_dict(method, options_dict):
     method_dict = options_dict.get(method)
 
     if method == "t-SNE":
-        get_tsne_options(method_dict)
+        return get_tsne_options(method_dict)
     
     elif method == "Differential Expression Analysis - T-test":
-        st_calculate_ttest(method=method, options_dict=options_dict)
+        return st_calculate_ttest(method=method, options_dict=options_dict)
     
     elif method == "Differential Expression Analysis - Wald-test":
-        st_calculate_waldtest(method=method, options_dict=options_dict)
+        return st_calculate_waldtest(method=method, options_dict=options_dict)
 
     elif method == "Volcano":
-        st_plot_volcano(method=method, options_dict=options_dict)
+        return st_plot_volcano(method=method, options_dict=options_dict)
 
     elif method == "PCA":
-        st_plot_pca(method_dict)
+        return st_plot_pca(method_dict)
     
     elif method == "UMAP":
-        st_plot_umap(method_dict)
+        return st_plot_umap(method_dict)
 
     elif "settings" not in method_dict.keys():
 
