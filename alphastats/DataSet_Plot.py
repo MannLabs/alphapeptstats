@@ -286,6 +286,11 @@ class Plot:
 
         if log_scale:
             fig.update_layout(yaxis=dict(type="log"))
+
+        fig = plotly_object(fig)
+        fig = self._update_figure_attributes(
+            figure_object=fig, plotting_data=df, method=method
+        )
         return fig
 
     @staticmethod
@@ -413,6 +418,11 @@ class Plot:
 
         if add_significance:
             fig = self._add_significance(fig)
+
+        fig = seaborn_object(fig)
+        fig = self._update_figure_attributes(
+            figure_object=fig, plotting_data=df, method=method
+        )
 
         return fig
 
@@ -565,6 +575,7 @@ class Plot:
         volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
         volcano_plot.update_layout(showlegend=False)
         volcano_plot.update_layout(width=600, height=700)
+
         return volcano_plot
 
     def _clustermap_create_label_bar(self, label, metadata_df):
@@ -637,6 +648,12 @@ class Plot:
                     0, 0, color=lut[label], label=label, linewidth=0
                 )
                 fig.ax_col_dendrogram.legend(loc="center", ncol=6)
+
+        
+        fig = plotly_object(fig)
+        fig = self._update_figure_attributes(
+            figure_object=fig, plotting_data=df, method="clustermap"
+        )
         return fig
 
     @check_for_missing_values
@@ -660,5 +677,10 @@ class Plot:
         # general of a subset of proteins
         fig = plotly.figure_factory.create_dendrogram(
             self.mat, labels=self.mat.index, linkagefun=linkagefun
+        )
+
+        fig = plotly_object(fig)
+        fig = self._update_figure_attributes(
+            figure_object=fig, plotting_data=self.mat, method="dendrogram"
         )
         return fig
