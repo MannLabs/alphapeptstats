@@ -41,8 +41,10 @@ def read_uploaded_file_into_df(file):
 
 
 def check_software_file(df):
-    # check if software files are in right format
-    # can be fragile when different settings are used or software is updated
+    """
+    check if software files are in right format
+    can be fragile when different settings are used or software is updated
+    """
     software = st.session_state.software
 
     if software == "MaxQuant":
@@ -87,14 +89,44 @@ def get_unique_values_from_column(column):
     unique_values = st.session_state.dataset.metadata[column].unique().tolist()
     return unique_values
 
+def st_general(method_dict):
+
+    chosen_parameter_dict = {}
+
+    if "settings" in list(method_dict.keys()):
+
+        settings_dict = method_dict.get("settings")
+
+        for parameter in settings_dict:
+
+            parameter_dict = settings_dict[parameter]
+
+            if "options" in parameter_dict.keys():
+                chosen_parameter = st.selectbox(
+                    parameter_dict.get("label"), options=parameter_dict.get("options")
+                    )
+            else:
+                chosen_parameter = st.checkbox(parameter_dict.get("label"))
+
+            chosen_parameter_dict[parameter] = chosen_parameter
+
+    submitted = st.button("Submit")
+
+    if submitted:
+        with st.spinner("Calculating..."):
+                return method_dict["function"](**chosen_parameter_dict)
+
 
 def get_analysis_options_from_dict(method, options_dict):
-    # extract plotting options from dict amd display as selectbox or checkbox
-    # give selceted options to plotting function
+    """
+    extract plotting options from dict amd display as selectbox or checkbox
+    give selceted options to plotting function
+    """
+
     method_dict = options_dict.get(method)
 
-    if method == "t-SNE":
-        return get_tsne_options(method_dict)
+    if method == "t-SNE Plot":
+        return st_tsne_options(method_dict)
     
     elif method == "Differential Expression Analysis - T-test":
         return st_calculate_ttest(method=method, options_dict=options_dict)
@@ -102,13 +134,13 @@ def get_analysis_options_from_dict(method, options_dict):
     elif method == "Differential Expression Analysis - Wald-test":
         return st_calculate_waldtest(method=method, options_dict=options_dict)
 
-    elif method == "Volcano":
+    elif method == "Volcano Plot":
         return st_plot_volcano(method=method, options_dict=options_dict)
 
-    elif method == "PCA":
+    elif method == "PCA Plot":
         return st_plot_pca(method_dict)
     
-    elif method == "UMAP":
+    elif method == "UMAP Plot":
         return st_plot_umap(method_dict)
 
     elif "settings" not in method_dict.keys():
@@ -118,29 +150,12 @@ def get_analysis_options_from_dict(method, options_dict):
                     "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
             )
             return
+        
+        chosen_parameter_dict = {}
+        return method_dict["function"](**chosen_parameter_dict)
 
     else:
-        settings_dict = method_dict.get("settings")
-        chosen_parameter_dict = {}
-
-        for parameter in settings_dict:
-
-            parameter_dict = settings_dict[parameter]
-
-            if "options" in parameter_dict.keys():
-                chosen_parameter = st.selectbox(
-                    parameter_dict.get("label"), options=parameter_dict.get("options")
-                )
-            else:
-                chosen_parameter = st.checkbox(parameter_dict.get("label"))
-
-            chosen_parameter_dict[parameter] = chosen_parameter
-
-        submitted = st.button("Submit")
-
-        if submitted:
-            with st.spinner("Calculating..."):
-                return method_dict["function"](**chosen_parameter_dict)
+        return st_general(method_dict=method_dict)
 
 def st_plot_pca(method_dict):
     chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict)
@@ -199,6 +214,9 @@ def st_plot_volcano(method, options_dict):
 
 
 def st_calculate_ttest(method, options_dict):
+    """
+    perform ttest in streamlit 
+    """
     chosen_parameter_dict = helper_compare_two_groups()
     chosen_parameter_dict.update({"method": "ttest"})
 
@@ -303,6 +321,9 @@ def helper_compare_two_groups():
 
 
 def get_sample_names_from_software_file():
+    """
+    extract sample names from software
+    """
     regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
         "[sample]", ".*"
     )
@@ -323,7 +344,7 @@ def get_analysis(method, options_dict):
         return obj
 
 
-def get_tsne_options(method_dict):
+def st_tsne_options(method_dict):
     chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict)
 
     n_iter = st.select_slider(
