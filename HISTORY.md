@@ -2,6 +2,10 @@
 
 ## 0.2.4
 * added kaleido dependency
+* GUI add button to reset preprocessing
+* GUI combine visualization and analysis
+* Display seaborn clustermap in GUI
+* GUI fixes
 
 ## 0.2.3
 * fix umap import
