@@ -179,7 +179,8 @@ def st_plot_umap(method_dict):
 def st_plot_volcano(method, options_dict):
     chosen_parameter_dict = helper_compare_two_groups()
     analysis_method = st.selectbox(
-            "Differential Analysis using:", options=["ttest","anova", "wald"],
+            "Differential Analysis using:", 
+            options=["ttest","anova", "wald"],
         )
         
     col1, col2 = st.columns(2)
