@@ -12,7 +12,10 @@ import seaborn as sns
 import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
-
+try:
+    import umap.umap_ as umap
+except ModuleNotFoundError:
+    import umap
 
 
 import plotly.figure_factory 
@@ -236,11 +239,6 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: UMAP plot
         """
-
-        try:
-            import umap.umap_ as umap
-        except ModuleNotFoundError:
-            import umap
         return self._plot_dimensionality_reduction(
             group=group, method="umap", circle=circle
         )
@@ -656,7 +654,7 @@ class Plot:
                 fig.ax_col_dendrogram.legend(loc="center", ncol=6)
 
         
-        fig = seaborn_object(fig)
+ 
         fig = self._update_figure_attributes(
             figure_object=fig, plotting_data=df, method="clustermap"
         )
