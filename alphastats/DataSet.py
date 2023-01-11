@@ -125,6 +125,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         # reset preproccessing info
+        self._save_dataset_info()
         self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized",
             "Data is not imputed",

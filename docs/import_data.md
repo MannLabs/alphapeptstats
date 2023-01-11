@@ -1,6 +1,6 @@
 # Data import
 
-Currently, AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe and MaxQuant. As the output of these software differs significantly data needs to be loaded in customized loaders.
+Currently, AlphaPeptStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe and MaxQuant. As the output of these software differs significantly data needs to be loaded in customized loaders.
 
 
 

@@ -12,5 +12,6 @@ diffxpy>=0.7.4
 anndata>=0.8.0
 umap-learn>=0.5.3
 streamlit>=1.12.2
+kaleido==0.2.1
 
 

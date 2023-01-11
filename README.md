@@ -1,14 +1,31 @@
+[![PyPI version](https://badge.fury.io/py/alphastats.svg)](https://badge.fury.io/py/alphastats)
 [![codecov](https://codecov.io/gh/MannLabs/alphastats/branch/main/graph/badge.svg?token=HY4A0KKLRI)](https://codecov.io/gh/MannLabs/alphastats)
-
+[![Downloads](https://static.pepy.tech/badge/alphastats)](https://pepy.tech/project/alphastats)
+[![Downloads](https://static.pepy.tech/badge/alphastats/week)](https://pepy.tech/project/alphastats)
+[![CI](https://github.com/MannLabs/alphapeptstats/actions/workflows/python-package.yml/badge.svg)](https://github.com/MannLabs/alphapeptstats/actions/workflows/python-package.yml)
+[![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
 <p align="center">
   <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/gui/alphapeptstats_logo.png?raw=true" />
 </p>
 
 
+<div align = center>
+<br>
+<br>
+
+[<kbd> <br> Documentation <br> </kbd>][link]
+
+</div>
+
+<br>
+<br>
+
+[link]:https://alphapeptstats.readthedocs.io/en/main/
+
 An open-source Python package of the AlphaPept ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
 
-The full documentation can be found [here](https://alphapeptstats.readthedocs.io/en/latest/).
+
 
 * [**About**](#about)
 * [**Installation**](#installation)
@@ -27,7 +44,7 @@ An open-source Python package for downstream mass spectrometry downstream data a
 
 ## Installation
 
-AlphaStats can be installed in an existing Python 3.8 environment with a single `bash` command. *This `bash` command can also be run directly from within a Jupyter notebook by prepending it with a `!`*:
+AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command. 
 
 ```bash
 pip install alphastats
@@ -58,7 +75,6 @@ A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API
 In case of issues, check out the following:
 
 * [Issues](https://github.com/MannLabs/alphapeptstats/issues): Try a few different search terms to find out if a similar problem has been encountered before
-* [Discussions](https://github.com/MannLabs/alphapeptstats/discussions): Check if your problem or feature requests has been discussed before.
 
 ---
 ## License

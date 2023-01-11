@@ -182,8 +182,6 @@ def load_sample_data():
 
 def import_data():
 
-    st.markdown("### 1. Import Proteomics Data")
-
     st.selectbox(
         "Select your Proteomics Software",
         options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"],
@@ -223,6 +221,18 @@ def reset():
 
 sidebar_info()
 
+
+
+if "dataset" not in st.session_state:
+    st.markdown("### Import Proteomics Data")
+
+    st.markdown(
+        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+    )
+
+    import_data()
+    st.markdown("### Or Load sample Dataset")
+
 if st.button("Load sample DataSet - PXD011839"):
 
     st.write(
@@ -253,19 +263,14 @@ if st.button("Load sample DataSet - PXD011839"):
 
     load_sample_data()
 
+if "dataset" in st.session_state: 
+    st.info("DataSet has been imported")
+    
+    if st.button("New Session: Import new dataset"):
 
-if "dataset" not in st.session_state:
-    st.markdown(
-        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
-    )
+        reset()
 
-    import_data()
+        import_data()
 
-elif st.button("New Session: Import new dataset"):
-
-    reset()
-
-    import_data()
-
-else:
     display_loaded_dataset()
+
