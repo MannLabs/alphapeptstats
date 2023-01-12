@@ -189,6 +189,7 @@ def import_data():
     )
 
     if st.session_state.software != "<select>":
+        reset()
         upload_softwarefile()
 
     if "loader" in st.session_state:
@@ -207,10 +208,12 @@ def display_loaded_dataset():
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
+    
     df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
     ).head(5)
+    
     st.dataframe(df)
 
 

@@ -58,6 +58,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
+        self.preprocessed = False
 
         print("DataSet has been created.")
         self.overview()
@@ -126,6 +127,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         # reset preproccessing info
         self._save_dataset_info()
+        self.preprocessed = False
         self.normalization, self.imputation, self.contamination_filter = (
             "Data is not normalized",
             "Data is not imputed",

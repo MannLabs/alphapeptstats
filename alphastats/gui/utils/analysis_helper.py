@@ -73,6 +73,7 @@ def check_software_file(df):
             "First.Protein.Description",
             "contamination_library",
         ]
+        st.write(set(expected_columns).issubset(set(df.columns.to_list())))
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error("This is not a valid DIA-NN file.")
 
