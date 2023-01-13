@@ -128,11 +128,8 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         # reset preproccessing info
         self._save_dataset_info()
         self.preprocessed = False
-        self.normalization, self.imputation, self.contamination_filter = (
-            "Data is not normalized",
-            "Data is not imputed",
-            "Contaminations have not been removed.",
-        )
+        self.rawmat = mat
+      
 
     def load_metadata(self, file_path):
         """Load metadata either xlsx, txt, csv or txt file
