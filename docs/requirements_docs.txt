@@ -66,7 +66,7 @@ plotly==5.10.0
 plumbum==1.8.0 
 ply==3.11 
 protobuf==3.20.3 
-pyarrow==9.0.0 
+pyarrow==10.0.1 
 pydeck==0.8.0b4 
 pympler==1.0.1 
 pynndescent==0.5.7 
