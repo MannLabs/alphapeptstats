@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5
+* DataSet overview tab
+* allow download of data matrix in GUI
+
 ## 0.2.4
 * added kaleido dependency
 * GUI add button to reset preprocessing
