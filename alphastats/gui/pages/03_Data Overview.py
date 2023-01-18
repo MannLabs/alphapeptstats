@@ -15,11 +15,8 @@ def get_display_matrix():
             st.session_state.dataset.mat.values,
             index=st.session_state.dataset.mat.index.to_list(),
         ).head(10)
-    
 
-    csv = convert_df(processed_df)
-
-    return processed_df, csv
+    return processed_df
 
 
 def display_matrix():
@@ -30,7 +27,8 @@ def display_matrix():
     st.markdown("### DataFrame used for analysis")
     st.markdown(text)
 
-    df, csv  = get_display_matrix()
+    df = get_display_matrix()
+    csv = convert_df(st.session_state.dataset.mat)
     
     st.dataframe(df)
 
@@ -46,7 +44,7 @@ if "dataset" in st.session_state:
     st.markdown("#### Intensity distribution raw data per sample")
     st.plotly_chart(st.session_state.distribution_plot.update_layout(plot_bgcolor="white"))
 
-    st.markdown("#### Intensity distribution processed data per sample")
+    st.markdown("#### Intensity distribution data per sample used for analysis")
     fig_processed = st.session_state.dataset.plot_sampledistribution()
     st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"))
     
@@ -57,12 +55,6 @@ if "dataset" in st.session_state:
     display_matrix()
     
     # Display Missing values / Imputed values
-        
-
-
-    
-
-
 
 else:
     st.info("Import Data first")
