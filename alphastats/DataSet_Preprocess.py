@@ -146,6 +146,7 @@ class Preprocess:
         # method (str): method to normalize data: either "zscore", "quantile", "linear"
 
         # zscore normalization == standardization
+       
 
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
@@ -242,3 +243,4 @@ class Preprocess:
             self._remove_sampels(sample_list=remove_samples)
 
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+        self.preprocessed = True

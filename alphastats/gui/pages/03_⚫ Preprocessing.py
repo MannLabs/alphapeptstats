@@ -4,6 +4,9 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 import datetime
 
 
+
+
+
 def preprocessing():
 
     st.markdown("Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. " +
@@ -66,7 +69,7 @@ def main_preprocessing():
 
 st.markdown("### Preprocessing")
 sidebar_info()
-# st.sidebar.image("/home/rzwitch/Downloads/randy-streamlit.png", use_column_width=True)
+
 main_preprocessing()
 
 

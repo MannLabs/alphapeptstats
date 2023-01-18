@@ -12,7 +12,7 @@ from alphastats.gui.utils.analysis_helper import * # (
 #)
 from alphastats.gui.utils.software_options import software_options
 import pandas as pd
-
+import plotly.express as px
 
 
 def load_options():
@@ -217,6 +217,13 @@ def display_loaded_dataset():
     st.dataframe(df)
 
 
+def save_plot_sampledistribution_rawdata():
+    df = st.session_state.dataset.rawmat
+    df = df.unstack().reset_index()
+    df.rename(columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"}, inplace=True)
+    st.session_state["distribution_plot"] =  px.violin(df, x=st.session_state.dataset.sample, y="Intensity")
+
+
 def reset():
     for key in st.session_state.keys():
         del st.session_state[key]
@@ -268,6 +275,9 @@ if st.button("Load sample DataSet - PXD011839"):
 
 if "dataset" in st.session_state: 
     st.info("DataSet has been imported")
+
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
     
     if st.button("New Session: Import new dataset"):
 
