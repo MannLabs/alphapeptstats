@@ -35,6 +35,9 @@ def save_plot_to_session_state(plot, method):
     st.session_state["plot_list"] += [(method, plot)]
 
 def display_df(df):
+    mask = df.applymap(type) != bool
+    d = {True: 'TRUE', False: 'FALSE'}
+    df = df.where(mask, df.replace(d))
     st.dataframe(df)
 
 def download_figure(obj, format, plotting_library="plotly"):
