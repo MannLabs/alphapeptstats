@@ -53,7 +53,7 @@ numba==0.56.3
 numexpr==2.8.3 
 numpy==1.23.4 
 openpyxl==3.0.10 
-outdated==0.2.1 
+outdated==0.2.2 
 pandas==1.5.1 
 pandas_flavor==0.3.0 
 pandoc==2.2 
