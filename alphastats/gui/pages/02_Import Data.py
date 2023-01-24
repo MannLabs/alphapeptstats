@@ -39,12 +39,9 @@ def check_software_file(df, software):
 
     elif software == "DIANN":
         expected_columns = [
-            "PG.Quantity",
             "Protein.Group",
         ]
 
-        st.write(set(expected_columns).issubset(set(df.columns.to_list())))
-        
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error("This is not a valid DIA-NN file.")
 
@@ -98,7 +95,7 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column, software
     return loader
 
 
-def select_sample_column_metadata(df):
+def select_sample_column_metadata(df, software):
     samples_proteomics_data = get_sample_names_from_software_file()
     valid_sample_columns = []
 
@@ -114,7 +111,7 @@ def select_sample_column_metadata(df):
 
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
-        + f"in {software_options.get(st.session_state.loader.software).get('import_file')}"
+        + f"in {software_options.get(software).get('import_file')}"
     )
 
     with st.form("sample_column"):
@@ -161,7 +158,7 @@ def upload_softwarefile(software):
             st.session_state["loader"] = loader
 
 
-def upload_metadatafile():
+def upload_metadatafile(software):
 
     st.write("\n\n")
     st.markdown("### 3. Upload corresponding metadata.")
@@ -180,7 +177,7 @@ def upload_metadatafile():
         st.dataframe(metadatafile_df.head(5))
         # pick sample column
 
-        if select_sample_column_metadata(metadatafile_df):
+        if select_sample_column_metadata(metadatafile_df, software):
             # create dataset
             st.session_state["dataset"] = DataSet(
                 loader=st.session_state.loader,
@@ -237,7 +234,7 @@ def import_data():
         upload_softwarefile(software=software)
 
     if "loader" in st.session_state:
-        upload_metadatafile()
+        upload_metadatafile(software)
 
 
 def display_loaded_dataset():
@@ -332,5 +329,7 @@ if "dataset" in st.session_state:
 
         import_data()
 
-    display_loaded_dataset()
+    if "dataset" in st.session_state: 
+
+        display_loaded_dataset()
 

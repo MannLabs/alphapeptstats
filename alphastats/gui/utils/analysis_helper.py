@@ -5,8 +5,6 @@ import streamlit as st
 from datetime import datetime
 
 
-
-
 def check_if_options_are_loaded(f):
     # decorator to check for missing values
     def inner(*args, **kwargs):
