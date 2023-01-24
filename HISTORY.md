@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.7
+* Fix warning when loading DIA-NN GUI
+
 ## 0.2.6
 * Bug fix when importing data in GUI
 * version binning
