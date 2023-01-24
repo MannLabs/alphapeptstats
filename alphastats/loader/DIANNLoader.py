@@ -25,7 +25,7 @@ class DIANNLoader(BaseLoader):
         """
 
         super().__init__(file, intensity_column, index_column, sep)
-        self.software = "DIA-NN"
+        self.software = "DIANN"
         self.no_sample_column = [
             "PG.Q.value",
             "Global.PG.Q.value",
