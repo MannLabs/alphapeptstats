@@ -40,52 +40,6 @@ def read_uploaded_file_into_df(file):
     return df
 
 
-def check_software_file(df):
-    """
-    check if software files are in right format
-    can be fragile when different settings are used or software is updated
-    """
-    software = st.session_state.software
-
-    if software == "MaxQuant":
-        expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error(
-                "This is not a valid MaxQuant file. Please check:"
-                "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
-            )
-
-    elif software == "AlphaPept":
-        if "object" in df.iloc[:, 1:].dtypes.to_list():
-            st.error("This is not a valid AlphaPept file.")
-
-    elif software == "DIANN":
-        expected_columns = [
-            "PG.Q.value",
-            "Global.PG.Q.value",
-            "PTM.Q.value",
-            "PTM.Site.Confidence",
-            "PG.Quantity",
-            "Protein.Group",
-            "Protein.Ids",
-            "Protein.Names",
-            "Genes",
-            "First.Protein.Description",
-            "contamination_library",
-        ]
-        st.write(set(expected_columns).issubset(set(df.columns.to_list())))
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error("This is not a valid DIA-NN file.")
-
-    elif software == "FragPipe":
-        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
-            st.error(
-                "This is not a valid FragPipe file. Please check:"
-                "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
-            )
-
-
 def get_unique_values_from_column(column):
     unique_values = st.session_state.dataset.metadata[column].unique().tolist()
     return unique_values

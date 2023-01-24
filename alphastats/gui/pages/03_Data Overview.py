@@ -24,7 +24,7 @@ def display_matrix():
     text = "Normalization: " + str(st.session_state.dataset.preprocessing_info["Normalization"]) + \
         ", Imputation: " + str(st.session_state.dataset.preprocessing_info["Imputation"])
 
-    st.markdown("### DataFrame used for analysis")
+    st.markdown("### DataFrame used for analysis **preview**")
     st.markdown(text)
 
     df = get_display_matrix()
@@ -41,20 +41,15 @@ def display_matrix():
 if "dataset" in st.session_state:
     st.markdown("## DataSet overview")
 
+    display_matrix()
+
     st.markdown("#### Intensity distribution raw data per sample")
     st.plotly_chart(st.session_state.distribution_plot.update_layout(plot_bgcolor="white"))
 
     st.markdown("#### Intensity distribution data per sample used for analysis")
     fig_processed = st.session_state.dataset.plot_sampledistribution()
     st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"))
-    
-     #   st.markdown("### Intensity distribution processed data per sample")
-    #if st.session_state.dataset.preprocessed:
 
-    
-    display_matrix()
-    
-    # Display Missing values / Imputed values
 
 else:
     st.info("Import Data first")
