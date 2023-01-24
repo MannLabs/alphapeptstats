@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+* Bug fix when importing data in GUI
+* version binning
+
 ## 0.2.5
 * DataSet overview tab
 * allow download of data matrix in GUI

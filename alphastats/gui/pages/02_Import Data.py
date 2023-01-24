@@ -4,12 +4,7 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import sidebar_info
-from alphastats.gui.utils.analysis_helper import * # (
-#    read_uploaded_file_into_df,
-#    check_software_file,
-#    get_sample_names_from_software_file,
-#    load_options,
-#)
+from alphastats.gui.utils.analysis_helper import * 
 from alphastats.gui.utils.software_options import software_options
 import pandas as pd
 import plotly.express as px
@@ -23,15 +18,54 @@ def load_options():
     st.session_state["statistic_options"] = statistic_options
 
 
-def print_software_import_info():
-    import_file = software_options.get(st.session_state.software).get("import_file")
+
+def check_software_file(df, software):
+    """
+    check if software files are in right format
+    can be fragile when different settings are used or software is updated
+    """
+
+    if software == "MaxQuant":
+        expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error(
+                "This is not a valid MaxQuant file. Please check:"
+                "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
+            )
+
+    elif software == "AlphaPept":
+        if "object" in df.iloc[:, 1:].dtypes.to_list():
+            st.error("This is not a valid AlphaPept file.")
+
+    elif software == "DIANN":
+        expected_columns = [
+            "PG.Quantity",
+            "Protein.Group",
+        ]
+
+        st.write(set(expected_columns).issubset(set(df.columns.to_list())))
+        
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error("This is not a valid DIA-NN file.")
+
+    elif software == "FragPipe":
+        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error(
+                "This is not a valid FragPipe file. Please check:"
+                "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
+            )
+
+
+def print_software_import_info(software):
+    import_file = software_options.get(software).get("import_file")
     string_output = (
-        f"Please upload {import_file} file from {st.session_state.software}."
+        f"Please upload {import_file} file from {software}."
     )
     return string_output
 
 
-def select_columns_for_loaders():
+def select_columns_for_loaders(software):
     """
     select intensity and index column depending on software
     will be saved in session state
@@ -42,7 +76,7 @@ def select_columns_for_loaders():
 
     st.selectbox(
         "Intensity Column",
-        options=software_options.get(st.session_state.software).get("intensity_column"),
+        options=software_options.get(software).get("intensity_column"),
         key="intensity_column",
     )
 
@@ -50,15 +84,15 @@ def select_columns_for_loaders():
 
     st.selectbox(
         "Index Column",
-        options=software_options.get(st.session_state.software).get("index_column"),
+        options=software_options.get(software).get("index_column"),
         key="index_column",
     )
 
 
-def load_proteomics_data(uploaded_file, intensity_column, index_column):
+def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
     """load software file into loader object from alphastats
     """
-    loader = software_options.get(st.session_state.software)["loader_function"](
+    loader = software_options.get(software)["loader_function"](
         uploaded_file, intensity_column, index_column
     )
     return loader
@@ -80,7 +114,7 @@ def select_sample_column_metadata(df):
 
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
-        + f"in {software_options.get(st.session_state.software).get('import_file')}"
+        + f"in {software_options.get(st.session_state.loader.software).get('import_file')}"
     )
 
     with st.form("sample_column"):
@@ -91,21 +125,28 @@ def select_sample_column_metadata(df):
         return True
 
 
-def upload_softwarefile():
-
-    st.file_uploader(print_software_import_info(), key="softwarefile")
+def upload_softwarefile(software):
+ 
+    st.file_uploader(
+        print_software_import_info(software=software), 
+        key="softwarefile", 
+        type=["csv", "tsv", "txt", "hdf"]
+    )
 
     if st.session_state.softwarefile is not None:
 
         softwarefile_df = read_uploaded_file_into_df(st.session_state.softwarefile)
         # display head a protein data
-        check_software_file(softwarefile_df)
+
+        check_software_file(softwarefile_df, software)
+        
         st.write(
             f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
             f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
         )
         st.dataframe(softwarefile_df.head(5))
-        select_columns_for_loaders()
+        
+        select_columns_for_loaders(software=software)
 
         if (
             "intensity_column" in st.session_state
@@ -115,6 +156,7 @@ def upload_softwarefile():
                 softwarefile_df,
                 intensity_column=st.session_state.intensity_column,
                 index_column=st.session_state.index_column,
+                software=software
             )
             st.session_state["loader"] = loader
 
@@ -182,15 +224,17 @@ def load_sample_data():
 
 def import_data():
 
-    st.selectbox(
+    software = st.selectbox(
         "Select your Proteomics Software",
-        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"],
-        key="software",
+        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"]
     )
 
-    if st.session_state.software != "<select>":
-        reset()
-        upload_softwarefile()
+    session_state_empty = False
+
+    if software != "<select>":
+        #if 
+        #reset()
+        upload_softwarefile(software=software)
 
     if "loader" in st.session_state:
         upload_metadatafile()
@@ -224,7 +268,10 @@ def save_plot_sampledistribution_rawdata():
     st.session_state["distribution_plot"] =  px.violin(df, x=st.session_state.dataset.sample, y="Intensity")
 
 
-def reset():
+def empty_session_state():
+    """
+    remove all variables to avoid conflicts
+    """
     for key in st.session_state.keys():
         del st.session_state[key]
 
@@ -281,7 +328,7 @@ if "dataset" in st.session_state:
     
     if st.button("New Session: Import new dataset"):
 
-        reset()
+        empty_session_state()
 
         import_data()
 
