@@ -6,6 +6,7 @@ import numpy as np
 import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
+from functools import lru_cache
 
 
 class Statistics:
@@ -32,6 +33,7 @@ class Statistics:
 
         return column, "group1", "group2"
 
+    @lru_cache(maxsize=20)
     def diff_expression_analysis(
         self, group1, group2, column=None, method="ttest"
     ):
@@ -174,6 +176,7 @@ class Statistics:
         return tukey_df
 
 
+    @lru_cache(maxsize=20)
     @ignore_warning(RuntimeWarning)
     def anova(self, column, protein_ids="all", tukey=True):
         """One-way Analysis of Variance (ANOVA)
@@ -257,6 +260,7 @@ class Statistics:
         )
         return final_df
 
+    @lru_cache(maxsize=20)
     def ancova(self, protein_id, covar, between):
         """Analysis of covariance (ANCOVA) with on or more covariate(s).
         Wrapper around = https://pingouin-stats.org/generated/pingouin.ancova.html
