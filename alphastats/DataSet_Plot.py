@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly
 import scipy
 import sklearn.manifold
-from alphastats.utils import ignore_warning, check_for_missing_values
+
 import plotly.graph_objects as go
 import numpy as np
 import seaborn as sns
@@ -13,34 +13,11 @@ import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
 import itertools
-try:
-    import umap.umap_ as umap
-except ModuleNotFoundError:
-    import umap
-
-
 import plotly.figure_factory 
 
-# make own alphastats theme
-plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
-    layout=plotly.graph_objects.Layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        colorway=[
-            "#009599",
-            "#005358",
-            "#772173",
-            "#B65EAF",  # pink
-            "#A73A00",
-            "#6490C1",
-            "#FF894F",
-            "#2B5E8B",
-            "#A87F32",
-        ],
-    )
-)
-
-plotly.io.templates.default = "simple_white+alphastats_colors"
+from alphastats.plots.DimensionalityReduction import DimensionalityReduction
+from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.utils import ignore_warning, check_for_missing_values
 
 
 class plotly_object(plotly.graph_objs._figure.Figure):
@@ -58,7 +35,7 @@ class seaborn_object(sns.matrix.ClusterGrid):
 class Plot:
     @staticmethod
     def _update_colors_plotly(fig, color_dict):
-        #  plotly doesnt allow to assign color to certain group
+        # plotly doesnt allow to assign color to certain group
         # update instead the figure in form of a dict
         # color_dict with group_variable/legendgroup as key, and corresponding color as value
         fig_dict = fig.to_plotly_json()
@@ -70,134 +47,14 @@ class Plot:
         # convert dict back to plotly figure
         return go.Figure(fig_dict)
 
-    @staticmethod
-    def _add_circles_to_scatterplot(fig):
-        # called by _plot_dimensionality_reduction()
-        # convert figure to dict and extract information
-        fig_dict = fig.to_plotly_json().get("data")
-        for group in fig_dict:
-            # get coordinates for the group
-            x_vector = group.get("x")
-            y_vector = group.get("y")
-            # get color of the group to color circle in the same color
-            group_color = group.get("marker").get("color")
-            fig.add_shape(
-                type="circle",
-                xref="x",
-                yref="y",
-                x0=min(x_vector),
-                y0=min(y_vector),
-                x1=max(x_vector),
-                y1=max(y_vector),
-                opacity=0.2,
-                fillcolor=group_color,
-                line_color=group_color,
-            )
-        return fig
-
     def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", self.preprocessing_info)
         setattr(figure_object, "method", method)
         return figure_object
 
-    def _volcano_add_labels(self, result_df, figure_object):
-
-        if self.gene_names is not None:
-            label_column = self.gene_names
-        else:
-            label_column = self.index_column
-
-        result_df["label"] = np.where(
-            result_df.color != "non-significant", result_df[label_column], ""
-        )
-        #  replace nas with empty string (can cause error when plotting with gene names)
-        result_df["label"] = result_df["label"].fillna("")
-        result_df = result_df[result_df["label"] != ""]
-
-        for x, y, label_column in result_df[
-            ["log2fc", "-log10(p-value)", label_column]
-        ].itertuples(index=False):
-            figure_object.add_annotation(
-                x=x, y=y, text=label_column, showarrow=False, yshift=10
-            )
-        return figure_object
 
     @check_for_missing_values
-    def _plot_dimensionality_reduction(self, group, method, circle, **kwargs):
-        # function for plot_pca and plot_tsne
-        # subset matrix so it matches with metadata
-        if group:
-            mat = self._subset()
-            self.metadata[group] = self.metadata[group].apply(str)
-            group_color = self.metadata[group]
-            sample_names = self.metadata[self.sample].to_list()
-        else:
-            mat = self.mat
-            group_color = group
-            sample_names = mat.reset_index(level=0)["index"].to_list()
-        mat = mat.fillna(0)
-
-        if method == "pca":
-            pca = sklearn.decomposition.PCA(n_components=2)
-            components = pca.fit_transform(mat)
-            labels = {
-                "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
-                "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
-            }
-
-        elif method == "tsne":
-            tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, **kwargs)
-            components = tsne.fit_transform(mat)
-            labels = {
-                "0": "Dimension 1",
-                "1": "Dimension 2",
-            }
-
-        elif method == "umap":
-            umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
-            components = umap_2d.fit_transform(mat)
-            labels = {
-                "0": "",
-                "1": "",
-            }
-
-        components = pd.DataFrame(components)
-        components[self.sample] = sample_names
-
-        fig = px.scatter(
-            components,
-            x=0,
-            y=1,
-            labels=labels,
-            color=group_color,
-            hover_data=[components[self.sample]],
-        )
-
-        # rename hover_data_0 to sample
-        fig_dict = fig.to_plotly_json()
-        data = fig_dict.get("data")
-
-        for count, d in enumerate(data):
-            hover = d.get("hovertemplate").replace("hover_data_0", "sample")
-            fig_dict["data"][count]["hovertemplate"] = hover
-        fig = go.Figure(fig_dict)
-
-        #  save plotting data in figure object
-        fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=pd.DataFrame(components), method=method
-        )
-
-        # draw circles around plotted groups
-        if circle is True and group is not None:
-            fig = self._add_circles_to_scatterplot(fig)
-
-        if group:
-            fig.update_layout(legend_title_text=group)
-
-        return fig
-
     def plot_pca(self, group=None, circle=False):
         """Plot Principal Component Analysis (PCA)
 
@@ -208,10 +65,15 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: PCA plot
         """
-        return self._plot_dimensionality_reduction(
-            group=group, method="pca", circle=circle
+        dimensionality_reduction = DimensionalityReduction(
+            dataset=self,
+            group=group,
+            method="pca", 
+            circle=circle
         )
+        return dimensionality_reduction.plot
 
+    @check_for_missing_values
     def plot_tsne(self, group=None, circle=False, perplexity=5, n_iter=1000):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)
 
@@ -222,14 +84,17 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: t-SNE plot
         """
-        return self._plot_dimensionality_reduction(
+        dimensionality_reduction = DimensionalityReduction(
+            dataset=self, 
             group=group,
             method="tsne",
             circle=circle,
             perplexity=perplexity,
             n_iter=n_iter,
         )
+        return dimensionality_reduction.plot
 
+    @check_for_missing_values
     def plot_umap(self, group=None, circle=False):
         """Plot Uniform Manifold Approximation and Projection for Dimension Reduction
 
@@ -240,9 +105,55 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: UMAP plot
         """
-        return self._plot_dimensionality_reduction(
-            group=group, method="umap", circle=circle
+        dimensionality_reduction = DimensionalityReduction(
+            dataset=self,
+            group=group,
+            method="umap", 
+            circle=circle
         )
+        return dimensionality_reduction.plot
+    
+    def plot_volcano(
+            self,
+            group1,
+            group2,
+            column=None,
+            method="ttest",
+            labels=False,
+            min_fc=1,
+            alpha=0.05,
+            draw_line=True,
+        ):
+        """Plot Volcano Plot
+
+        Args:
+            column (str): column name in the metadata file with the two groups to compare
+            group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
+            group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
+            method (str): "anova", "wald", "ttest", Defaul ttest.
+            labels (bool): Add text labels to significant Proteins, Default False.
+            alpha(float,optional): p-value cut off.
+            min_fc (float): Minimum fold change
+            draw_line(boolean): whether to draw cut off lines.
+           
+
+        Returns:
+            plotly.graph_objects._figure.Figure: Volcano Plot
+        """
+
+        volcano_plot = VolcanoPlot(
+            dataset=self,
+            group1 = group1,
+            group2 = group2,
+            column=column,
+            method=method,
+            labels=labels,
+            min_fc=min_fc,
+            alpha=alpha,
+            draw_line=draw_line,
+        )
+ 
+        return volcano_plot.plot
 
     def plot_correlation_matrix(self, method="pearson"):
         """Plot Correlation Matrix
@@ -431,158 +342,6 @@ class Plot:
 
         return fig
 
-    @ignore_warning(UserWarning)
-    @ignore_warning(RuntimeWarning)
-    def plot_volcano(
-        self,
-        group1,
-        group2,
-        column=None,
-        method="ttest",
-        labels=False,
-        min_fc=1,
-        alpha=0.05,
-        draw_line=True,
-    ):
-        """Plot Volcano Plot
-
-        Args:
-            column (str): column name in the metadata file with the two groups to compare
-            group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
-            group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
-            method (str): "anova", "wald", "ttest", Defaul ttest.
-            labels (bool): Add text labels to significant Proteins, Default False.
-            alpha(float,optional): p-value cut off.
-            min_fc (float): Minimum fold change
-            draw_line(boolean): whether to draw cut off lines.
-           
-
-        Returns:
-            plotly.graph_objects._figure.Figure: Volcano Plot
-        """
-
-        if isinstance(group1, list) and isinstance(group2, list):
-            column, group1, group2 = self._add_metadata_column(group1, group2)
-
-        if column is None:
-            raise ValueError(
-                "Column containing group1 and group2 needs to be specified"
-            )
-
-        if method == "wald":
-
-            print(
-                "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
-            )
-            result_df = self.diff_expression_analysis(
-                column=column, group1=group1, group2=group2, method="wald"
-            )
-            pvalue_column = "qval"
-
-        elif method == "ttest":
-
-            print("Calculating t-test...")
-            result_df = self.diff_expression_analysis(
-                column=column, group1=group1, group2=group2, method="ttest"
-            )
-            pvalue_column = "pval"
-
-        elif method == "anova":
-
-            print("Calculating ANOVA with follow-up tukey test...")
-
-            result_df = self.anova(column=column, protein_ids="all", tukey=True)
-            group1_samples = self.metadata[self.metadata[column] == group1][
-                self.sample
-            ].tolist()
-            group2_samples = self.metadata[self.metadata[column] == group2][
-                self.sample
-            ].tolist()
-
-            mat_transpose = self.mat.transpose()
-            fc = self._calculate_foldchange(
-                mat_transpose, group1_samples, group2_samples
-            )
-
-            #  check how column is ordered
-            pvalue_column = group1 + " vs. " + group2 + " Tukey Test"
-
-            if pvalue_column not in fc.columns:
-                pvalue_column = group2 + " vs. " + group1 + " Tukey Test"
-
-            result_df = result_df.reset_index().merge(
-                fc.reset_index(), on=self.index_column
-            )
-
-        else:
-            raise ValueError(
-                f"{method} is not available."
-                + "Please select from 'ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test using."
-            )
-
-        result_df = result_df[(result_df["log2fc"] < 10) & (result_df["log2fc"] > -10)]
-        result_df["-log10(p-value)"] = -np.log10(result_df[pvalue_column])
-
-        alpha = -np.log10(alpha)
-        # add color variable to plot
-        condition = [
-            (result_df["log2fc"] < -min_fc) & (result_df["-log10(p-value)"] > alpha),
-            (result_df["log2fc"] > min_fc) & (result_df["-log10(p-value)"] > alpha),
-        ]
-        value = ["down", "up"]
-        result_df["color"] = np.select(condition, value, default="non-significant")
-
-        # additional labeling with gene names
-        hover_data = [self.index_column]
-
-        if self.gene_names is not None:
-            result_df = pd.merge(
-                result_df,
-                self.rawinput[[self.gene_names, self.index_column]],
-                on=self.index_column,
-                how="left",
-            )
-            hover_data.append(self.gene_names)
-
-        # create volcano plot
-        volcano_plot = px.scatter(
-            result_df,
-            x="log2fc",
-            y="-log10(p-value)",
-            color="color",
-            hover_data=hover_data,
-        )
-
-        if labels:
-            volcano_plot = self._volcano_add_labels(
-                result_df=result_df, figure_object=volcano_plot
-            )
-
-        #  save plotting data in figure object
-        volcano_plot = plotly_object(volcano_plot)
-        volcano_plot = self._update_figure_attributes(
-            figure_object=volcano_plot, plotting_data=result_df, method=method
-        )
-
-        if draw_line:
-            volcano_plot.add_hline(
-                y=alpha, line_width=1, line_dash="dash", line_color="#8c8c8c"
-            )
-            volcano_plot.add_vline(
-                x=min_fc, line_width=1, line_dash="dash", line_color="#8c8c8c"
-            )
-            volcano_plot.add_vline(
-                x=-min_fc, line_width=1, line_dash="dash", line_color="#8c8c8c"
-            )
-
-        # update coloring
-        color_dict = {"non-significant": "#404040", "up": "#B65EAF", "down": "#009599"}
-        volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
-        volcano_plot.update_layout(showlegend=False)
-        volcano_plot.update_layout(width=600, height=700)
-
-        return volcano_plot
-
     def _clustermap_create_label_bar(self, label, metadata_df):
         colorway = [
             "#009599",
@@ -691,37 +450,37 @@ class Plot:
         return fig
 
     
-def plot_imputed_values(self):
-    # get coordinates of missing values
-    df = self.mat
-    s = df.stack(dropna=False)
-    missing_values_coordinates = [list(x) for x in s.index[s.isna()]]
+    def plot_imputed_values(self):
+        # get coordinates of missing values
+        df = self.mat
+        s = df.stack(dropna=False)
+        missing_values_coordinates = [list(x) for x in s.index[s.isna()]]
 
-    # get all coordinates
-    coordinates = list(itertools.product(list(self.mat.index), list(self.mat.columns)))
-
-
-    # needs to be speed up
-    imputed_values, original_values = [], []
-    for coordinate in coordinates:
-        coordinate = list(coordinate)
-        if coordinate in missing_values_coordinates:
-            value = self.mat.loc[coordinate[0], coordinate[1]]
-            imputed_values.append(value)
-        else:
-            original_values.append(value)
-
-    label = ["imputed values"]*len(imputed_values) + ["non imputed values"]*len(original_values) 
-    values = imputed_values + original_values
-
-    plot_df = pd.DataFrame(list(zip(label, values)),
-               columns =['Imputation', 'values'])
-
-    fig = px.histogram(plot_df, x="values", color="Imputation", 
-                   opacity=0.8,
-                    hover_data=plot_df.columns,
-                    )
+        # get all coordinates
+        coordinates = list(itertools.product(list(self.mat.index), list(self.mat.columns)))
 
 
-    pass
+        # needs to be speed up
+        imputed_values, original_values = [], []
+        for coordinate in coordinates:
+            coordinate = list(coordinate)
+            if coordinate in missing_values_coordinates:
+                value = self.mat.loc[coordinate[0], coordinate[1]]
+                imputed_values.append(value)
+            else:
+                original_values.append(value)
 
+        label = ["imputed values"]*len(imputed_values) + ["non imputed values"]*len(original_values) 
+        values = imputed_values + original_values
+
+        plot_df = pd.DataFrame(list(zip(label, values)),
+                columns =['Imputation', 'values'])
+
+        fig = px.histogram(plot_df, x="values", color="Imputation", 
+                    opacity=0.8,
+                        hover_data=plot_df.columns,
+        )
+
+        pass
+
+  
