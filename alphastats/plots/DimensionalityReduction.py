@@ -1,4 +1,6 @@
-from alphastats.DataSet_Plot import Plot, plotly_object
+from alphastats.plots.PlotUtils import PlotUtils
+from alphastats.DataSet_Plot import plotly
+
 try:
     import umap.umap_ as umap
 except ModuleNotFoundError:
@@ -30,7 +32,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
-class DimensionalityReduction(Plot):
+class DimensionalityReduction(PlotUtils):
     def __init__(self,dataset, group, method, circle) -> None:
         self.dataset = dataset
         self.method = method

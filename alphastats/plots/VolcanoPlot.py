@@ -1,10 +1,11 @@
-from alphastats.DataSet_Plot import Plot, plotly_object
+from alphastats.DataSet_Plot import plotly_object
+from alphastats.plots.PlotUtils import PlotUtils
 from alphastats.utils import ignore_warning, check_for_missing_values
 
 import numpy as np
 import plotly.express as px
 
-class VolcanoPlot(Plot):
+class VolcanoPlot(PlotUtils):
     def __init__(self, dataset, group1, group2, column, method, min_fc, alpha, draw_line):
         self.dataset = dataset
         self.group1 = group1
