@@ -1,10 +1,4 @@
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
-
-
-try:
-    import umap.umap_ as umap
-except ModuleNotFoundError:
-    import umap
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
@@ -34,7 +28,7 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class DimensionalityReduction(PlotUtils):
-    def __init__(self, dataset, group, method, circle) -> None:
+    def __init__(self, dataset, group, method, circle, **kwargs) -> None:
         self.dataset = dataset
         self.method = method
         self.circle = circle
@@ -50,21 +44,21 @@ class DimensionalityReduction(PlotUtils):
             self._umap()
 
         elif self.method == "tsne":
-            self._tsne()
+            self._tsne(**kwargs)
 
         self._plot(sample_names=sample_names, group_color=group_color)
 
-    def _add_circles_to_scatterplot(self):
+    def _add_circles_to_scatterplot(self, fig):
         # called by _plot_dimensionality_reduction()
         # convert figure to dict and extract information
-        fig_dict = self.fig.to_plotly_json().get("data")
+        fig_dict = fig.to_plotly_json().get("data")
         for group in fig_dict:
             # get coordinates for the group
             x_vector = group.get("x")
             y_vector = group.get("y")
             # get color of the group to color circle in the same color
             group_color = group.get("marker").get("color")
-            self.fig.add_shape(
+            fig.add_shape(
                 type="circle",
                 xref="x",
                 yref="y",
@@ -76,6 +70,7 @@ class DimensionalityReduction(PlotUtils):
                 fillcolor=group_color,
                 line_color=group_color,
             )
+        return fig
 
     def _prepare_df(self):
 
@@ -114,6 +109,13 @@ class DimensionalityReduction(PlotUtils):
         }
 
     def _umap(self):
+
+        # TODO umap import is reallly buggy 
+        try:
+            import umap.umap_ as umap
+        except ModuleNotFoundError:
+            import umap
+        
         umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
         self.components = umap_2d.fit_transform(self.prepared_dft)
         self.labels = {
@@ -122,14 +124,14 @@ class DimensionalityReduction(PlotUtils):
         }
 
     def _plot(self, sample_names, group_color):
-        components = pd.DataFrame(components)
+        components = pd.DataFrame(self.components)
         components[self.dataset.sample] = sample_names
 
         fig = px.scatter(
             components,
             x=0,
             y=1,
-            labels=self.label,
+            labels=self.labels,
             color=group_color,
             hover_data=[components[self.dataset.sample]],
         )
@@ -149,6 +151,7 @@ class DimensionalityReduction(PlotUtils):
             figure_object=fig,
             plotting_data=pd.DataFrame(components),
             method=self.method,
+            preprocessing_info=self.dataset.preprocessing_info
         )
 
         # draw circles around plotted groups

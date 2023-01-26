@@ -1,3 +1,7 @@
+import plotly
+import seaborn as sns
+import plotly.graph_objects as go
+
 class PlotUtils:
     def __init__(self) -> None:
         pass
@@ -16,9 +20,9 @@ class PlotUtils:
         # convert dict back to plotly figure
         return go.Figure(fig_dict)
 
-    def _update_figure_attributes(self, figure_object, plotting_data, method=None):
+    def _update_figure_attributes(self, figure_object, plotting_data, preprocessing_info, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
-        setattr(figure_object, "preprocessing", self.preprocessing_info)
+        setattr(figure_object, "preprocessing", preprocessing_info)
         setattr(figure_object, "method", method)
         return figure_object
 

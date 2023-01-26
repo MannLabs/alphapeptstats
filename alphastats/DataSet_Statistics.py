@@ -173,7 +173,7 @@ class Statistics:
 
         return tukey_df
 
-    @lru_cache(maxsize=20)
+    #@lru_cache(maxsize=20)
     @ignore_warning(RuntimeWarning)
     def anova(self, column, protein_ids="all", tukey=True):
         """One-way Analysis of Variance (ANOVA)

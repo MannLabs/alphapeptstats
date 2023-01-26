@@ -2,27 +2,32 @@ from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 from alphastats.utils import ignore_warning, check_for_missing_values
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
+
+from functools import lru_cache
 
 
 class VolcanoPlot(PlotUtils):
     def __init__(
-        self, dataset, group1, group2, column, method, min_fc, alpha, draw_line
-    ):
+        self, dataset, group1, group2, column, method, labels, min_fc, alpha, draw_line
+    ):  
         self.dataset = dataset
         self.group1 = group1
         self.group2 = group2
         self.column = column
         self.method = method
+        self.labels = labels
         self.min_fc = min_fc
         self.alpha = alpha
         self.draw_line = draw_line
+        self.hover_data = None
         self.res = None
-        self.min_fc = None
         self.pvalue_column = None
 
         self._check_input()
         self._perform_differential_expression_analysis()
+        self._annotate_result_df()
         self._plot()
 
     def _check_input(self):
@@ -54,6 +59,7 @@ class VolcanoPlot(PlotUtils):
                 + "Please select from 'ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test using."
             )
 
+    @lru_cache(maxsize=20)
     def _wald(self):
 
         print(
@@ -67,6 +73,7 @@ class VolcanoPlot(PlotUtils):
         )
         self.pvalue_column = "qval"
 
+    @lru_cache(maxsize=20)
     def _ttest(self):
 
         print("Calculating t-test...")
@@ -79,6 +86,7 @@ class VolcanoPlot(PlotUtils):
         )
         self.pvalue_column = "pval"
 
+    @lru_cache(maxsize=20)
     def _anova(self):
 
         print("Calculating ANOVA with follow-up tukey test...")
@@ -89,53 +97,68 @@ class VolcanoPlot(PlotUtils):
 
         group1_samples = self.dataset.metadata[
             self.dataset.metadata[self.column] == self.group1
-        ][self.sample].tolist()
+        ][self.dataset.sample].tolist()
 
         group2_samples = self.dataset.metadata[
             self.dataset.metadata[self.column] == self.group2
-        ][self.sample].tolist()
+        ][self.dataset.sample].tolist()
 
         mat_transpose = self.dataset.mat.transpose()
-        fc = self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
+        fc = self.dataset._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
 
         #  check how column is ordered
-        pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
+        self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
 
-        if pvalue_column not in fc.columns:
-            pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
+        if self.pvalue_column not in fc.columns:
+            self.pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
-        self.res = result_df.reset_index().merge(fc.reset_index(), on=self.index_column)
+        self.res = result_df.reset_index().merge(fc.reset_index(), on=self.dataset.index_column)
 
     def _annotate_result_df(self):
-        res = self.res[(self.res["log2fc"] < 10) & (self.res["log2fc"] > -10)]
-        res["-log10(p-value)"] = -np.log10(res[self.pvalue_column])
-        alpha = -np.log10(alpha)
+        self.res = self.res[(self.res["log2fc"] < 10) & (self.res["log2fc"] > -10)]
+        self.res["-log10(p-value)"] = -np.log10(self.res[self.pvalue_column])
+        
+        self.alpha = -np.log10(self.alpha)
         # add color variable to plot
+        
+        print("min foldchange")
+        print(self.min_fc)
 
         condition = [
-            (res["log2fc"] < -self.min_fc) & (res["-log10(p-value)"] > alpha),
-            (res["log2fc"] > self.min_fc) & (res["-log10(p-value)"] > alpha),
+            (self.res["log2fc"] < -self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
+            (self.res["log2fc"] > self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
         ]
 
         value = ["down", "up"]
-        res["color"] = np.select(condition, value, default="non-significant")
-        self.res = res
+        self.res["color"] = np.select(condition, value, default="non-significant")
+        
+        # additional labeling with gene names
+        self.hover_data = [self.dataset.index_column]
 
-    def _add_labels_plot(self, result_df, figure_object):
+        if self.dataset.gene_names is not None:
+            self.res = pd.merge(
+                self.res,
+                self.dataset.rawinput[[self.dataset.gene_names, self.dataset.index_column]],
+                on=self.dataset.index_column,
+                how="left",
+            )
+            self.hover_data.append(self.dataset.gene_names)
+
+    def _add_labels_plot(self, figure_object):
 
         if self.dataset.gene_names is not None:
             label_column = self.dataset.gene_names
         else:
             label_column = self.dataset.index_column
 
-        result_df["label"] = np.where(
-            result_df.color != "non-significant", result_df[label_column], ""
+        self.res["label"] = np.where(
+            self.res.color != "non-significant", self.res[label_column], ""
         )
         #  replace nas with empty string (can cause error when plotting with gene names)
-        result_df["label"] = result_df["label"].fillna("")
-        result_df = result_df[result_df["label"] != ""]
+        self.res["label"] = self.res["label"].fillna("")
+        self.res = self.res[self.res["label"] != ""]
 
-        for x, y, label_column in result_df[
+        for x, y, label_column in self.res[
             ["log2fc", "-log10(p-value)", label_column]
         ].itertuples(index=False):
             figure_object.add_annotation(
@@ -168,7 +191,7 @@ class VolcanoPlot(PlotUtils):
 
         if self.labels:
             volcano_plot = self._add_labels_plot(
-                result_df=self.res, figure_object=volcano_plot
+                figure_object=volcano_plot
             )
         if self.draw_line:
             volcano_plot = self._draw_lines_plot(volcano_plot=volcano_plot)
@@ -176,12 +199,13 @@ class VolcanoPlot(PlotUtils):
         # update coloring
         color_dict = {"non-significant": "#404040", "up": "#B65EAF", "down": "#009599"}
         volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
+        
         volcano_plot.update_layout(showlegend=False)
         volcano_plot.update_layout(width=600, height=700)
 
         #  save plotting data in figure object
         volcano_plot = plotly_object(volcano_plot)
         volcano_plot = self._update_figure_attributes(
-            figure_object=volcano_plot, plotting_data=self.re, method=self.method
+            figure_object=volcano_plot, plotting_data=self.res, preprocessing_info=self.dataset.preprocessing_info, method=self.method
         )
         self.plot = volcano_plot
