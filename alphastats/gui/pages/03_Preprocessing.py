@@ -4,13 +4,12 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 import datetime
 
 
-
-
-
 def preprocessing():
 
-    st.markdown("Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. " +
-    "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats [documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html).")
+    st.markdown(
+        "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
+        + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats [documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
+    )
 
     with st.form("preprocessing"):
         dataset = st.session_state["dataset"]
@@ -43,15 +42,26 @@ def preprocessing():
             imputation=imputation,
         )
         preprocessing = st.session_state.dataset.preprocessing_info
-        st.info("Data has been processed. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S") )
-        st.dataframe(pd.DataFrame.from_dict(preprocessing, orient="index").astype(str), use_container_width=True)
+        st.info(
+            "Data has been processed. "
+            + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        )
+        st.dataframe(
+            pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
+            use_container_width=True,
+        )
+
 
 def reset_preprocessing():
     st.session_state.dataset.create_matrix()
     preprocessing = st.session_state.dataset.preprocessing_info
-    st.info("Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S") )
-    st.dataframe(pd.DataFrame.from_dict(preprocessing, orient="index").astype(str), use_container_width=True)
-
+    st.info(
+        "Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    )
+    st.dataframe(
+        pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
+        use_container_width=True,
+    )
 
 
 def main_preprocessing():
@@ -73,7 +83,7 @@ sidebar_info()
 main_preprocessing()
 
 
-
-
 def plot_intensity_distribution():
-    st.selectbox("Sample", options=st.session_state.dataset.metadata["sample"].to_list())
+    st.selectbox(
+        "Sample", options=st.session_state.dataset.metadata["sample"].to_list()
+    )

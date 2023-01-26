@@ -1,4 +1,3 @@
-
 import sklearn
 import logging
 import plotly.express as px
@@ -13,7 +12,7 @@ import pandas as pd
 from scipy.spatial.distance import pdist, squareform
 import random
 import itertools
-import plotly.figure_factory 
+import plotly.figure_factory
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.VolcanoPlot import VolcanoPlot
@@ -30,16 +29,14 @@ class seaborn_object(sns.matrix.ClusterGrid):
     plotting_data = None
     preprocessing = None
     method = None
-    
+
 
 class Plot:
-    
     def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", self.preprocessing_info)
         setattr(figure_object, "method", method)
         return figure_object
-
 
     @check_for_missing_values
     def plot_pca(self, group=None, circle=False):
@@ -53,10 +50,7 @@ class Plot:
             plotly.graph_objects._figure.Figure: PCA plot
         """
         dimensionality_reduction = DimensionalityReduction(
-            dataset=self,
-            group=group,
-            method="pca", 
-            circle=circle
+            dataset=self, group=group, method="pca", circle=circle
         )
         return dimensionality_reduction.plot
 
@@ -72,7 +66,7 @@ class Plot:
             plotly.graph_objects._figure.Figure: t-SNE plot
         """
         dimensionality_reduction = DimensionalityReduction(
-            dataset=self, 
+            dataset=self,
             group=group,
             method="tsne",
             circle=circle,
@@ -93,24 +87,21 @@ class Plot:
             plotly.graph_objects._figure.Figure: UMAP plot
         """
         dimensionality_reduction = DimensionalityReduction(
-            dataset=self,
-            group=group,
-            method="umap", 
-            circle=circle
+            dataset=self, group=group, method="umap", circle=circle
         )
         return dimensionality_reduction.plot
-    
+
     def plot_volcano(
-            self,
-            group1,
-            group2,
-            column=None,
-            method="ttest",
-            labels=False,
-            min_fc=1,
-            alpha=0.05,
-            draw_line=True,
-        ):
+        self,
+        group1,
+        group2,
+        column=None,
+        method="ttest",
+        labels=False,
+        min_fc=1,
+        alpha=0.05,
+        draw_line=True,
+    ):
         """Plot Volcano Plot
 
         Args:
@@ -122,7 +113,7 @@ class Plot:
             alpha(float,optional): p-value cut off.
             min_fc (float): Minimum fold change
             draw_line(boolean): whether to draw cut off lines.
-           
+
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
@@ -130,8 +121,8 @@ class Plot:
 
         volcano_plot = VolcanoPlot(
             dataset=self,
-            group1 = group1,
-            group2 = group2,
+            group1=group1,
+            group2=group2,
             column=column,
             method=method,
             labels=labels,
@@ -139,14 +130,14 @@ class Plot:
             alpha=alpha,
             draw_line=draw_line,
         )
- 
+
         return volcano_plot.plot
 
     def plot_correlation_matrix(self, method="pearson"):
         """Plot Correlation Matrix
 
         Args:
-            method (str, optional): orrelation coefficient "pearson", "kendall" (Kendall Tau correlation) 
+            method (str, optional): orrelation coefficient "pearson", "kendall" (Kendall Tau correlation)
             or "spearman" (Spearman rank correlation). Defaults to "pearson".
 
         Returns:
@@ -273,7 +264,7 @@ class Plot:
         add_significance=False,
         log_scale=False,
     ):
-        """Plot Intensity of individual Protein/ProteinGroup 
+        """Plot Intensity of individual Protein/ProteinGroup
 
         Args:
             ID (str): ProteinGroup ID
@@ -400,8 +391,6 @@ class Plot:
                 )
                 fig.ax_col_dendrogram.legend(loc="center", ncol=6)
 
-        
- 
         fig = self._update_figure_attributes(
             figure_object=fig, plotting_data=df, method="clustermap"
         )
@@ -411,7 +400,7 @@ class Plot:
     def plot_dendrogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
-        """Plot Hierarichical Clustering Dendrogram. This is a wrapper around: 
+        """Plot Hierarichical Clustering Dendrogram. This is a wrapper around:
         https://plotly.com/python-api-reference/generated/plotly.figure_factory.create_dendrogram.html
 
         Args:
@@ -436,7 +425,6 @@ class Plot:
         )
         return fig
 
-    
     def plot_imputed_values(self):
         # get coordinates of missing values
         df = self.mat
@@ -444,8 +432,9 @@ class Plot:
         missing_values_coordinates = [list(x) for x in s.index[s.isna()]]
 
         # get all coordinates
-        coordinates = list(itertools.product(list(self.mat.index), list(self.mat.columns)))
-
+        coordinates = list(
+            itertools.product(list(self.mat.index), list(self.mat.columns))
+        )
 
         # needs to be speed up
         imputed_values, original_values = [], []
@@ -457,17 +446,21 @@ class Plot:
             else:
                 original_values.append(value)
 
-        label = ["imputed values"]*len(imputed_values) + ["non imputed values"]*len(original_values) 
+        label = ["imputed values"] * len(imputed_values) + ["non imputed values"] * len(
+            original_values
+        )
         values = imputed_values + original_values
 
-        plot_df = pd.DataFrame(list(zip(label, values)),
-                columns =['Imputation', 'values'])
+        plot_df = pd.DataFrame(
+            list(zip(label, values)), columns=["Imputation", "values"]
+        )
 
-        fig = px.histogram(plot_df, x="values", color="Imputation", 
-                    opacity=0.8,
-                        hover_data=plot_df.columns,
+        fig = px.histogram(
+            plot_df,
+            x="values",
+            color="Imputation",
+            opacity=0.8,
+            hover_data=plot_df.columns,
         )
 
         pass
-
-  

@@ -129,7 +129,7 @@ class Enrichment:
 
     def go_characterize_foreground(self, protein_list, tax_id=9606):
         """
-        Display existing functional annotations for your protein(s) of interest. 
+        Display existing functional annotations for your protein(s) of interest.
         No statistical test for enrichment is performed.
         Using the API connection from a GO tool: https://agotool.org
 
@@ -160,7 +160,7 @@ class Enrichment:
 
         """
         check_internetconnection()
-        protein_list = [self._extract_protein_ids(protein)for protein in protein_list]
+        protein_list = [self._extract_protein_ids(protein) for protein in protein_list]
         protein_list = "%0d".join(protein_list)
         url = r"https://agotool.org/api_orig"
 
@@ -182,9 +182,9 @@ class Enrichment:
         Gene Ontology Enrichement Analysis with abundance correction.
         Using the API connection from a GO tool: https://agotool.org
 
-        For the analysis modified proteins in the foreground sample are compared with proteins and 
+        For the analysis modified proteins in the foreground sample are compared with proteins and
         their intensity of the background sample.
-        In case there is no information about PTMs in the dataset a list of enriched proteins in the 
+        In case there is no information about PTMs in the dataset a list of enriched proteins in the
         foreground can be loaded. This list of Protein IDs can be obtaint by performing a differential
         expression analysis or a ANOVA.
 
@@ -220,8 +220,10 @@ class Enrichment:
         # get PTMs for fg_sample
         if fg_protein_list is None:
             fg_protein_list = self._get_ptm_proteins(sample=fg_sample)
-        
-        fg_protein_list = [self._extract_protein_ids(protein)for protein in fg_protein_list]
+
+        fg_protein_list = [
+            self._extract_protein_ids(protein) for protein in fg_protein_list
+        ]
         fg_protein_list = "%0d".join(fg_protein_list)
 
         # get intensity for bg_sample
@@ -326,7 +328,7 @@ class Enrichment:
         if protein_list is None:
             protein_list = self._get_ptm_proteins(sample=fg_sample)
 
-        protein_list = [self._extract_protein_ids(protein)for protein in protein_list]    
+        protein_list = [self._extract_protein_ids(protein) for protein in protein_list]
         protein_list = "%0d".join(protein_list)
         url = r"https://agotool.org/api_orig"
 

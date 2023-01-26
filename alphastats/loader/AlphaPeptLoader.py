@@ -5,7 +5,7 @@ import logging
 
 
 class AlphaPeptLoader(BaseLoader):
-    """Loader for AlphaPept outputfiles 
+    """Loader for AlphaPept outputfiles
     https://github.com/MannLabs/alphapept
     """
 
@@ -36,7 +36,7 @@ class AlphaPeptLoader(BaseLoader):
         self.filter_columns = []
         self.confidence_column = None
         self.software = "AlphaPept"
-        self.evidence_df = None 
+        self.evidence_df = None
         self.gene_names = None
         # add contamination column "Reverse"
         self._add_contamination_reverse_column()
@@ -51,8 +51,7 @@ class AlphaPeptLoader(BaseLoader):
         self.rawinput = pd.read_hdf(file, "protein_table")
 
     def _add_contamination_reverse_column(self):
-        """adds column 'Reverse' to the rawinput for filtering
-        """
+        """adds column 'Reverse' to the rawinput for filtering"""
         self.rawinput["Reverse"] = np.where(
             self.rawinput[self.index_column].str.contains("REV_"), True, False
         )

@@ -10,7 +10,7 @@ def check_if_options_are_loaded(f):
     def inner(*args, **kwargs):
         if hasattr(st.session_state, "plotting_options") is False:
             load_options()
-            
+
         return f(*args, **kwargs)
 
     return inner
@@ -42,6 +42,7 @@ def get_unique_values_from_column(column):
     unique_values = st.session_state.dataset.metadata[column].unique().tolist()
     return unique_values
 
+
 def st_general(method_dict):
 
     chosen_parameter_dict = {}
@@ -57,7 +58,7 @@ def st_general(method_dict):
             if "options" in parameter_dict.keys():
                 chosen_parameter = st.selectbox(
                     parameter_dict.get("label"), options=parameter_dict.get("options")
-                    )
+                )
             else:
                 chosen_parameter = st.checkbox(parameter_dict.get("label"))
 
@@ -67,7 +68,7 @@ def st_general(method_dict):
 
     if submitted:
         with st.spinner("Calculating..."):
-                return method_dict["function"](**chosen_parameter_dict)
+            return method_dict["function"](**chosen_parameter_dict)
 
 
 def get_analysis_options_from_dict(method, options_dict):
@@ -80,10 +81,10 @@ def get_analysis_options_from_dict(method, options_dict):
 
     if method == "t-SNE Plot":
         return st_tsne_options(method_dict)
-    
+
     elif method == "Differential Expression Analysis - T-test":
         return st_calculate_ttest(method=method, options_dict=options_dict)
-    
+
     elif method == "Differential Expression Analysis - Wald-test":
         return st_calculate_waldtest(method=method, options_dict=options_dict)
 
@@ -92,7 +93,7 @@ def get_analysis_options_from_dict(method, options_dict):
 
     elif method == "PCA Plot":
         return st_plot_pca(method_dict)
-    
+
     elif method == "UMAP Plot":
         return st_plot_umap(method_dict)
 
@@ -100,19 +101,22 @@ def get_analysis_options_from_dict(method, options_dict):
 
         if st.session_state.dataset.mat.isna().values.any() == True:
             st.error(
-                    "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
+                "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
             )
             return
-        
+
         chosen_parameter_dict = {}
         return method_dict["function"](**chosen_parameter_dict)
 
     else:
         return st_general(method_dict=method_dict)
 
+
 def st_plot_pca(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict)
-    
+    chosen_parameter_dict = helper_plot_dimensionality_reduction(
+        method_dict=method_dict
+    )
+
     submitted = st.button("Submit")
 
     if submitted:
@@ -121,44 +125,51 @@ def st_plot_pca(method_dict):
 
 
 def st_plot_umap(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict) 
+    chosen_parameter_dict = helper_plot_dimensionality_reduction(
+        method_dict=method_dict
+    )
 
     submitted = st.button("Submit")
 
     if submitted:
         with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)  
+            return method_dict["function"](**chosen_parameter_dict)
+
 
 def st_plot_volcano(method, options_dict):
     chosen_parameter_dict = helper_compare_two_groups()
     analysis_method = st.selectbox(
-            "Differential Analysis using:", 
-            options=["ttest","anova", "wald"],
-        )
-        
+        "Differential Analysis using:",
+        options=["ttest", "anova", "wald"],
+    )
+
     col1, col2 = st.columns(2)
-        
+
     with col1:
         labels = st.checkbox("Add label")
-        
+
     with col2:
         draw_line = st.checkbox("Draw line")
-        
+
     col3, col4 = st.columns(2)
-        
+
     with col3:
-        alpha =  st.number_input(label ="alpha", min_value =0.001, max_value=0.050, value=0.050 )
+        alpha = st.number_input(
+            label="alpha", min_value=0.001, max_value=0.050, value=0.050
+        )
 
     with col4:
-        min_fc =  st.select_slider("Foldchange cutoff", range(0, 3), value=1)
+        min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
 
-    chosen_parameter_dict.update( {
+    chosen_parameter_dict.update(
+        {
             "method": analysis_method,
             "labels": labels,
             "draw_line": draw_line,
             "alpha": alpha,
-            "min_fc": min_fc
-        })
+            "min_fc": min_fc,
+        }
+    )
 
     submitted = st.button("Submit")
 
@@ -169,7 +180,7 @@ def st_plot_volcano(method, options_dict):
 
 def st_calculate_ttest(method, options_dict):
     """
-    perform ttest in streamlit 
+    perform ttest in streamlit
     """
     chosen_parameter_dict = helper_compare_two_groups()
     chosen_parameter_dict.update({"method": "ttest"})
@@ -195,15 +206,15 @@ def st_calculate_waldtest(method, options_dict):
 def helper_plot_dimensionality_reduction(method_dict):
     group = st.selectbox(
         method_dict["settings"]["group"].get("label"),
-        options=method_dict["settings"]["group"].get("options")
+        options=method_dict["settings"]["group"].get("options"),
     )
-    
+
     circle = False
 
     if group is not None:
 
         circle = st.checkbox("circle")
-    
+
     chosen_parameter_dict = {
         "circle": circle,
         "group": group,
@@ -236,14 +247,16 @@ def helper_compare_two_groups():
 
         with col2:
 
-            group2 = st.selectbox("Group 2", options= list(reversed(unique_values)))
+            group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
 
         chosen_parameter_dict.update(
             {"column": group, "group1": group1, "group2": group2}
         )
 
         if group1 == group2:
-            st.error("Group 1 and Group 2 can not be the same please select different group.")
+            st.error(
+                "Group 1 and Group 2 can not be the same please select different group."
+            )
 
     else:
 
@@ -260,18 +273,21 @@ def helper_compare_two_groups():
 
             group2 = st.multiselect(
                 "Group 2 samples:",
-                options= list(reversed(st.session_state.dataset.metadata["sample"].to_list())),
+                options=list(
+                    reversed(st.session_state.dataset.metadata["sample"].to_list())
+                ),
             )
 
         intersection_list = list(set(group1).intersection(set(group2)))
-        
+
         if len(intersection_list) > 0:
-            st.warning("Group 1 and Group 2 contain same samples: " + str(intersection_list))
+            st.warning(
+                "Group 1 and Group 2 contain same samples: " + str(intersection_list)
+            )
 
         chosen_parameter_dict.update({"group1": group1, "group2": group2})
-    
-    return chosen_parameter_dict
 
+    return chosen_parameter_dict
 
 
 def get_sample_names_from_software_file():
@@ -299,7 +315,9 @@ def get_analysis(method, options_dict):
 
 
 def st_tsne_options(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(method_dict=method_dict)
+    chosen_parameter_dict = helper_plot_dimensionality_reduction(
+        method_dict=method_dict
+    )
 
     n_iter = st.select_slider(
         "Maximum number of iterations for the optimization",
@@ -309,10 +327,12 @@ def st_tsne_options(method_dict):
     perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
 
     submitted = st.button("Submit")
-    chosen_parameter_dict.update({
-        "n_iter": n_iter,
-        "perplexity": perplexity,
-    })
+    chosen_parameter_dict.update(
+        {
+            "n_iter": n_iter,
+            "perplexity": perplexity,
+        }
+    )
 
     if submitted:
         with st.spinner("Calculating..."):
@@ -320,7 +340,7 @@ def st_tsne_options(method_dict):
 
 
 def load_options():
-    
+
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options

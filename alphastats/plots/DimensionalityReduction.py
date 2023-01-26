@@ -1,5 +1,5 @@
-from alphastats.plots.PlotUtils import PlotUtils
-from alphastats.DataSet_Plot import plotly
+from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+
 
 try:
     import umap.umap_ as umap
@@ -32,8 +32,9 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
+
 class DimensionalityReduction(PlotUtils):
-    def __init__(self,dataset, group, method, circle) -> None:
+    def __init__(self, dataset, group, method, circle) -> None:
         self.dataset = dataset
         self.method = method
         self.circle = circle
@@ -41,18 +42,18 @@ class DimensionalityReduction(PlotUtils):
         self.plot = None
 
         sample_names, group_color = self._prepare_df()
-        
+
         if self.method == "pca":
             self._pca()
-        
+
         elif self.method == "umap":
             self._umap()
 
         elif self.method == "tsne":
             self._tsne()
-        
+
         self._plot(sample_names=sample_names, group_color=group_color)
-    
+
     def _add_circles_to_scatterplot(self):
         # called by _plot_dimensionality_reduction()
         # convert figure to dict and extract information
@@ -75,20 +76,22 @@ class DimensionalityReduction(PlotUtils):
                 fillcolor=group_color,
                 line_color=group_color,
             )
-    
+
     def _prepare_df(self):
-        
+
         if self.group:
             mat = self.dataset._subset()
-            self.dataset.metadata[self.group] = self.dataset.metadata[self.group].apply(str)
+            self.dataset.metadata[self.group] = self.dataset.metadata[self.group].apply(
+                str
+            )
             group_color = self.dataset.metadata[self.group]
             sample_names = self.dataset.metadata[self.dataset.sample].to_list()
-        
+
         else:
             mat = self.dataset.mat
             group_color = self.group
             sample_names = mat.reset_index(level=0)["index"].to_list()
-        
+
         mat = mat.fillna(0)
         self.prepared_df = mat
 
@@ -98,26 +101,26 @@ class DimensionalityReduction(PlotUtils):
         pca = sklearn.decomposition.PCA(n_components=2)
         self.components = pca.fit_transform(self.prepared_df)
         self.labels = {
-                "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
-                "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
-            }
+            "0": "PC 1 (%.2f%%)" % (pca.explained_variance_ratio_[0] * 100),
+            "1": "PC 2 (%.2f%%)" % (pca.explained_variance_ratio_[1] * 100),
+        }
 
     def _tsne(self, **kwargs):
         tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, **kwargs)
         self.components = tsne.fit_transform(self.prepared_df)
         self.labels = {
-                "0": "Dimension 1",
-                "1": "Dimension 2",
-            }
+            "0": "Dimension 1",
+            "1": "Dimension 2",
+        }
 
     def _umap(self):
         umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
         self.components = umap_2d.fit_transform(self.prepared_dft)
         self.labels = {
-                "0": "",
-                "1": "",
-            }
-    
+            "0": "",
+            "1": "",
+        }
+
     def _plot(self, sample_names, group_color):
         components = pd.DataFrame(components)
         components[self.dataset.sample] = sample_names
@@ -143,7 +146,9 @@ class DimensionalityReduction(PlotUtils):
         #  save plotting data in figure object
         fig = plotly_object(fig)
         fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=pd.DataFrame(components), method=self.method
+            figure_object=fig,
+            plotting_data=pd.DataFrame(components),
+            method=self.method,
         )
 
         # draw circles around plotted groups

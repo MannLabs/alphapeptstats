@@ -4,6 +4,7 @@ from typing import Type
 import logging
 import http.client as httplib
 
+
 def ignore_warning(warning: Type[Warning]):
     """
     Ignore a given warning occurring during method execution.

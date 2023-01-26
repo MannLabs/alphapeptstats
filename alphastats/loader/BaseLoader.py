@@ -7,14 +7,13 @@ import pkg_resources
 
 
 class BaseLoader:
-    """Parent class of Loaders
-    """
+    """Parent class of Loaders"""
 
     def __init__(self, file, intensity_column, index_column, sep):
         """BaseLoader for AlphaPept, MaxQuant, Fragpipe and DIANNLoader
 
         Args:
-            file_path (str): path to file 
+            file_path (str): path to file
             sep (str, optional): file separation. Defaults to "\t".
         """
 
@@ -35,8 +34,7 @@ class BaseLoader:
         self._check_if_columns_are_present()
 
     def _check_if_columns_are_present(self):
-        """check if given columns present in rawinput
-        """
+        """check if given columns present in rawinput"""
         given_columns = list(filter(None, [self.index_column, self.confidence_column]))
         wrong_columns = list(set(given_columns) - set(self.rawinput.columns.to_list()))
         if len(wrong_columns) > 0:

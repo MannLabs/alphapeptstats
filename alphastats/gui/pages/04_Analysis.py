@@ -1,22 +1,28 @@
 import streamlit as st
-from alphastats.gui.utils.analysis_helper import get_analysis, load_options #, check_if_options_are_loaded
+from alphastats.gui.utils.analysis_helper import (
+    get_analysis,
+    load_options,
+)  # , check_if_options_are_loaded
 from alphastats.gui.utils.ui_helper import sidebar_info
 import alphastats.gui.utils.analysis_helper
 import pandas as pd
-import io 
+import io
+
 
 def check_if_options_are_loaded(f):
     """
     decorator to check whether analysis options are loaded
     """
+
     def inner(*args, **kwargs):
 
         if hasattr(st.session_state, "plotting_options") is False:
             alphastats.gui.utils.analysis_helper.load_options()
-            
+
         return f(*args, **kwargs)
 
     return inner
+
 
 def display_figure(plot):
     """
@@ -34,32 +40,32 @@ def save_plot_to_session_state(plot, method):
     """
     st.session_state["plot_list"] += [(method, plot)]
 
+
 def display_df(df):
     mask = df.applymap(type) != bool
-    d = {True: 'TRUE', False: 'FALSE'}
+    d = {True: "TRUE", False: "FALSE"}
     df = df.where(mask, df.replace(d))
     st.dataframe(df)
+
 
 def download_figure(obj, format, plotting_library="plotly"):
     """
     download plotly figure
     """
-    
+
     plot = obj[1]
     filename = obj[0] + "." + format
 
     buffer = io.BytesIO()
-    
+
     if plotting_library == "plotly":
         # Save the figure as a pdf to the buffer
         plot.write_image(file=buffer, format=format)
-       
-    else:
-        plot.savefig( buffer, format=format)
 
-    st.download_button(
-            label="Download as " + format, data=buffer, file_name=filename
-        )
+    else:
+        plot.savefig(buffer, format=format)
+
+    st.download_button(label="Download as " + format, data=buffer, file_name=filename)
 
 
 @st.cache
@@ -77,7 +83,7 @@ def download_preprocessing_info(plot):
         csv,
         filename,
         "text/csv",
-        key="preprocessing" ,
+        key="preprocessing",
     )
 
 
@@ -89,11 +95,10 @@ def select_analysis():
     """
     method = st.selectbox(
         "Analysis",
-        options=list(st.session_state.plotting_options.keys()) +
-         list(st.session_state.statistic_options.keys()),
+        options=list(st.session_state.plotting_options.keys())
+        + list(st.session_state.statistic_options.keys()),
     )
     return method
-
 
 
 st.markdown("### Analysis")
@@ -116,10 +121,8 @@ styl = f"""
 st.markdown(styl, unsafe_allow_html=True)
 
 
-
 if "plot_list" not in st.session_state:
     st.session_state["plot_list"] = []
-
 
 
 if "dataset" in st.session_state:
@@ -127,10 +130,12 @@ if "dataset" in st.session_state:
     method = select_analysis()
 
     # --- PLOT ----------------------------------------------------------------------------------------------------------
-    
+
     if method in st.session_state.plotting_options.keys():
 
-        analysis_result = get_analysis(method=method, options_dict=st.session_state.plotting_options)
+        analysis_result = get_analysis(
+            method=method, options_dict=st.session_state.plotting_options
+        )
 
         if analysis_result is not None and method != "Clustermap":
             display_figure(analysis_result)
@@ -149,13 +154,12 @@ if "dataset" in st.session_state:
 
             with col3:
                 download_preprocessing_info(method_plot)
-        
-        elif method== "Clustermap":
+
+        elif method == "Clustermap":
 
             st.write("Download Figure to see full size.")
-            
-            display_figure(analysis_result)
 
+            display_figure(analysis_result)
 
             save_plot_to_session_state(analysis_result, method)
 
@@ -171,29 +175,25 @@ if "dataset" in st.session_state:
 
             with col3:
                 download_preprocessing_info(method_plot)
-        
 
+    # --- STATISTICAL ANALYSIS ------------------------------------------------------------------------------------------
 
-     # --- STATISTICAL ANALYSIS ------------------------------------------------------------------------------------------
-    
-    elif  method in st.session_state.statistic_options.keys():
+    elif method in st.session_state.statistic_options.keys():
 
-        analysis_result = get_analysis(method=method, options_dict=st.session_state.statistic_options)
+        analysis_result = get_analysis(
+            method=method, options_dict=st.session_state.statistic_options
+        )
 
         if analysis_result is not None:
 
-            display_df(analysis_result )
+            display_df(analysis_result)
 
             filename = method + ".csv"
-            csv = convert_df(analysis_result )
+            csv = convert_df(analysis_result)
 
             st.download_button(
                 "Download as .csv", csv, filename, "text/csv", key="download-csv"
             )
-
-       
-
-        
 
 
 else:

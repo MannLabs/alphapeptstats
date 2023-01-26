@@ -1,7 +1,7 @@
 class PlotUtils:
     def __init__(self) -> None:
         pass
-   
+
     @staticmethod
     def _update_colors_plotly(fig, color_dict):
         # plotly doesnt allow to assign color to certain group
@@ -15,10 +15,21 @@ class PlotUtils:
             fig_dict["data"][count]["marker"]["color"] = group_color
         # convert dict back to plotly figure
         return go.Figure(fig_dict)
-    
+
     def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", self.preprocessing_info)
         setattr(figure_object, "method", method)
         return figure_object
-    
+
+
+class plotly_object(plotly.graph_objs._figure.Figure):
+    plotting_data = None
+    preprocessing = None
+    method = None
+
+
+class seaborn_object(sns.matrix.ClusterGrid):
+    plotting_data = None
+    preprocessing = None
+    method = None
