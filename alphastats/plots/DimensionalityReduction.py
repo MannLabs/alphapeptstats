@@ -117,7 +117,7 @@ class DimensionalityReduction(PlotUtils):
             import umap
         
         umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
-        self.components = umap_2d.fit_transform(self.prepared_dft)
+        self.components = umap_2d.fit_transform(self.prepared_df)
         self.labels = {
             "0": "",
             "1": "",
