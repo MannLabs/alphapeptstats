@@ -33,7 +33,6 @@ class Statistics:
 
         return column, "group1", "group2"
 
-    @lru_cache(maxsize=20)
     def diff_expression_analysis(self, group1, group2, column=None, method="ttest"):
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 

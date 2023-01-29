@@ -16,6 +16,8 @@ import plotly.figure_factory
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.plots.IntensityPlot import IntensityPlot
+from alphastats.plots.ClusterMap import ClusterMap
 from alphastats.utils import ignore_warning, check_for_missing_values
 
 
@@ -187,74 +189,6 @@ class Plot:
         )
         return fig
 
-    @staticmethod
-    def _add_significance(plot):
-        # add sginficance pvalue, and stars to pairwise intensity plot
-        plot_dict = plot.to_plotly_json()
-        data = plot_dict.get("data")
-
-        if len(data) != 2:
-            logging.warning(
-                "Signficane can only be estimated when there are two groups plotted."
-            )
-            return plot
-
-        group1, group2 = data[0]["name"], data[1]["name"]
-        y_array1, y_array2 = data[0]["y"], data[1]["y"]
-        #  do ttest
-        pvalue = scipy.stats.ttest_ind(y_array1, y_array2).pvalue
-
-        pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
-
-        if pvalue < 0.001:
-            significance_level = "***"
-            pvalue_text = "<i>p<0.001</i>"
-        elif pvalue < 0.01:
-            significance_level = "**"
-        elif pvalue < 0.05:
-            significance_level = "*"
-        else:
-            significance_level = "-"
-
-        y_max = np.concatenate((y_array1, y_array2)).max()
-        # add connecting bar for pvalue
-        plot.add_trace(
-            go.Scatter(
-                x=[group1, group1, group2, group2],
-                y=[y_max * 1.1, y_max * 1.15, y_max * 1.15, y_max * 1.1],
-                fill=None,
-                mode="lines",
-                line=dict(color="rgba(0,0,0,1)", width=1),
-                showlegend=False,
-            )
-        )
-
-        # Add p-values
-        plot.add_annotation(
-            text=pvalue_text,
-            name="p-value",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.95,
-            showarrow=False,
-            font=dict(size=12, color="black"),
-        )
-
-        plot.add_annotation(
-            text=significance_level,
-            name="significance",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=1.002,
-            showarrow=False,
-            font=dict(size=12, color="black"),
-        )
-
-        plot.update_layout(width=600, height=700)
-        return plot
-
     def plot_intensity(
         self,
         protein_id,
@@ -277,67 +211,17 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: Plotly Plot
         """
-        #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
-        df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
-
-        if subgroups is not None:
-            df = df[df[group].isin(subgroups)]
-
-        y_label = protein_id + " - " + self.intensity_column.replace("[sample]", "")
-
-        if method == "violin":
-            fig = px.violin(
-                df, y=protein_id, x=group, color=group, labels={protein_id: y_label}
-            )
-
-        elif method == "box":
-            fig = px.box(
-                df, y=protein_id, x=group, color=group, labels={protein_id: y_label}
-            )
-
-        elif method == "scatter":
-            fig = px.scatter(
-                df, y=protein_id, x=group, color=group, labels={protein_id: y_label}
-            )
-
-        else:
-            raise ValueError(
-                f"{method} is not available."
-                + "Please select from 'violin' for Violinplot, 'box' for Boxplot and 'scatter' for Scatterplot."
-            )
-
-        if log_scale:
-            fig.update_layout(yaxis=dict(type="log"))
-
-        if add_significance:
-            fig = self._add_significance(fig)
-
-        fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=df, method=method
+        intensity_plot = IntensityPlot(
+            dataset = self,
+            protein_id=protein_id,
+            group=group,
+            subgroups=subgroups,
+            method=method,
+            add_significance=add_significance,
+            log_scale=log_scale
         )
 
-        return fig
-
-    def _clustermap_create_label_bar(self, label, metadata_df):
-        colorway = [
-            "#009599",
-            "#005358",
-            "#772173",
-            "#B65EAF",
-            "#A73A00",
-            "#6490C1",
-            "#FF894F",
-        ]
-
-        s = metadata_df[label]
-        su = s.unique()
-        colors = sns.light_palette(random.choice(colorway), len(su))
-        lut = dict(zip(su, colors))
-        color_label = s.map(lut)
-
-        return color_label, lut, s
+        return intensity_plot.plot
 
     @ignore_warning(UserWarning)
     @check_for_missing_values
@@ -356,45 +240,14 @@ class Plot:
              ClusterGrid: Clustermap
         """
 
-        df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
-
-        if group is not None and subgroups is not None:
-            metadata_df = self.metadata[
-                self.metadata[group].isin(subgroups + [self.sample])
-            ]
-            samples = metadata_df[self.sample]
-            df = df.filter(items=samples, axis=0)
-
-        else:
-            metadata_df = self.metadata
-
-        if only_significant and group is not None:
-            anova_df = self.anova(column=group, tukey=False)
-            significant_proteins = anova_df[anova_df["ANOVA_pvalue"] < 0.05][
-                self.index_column
-            ].to_list()
-            df = df[significant_proteins]
-
-        if label_bar is not None:
-            label_bar, lut, s = self._clustermap_create_label_bar(
-                label_bar, metadata_df
-            )
-
-        df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
-
-        fig = sns.clustermap(df.transpose(), col_colors=label_bar)
-
-        if label_bar is not None:
-            for label in s.unique():
-                fig.ax_col_dendrogram.bar(
-                    0, 0, color=lut[label], label=label, linewidth=0
-                )
-                fig.ax_col_dendrogram.legend(loc="center", ncol=6)
-
-        fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=df, method="clustermap"
+        clustermap = ClusterMap(
+            dataset = self,
+            label_bar=label_bar,
+            only_significant=only_significant,
+            group=group,
+            subgroups=subgroups
         )
-        return fig
+        return  clustermap.plot
 
     @check_for_missing_values
     def plot_dendrogram(
