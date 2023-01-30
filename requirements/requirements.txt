@@ -1,16 +1,17 @@
-pandas>=1.4.2
-scikit-learn
+pandas==1.5.2
+scikit-learn==1.2.0
 data_cache>=0.1.6
-plotly>=5.7.0
+plotly==5.11.0
+statsmodels==0.13.5
 iteration_utilities
 openpyxl>=3.0.10
-sklearn_pandas>=2.2.0
-pingouin>=0.5.2
-scipy>=1.8.1
+sklearn_pandas==2.2.0
+pingouin==0.5.3
+scipy==1.10.0
 tqdm>=4.64.0
-diffxpy>=0.7.4
-anndata>=0.8.0
-umap-learn>=0.5.3
-streamlit>=1.12.2
+diffxpy==0.7.4
+anndata==0.8.0
+umap-learn==0.5.3
+streamlit==1.17.0
 
 
