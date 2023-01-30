@@ -109,7 +109,7 @@ class IntensityPlot(PlotUtils):
         if self.subgroups is not None:
             df = df[df[self.group].isin(self.subgroups)]
 
-        self.y_label = self.protein_id + " - " + self.intensity_column.replace("[sample]", "")
+        self.y_label = self.protein_id + " - " + self.dataset.intensity_column.replace("[sample]", "")
         self.prepared_df = df
 
     def _plot(self):

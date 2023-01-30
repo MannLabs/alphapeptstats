@@ -24,17 +24,17 @@ class ClusterMap(PlotUtils):
 
 
     def _prepare_df(self):
-        df = self.dataset.mat.loc[:, (self.mat != 0).any(axis=0)]
+        df = self.dataset.mat.loc[:, (self.dataset.mat != 0).any(axis=0)]
 
         if self.group is not None and self.subgroups is not None:
-            metadata_df = self.datset.metadata[
+            metadata_df = self.dataset.metadata[
                 self.dataset.metadata[self.group].isin(self.subgroups + [self.dataset.sample])
             ]
-            samples = metadata_df[self.sample]
+            samples = metadata_df[self.dataset.sample]
             df = df.filter(items=samples, axis=0)
 
         else:
-            metadata_df = self.metadata
+            metadata_df = self.dataset.metadata
 
         if self.only_significant and self.group is not None:
             anova_df = self.dataset.anova(column=self.group, tukey=False)
@@ -44,12 +44,12 @@ class ClusterMap(PlotUtils):
             df = df[significant_proteins]
 
         if self.label_bar is not None:
-            self._clustermap_create_label_bar(
+            self._create_label_bar(
                metadata_df
             )
 
-        df = self.dataset.mat.loc[:, (self.dataset.mat != 0).any(axis=0)].transpose()
-        self.prepared_df = df
+        self.prepared_df = self.dataset.mat.loc[:, (self.dataset.mat != 0).any(axis=0)].transpose()
+  
 
     def _plot(self):
         fig = sns.clustermap(self.prepared_df, col_colors=self.label_bar)
@@ -57,11 +57,11 @@ class ClusterMap(PlotUtils):
         if self.label_bar is not None:
            fig = self._add_label_bar(fig)
 
-        fig = seaborn_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=self.prepared_df, preprocessing_info=self.dataset.preprocessing_info, method="clustermap"
-        )
-        
+        # set attributes
+        setattr(fig, "plotting_data", self.prepared_df)
+        setattr(fig, "preprocessing", self.dataset.preprocessing_info)
+        setattr(fig, "method", "clustermap")
+
         self.plot = fig
 
     def _add_label_bar(self, fig):
@@ -72,7 +72,7 @@ class ClusterMap(PlotUtils):
                 fig.ax_col_dendrogram.legend(loc="center", ncol=6)
         return fig
 
-    def _clustermap_create_label_bar(self, metadata_df):
+    def _create_label_bar(self, metadata_df):
         colorway = [
             "#009599",
             "#005358",
@@ -83,7 +83,7 @@ class ClusterMap(PlotUtils):
             "#FF894F",
         ]
 
-        self.s = metadata_df[self.label]
+        self.s = metadata_df[self.label_bar]
         su = self.s.unique()
         colors = sns.light_palette(random.choice(colorway), len(su))
         self.lut = dict(zip(su, colors))
