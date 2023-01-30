@@ -1,0 +1,3 @@
+([('setup',
+   '/Users/drq441/Documents/GitHub/alphastats/dist/setup',
+   'EXECUTABLE')],)
