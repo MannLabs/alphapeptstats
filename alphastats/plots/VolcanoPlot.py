@@ -10,7 +10,7 @@ from functools import lru_cache
 
 class VolcanoPlot(PlotUtils):
     def __init__(
-        self, dataset, group1, group2, column, method, labels, min_fc, alpha, draw_line
+        self, dataset, group1, group2, column=None, method=None, labels=None, min_fc=None, alpha=None, draw_line=None, plot=True
     ):  
         self.dataset = dataset
         self.group1 = group1
@@ -24,13 +24,18 @@ class VolcanoPlot(PlotUtils):
         self.hover_data = None
         self.res = None
         self.pvalue_column = None
-
         self._check_input()
-        self._perform_differential_expression_analysis()
-        self._annotate_result_df()
-        self._plot()
+       
+        if plot:
+            self._perform_differential_expression_analysis()
+            self._annotate_result_df()
+            self._add_hover_data_columns()
+            self._plot()
 
     def _check_input(self):
+        """
+        check input and add metadata column if samples are given
+        """
         if isinstance(self.group1, list) and isinstance(self.group2, list):
             self.column, self.group1, self.group2 = self.dataset._add_metadata_column(
                 self.group1, self.group2
@@ -41,9 +46,19 @@ class VolcanoPlot(PlotUtils):
                 "Column containing group1 and group2 needs to be specified"
             )
 
+    def _update(self, updated_attributes):
+        """
+        update attributes using dict
+        """
+        for key,value in updated_attributes.items():
+            setattr(self,key,value)
+
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _perform_differential_expression_analysis(self):
+        """
+        wrapper for diff analysis
+        """
         if self.method == "wald":
             self._wald()
 
@@ -114,24 +129,7 @@ class VolcanoPlot(PlotUtils):
 
         self.res = result_df.reset_index().merge(fc.reset_index(), on=self.dataset.index_column)
 
-    def _annotate_result_df(self):
-        self.res = self.res[(self.res["log2fc"] < 10) & (self.res["log2fc"] > -10)]
-        self.res["-log10(p-value)"] = -np.log10(self.res[self.pvalue_column])
-        
-        self.alpha = -np.log10(self.alpha)
-        # add color variable to plot
-        
-        print("min foldchange")
-        print(self.min_fc)
-
-        condition = [
-            (self.res["log2fc"] < -self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
-            (self.res["log2fc"] > self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
-        ]
-
-        value = ["down", "up"]
-        self.res["color"] = np.select(condition, value, default="non-significant")
-        
+    def _add_hover_data_columns(self):
         # additional labeling with gene names
         self.hover_data = [self.dataset.index_column]
 
@@ -144,7 +142,24 @@ class VolcanoPlot(PlotUtils):
             )
             self.hover_data.append(self.dataset.gene_names)
 
-    def _add_labels_plot(self, figure_object):
+
+    def _annotate_result_df(self):
+        self.res = self.res[(self.res["log2fc"] < 10) & (self.res["log2fc"] > -10)]
+        self.res["-log10(p-value)"] = -np.log10(self.res[self.pvalue_column])
+        
+        self.alpha = -np.log10(self.alpha)
+        # add color variable to plot
+        
+        condition = [
+            (self.res["log2fc"] < -self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
+            (self.res["log2fc"] > self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
+        ]
+
+        value = ["down", "up"]
+        self.res["color"] = np.select(condition, value, default="non-significant")   
+        
+
+    def _add_labels_plot(self):
 
         if self.dataset.gene_names is not None:
             label_column = self.dataset.gene_names
@@ -161,27 +176,25 @@ class VolcanoPlot(PlotUtils):
         for x, y, label_column in self.res[
             ["log2fc", "-log10(p-value)", label_column]
         ].itertuples(index=False):
-            figure_object.add_annotation(
+            self.plot.add_annotation(
                 x=x, y=y, text=label_column, showarrow=False, yshift=10
             )
-        return figure_object
 
-    def _draw_lines_plot(self, volcano_plot):
+    def _draw_lines_plot(self):
 
-        volcano_plot.add_hline(
+        self.plot.add_hline(
             y=self.alpha, line_width=1, line_dash="dash", line_color="#8c8c8c"
         )
-        volcano_plot.add_vline(
+        self.plot.add_vline(
             x=self.min_fc, line_width=1, line_dash="dash", line_color="#8c8c8c"
         )
-        volcano_plot.add_vline(
+        self.plot.add_vline(
             x=-self.min_fc, line_width=1, line_dash="dash", line_color="#8c8c8c"
         )
 
-        return volcano_plot
 
     def _plot(self):
-        volcano_plot = px.scatter(
+        self.plot = px.scatter(
             self.res,
             x="log2fc",
             y="-log10(p-value)",
@@ -190,22 +203,23 @@ class VolcanoPlot(PlotUtils):
         )
 
         if self.labels:
-            volcano_plot = self._add_labels_plot(
-                figure_object=volcano_plot
-            )
+            self._add_labels_plot()
         if self.draw_line:
-            volcano_plot = self._draw_lines_plot(volcano_plot=volcano_plot)
+            self._draw_lines_plot()
 
         # update coloring
         color_dict = {"non-significant": "#404040", "up": "#B65EAF", "down": "#009599"}
-        volcano_plot = self._update_colors_plotly(volcano_plot, color_dict=color_dict)
+        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
         
-        volcano_plot.update_layout(showlegend=False)
-        volcano_plot.update_layout(width=600, height=700)
+        self.plot.update_layout(showlegend=False)
+        self.plot.update_layout(width=600, height=700)
 
         #  save plotting data in figure object
-        volcano_plot = plotly_object(volcano_plot)
-        volcano_plot = self._update_figure_attributes(
-            figure_object=volcano_plot, plotting_data=self.res, preprocessing_info=self.dataset.preprocessing_info, method=self.method
+        self.plot = plotly_object(self.plot)
+        self.plot = self._update_figure_attributes(
+            figure_object=self.plot, 
+            plotting_data=self.res, 
+            preprocessing_info=self.dataset.preprocessing_info, 
+            method=self.method
         )
-        self.plot = volcano_plot
+   

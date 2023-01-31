@@ -3,6 +3,7 @@ import pandas as pd
 import logging
 import streamlit as st
 from datetime import datetime
+from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
 def check_if_options_are_loaded(f):
@@ -71,9 +72,67 @@ def st_general(method_dict):
             return method_dict["function"](**chosen_parameter_dict)
 
 
+@st.cache(persist=True, max_entries=10, allow_output_mutation=True)
+def gui_volcano_plot_differential_expression_analysis(chosen_parameter_dict):
+    """
+    initalize volcano plot object with differential expression analysis results
+    """
+    volcano_plot = VolcanoPlot(
+        dataset=st.session_state.dataset, 
+        **chosen_parameter_dict, 
+        plot = False
+    )
+    volcano_plot._perform_differential_expression_analysis()
+    volcano_plot._add_hover_data_columns()
+    return volcano_plot
+
+def gui_volcano_plot():
+    """
+    Draw Volcano Plot using the VolcanoPlot class
+    """
+    chosen_parameter_dict = helper_compare_two_groups()
+    method = st.selectbox(
+        "Differential Analysis using:",
+        options=["ttest", "anova", "wald"],
+    )
+    chosen_parameter_dict.update({"method": method})
+    
+    col1, col2 = st.columns(2)
+    col3, col4 = st.columns(2)
+
+    with col1:
+        labels = st.checkbox("Add label")
+    with col2:
+        draw_line = st.checkbox("Draw line")
+
+
+    with col3:
+        alpha = st.number_input(
+            label="alpha", min_value=0.001, max_value=0.050, value=0.050
+        )
+    with col4:
+        min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
+ 
+    plotting_parameter_dict = {
+            "labels": labels,
+            "draw_line": draw_line,
+            "alpha": alpha,
+            "min_fc": min_fc,
+        }
+
+    submitted = st.button("Submit")
+
+    if submitted:
+        volcano_plot = gui_volcano_plot_differential_expression_analysis(chosen_parameter_dict)
+        volcano_plot._update(plotting_parameter_dict)
+        volcano_plot._annotate_result_df()
+        volcano_plot._plot()
+        return volcano_plot.plot
+
+
 def get_analysis_options_from_dict(method, options_dict):
     """
-    extract plotting options from dict amd display as selectbox or checkbox
+    extract plotting options from dict amd display as selectbox or 
     give selceted options to plotting function
     """
 
@@ -89,7 +148,7 @@ def get_analysis_options_from_dict(method, options_dict):
         return st_calculate_waldtest(method=method, options_dict=options_dict)
 
     elif method == "Volcano Plot":
-        return st_plot_volcano(method=method, options_dict=options_dict)
+        return gui_volcano_plot()
 
     elif method == "PCA Plot":
         return st_plot_pca(method_dict)
@@ -134,48 +193,6 @@ def st_plot_umap(method_dict):
     if submitted:
         with st.spinner("Calculating..."):
             return method_dict["function"](**chosen_parameter_dict)
-
-
-def st_plot_volcano(method, options_dict):
-    chosen_parameter_dict = helper_compare_two_groups()
-    analysis_method = st.selectbox(
-        "Differential Analysis using:",
-        options=["ttest", "anova", "wald"],
-    )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        labels = st.checkbox("Add label")
-
-    with col2:
-        draw_line = st.checkbox("Draw line")
-
-    col3, col4 = st.columns(2)
-
-    with col3:
-        alpha = st.number_input(
-            label="alpha", min_value=0.001, max_value=0.050, value=0.050
-        )
-
-    with col4:
-        min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-
-    chosen_parameter_dict.update(
-        {
-            "method": analysis_method,
-            "labels": labels,
-            "draw_line": draw_line,
-            "alpha": alpha,
-            "min_fc": min_fc,
-        }
-    )
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return options_dict.get(method)["function"](**chosen_parameter_dict)
 
 
 def st_calculate_ttest(method, options_dict):
