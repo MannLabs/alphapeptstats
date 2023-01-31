@@ -109,7 +109,7 @@ class VolcanoPlot(PlotUtils):
         #  check how column is ordered
         self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
 
-        if self.pvalue_column not in fc.columns:
+        if self.pvalue_column not in result_df.columns:
             self.pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
         self.res = result_df.reset_index().merge(fc.reset_index(), on=self.dataset.index_column)
