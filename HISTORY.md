@@ -1,5 +1,10 @@
 # Changelog
 
+# 0.2.8
+* enhance performance of plotting VolanoPlots in the GUI
+* refactoring of plotting classes
+* BUG fix when importing new dataset in GUI
+
 ## 0.2.7
 * Fix warning when loading DIA-NN GUI
 

@@ -4,8 +4,7 @@ import numpy as np
 
 
 class MaxQuantLoader(BaseLoader):
-    """Loader for MaxQuant outputfiles
-    """
+    """Loader for MaxQuant outputfiles"""
 
     def __init__(
         self,
@@ -19,7 +18,7 @@ class MaxQuantLoader(BaseLoader):
         sep="\t",
         **kwargs
     ):
-        """Loader MaxQuant output 
+        """Loader MaxQuant output
 
         Args:
             file (str): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
@@ -65,8 +64,7 @@ class MaxQuantLoader(BaseLoader):
         return df.columns.to_list()
 
     def _set_filter_columns_to_true_false(self):
-        """replaces the '+' with True, else False
-        """
+        """replaces the '+' with True, else False"""
         if len(self.filter_columns) > 0:
             for filter_column in self.filter_columns:
                 self.rawinput[filter_column] = np.where(

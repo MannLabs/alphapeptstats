@@ -4,19 +4,18 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import sidebar_info
-from alphastats.gui.utils.analysis_helper import * 
+from alphastats.gui.utils.analysis_helper import *
 from alphastats.gui.utils.software_options import software_options
 import pandas as pd
 import plotly.express as px
 
 
 def load_options():
-    
+
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
-
 
 
 def check_software_file(df, software):
@@ -56,9 +55,7 @@ def check_software_file(df, software):
 
 def print_software_import_info(software):
     import_file = software_options.get(software).get("import_file")
-    string_output = (
-        f"Please upload {import_file} file from {software}."
-    )
+    string_output = f"Please upload {import_file} file from {software}."
     return string_output
 
 
@@ -87,8 +84,7 @@ def select_columns_for_loaders(software):
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
-    """load software file into loader object from alphastats
-    """
+    """load software file into loader object from alphastats"""
     loader = software_options.get(software)["loader_function"](
         uploaded_file, intensity_column, index_column
     )
@@ -123,11 +119,11 @@ def select_sample_column_metadata(df, software):
 
 
 def upload_softwarefile(software):
- 
+
     st.file_uploader(
-        print_software_import_info(software=software), 
-        key="softwarefile", 
-        type=["csv", "tsv", "txt", "hdf"]
+        print_software_import_info(software=software),
+        key="softwarefile",
+        type=["csv", "tsv", "txt", "hdf"],
     )
 
     if st.session_state.softwarefile is not None:
@@ -136,13 +132,13 @@ def upload_softwarefile(software):
         # display head a protein data
 
         check_software_file(softwarefile_df, software)
-        
+
         st.write(
             f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
             f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
         )
         st.dataframe(softwarefile_df.head(5))
-        
+
         select_columns_for_loaders(software=software)
 
         if (
@@ -153,7 +149,7 @@ def upload_softwarefile(software):
                 softwarefile_df,
                 intensity_column=st.session_state.intensity_column,
                 index_column=st.session_state.index_column,
-                software=software
+                software=software,
             )
             st.session_state["loader"] = loader
 
@@ -163,7 +159,8 @@ def upload_metadatafile(software):
     st.write("\n\n")
     st.markdown("### 3. Upload corresponding metadata.")
     st.file_uploader(
-        "Upload metadata file. with information about your samples", key="metadatafile",
+        "Upload metadata file. with information about your samples",
+        key="metadatafile",
     )
 
     if st.session_state.metadatafile is not None:
@@ -219,18 +216,19 @@ def load_sample_data():
 
     load_options()
 
+
 def import_data():
 
     software = st.selectbox(
         "Select your Proteomics Software",
-        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"]
+        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"],
     )
 
     session_state_empty = False
 
     if software != "<select>":
-        #if 
-        #reset()
+        # if
+        # reset()
         upload_softwarefile(software=software)
 
     if "loader" in st.session_state:
@@ -249,20 +247,25 @@ def display_loaded_dataset():
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
-    
+
     df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
     ).head(5)
-    
+
     st.dataframe(df)
 
 
 def save_plot_sampledistribution_rawdata():
     df = st.session_state.dataset.rawmat
     df = df.unstack().reset_index()
-    df.rename(columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"}, inplace=True)
-    st.session_state["distribution_plot"] =  px.violin(df, x=st.session_state.dataset.sample, y="Intensity")
+    df.rename(
+        columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"},
+        inplace=True,
+    )
+    st.session_state["distribution_plot"] = px.violin(
+        df, x=st.session_state.dataset.sample, y="Intensity"
+    )
 
 
 def empty_session_state():
@@ -271,10 +274,10 @@ def empty_session_state():
     """
     for key in st.session_state.keys():
         del st.session_state[key]
+    st.empty()
 
 
 sidebar_info()
-
 
 
 if "dataset" not in st.session_state:
@@ -317,19 +320,18 @@ if st.button("Load sample DataSet - PXD011839"):
 
     load_sample_data()
 
-if "dataset" in st.session_state: 
+if "dataset" in st.session_state:
     st.info("DataSet has been imported")
 
     if "distribution_plot" not in st.session_state:
         save_plot_sampledistribution_rawdata()
-    
+
     if st.button("New Session: Import new dataset"):
 
         empty_session_state()
 
         import_data()
 
-    if "dataset" in st.session_state: 
+    if "dataset" in st.session_state:
 
         display_loaded_dataset()
-

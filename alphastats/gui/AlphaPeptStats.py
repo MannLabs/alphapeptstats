@@ -20,7 +20,8 @@ header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
 )
 
 st.markdown(
-    header_html, unsafe_allow_html=True,
+    header_html,
+    unsafe_allow_html=True,
 )
 
 
