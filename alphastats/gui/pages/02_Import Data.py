@@ -274,6 +274,7 @@ def empty_session_state():
     """
     for key in st.session_state.keys():
         del st.session_state[key]
+    st.empty()
 
 
 sidebar_info()
