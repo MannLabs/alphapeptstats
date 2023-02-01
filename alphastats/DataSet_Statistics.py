@@ -6,6 +6,7 @@ import numpy as np
 import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
+from functools import lru_cache
 
 
 class Statistics:
@@ -32,9 +33,7 @@ class Statistics:
 
         return column, "group1", "group2"
 
-    def diff_expression_analysis(
-        self, group1, group2, column=None, method="ttest"
-    ):
+    def diff_expression_analysis(self, group1, group2, column=None, method="ttest"):
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
@@ -44,7 +43,7 @@ class Statistics:
             method (str,optional): statistical method to calculate differential expression, for Wald-test 'wald'. Default 'ttest'
 
         Returns:
-            pandas.DataFrame: 
+            pandas.DataFrame:
             pandas Dataframe with foldchange, foldchange_log2 and pvalue
             for each ProteinID/ProteinGroup between group1 and group2.
 
@@ -130,7 +129,7 @@ class Statistics:
     @ignore_warning(RuntimeWarning)
     def tukey_test(self, protein_id, group, df=None):
         """Calculate Pairwise Tukey-HSD post-hoc test
-        Wrapper around: 
+        Wrapper around:
         https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
 
         Args:
@@ -173,7 +172,7 @@ class Statistics:
 
         return tukey_df
 
-
+    #@lru_cache(maxsize=20)
     @ignore_warning(RuntimeWarning)
     def anova(self, column, protein_ids="all", tukey=True):
         """One-way Analysis of Variance (ANOVA)
@@ -257,6 +256,7 @@ class Statistics:
         )
         return final_df
 
+    @lru_cache(maxsize=20)
     def ancova(self, protein_id, covar, between):
         """Analysis of covariance (ANCOVA) with on or more covariate(s).
         Wrapper around = https://pingouin-stats.org/generated/pingouin.ancova.html
@@ -267,7 +267,7 @@ class Statistics:
             between (str): Name of column in data with the between factor.
 
         Returns:
-            pandas.Dataframe: 
+            pandas.Dataframe:
 
             ANCOVA summary:
 

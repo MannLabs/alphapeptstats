@@ -8,6 +8,7 @@ import sklearn.impute
 from alphastats.utils import ignore_warning
 from sklearn.experimental import enable_iterative_imputer
 
+
 class Preprocess:
     def _remove_sampels(self, sample_list):
         # exclude samples for analysis
@@ -23,8 +24,7 @@ class Preprocess:
         return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
     def preprocess_print_info(self):
-        """Print summary of preprocessing steps
-        """
+        """Print summary of preprocessing steps"""
         print(pd.DataFrame(self.preprocessing_info.items()))
 
     def _filter(self):
@@ -190,32 +190,32 @@ class Preprocess:
 
         Removal of contaminations:
 
-        Removes all observations, that were identified as contaminations. 
+        Removes all observations, that were identified as contaminations.
 
         Normalization:
 
         "zscore", "quantile", "linear", "vst"
 
         Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
-        
-        Z-score normalization equals standaridzation using StandardScaler: 
+
+        Z-score normalization equals standaridzation using StandardScaler:
         https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
 
         Variance stabilization transformation uses:
         https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PowerTransformer.html
-        
-        For more information visit. 
+
+        For more information visit.
         Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
 
         Imputation:
 
         "mean", "median", "knn" or "randomforest"
         For more information visit:
-        
+
         SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
-        
+
         k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
-        
+
         Random Forest Imputation: https://scikit-learn.org/stable/auto_examples/impute/plot_iterative_imputer_variants_comparison.html
         https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor
 
@@ -242,3 +242,4 @@ class Preprocess:
             self._remove_sampels(sample_list=remove_samples)
 
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+        self.preprocessed = True

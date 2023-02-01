@@ -4,34 +4,62 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import sidebar_info
-from alphastats.gui.utils.analysis_helper import * # (
-#    read_uploaded_file_into_df,
-#    check_software_file,
-#    get_sample_names_from_software_file,
-#    load_options,
-#)
+from alphastats.gui.utils.analysis_helper import *
 from alphastats.gui.utils.software_options import software_options
 import pandas as pd
-
+import plotly.express as px
 
 
 def load_options():
-    
+
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
 
 
-def print_software_import_info():
-    import_file = software_options.get(st.session_state.software).get("import_file")
-    string_output = (
-        f"Please upload {import_file} file from {st.session_state.software}."
-    )
+def check_software_file(df, software):
+    """
+    check if software files are in right format
+    can be fragile when different settings are used or software is updated
+    """
+
+    if software == "MaxQuant":
+        expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error(
+                "This is not a valid MaxQuant file. Please check:"
+                "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
+            )
+
+    elif software == "AlphaPept":
+        if "object" in df.iloc[:, 1:].dtypes.to_list():
+            st.error("This is not a valid AlphaPept file.")
+
+    elif software == "DIANN":
+        expected_columns = [
+            "Protein.Group",
+        ]
+
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error("This is not a valid DIA-NN file.")
+
+    elif software == "FragPipe":
+        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
+        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+            st.error(
+                "This is not a valid FragPipe file. Please check:"
+                "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
+            )
+
+
+def print_software_import_info(software):
+    import_file = software_options.get(software).get("import_file")
+    string_output = f"Please upload {import_file} file from {software}."
     return string_output
 
 
-def select_columns_for_loaders():
+def select_columns_for_loaders(software):
     """
     select intensity and index column depending on software
     will be saved in session state
@@ -42,7 +70,7 @@ def select_columns_for_loaders():
 
     st.selectbox(
         "Intensity Column",
-        options=software_options.get(st.session_state.software).get("intensity_column"),
+        options=software_options.get(software).get("intensity_column"),
         key="intensity_column",
     )
 
@@ -50,21 +78,20 @@ def select_columns_for_loaders():
 
     st.selectbox(
         "Index Column",
-        options=software_options.get(st.session_state.software).get("index_column"),
+        options=software_options.get(software).get("index_column"),
         key="index_column",
     )
 
 
-def load_proteomics_data(uploaded_file, intensity_column, index_column):
-    """load software file into loader object from alphastats
-    """
-    loader = software_options.get(st.session_state.software)["loader_function"](
+def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
+    """load software file into loader object from alphastats"""
+    loader = software_options.get(software)["loader_function"](
         uploaded_file, intensity_column, index_column
     )
     return loader
 
 
-def select_sample_column_metadata(df):
+def select_sample_column_metadata(df, software):
     samples_proteomics_data = get_sample_names_from_software_file()
     valid_sample_columns = []
 
@@ -80,7 +107,7 @@ def select_sample_column_metadata(df):
 
     st.write(
         f"Select column that contains sample IDs matching the sample names described"
-        + f"in {software_options.get(st.session_state.software).get('import_file')}"
+        + f"in {software_options.get(software).get('import_file')}"
     )
 
     with st.form("sample_column"):
@@ -91,21 +118,28 @@ def select_sample_column_metadata(df):
         return True
 
 
-def upload_softwarefile():
+def upload_softwarefile(software):
 
-    st.file_uploader(print_software_import_info(), key="softwarefile")
+    st.file_uploader(
+        print_software_import_info(software=software),
+        key="softwarefile",
+        type=["csv", "tsv", "txt", "hdf"],
+    )
 
     if st.session_state.softwarefile is not None:
 
         softwarefile_df = read_uploaded_file_into_df(st.session_state.softwarefile)
         # display head a protein data
-        check_software_file(softwarefile_df)
+
+        check_software_file(softwarefile_df, software)
+
         st.write(
             f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
             f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
         )
         st.dataframe(softwarefile_df.head(5))
-        select_columns_for_loaders()
+
+        select_columns_for_loaders(software=software)
 
         if (
             "intensity_column" in st.session_state
@@ -115,16 +149,18 @@ def upload_softwarefile():
                 softwarefile_df,
                 intensity_column=st.session_state.intensity_column,
                 index_column=st.session_state.index_column,
+                software=software,
             )
             st.session_state["loader"] = loader
 
 
-def upload_metadatafile():
+def upload_metadatafile(software):
 
     st.write("\n\n")
     st.markdown("### 3. Upload corresponding metadata.")
     st.file_uploader(
-        "Upload metadata file. with information about your samples", key="metadatafile",
+        "Upload metadata file. with information about your samples",
+        key="metadatafile",
     )
 
     if st.session_state.metadatafile is not None:
@@ -138,7 +174,7 @@ def upload_metadatafile():
         st.dataframe(metadatafile_df.head(5))
         # pick sample column
 
-        if select_sample_column_metadata(metadatafile_df):
+        if select_sample_column_metadata(metadatafile_df, software):
             # create dataset
             st.session_state["dataset"] = DataSet(
                 loader=st.session_state.loader,
@@ -180,21 +216,23 @@ def load_sample_data():
 
     load_options()
 
+
 def import_data():
 
-    st.markdown("### 1. Import Proteomics Data")
-
-    st.selectbox(
+    software = st.selectbox(
         "Select your Proteomics Software",
         options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe"],
-        key="software",
     )
 
-    if st.session_state.software != "<select>":
-        upload_softwarefile()
+    session_state_empty = False
+
+    if software != "<select>":
+        # if
+        # reset()
+        upload_softwarefile(software=software)
 
     if "loader" in st.session_state:
-        upload_metadatafile()
+        upload_metadatafile(software)
 
 
 def display_loaded_dataset():
@@ -209,19 +247,48 @@ def display_loaded_dataset():
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
     st.markdown(f"*Preview:* Matrix")
+
     df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
     ).head(5)
+
     st.dataframe(df)
 
 
-def reset():
+def save_plot_sampledistribution_rawdata():
+    df = st.session_state.dataset.rawmat
+    df = df.unstack().reset_index()
+    df.rename(
+        columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"},
+        inplace=True,
+    )
+    st.session_state["distribution_plot"] = px.violin(
+        df, x=st.session_state.dataset.sample, y="Intensity"
+    )
+
+
+def empty_session_state():
+    """
+    remove all variables to avoid conflicts
+    """
     for key in st.session_state.keys():
         del st.session_state[key]
+    st.empty()
 
 
 sidebar_info()
+
+
+if "dataset" not in st.session_state:
+    st.markdown("### Import Proteomics Data")
+
+    st.markdown(
+        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+    )
+
+    import_data()
+    st.markdown("### Or Load sample Dataset")
 
 if st.button("Load sample DataSet - PXD011839"):
 
@@ -253,19 +320,18 @@ if st.button("Load sample DataSet - PXD011839"):
 
     load_sample_data()
 
+if "dataset" in st.session_state:
+    st.info("DataSet has been imported")
 
-if "dataset" not in st.session_state:
-    st.markdown(
-        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
-    )
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
 
-    import_data()
+    if st.button("New Session: Import new dataset"):
 
-elif st.button("New Session: Import new dataset"):
+        empty_session_state()
 
-    reset()
+        import_data()
 
-    import_data()
+    if "dataset" in st.session_state:
 
-else:
-    display_loaded_dataset()
+        display_loaded_dataset()

@@ -5,7 +5,7 @@ import pandas as pd
 # class name needs to be discussed whether MSFragger/Fragpipe/Philospher
 class FragPipeLoader(BaseLoader):
     """Loader for FragPipe-Philosopheroutputfiles
-     https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv
+    https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv
     """
 
     def __init__(

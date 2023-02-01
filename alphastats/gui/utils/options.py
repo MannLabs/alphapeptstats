@@ -2,7 +2,7 @@ import streamlit as st
 
 
 plotting_options = {
-    "Sampledistribution": {
+    "Sampledistribution Plot": {
         "settings": {
             "method": {"options": ["violin", "box"], "label": "Plot layout"},
             "color": {
@@ -12,7 +12,7 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_sampledistribution,
     },
-    "Intensity": {
+    "Intensity Plot": {
         "settings": {
             "protein_id": {
                 "options": st.session_state.dataset.mat.columns.to_list(),
@@ -29,7 +29,7 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_intensity,
     },
-    "PCA": {
+    "PCA Plot": {
         "settings": {
             "group": {
                 "options": [None] + st.session_state.metadata_columns,
@@ -39,7 +39,7 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_pca,
     },
-    "UMAP": {
+    "UMAP Plot": {
         "settings": {
             "group": {
                 "options": [None] + st.session_state.metadata_columns,
@@ -49,7 +49,7 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_umap,
     },
-    "t-SNE": {
+    "t-SNE Plot": {
         "settings": {
             "group": {
                 "options": [None] + st.session_state.metadata_columns,
@@ -59,7 +59,7 @@ plotting_options = {
         },
         "function": st.session_state.dataset.plot_tsne,
     },
-    "Volcano": {
+    "Volcano Plot": {
         "between_two_groups": True,
         "function": st.session_state.dataset.plot_volcano,
     },

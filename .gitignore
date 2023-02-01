@@ -4,3 +4,5 @@ __pycache__
 alphastats.egg-info
 _build
 build
+dist
+.coverage

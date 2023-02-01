@@ -22,8 +22,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 
 class DataSet(Preprocess, Statistics, Plot, Enrichment):
-    """Analysis Object
-    """
+    """Analysis Object"""
 
     def __init__(self, loader, metadata_path=None, sample_column=None):
         """Create DataSet
@@ -59,6 +58,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
+        self.preprocessed = False
 
         print("DataSet has been created.")
         self.overview()
@@ -126,11 +126,9 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         # reset preproccessing info
-        self.normalization, self.imputation, self.contamination_filter = (
-            "Data is not normalized",
-            "Data is not imputed",
-            "Contaminations have not been removed.",
-        )
+        self._save_dataset_info()
+        self.preprocessed = False
+        self.rawmat = mat
 
     def load_metadata(self, file_path):
         """Load metadata either xlsx, txt, csv or txt file
@@ -178,8 +176,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         return preprocessing_dict
 
     def overview(self):
-        """Print overview of the DataSet
-        """
+        """Print overview of the DataSet"""
         dataset_overview = (
             "Attributes of the DataSet can be accessed using: \n"
             + "DataSet.rawinput:\t Raw Protein data.\n"
