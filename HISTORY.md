@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.3.0
+* One Click Installer for macOS, Linux and Windows
+
 # 0.2.8
 * enhance performance of plotting VolanoPlots in the GUI
 * refactoring of plotting classes
