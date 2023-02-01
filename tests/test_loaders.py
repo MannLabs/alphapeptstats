@@ -3,6 +3,9 @@ import pandas as pd
 import logging
 from unittest.mock import patch
 import logging
+import shutil
+import os
+import copy
 
 
 from alphastats.loader.BaseLoader import BaseLoader
@@ -10,6 +13,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.SpectronautLoader import SpectronautLoader
 from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
@@ -35,8 +39,9 @@ class BaseTestLoader:
             # check if columns are present
             # check if error gets raised when column is not present
             with self.assertRaises(KeyError):
-                self.obj.confidence_column = "wrong_column"
-                self.obj._check_if_columns_are_present()
+                obj = copy.deepcopy(self.obj)
+                obj.confidence_column = "wrong_column"
+                obj._check_if_columns_are_present()
 
         def test_check_if_columns_are_present_no_error(self):
             # check if columns are present
@@ -48,8 +53,9 @@ class BaseTestLoader:
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
             #  check if indexcolumn is unique
             # check if error gets raised when duplicate
-            self.obj.rawinput[self.obj.index_column] = "non unique"
-            self.obj._check_if_indexcolumn_is_unique()
+            obj = copy.deepcopy(self.obj)
+            obj.rawinput[obj.index_column] = "non unique"
+            obj._check_if_indexcolumn_is_unique()
             mock.assert_called_once()
 
         # @patch("logging.Logger.warning")
@@ -76,11 +82,12 @@ class BaseTestLoader:
 
 
 class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
-    def setUp(self):
-        self.obj = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
-        self.hdf_file = "testfiles/alphapept/results.hdf"
+    @classmethod
+    def setUpClass(cls):
+        cls.obj = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
+        cls.hdf_file = "testfiles/alphapept/results.hdf"
         # expected dim of rawinput df
-        self.df_dim = (3781, 8)
+        cls.df_dim = (3781, 8)
 
     def test_load_hdf_protein_table(self):
         hdf_format = AlphaPeptLoader(file=self.hdf_file)
@@ -114,9 +121,10 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
 
 class TestMaxQuantLoader(BaseTestLoader.BaseTest):
-    def setUp(self):
-        self.obj = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
-        self.df_dim = (2611, 2531)
+    @classmethod
+    def setUpClass(cls):
+        cls.obj = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
+        cls.df_dim = (2611, 2531)
 
     def test_set_filter_columns_to_true_false(self):
         # check if + has been replaced by TRUE FALSE
@@ -125,9 +133,10 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
         self.assertEqual(self.obj.rawinput["Potential contaminant"].dtype, "bool")
 
 class TestDIANNLoader(BaseTestLoader.BaseTest):
-    def setUp(self):
-        self.obj = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
-        self.df_dim = (10, 26)
+    @classmethod
+    def setUpClass(cls):
+        cls.obj = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
+        cls.df_dim = (10, 26)
 
     def add_tag_to_sample_columns(self):
         # get number of columns that have tag
@@ -176,9 +185,51 @@ class TestDIANNLoader(BaseTestLoader.BaseTest):
 
 
 class TestFragPipeLoader(BaseTestLoader.BaseTest):
-    def setUp(self):
-        self.obj = FragPipeLoader(file="testfiles/fragpipe/combined_proteins.tsv")
-        self.df_dim = (10, 37)
+    @classmethod
+    def setUpClass(cls):
+        cls.obj = FragPipeLoader(file="testfiles/fragpipe/combined_proteins.tsv")
+        cls.df_dim = (10, 37)
+
+class TestSpectronautLoader(BaseTestLoader.BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        
+        if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
+            shutil.unpack_archive("testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/")
+        
+        cls.obj = SpectronautLoader(file="testfiles/spectronaut/results.tsv", filter_qvalue=False)
+        cls.df_dim = (2458, 11)
+
+    def test_reading_non_european_comma(self):
+        """
+        files with non european comma get read correctly
+        """
+        s = SpectronautLoader(file="testfiles/spectronaut/results_non_european_comma.tsv", filter_qvalue=False)
+        mean = s.rawinput["20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03_PG.Quantity"].mean()
+
+    def test_qvalue_filtering(self):
+        obj = SpectronautLoader(file="testfiles/spectronaut/results.tsv", filter_qvalue=True, qvalue_cutoff=0.00000001)
+        self.assertEqual(obj.rawinput.shape, (2071, 10))
+
+    def test_qvalue_filtering_warning(self):
+        with self.assertWarns(Warning):
+            df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
+            df.drop(columns = ["EG.Qvalue"], axis=1) 
+            SpectronautLoader(file=df)
+
+    def test_gene_name_column(self):
+        df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
+        df["PG.Genes"] = 0
+        s = SpectronautLoader(file=df, filter_qvalue=False)
+  
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.isdir("testfiles/spectronaut/__MACOSX"):
+            shutil.rmtree("testfiles/spectronaut/__MACOSX")
+
+        os.remove("testfiles/spectronaut/results.tsv")
+       
+        
 
 
 if __name__ == "__main__":

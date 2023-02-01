@@ -16,3 +16,4 @@ streamlit==1.17.0
 tables==3.6.1
 numpy==1.23.5
 
+
