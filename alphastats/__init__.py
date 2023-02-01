@@ -1,5 +1,5 @@
 __project__ = "alphastats"
-__version__ = "0.2.8"
+__version__ = "0.3.0"
 __license__ = "Apache"
 __description__ = "An open-source Python package for Mass Spectrometry Analysis"
 __author__ = "Mann Labs"
@@ -10,7 +10,7 @@ __keywords__ = [
     "software",
     "mass spectometry",
 ]
-__python_version__ = ">=3.7,<4"
+__python_version__ = ">=3.8,<4"
 __classifiers__ = [
     "Development Status :: 1 - Planning",
     # "Development Status :: 2 - Pre-Alpha",

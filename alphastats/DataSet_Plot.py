@@ -56,6 +56,7 @@ class Plot:
         )
         return dimensionality_reduction.plot
 
+
     @check_for_missing_values
     def plot_tsne(self, group=None, circle=False, perplexity=5, n_iter=1000):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)

@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.3.0
+* One Click Installer for macOS, Linux and Windows
+* Spectronaut support
+
 # 0.2.8
 * enhance performance of plotting VolanoPlots in the GUI
 * refactoring of plotting classes
@@ -54,6 +58,10 @@
 * remove dependency for Microsoft Visual Studio C++ (dash_bio) (Windows PCs)
 * clustermap with seaborn, adding bar labels is possible
 * save plotting data, preprocessing, method in figure object (accessible using figure.plotting_data, figure.method, figure.preprocessing)
+
+
+
+
 
 
 

@@ -8,6 +8,7 @@ from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+from alphastats.loader.SpectronautLoader import SpectronautLoader
 
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
@@ -27,7 +28,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         """Create DataSet
 
         Args:
-            loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
+            loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader
             metadata_path (str, optional): path to metadata file. Defaults to None.
             sample_column (str, optional): column in metadata file indicating the sample IDs. Defaults to None.
 
@@ -74,20 +75,20 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             loader : loader
         """
         if not isinstance(
-            loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader)
+            loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader)
         ):
             raise LoaderError(
-                "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader. ADD LINK TO DOCUMENTATION"
+                "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
             )
 
         if not isinstance(loader.rawinput, pd.DataFrame) or loader.rawinput.empty:
             raise ValueError(
-                "Error in rawinput, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+                "Error in rawinput, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
 
         if not isinstance(loader.index_column, str):
             raise ValueError(
-                "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader"
+                "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
 
     def _check_matrix_values(self):
