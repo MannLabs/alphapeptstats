@@ -46,7 +46,7 @@ def create_pip_wheel():
     requirements, extra_requirements = get_requirements()
     setuptools.setup(
         name="alphastats",
-        version="0.2.8",
+        version="0.3.0",
         license="Apache",
         description="An open-source Python package for Mass Spectrometry Analysis",
         long_description=get_long_description(),
