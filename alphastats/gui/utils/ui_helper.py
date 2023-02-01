@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import base64
-
+from alphastats import __version__
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -24,15 +24,22 @@ def sidebar_logo():
         img_to_bytes("alphastats_logo_2.png")
     )
     st.sidebar.markdown(
-        header_html, unsafe_allow_html=True,
+        header_html,
+        unsafe_allow_html=True,
     )
 
 
 def sidebar_info(show_logo=True):
     display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
-    st.sidebar.info("[AlphaPeptStats on GitHub](https://github.com/MannLabs/alphapeptstats)")
-    st.sidebar.info("[Documentation](https://alphapeptstats.readthedocs.io/en/latest/index.html)")
+    st.sidebar.markdown("AlphaPeptStats Version " + str(__version__))
+    st.sidebar.info(
+        "[AlphaPeptStats on GitHub](https://github.com/MannLabs/alphapeptstats)"
+    )
+    st.sidebar.info(
+        "[Documentation](https://alphapeptstats.readthedocs.io/en/latest/index.html)"
+    )
+
     st.sidebar.markdown(
         """ <head><style type ='text/css' > 
     .footer{ position: fixed;     

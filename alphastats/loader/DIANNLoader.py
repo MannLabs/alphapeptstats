@@ -4,8 +4,8 @@ import pandas as pd
 
 class DIANNLoader(BaseLoader):
     """Loader for DIA-NN output files
-     https://github.com/vdemichev/DiaNN
-     """
+    https://github.com/vdemichev/DiaNN
+    """
 
     def __init__(
         self,
@@ -25,7 +25,7 @@ class DIANNLoader(BaseLoader):
         """
 
         super().__init__(file, intensity_column, index_column, sep)
-        self.software = "DIA-NN"
+        self.software = "DIANN"
         self.no_sample_column = [
             "PG.Q.value",
             "Global.PG.Q.value",
