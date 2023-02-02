@@ -6,7 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
 <p align="center">
-  <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/gui/alphapeptstats_logo.png?raw=true" />
+  <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/misc/alphastats_workflow.png?raw=true" />
 </p>
 
 
