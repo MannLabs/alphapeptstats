@@ -6,50 +6,72 @@ import datetime
 
 def preprocessing():
 
-    st.markdown(
-        "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
-        + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats [documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
-    )
+    c1, c2 = st.columns(2)
 
-    with st.form("preprocessing"):
-        dataset = st.session_state["dataset"]
+    with c1:
 
-        remove_contaminations = st.selectbox(
-            f"Remove contaminations annotated in {dataset.filter_columns}",
-            options=[True, False],
+        st.markdown(
+            "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
+            + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats" 
+            + "[documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
         )
 
-        subset = st.selectbox(
-            "Subset data so it matches with metadata. Remove miscellanous samples in rawinput.",
-            options=[True, False],
-        )
+        with st.form("preprocessing"):
+            dataset = st.session_state["dataset"]
 
-        normalization = st.selectbox(
-            "Normalization", options=[None, "zscore", "quantile", "vst", "linear"]
-        )
+            remove_contaminations = st.selectbox(
+                f"Remove contaminations annotated in {dataset.filter_columns}",
+                options=[True, False],
+            )
 
-        imputation = st.selectbox(
-            "Imputation", options=[None, "mean", "median", "knn", "randomforest"]
-        )
+            subset = st.selectbox(
+                "Subset data so it matches with metadata. Remove miscellanous samples in rawinput.",
+                options=[True, False],
+            )
 
-        submitted = st.form_submit_button("Submit")
+            normalization = st.selectbox(
+                "Normalization", options=[None, "zscore", "quantile", "vst", "linear"]
+            )
 
-    if submitted:
-        st.session_state.dataset.preprocess(
-            remove_contaminations=remove_contaminations,
-            subset=subset,
-            normalization=normalization,
-            imputation=imputation,
-        )
-        preprocessing = st.session_state.dataset.preprocessing_info
-        st.info(
-            "Data has been processed. "
-            + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        )
-        st.dataframe(
-            pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
-            use_container_width=True,
-        )
+            imputation = st.selectbox(
+                "Imputation", options=[None, "mean", "median", "knn", "randomforest"]
+            )
+
+            submitted = st.form_submit_button("Submit")
+
+        if submitted:
+            st.session_state.dataset.preprocess(
+                remove_contaminations=remove_contaminations,
+                subset=subset,
+                normalization=normalization,
+                imputation=imputation,
+            )
+            preprocessing = st.session_state.dataset.preprocessing_info
+            st.info(
+                "Data has been processed. "
+                + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            )
+            st.dataframe(
+                pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
+                use_container_width=True,
+            )
+    
+    with c2:
+        st.markdown("**Intensity Distribution per sample**")
+        fig_none_processed = st.session_state.dataset.plot_sampledistribution()
+        st.plotly_chart(fig_none_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
+        
+        if submitted:
+            st.markdown("**Intensity Distribution after preprocessing per sample**")
+            fig_processed = st.session_state.dataset.plot_sampledistribution()
+            st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
+    
+    reset_steps = st.button("Reset all Preprocessing steps")
+        
+    if reset_steps:
+        reset_preprocessing()
+
+
 
 
 def reset_preprocessing():
@@ -67,18 +89,16 @@ def reset_preprocessing():
 def main_preprocessing():
 
     if "dataset" in st.session_state:
+
         preprocessing()
-
-        reset_steps = st.button("Reset all Preprocessing steps")
-        if reset_steps:
-            reset_preprocessing()
-
+        
+        
     else:
         st.info("Import Data first")
 
 
 st.markdown("### Preprocessing")
-sidebar_info()
+
 
 main_preprocessing()
 

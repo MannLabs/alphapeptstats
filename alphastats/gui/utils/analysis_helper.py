@@ -96,22 +96,18 @@ def gui_volcano_plot():
         options=["ttest", "anova", "wald"],
     )
     chosen_parameter_dict.update({"method": method})
+
+    # TODO streamlit doesnt allow nested columns check for updates
     
-    col1, col2 = st.columns(2)
-    col3, col4 = st.columns(2)
+    labels = st.checkbox("Add label")
 
-    with col1:
-        labels = st.checkbox("Add label")
-    with col2:
-        draw_line = st.checkbox("Draw line")
+    draw_line = st.checkbox("Draw line")
 
-
-    with col3:
-        alpha = st.number_input(
+    alpha = st.number_input(
             label="alpha", min_value=0.001, max_value=0.050, value=0.050
         )
-    with col4:
-        min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
+
+    min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
  
     plotting_parameter_dict = {
             "labels": labels,
@@ -254,17 +250,17 @@ def helper_compare_two_groups():
 
     if group != "< None >":
 
-        col1, col2 = st.columns(2)
+        #col1, col2 = st.columns(2)
 
         unique_values = get_unique_values_from_column(group)
 
-        with col1:
+        #with col1:
 
-            group1 = st.selectbox("Group 1", options=unique_values)
+        group1 = st.selectbox("Group 1", options=unique_values)
 
-        with col2:
+        #with col2:
 
-            group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
+        group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
 
         chosen_parameter_dict.update(
             {"column": group, "group1": group1, "group2": group2}
@@ -277,18 +273,18 @@ def helper_compare_two_groups():
 
     else:
 
-        col1, col2 = st.columns(2)
+        #col1, col2 = st.columns(2)
 
-        with col1:
+        #with col1:
 
-            group1 = st.multiselect(
+        group1 = st.multiselect(
                 "Group 1 samples:",
                 options=st.session_state.dataset.metadata["sample"].to_list(),
             )
 
-        with col2:
+        #with col2:
 
-            group2 = st.multiselect(
+        group2 = st.multiselect(
                 "Group 2 samples:",
                 options=list(
                     reversed(st.session_state.dataset.metadata["sample"].to_list())

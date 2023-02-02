@@ -127,34 +127,50 @@ if "plot_list" not in st.session_state:
 
 if "dataset" in st.session_state:
 
-    method = select_analysis()
+    c1, c2 = st.columns((1,2))
 
-    # --- PLOT ----------------------------------------------------------------------------------------------------------
+    plot_to_display = False
+    df_to_display = False
 
-    if method in st.session_state.plotting_options.keys():
+    with c1:
 
-        analysis_result = get_analysis(
-            method=method, options_dict=st.session_state.plotting_options
+        method = select_analysis()
+
+        if method in st.session_state.plotting_options.keys():
+
+            analysis_result = get_analysis(
+                
+                method=method, options_dict=st.session_state.plotting_options
+            )
+
+            plot_to_display = True
+        
+        elif method in st.session_state.statistic_options.keys():
+
+            analysis_result = get_analysis(
+            method=method, options_dict=st.session_state.statistic_options
         )
+            df_to_display = True
 
-        if analysis_result is not None and method != "Clustermap":
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        
+
+    with c2:
+
+        # --- Plot -------------------------------------------------------
+
+        if analysis_result is not None and method != "Clustermap" and plot_to_display:
+            
             display_figure(analysis_result)
 
             save_plot_to_session_state(analysis_result, method)
 
             method_plot = [method, analysis_result]
 
-            col1, col2, col3 = st.columns([1, 1, 1])
-
-            with col1:
-                download_figure(method_plot, format="pdf")
-
-            with col2:
-                download_figure(method_plot, format="svg")
-
-            with col3:
-                download_preprocessing_info(method_plot)
-
+            
         elif method == "Clustermap":
 
             st.write("Download Figure to see full size.")
@@ -163,37 +179,49 @@ if "dataset" in st.session_state:
 
             save_plot_to_session_state(analysis_result, method)
 
-            method_plot = [method, analysis_result]
 
-            col1, col2, col3 = st.columns([1, 1, 1])
+        # --- STATISTICAL ANALYSIS -------------------------------------------------------
 
-            with col1:
-                download_figure(method_plot, format="pdf", plotting_library="seaborn")
-
-            with col2:
-                download_figure(method_plot, format="svg", plotting_library="seaborn")
-
-            with col3:
-                download_preprocessing_info(method_plot)
-
-    # --- STATISTICAL ANALYSIS ------------------------------------------------------------------------------------------
-
-    elif method in st.session_state.statistic_options.keys():
-
-        analysis_result = get_analysis(
-            method=method, options_dict=st.session_state.statistic_options
-        )
-
-        if analysis_result is not None:
+        elif analysis_result is not None and df_to_display:
 
             display_df(analysis_result)
 
             filename = method + ".csv"
             csv = convert_df(analysis_result)
 
-            st.download_button(
+            
+    
+    if analysis_result is not None and method != "Clustermap" and plot_to_display:
+        col1, col2, col3 = st.columns([1, 1, 1])
+
+        with col1:
+            download_figure(method_plot, format="pdf")
+
+        with col2:
+            download_figure(method_plot, format="svg")
+
+        with col3:
+            download_preprocessing_info(method_plot)
+
+    
+    elif analysis_result is not None and df_to_display:
+        col1, col2, col3 = st.columns([1, 1, 1])
+
+        with col1:
+            download_figure(method_plot, format="pdf", plotting_library="seaborn")
+
+        with col2:
+            download_figure(method_plot, format="svg", plotting_library="seaborn")
+
+        with col3:
+             download_preprocessing_info(method_plot)
+    
+    elif analysis_result is not None and df_to_display:
+        st.download_button(
                 "Download as .csv", csv, filename, "text/csv", key="download-csv"
-            )
+        )
+            
+
 
 
 else:

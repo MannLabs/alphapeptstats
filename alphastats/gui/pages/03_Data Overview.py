@@ -28,7 +28,7 @@ def display_matrix():
         + str(st.session_state.dataset.preprocessing_info["Imputation"])
     )
 
-    st.markdown("### DataFrame used for analysis **preview**")
+    st.markdown("**DataFrame used for analysis** *preview*")
     st.markdown(text)
 
     df = get_display_matrix()
@@ -44,16 +44,23 @@ def display_matrix():
 if "dataset" in st.session_state:
     st.markdown("## DataSet overview")
 
+    c1, c2 = st.columns(2)
+    
+    with c1:
+
+        st.markdown("**Intensity distribution raw data per sample**")
+        st.plotly_chart(
+            st.session_state.distribution_plot.update_layout(plot_bgcolor="white"),
+            use_container_width=True
+        )
+    
+    with c2:
+
+        st.markdown("**Intensity distribution data per sample used for analysis**")
+        fig_processed = st.session_state.dataset.plot_sampledistribution()
+        st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
+
     display_matrix()
-
-    st.markdown("#### Intensity distribution raw data per sample")
-    st.plotly_chart(
-        st.session_state.distribution_plot.update_layout(plot_bgcolor="white")
-    )
-
-    st.markdown("#### Intensity distribution data per sample used for analysis")
-    fig_processed = st.session_state.dataset.plot_sampledistribution()
-    st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"))
 
 
 else:
