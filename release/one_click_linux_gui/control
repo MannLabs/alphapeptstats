@@ -2,5 +2,5 @@ Package: AlphaPeptStats
 Version: 0.3.0
 Architecture: all
 Maintainer: MannLabs
-Description: AlphaPeptStats
+Description: alphastats
   Downstream analysis of label-free mass-spectrometry-based proteomics data.
