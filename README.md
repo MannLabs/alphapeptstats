@@ -60,7 +60,7 @@ alphastats gui
 
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 
-A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API is also present in the [nbs folder](nbs).
+A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
 ---
 
