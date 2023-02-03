@@ -32,7 +32,6 @@ jobs:
           release_name: Release ${{ github.event.inputs.release_name }}
           draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.prerelease }}
-  
   Create_Linux_Release:
     runs-on: ubuntu-latest
     needs: Create_Draft_On_GitHub
@@ -65,7 +64,6 @@ jobs:
           asset_path: release/one_click_linux_gui/dist/alphastats_gui_installer_linux.deb
           asset_name: alphastats_gui_installer_linux.deb
           asset_content_type: application/octet-stream
-  
   Create_MacOS_Release:
     runs-on: macos-latest
     needs: Create_Draft_On_GitHub
@@ -98,7 +96,6 @@ jobs:
           asset_path: release/one_click_macos_gui/dist/alphastats_gui_installer_macos.pkg
           asset_name: alphastats_gui_installer_macos.pkg
           asset_content_type: application/octet-stream
-  
   Create_Windows_Release:
     runs-on: windows-latest
     needs: Create_Draft_On_GitHub
