@@ -7,8 +7,7 @@
 
 
 
-![]("https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/misc/alphastats_workflow.png?raw=true")
-
+<img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="964.25" height="486.5">
 
 
 
