@@ -6,6 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
 
+
 <img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="964.25" height="486.5">
 
 
@@ -24,7 +25,6 @@
 [link]:https://alphapeptstats.readthedocs.io/en/main/
 
 An open-source Python package of the AlphaPept ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
-
 
 
 * [**About**](#about)
