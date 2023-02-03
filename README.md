@@ -5,9 +5,9 @@
 [![CI](https://github.com/MannLabs/alphapeptstats/actions/workflows/python-package.yml/badge.svg)](https://github.com/MannLabs/alphapeptstats/actions/workflows/python-package.yml)
 [![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
-<p align="center">
-  <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/misc/alphastats_workflow.png?raw=true" />
-</p>
+
+![]("https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/misc/alphastats_workflow.png?raw=true")
+
 
 
 <div align = center>
@@ -66,7 +66,6 @@ A brief [Jupyter notebook tutorial](nbs/workflow_mq.ipynb) on how to use the API
 
 ## GUI
 ![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)
-
 
 
 ## Troubleshooting
