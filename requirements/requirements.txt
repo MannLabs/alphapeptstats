@@ -15,5 +15,7 @@ umap-learn==0.5.3
 streamlit==1.17.0
 tables==3.6.1
 numpy==1.23.5
-
-
+numba==0.53.1
+numba-stats==0.5.0
+swifter==1.0.7
+click==8.0.1
