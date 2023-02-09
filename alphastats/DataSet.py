@@ -109,7 +109,8 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             )
 
     def create_matrix(self):
-        """Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
+        """
+        Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
         """
 
@@ -126,7 +127,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         # reset preproccessing info
-        self._save_dataset_info()
+        self.preprocessing_info = self._save_dataset_info()
         self.preprocessed = False
         self.rawmat = mat
 
