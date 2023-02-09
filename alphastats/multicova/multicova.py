@@ -17,7 +17,6 @@ from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.multitest import multipletests
 import os
 from pathlib import Path
-import multicova
 
 
 def get_std(x):
@@ -268,7 +267,7 @@ def get_tstat_limit(stats, fdr=0.01):
 def annotate_fdr_significance(res_real, stats, fdr=0.01):
     t_limit = np.min(stats[stats.fdr <= fdr].t_cut)
     res_real['qval'] = [np.min(stats[stats.t_cut <= abs(x)].fdr) for x in res_real['tval_s0']]
-    res_real['FDR ' + str(int(fdr*100)) + '%'] = ["sig" if abs(x) >= t_limit else "non_sig" for x in res_real['tval_s0']]
+    res_real['FDR'] = ["sig" if abs(x) >= t_limit else "non_sig" for x in res_real['tval_s0']]
     return(res_real)
 
 

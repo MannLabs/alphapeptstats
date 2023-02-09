@@ -105,9 +105,11 @@ class Statistics:
         elif method == "ttest":
             test = de.test.t_test(data=d, grouping=column)
 
+        #elif method == "SAM":
+
         else:
             raise ValueError(
-                f"{method} is invalid choose between 'wald' for Wald-test and 'ttest'"
+                f"{method} is invalid choose between 'wald' for Wald-test, 'SAM' and 'ttest'"
             )
 
         df = test.summary().rename(columns={"gene": self.index_column})

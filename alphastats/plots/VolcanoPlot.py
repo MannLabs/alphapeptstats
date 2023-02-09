@@ -4,6 +4,7 @@ from alphastats.utils import ignore_warning, check_for_missing_values
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 from functools import lru_cache
 
@@ -25,7 +26,7 @@ class VolcanoPlot(PlotUtils):
         self.hover_data = None
         self.res = None
         self.pvalue_column = None
-        self.perm=100
+        self.perm=perm
         self._check_input()
        
         if plot:
@@ -82,6 +83,19 @@ class VolcanoPlot(PlotUtils):
                 + "Please select from 'ttest', 'sam' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
 
+    @lru_cache(maxsize=20)
+    def _sam_calculate_fdr_line(self):
+        from alphastats.multicova import multicova
+
+        self.fdr_line= multicova.get_fdr_line(
+                t_limit=self.tlim_ttest,
+                s0=0.05,
+                n_x=len(list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample])),
+                n_y=len(list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample])),
+                fc_s = np.arange(0,np.max(np.abs(self.res.fc)),np.max(np.abs(self.res.fc))/200),
+                s_s = np.arange(0.005, 6, 0.0025),
+                plot=False
+            )
     
     @lru_cache(maxsize=20)
     def _sam(self):
@@ -92,12 +106,15 @@ class VolcanoPlot(PlotUtils):
         )
 
         transposed = self.dataset.mat.transpose()
+
+        if self.dataset.preprocessing_info["Normalization"] is None:
+             # needs to be lpog2 transformed for fold change calculations
+            transposed = transposed.transform(lambda x: np.log2(x))
+
         transposed[self.dataset.index_column] = transposed.index
         transposed = transposed.reset_index(drop=True)
-        # needs to be lpog2 transformed for fold change calculations
-        transposed = transposed.transform(lambda x: np.log2(x))
 
-        res_ttest, tlim_ttest = multicova.functions.perform_ttest_analysis(
+        res_ttest, tlim_ttest = multicova.perform_ttest_analysis(
             transposed,
             c1 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample]),                                      
             c2 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample]), 
@@ -108,19 +125,11 @@ class VolcanoPlot(PlotUtils):
             parallelize=True
         )
 
+        self.res = res_ttest[[self.dataset.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval', 'FDR']]
+        self.res["log2fc"] = res_ttest["fc"]
+        self.tlim_ttest = tlim_ttest
         self.pvalue_column = "pval"
 
-        if self.draw_line:
-            self.fdr_line_ttest = multicova.get_fdr_line(
-                t_limit=tlim_ttest,
-                s0=0.05,
-                n_x=len(list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample])),
-                n_y=len(list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample])),
-                fc_s = np.arange(0,np.max(np.abs(res_ttest.fc)),np.max(np.abs(res_ttest.fc))/200),
-                s_s = np.arange(0.005, 6, 0.0025),
-                plot=False
-            )
-            
 
     @lru_cache(maxsize=20)
     def _wald(self):
@@ -202,7 +211,7 @@ class VolcanoPlot(PlotUtils):
         self.alpha = -np.log10(self.alpha)
         # add color variable to plot
 
-        if self.method != "SAM":
+        if self.method != "sam":
         
             condition = [
                 (self.res["log2fc"] < -self.min_fc) & (self.res["-log10(p-value)"] > self.alpha),
@@ -212,8 +221,8 @@ class VolcanoPlot(PlotUtils):
         else:
 
             condition = [
-                (self.res["log2fc"] < 0) & (self.res["FDR "] == "sig"),
-                (self.res["log2fc"] > 0) & (self.res["FDR "] == "sig"),
+                (self.res["log2fc"] < 0) & (self.res["FDR"] == "sig"),
+                (self.res["log2fc"] > 0) & (self.res["FDR"] == "sig"),
             ]
 
 
@@ -264,6 +273,8 @@ class VolcanoPlot(PlotUtils):
         """
         Draw fdr line if SAM was applied
         """
+        self._sam_calculate_fdr_line()
+        
         self.plot.add_trace(go.Scatter(
             x=self.fdr_line[self.fdr_line.fc_s > 0].fc_s,
             y=-np.log10(self.fdr_line[self.fdr_line.fc_s > 0].pvals),
@@ -286,20 +297,20 @@ class VolcanoPlot(PlotUtils):
             color="color",
             hover_data=self.hover_data,
         )
+        
+        # update coloring
+        color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
+        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
 
         if self.labels:
             self._add_labels_plot()
         
         if self.draw_line:
-            if self.method == "SAM":
+            if self.method == "sam":
                 self._draw_fdr_line()
             else:
                 self._draw_lines_plot()
 
-        # update coloring
-        color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
-        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
-        
         self.plot.update_layout(showlegend=False)
         self.plot.update_layout(width=600, height=700)
 

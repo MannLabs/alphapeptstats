@@ -1,4 +1,3 @@
-from tkinter import E
 import pandas as pd
 import logging
 import streamlit as st
@@ -93,7 +92,7 @@ def gui_volcano_plot():
     chosen_parameter_dict = helper_compare_two_groups()
     method = st.selectbox(
         "Differential Analysis using:",
-        options=["ttest", "anova", "wald"],
+        options=["ttest", "anova", "wald", "sam"],
     )
     chosen_parameter_dict.update({"method": method})
 
@@ -116,6 +115,16 @@ def gui_volcano_plot():
             "min_fc": min_fc,
         }
 
+    if method == "sam":
+        perm = st.number_input(
+            label="Number of Permutations", min_value=1, max_value=1000, value=10
+        )
+        fdr = st.number_input(
+            label="FDR cut off", min_value=0.005, max_value=0.1, value=0.050
+        )
+        chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
+
+   
     submitted = st.button("Submit")
 
     if submitted:
