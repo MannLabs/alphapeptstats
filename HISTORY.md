@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.4.0
+* SAM implementation from Isabel (MultiCova) 
+* Volcano Plot with permutation based FDR line
+
 # 0.3.0
 * One Click Installer for macOS, Linux and Windows
 * Spectronaut support

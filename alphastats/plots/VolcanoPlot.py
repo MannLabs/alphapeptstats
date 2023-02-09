@@ -70,7 +70,7 @@ class VolcanoPlot(PlotUtils):
         elif self.method == "anova":
             self._anova()
         
-        elif self.method == "SAM":
+        elif self.method == "sam":
             self._sam()
         
         # elif self.method == "Multi Covariates":
@@ -79,7 +79,7 @@ class VolcanoPlot(PlotUtils):
         else:
             raise ValueError(
                 f"{self.method} is not available."
-                + "Please select from 'ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test using."
+                + "Please select from 'ttest', 'sam' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
 
     

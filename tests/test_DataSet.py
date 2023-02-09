@@ -523,7 +523,26 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                     group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
 
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
-        self.assertTrue(column_added)   
+        self.assertTrue(column_added)  
+
+    def test_plot_volcano_sam(self):
+        self.obj.preprocess(imputation="knn", normalization="zscore")
+        plot = self.obj.plot_volcano(
+            column = "disease",
+            group1="type 2 diabetes mellitus", 
+            group2 ="type 2 diabetes mellitus|non-alcoholic fatty liver disease",
+            method="sam",
+            draw_line =True,
+            perm= 10
+        )
+
+        # fdr lines get drawn
+        line_1 = plot.to_plotly_json()["data"][2].get("line").get("shape")
+        line_2 = plot.to_plotly_json()["data"][3].get("line").get("shape")
+
+        self.assertEqual(line_1, "spline")
+        self.assertEqual(line_2, "spline")
+
 
     def test_plot_clustermap_significant(self):
         import sys
