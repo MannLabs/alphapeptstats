@@ -597,9 +597,9 @@ def full_regression_analysis(quant_data, annotation, covariates, sample_column='
 
         # @ToDo: This multiple testing should potentially be done across all covariates together?
         res_i['qval_BH'] = multipletests(res_i.pval, method='fdr_bh')[1]
-        res_i[['BH_FDR ' + str(int(fdr*100)) + '%']] = ["sig" if abs(x)<=fdr else "non_sig" for x in res_i["qval_BH"]]
+        res_i['BH_FDR ' + str(int(fdr*100)) + '%'] = ["sig" if abs(x)<=fdr else "non_sig" for x in res_i["qval_BH"]]
         res_i['qval_BH_s0'] = multipletests(res_i.pval_s0, method='fdr_bh')[1]
-        res_i[['BH_FDR_s0 ' + str(int(fdr*100)) + '%']] = ["sig" if abs(x)<=fdr else "non_sig" for x in res_i["qval_BH_s0"]]
+        res_i['BH_FDR_s0 ' + str(int(fdr*100)) + '%'] = ["sig" if abs(x)<=fdr else "non_sig" for x in res_i["qval_BH_s0"]]
 
         res_i = res_i.add_prefix(covariates[test_index] + "_")
 
