@@ -20,7 +20,7 @@ python setup.py sdist bdist_wheel
 
 # Setting up the local package
 cd release/one_click_macos_gui
-pip install "../../dist/alphastats-0.3.0-py3-none-any.whl"
+pip install "../../dist/alphastats-0.4.0-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
 pip install pyinstaller==4.10
@@ -40,5 +40,5 @@ cp ../../LICENSE.txt Resources/LICENSE.txt
 cp ../logos/alphapeptstats_logo.png Resources/alphapeptstats_logo.png
 chmod 777 scripts/*
 
-pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.3.0 --install-location /Applications/AlphaPeptStats.app --scripts scripts AlphaPeptStats.pkg
+pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.4.0 --install-location /Applications/AlphaPeptStats.app --scripts scripts AlphaPeptStats.pkg
 productbuild --distribution distribution.xml --resources Resources --package-path AlphaPeptStats.pkg dist/alphastats_gui_installer_macos.pkg
