@@ -104,6 +104,8 @@ class Plot:
         min_fc=1,
         alpha=0.05,
         draw_line=True,
+        perm=100, 
+        fdr=0.05
     ):
         """Plot Volcano Plot
 
@@ -111,11 +113,13 @@ class Plot:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
             group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
-            method (str): "anova", "wald", "ttest", Defaul ttest.
+            method (str): "anova", "wald", "ttest", "SAM" Defaul ttest.
             labels (bool): Add text labels to significant Proteins, Default False.
             alpha(float,optional): p-value cut off.
             min_fc (float): Minimum fold change
             draw_line(boolean): whether to draw cut off lines.
+            perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
+            fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
 
 
         Returns:
@@ -132,6 +136,8 @@ class Plot:
             min_fc=min_fc,
             alpha=alpha,
             draw_line=draw_line,
+            perm=perm, 
+            fdr=fdr
         )
 
         return volcano_plot.plot

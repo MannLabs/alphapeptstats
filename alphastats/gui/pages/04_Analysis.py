@@ -1,8 +1,7 @@
 import streamlit as st
 from alphastats.gui.utils.analysis_helper import (
     get_analysis,
-    load_options,
-)  # , check_if_options_are_loaded
+)  
 from alphastats.gui.utils.ui_helper import sidebar_info
 import alphastats.gui.utils.analysis_helper
 import pandas as pd
@@ -139,17 +138,15 @@ if "dataset" in st.session_state:
         if method in st.session_state.plotting_options.keys():
 
             analysis_result = get_analysis(
-                
                 method=method, options_dict=st.session_state.plotting_options
             )
-
             plot_to_display = True
         
         elif method in st.session_state.statistic_options.keys():
 
             analysis_result = get_analysis(
-            method=method, options_dict=st.session_state.statistic_options
-        )
+                method=method, options_dict=st.session_state.statistic_options
+            )
             df_to_display = True
 
         st.markdown("")
