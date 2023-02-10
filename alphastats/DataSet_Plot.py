@@ -136,8 +136,8 @@ class Plot:
             min_fc=min_fc,
             alpha=alpha,
             draw_line=draw_line,
-            perm=100, 
-            fdr=0.05
+            perm=perm, 
+            fdr=fdr
         )
 
         return volcano_plot.plot

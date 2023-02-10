@@ -537,8 +537,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
 
         # fdr lines get drawn
-        line_1 = plot.to_plotly_json()["data"][2].get("line").get("shape")
-        line_2 = plot.to_plotly_json()["data"][3].get("line").get("shape")
+        line_1 = plot.to_plotly_json()["data"][3].get("line").get("shape")
+        line_2 = plot.to_plotly_json()["data"][4].get("line").get("shape")
 
         self.assertEqual(line_1, "spline")
         self.assertEqual(line_2, "spline")

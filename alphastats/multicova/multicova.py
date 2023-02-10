@@ -267,7 +267,7 @@ def get_tstat_limit(stats, fdr=0.01):
 def annotate_fdr_significance(res_real, stats, fdr=0.01):
     t_limit = np.min(stats[stats.fdr <= fdr].t_cut)
     res_real['qval'] = [np.min(stats[stats.t_cut <= abs(x)].fdr) for x in res_real['tval_s0']]
-    res_real['FDR'] = ["sig" if abs(x) >= t_limit else "non_sig" for x in res_real['tval_s0']]
+    res_real['FDR' + str(int(fdr*100)) + '%'] = ["sig" if abs(x) >= t_limit else "non_sig" for x in res_real['tval_s0']]
     return(res_real)
 
 
@@ -320,40 +320,6 @@ def get_fdr_line(t_limit, s0, n_x, n_y, plot=False,
     return(s_df)
 
 
-def plot_volcano(res_real, fdr_line, t_limit, id_col='PG.Genes'):
-    """
-    Plot a volcano plot with FDR lines.
-    """
-    res_plot = res_real.copy()
-    res_plot['tlim_sig'] = ["sig" if abs(x) >= t_limit else "non_sig" for x in res_plot['tval_s0']]
-    fig = px.scatter(x=res_plot.fc,
-                     y=-np.log10(res_plot.pval),
-                     color=res_plot.tlim_sig,
-                     color_discrete_map={'sig': '#6666ff', 'non_sig': '#b2b2b2'},
-                     hover_name=res_plot[id_col],
-                     template='simple_white',
-                     labels=dict(x="log2 fold change", y="-log10(p-value)", color="1% FDR"))
-    if fdr_line is not None:
-        fig.add_trace(go.Scatter(x=fdr_line[fdr_line.fc_s > 0].fc_s,
-                                 y=-np.log10(fdr_line[fdr_line.fc_s > 0].pvals),
-                                 line_color="black",
-                                 showlegend=False))
-        fig.add_trace(go.Scatter(x=fdr_line[fdr_line.fc_s < 0].fc_s,
-                                 y=-np.log10(fdr_line[fdr_line.fc_s < 0].pvals),
-                                 line_color="black",
-                                 showlegend=False))
-
-    fig.update_layout(width=600, height=700)
-
-    config = {
-        'toImageButtonOptions': {
-            'format': 'svg',
-            'filename': "MultiCova_volcano"
-        }
-    }
-
-    fig.show(config=config)
-
 
 def perform_ttest_analysis(df, c1, c2, s0=1, n_perm=2, fdr=0.01, id_col='Genes', plot_fdr_line=False, parallelize=False):
     """
@@ -362,11 +328,9 @@ def perform_ttest_analysis(df, c1, c2, s0=1, n_perm=2, fdr=0.01, id_col='Genes',
     """
     ttest_res = workflow_ttest(df, c1, c2, s0, parallelize=parallelize)
     ttest_perm_res = workflow_permutation_tvals(df, c1, c2, s0, n_perm, parallelize=parallelize)
-
     ttest_stats = get_fdr_stats_across_deltas(ttest_res, ttest_perm_res)
     ttest_res = annotate_fdr_significance(res_real=ttest_res, stats=ttest_stats, fdr=fdr)
     t_limit = get_tstat_limit(stats=ttest_stats, fdr=fdr)
-   
     return(ttest_res, t_limit)
 
 
@@ -538,56 +502,6 @@ def perform_ttest_getMaxS_regression(fc, s, s0, X):
     ps_b_s0 = get_cdf(ts_b_s0, len(newX)-len(newX.columns))
     res = [[fc[x], ts_b[x], ps_b[x], ts_b_s0[x], ps_b_s0[x]] for x in np.arange(1,newX.shape[1])]
     return res
-
-
-def plot_volcano_regression(res_real, fdr_line, t_limit, variable, id_col='PG.Genes'):
-    """
-    Plot a volcano plot with FDR lines.
-    fdr_line is an output from function get_fdr_line. No fdr line is drawn if
-    this paramter is None.
-    t_limit is an output from function get_tstat_limit.
-    Not used if fdr_line is None.
-    variable string specifying the covariate for which the volcano plot is
-    drawn.
-    id_col ID column in the DataFrame used for hover info.
-    """
-    sig_col = res_real.filter(regex=variable+"_"+"FDR").columns[0]
-    sig_level = sig_col.replace("_", " ")
-
-    fig = px.scatter(x=res_real[variable+"_"+"fc"],
-                     y=-np.log10(res_real[variable+"_"+"pval"]),
-                     color=res_real[sig_col],
-                     color_discrete_map={'sig': '#6666ff', 'non_sig': '#b2b2b2'},
-                     hover_name=res_real[id_col],
-                     template='simple_white',
-                     title=variable,
-                     labels=dict(x="beta value", y="-log10(p-value)", color=sig_level))
-
-    if fdr_line != None:
-        fc_max = np.max(np.abs(res_real[variable+"_"+"fc"]))
-        fdr_line = fdr_line[abs(fdr_line.fc_s) <= fc_max]
-        fig.add_trace(go.Scatter(x=fdr_line[fdr_line.fc_s > 0].fc_s,
-                                 y=-np.log10(fdr_line[fdr_line.fc_s > 0].pvals),
-                                 line_color="black",
-                                 mode='lines',
-                                 showlegend=False))
-        fig.add_trace(go.Scatter(x=fdr_line[fdr_line.fc_s < 0].fc_s,
-                                 y=-np.log10(fdr_line[fdr_line.fc_s < 0].pvals),
-                                 line_color="black",
-                                 mode='lines',
-                                 showlegend=False))
-
-    fig.update_layout(width=600, height=700)
-
-    config = {
-        'toImageButtonOptions': {
-            'format': 'svg',
-            'filename': "MultiCova_volcano"
-        }
-    }
-
-    return fig.show(config=config)
-
 
 def generate_perms(n, n_rand, seed=42):
     """

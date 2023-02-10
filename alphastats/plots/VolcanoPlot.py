@@ -124,9 +124,11 @@ class VolcanoPlot(PlotUtils):
             id_col=self.dataset.index_column,
             parallelize=True
         )
-
-        self.res = res_ttest[[self.dataset.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval', 'FDR']]
+        
+        fdr_column = "FDR"  + str(int(self.fdr*100)) + "%"
+        self.res = res_ttest[[self.dataset.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval']]
         self.res["log2fc"] = res_ttest["fc"]
+        self.res["FDR"] = res_ttest[fdr_column]
         self.tlim_ttest = tlim_ttest
         self.pvalue_column = "pval"
 
@@ -279,12 +281,14 @@ class VolcanoPlot(PlotUtils):
             x=self.fdr_line[self.fdr_line.fc_s > 0].fc_s,
             y=-np.log10(self.fdr_line[self.fdr_line.fc_s > 0].pvals),
             line_color="black",
+            line_shape='spline',
             showlegend=False)
         )
         self.plot.add_trace(go.Scatter(
             x=self.fdr_line[self.fdr_line.fc_s < 0].fc_s,
             y=-np.log10(self.fdr_line[self.fdr_line.fc_s < 0].pvals),
             line_color="black",
+            line_shape='spline',
             showlegend=False)
         )
 
