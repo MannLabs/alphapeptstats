@@ -71,7 +71,7 @@ def workflow_ttest(df, c1, c2, s0=1, parallelize=False):
     fold-change to be trusted.
     """
     if parallelize:
-        res = df.swifter.apply(lambda row : perform_ttest(row[c1], row[c2], s0=s0), axis = 1, progress_bar=False)
+        res = df.swifter.apply(lambda row : perform_ttest(row[c1], row[c2], s0=s0), axis = 1)
     else:
         res = df.apply(lambda row : perform_ttest(row[c1], row[c2], s0=s0), axis = 1)
 
