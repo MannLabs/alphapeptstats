@@ -71,7 +71,7 @@ def workflow_ttest(df, c1, c2, s0=1, parallelize=False):
     fold-change to be trusted.
     """
     if parallelize:
-        res = df.swifter.apply(lambda row : perform_ttest(row[c1], row[c2], s0=s0), axis = 1)
+        res = df.swifter.progress_bar(False).apply(lambda row : perform_ttest(row[c1], row[c2], s0=s0), axis = 1)
     else:
         res = df.apply(lambda row : perform_ttest(row[c1], row[c2], s0=s0), axis = 1)
 
@@ -97,7 +97,7 @@ def workflow_permutation_tvals(df, c1, c2, s0=1, n_perm=2, parallelize=False):
     res_perm = list()
     for i in np.arange(0,len(all_c_rand)):
         if parallelize:
-            res_i = df.swifter.apply(lambda row : perform_ttest(row[all_c_rand[i][0:len(c1)]],
+            res_i = df.swifter.progress_bar(False).apply(lambda row : perform_ttest(row[all_c_rand[i][0:len(c1)]],
                                                                 row[all_c_rand[i][len(c1):len(c1)+len(c2)]],
                                                                 s0=s0),
                                                                 axis = 1)

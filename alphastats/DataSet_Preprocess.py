@@ -67,14 +67,6 @@ class Preprocess:
     @ignore_warning(RuntimeWarning)
     @ignore_warning(UserWarning)
     def _imputation(self, method):
-        # Impute Data
-        # For more information visit:
-        # SimpleImputer: https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html
-        # k-Nearest Neighbors Imputation: https://scikit-learn.org/stable/modules/impute.html#impute
-
-        # Args:
-        #    method (str): method to impute data: either "mean", "median" or "knn"
-
         # remove ProteinGroups with only NA before
         protein_group_na = self.mat.columns[self.mat.isna().all()].tolist()
 
@@ -136,16 +128,6 @@ class Preprocess:
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
-        # Normalize data using either zscore, quantile or linear (using l2 norm) Normalization.
-        # Z-score normalization equals standaridzation using StandardScaler:
-        # https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
-        # For more information visit.
-        # Sklearn: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.normalize.html
-
-        # Args:
-        # method (str): method to normalize data: either "zscore", "quantile", "linear"
-
-        # zscore normalization == standardization
 
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
