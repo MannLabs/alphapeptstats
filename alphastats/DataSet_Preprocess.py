@@ -38,7 +38,7 @@ class Preprocess:
 
         #  print column names with contamination
         protein_groups_to_remove = self.rawinput[
-            (self.rawinput[self.filter_columns] == True).any(1)
+            (self.rawinput[self.filter_columns] == True).any(axis=1)
         ][self.index_column].tolist()
 
         protein_groups_to_remove = list(
@@ -176,6 +176,13 @@ class Preprocess:
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
         self.preprocessing_info.update({"Normalization": method})
+
+    def reset_preprocessing(self):
+        """ Reset all preprocessing steps
+        """
+        # reset all preprocessing steps
+        self.create_matrix()
+        print("All preprocessing steps are reset.")
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
