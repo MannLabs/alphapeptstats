@@ -76,12 +76,22 @@ def create_pip_wheel():
             "Programming Language :: Python :: 3",
             "Topic :: Scientific/Engineering :: Bio-Informatics",
         ],
-        packages=["alphastats"],
+        packages=[
+            "alphastats", 
+            "alphastats.plots", 
+            "alphastats.multicova",
+            "alphastats.gui", 
+            "alphastats.data", 
+            "alphastats.gui.pages",
+            "alphastats.gui.sample_data",
+            "alphastats.gui.utils",
+            "alphastats.loader"
+        ],
         include_package_data=True,
         entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},
         install_requires=requirements,
         extras_require=extra_requirements,
-        python_requires=">=3.7,<4",
+        python_requires=">=3.8,<4",
     )
 
 
