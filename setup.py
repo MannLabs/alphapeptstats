@@ -46,7 +46,7 @@ def create_pip_wheel():
     requirements, extra_requirements = get_requirements()
     setuptools.setup(
         name="alphastats",
-        version="0.4.0",
+        version="0.4.1",
         license="Apache",
         description="An open-source Python package for Mass Spectrometry Analysis",
         long_description=get_long_description(),
@@ -56,8 +56,8 @@ def create_pip_wheel():
         url="https://github.com/MannLabs/alphastats",
         project_urls={
             "Mann Labs at MPIB": "https://www.biochem.mpg.de/mann",
-            "GitHub": "https://github.com/MannLabs/alphastats",
-            "ReadTheDocs": "https://mannlabs.github.io/alphastats/",
+            "GitHub": "https://github.com/MannLabs/alphapeptstats",
+            "ReadTheDocs": "https://mannlabs.github.io/alphapeptstats/",
             "PyPi": "https://pypi.org/project/alphastats/"
             # "Scientific paper": None,
         },
