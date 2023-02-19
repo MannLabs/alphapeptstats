@@ -92,7 +92,7 @@ class VolcanoPlot(PlotUtils):
                 s0=0.05,
                 n_x=len(list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample])),
                 n_y=len(list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample])),
-                fc_s = np.arange(0,np.max(np.abs(self.res.fc)),np.max(np.abs(self.res.fc))/200),
+                fc_s = np.arange(0,np.max(np.abs(self.res.log2fc)),np.max(np.abs(self.res.log2fc))/200),
                 s_s = np.arange(0.005, 6, 0.0025),
                 plot=False
             )

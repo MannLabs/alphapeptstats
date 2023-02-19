@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.4.1
+* FIX bug when drawing FDR lines
+* ADD functionionality `dataset.reset_preprocessing()` to reset all preprocessing steps
+
 # 0.4.0
 * SAM implementation from Isabel (MultiCova) 
 * Volcano Plot with permutation based FDR line

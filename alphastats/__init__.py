@@ -1,5 +1,5 @@
 __project__ = "alphastats"
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __license__ = "Apache"
 __description__ = "An open-source Python package for Mass Spectrometry Analysis"
 __author__ = "Mann Labs"
@@ -44,3 +44,5 @@ from .loader.DIANNLoader import *
 from .loader.FragPipeLoader import *
 from .loader.MaxQuantLoader import *
 from .DataSet import *
+from .cli import *
+import alphastats.gui

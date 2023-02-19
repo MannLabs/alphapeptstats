@@ -183,6 +183,15 @@ class BaseTestDataSet:
             self.assertEqual(len(plot_dict.get("data")), 1)
             #  check if it is logscale
             self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
+        
+        def test_reset_preprocessing(self):
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim)
+            
+            self.obj.preprocess(remove_contaminations=True)
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
+
+            self.obj.reset_preprocessing()
+            self.assertEqual(self.obj.mat.shape, self.matrix_dim)
 
 
 class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):

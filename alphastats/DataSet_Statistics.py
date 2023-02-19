@@ -33,7 +33,39 @@ class Statistics:
 
         return column, "group1", "group2"
 
-    def diff_expression_analysis(self, group1, group2, column=None, method="ttest"):
+    def _prepare_anndata(self, column, group1, group2):
+        import anndata
+        group_samples = self.metadata[
+            (self.metadata[column] == group1) | (self.metadata[column] == group2)
+        ][self.sample].tolist()
+
+        # reduce matrix
+        reduced_matrix = self.mat.loc[group_samples]
+        reduced_matrix = reduced_matrix.loc[:, (reduced_matrix != 0).any(axis=0)]
+        # sort metadata according to matrix values
+        list_to_sort = reduced_matrix.index.to_list()
+        #  reduce metadata
+        obs_metadata = (
+            self.metadata[self.metadata[self.sample].isin(group_samples)]
+            .set_index(self.sample)
+            .loc[list_to_sort]
+        )
+
+        # change comparison group to 0/1
+        obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
+
+        # create a annotated dataset
+        anndata_data = anndata.AnnData(
+            X=reduced_matrix.values,
+            var=pd.DataFrame(index=reduced_matrix.columns.to_list()),
+            obs=obs_metadata,
+            dtype=reduced_matrix.values.dtype,
+        )
+        return anndata_data
+
+
+    @ignore_warning(RuntimeWarning)
+    def diff_expression_analysis(self, group1, group2, column=None, method="ttest", perm=10, fdr=0.05):
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
@@ -68,33 +100,9 @@ class Statistics:
                 "Column containing group1 and group2 needs to be specified"
             )
 
-        #  if a column has more than two groups matrix needs to be reduced to compare
-        group_samples = self.metadata[
-            (self.metadata[column] == group1) | (self.metadata[column] == group2)
-        ][self.sample].tolist()
-
-        # reduce matrix
-        reduced_matrix = self.mat.loc[group_samples]
-        reduced_matrix = reduced_matrix.loc[:, (reduced_matrix != 0).any(axis=0)]
-        # sort metadata according to matrix values
-        list_to_sort = reduced_matrix.index.to_list()
-        #  reduce metadata
-        obs_metadata = (
-            self.metadata[self.metadata[self.sample].isin(group_samples)]
-            .set_index(self.sample)
-            .loc[list_to_sort]
-        )
-
-        # change comparison group to 0/1
-        obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
-
-        # create a annotated dataset
-        d = anndata.AnnData(
-            X=reduced_matrix.values,
-            var=pd.DataFrame(index=reduced_matrix.columns.to_list()),
-            obs=obs_metadata,
-            dtype=reduced_matrix.values.dtype,
-        )
+        # ttest and wald require anndata object for analysis
+        if method != "sam":
+            d = self._prepare_anndata(column=column, group1=group1, group2=group2)
 
         if method == "wald":
             formula_loc = "~ 1 +" + column
@@ -105,14 +113,41 @@ class Statistics:
         elif method == "ttest":
             test = de.test.t_test(data=d, grouping=column)
 
-        #elif method == "SAM":
+        elif method == "sam":
+            from alphastats.multicova import multicova
+            transposed = self.mat.transpose()
 
-        else:
-            raise ValueError(
-                f"{method} is invalid choose between 'wald' for Wald-test, 'SAM' and 'ttest'"
+            if self.preprocessing_info["Normalization"] is None:
+                # needs to be lpog2 transformed for fold change calculations
+                transposed = transposed.transform(lambda x: np.log2(x))
+
+            transposed[self.index_column] = transposed.index
+            transposed = transposed.reset_index(drop=True)
+
+            res, _ = multicova.perform_ttest_analysis(
+                transposed,
+                c1 =list(self.metadata[self.metadata[column]==group1][self.sample]),                                      
+                c2 =list(self.metadata[self.metadata[column]==group2][self.sample]), 
+                s0=0.05, 
+                n_perm=perm,
+                fdr=fdr,
+                id_col=self.index_column,
+                parallelize=True
             )
 
-        df = test.summary().rename(columns={"gene": self.index_column})
+            fdr_column = "FDR"  + str(int(fdr*100)) + "%"
+            df = res[[self.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval']]
+            df["log2fc"] = res["fc"]
+            df["FDR"] = res[fdr_column]
+        
+        else:
+            raise ValueError(
+                f"{method} is invalid choose between 'wald' for Wald-test, 'sam' and 'ttest'"
+            )
+        
+        if method != "sam":
+            df = test.summary().rename(columns={"gene": self.index_column})
+        
         return df
 
     def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):

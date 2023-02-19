@@ -46,7 +46,7 @@ def create_pip_wheel():
     requirements, extra_requirements = get_requirements()
     setuptools.setup(
         name="alphastats",
-        version="0.4.0",
+        version="0.4.1",
         license="Apache",
         description="An open-source Python package for Mass Spectrometry Analysis",
         long_description=get_long_description(),
@@ -56,8 +56,8 @@ def create_pip_wheel():
         url="https://github.com/MannLabs/alphastats",
         project_urls={
             "Mann Labs at MPIB": "https://www.biochem.mpg.de/mann",
-            "GitHub": "https://github.com/MannLabs/alphastats",
-            "ReadTheDocs": "https://mannlabs.github.io/alphastats/",
+            "GitHub": "https://github.com/MannLabs/alphapeptstats",
+            "ReadTheDocs": "https://mannlabs.github.io/alphapeptstats/",
             "PyPi": "https://pypi.org/project/alphastats/"
             # "Scientific paper": None,
         },
@@ -76,12 +76,23 @@ def create_pip_wheel():
             "Programming Language :: Python :: 3",
             "Topic :: Scientific/Engineering :: Bio-Informatics",
         ],
-        packages=["alphastats"],
+        packages=[
+            "alphastats", 
+            "alphastats.plots", 
+            "alphastats.multicova",
+            "alphastats.gui", 
+            "alphastats.data", 
+            "alphastats.gui.pages",
+            "alphastats.gui",
+            "alphastats.gui.sample_data",
+            "alphastats.gui.utils",
+            "alphastats.loader"
+        ],
         include_package_data=True,
         entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},
         install_requires=requirements,
         extras_require=extra_requirements,
-        python_requires=">=3.7,<4",
+        python_requires=">=3.8,<4",
     )
 
 
