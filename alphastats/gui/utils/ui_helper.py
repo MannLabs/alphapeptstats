@@ -21,7 +21,7 @@ def sidebar_logo():
     </head>  
     """
     header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-        img_to_bytes("alphastats_logo_2.png")
+        img_to_bytes("misc/alphastats_logo_2.png")
     )
     st.sidebar.markdown(
         header_html,

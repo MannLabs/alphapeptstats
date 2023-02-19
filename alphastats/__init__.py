@@ -44,3 +44,5 @@ from .loader.DIANNLoader import *
 from .loader.FragPipeLoader import *
 from .loader.MaxQuantLoader import *
 from .DataSet import *
+from .cli import *
+import alphastats.gui
