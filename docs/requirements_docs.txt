@@ -61,7 +61,7 @@ pandocfilters==1.5.0
 partd==1.3.0 
 patsy==0.5.3 
 pillow==9.2.0 
-pingouin==0.5.2 
+pingouin==0.5.3 
 plotly==5.10.0 
 plumbum==1.8.0 
 ply==3.11 
