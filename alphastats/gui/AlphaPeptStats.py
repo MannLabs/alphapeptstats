@@ -9,8 +9,7 @@ import os
 #from PIL import Image
 
 # centering with streamlit is not really centered
-_this_file = os.path.abspath(__file__)
-_this_directory = os.path.dirname(_this_file)
+
 
 img_center = """
 <head>  
@@ -25,6 +24,8 @@ img {
 </head>  
 """
 
+_this_file = os.path.abspath(__file__)
+_this_directory = os.path.dirname(_this_file)
 icon = os.path.join(_this_directory, "alphapeptstats_logo.png")
 
 header_html = img_center + "<img src='data:image/png;base64,{}'>".format(

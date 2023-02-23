@@ -7,28 +7,6 @@ from alphastats import __version__
 # https://github.com/streamlit/streamlit/issues/4984
 
 
-def sidebar_logo():
-    img_center = """
-    <head>  
-    <title> CSS object-position property </title>  
-    <style> 
-    img {
-       position: absolute;
-       right: -7px;
-       bottom: -710px;
-       width: 45%;
-    </style>  
-    </head>  
-    """
-    header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-        img_to_bytes("alphastats_logo_2.png")
-    )
-    st.sidebar.markdown(
-        header_html,
-        unsafe_allow_html=True,
-    )
-
-
 def sidebar_info(show_logo=True):
     display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
@@ -54,8 +32,7 @@ def sidebar_info(show_logo=True):
     </body>""",
         unsafe_allow_html=True,
     )
-    if show_logo:
-        sidebar_logo()
+
 
 
 def display_sidebar_html_table():
