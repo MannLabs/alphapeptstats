@@ -1,7 +1,11 @@
 import streamlit as st
 import pandas as pd
 import io
-from alphastats.gui.utils.ui_helper import sidebar_info
+
+try:
+    from alphastats.gui.utils.ui_helper import sidebar_info
+except ModuleNotFoundError:
+    from utils.ui_helper import sidebar_info
 
 
 def display_plotly_figure(plot):

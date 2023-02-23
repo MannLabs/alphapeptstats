@@ -1,6 +1,9 @@
 import streamlit as st
 st.set_page_config(layout="wide")
-from alphastats.gui.utils.ui_helper import sidebar_info, img_to_bytes
+try:
+    from alphastats.gui.utils.ui_helper import sidebar_info, img_to_bytes
+except ModuleNotFoundError:
+    from utils.ui_helper import sidebar_info, img_to_bytes
 
 # centering with streamlit is not really centered
 img_center = """
