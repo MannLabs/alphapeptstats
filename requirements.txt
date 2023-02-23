@@ -1,3 +1,4 @@
+setuptools==39.1.0
 pandas==1.5.2
 scikit-learn==1.2.0
 data_cache>=0.1.6
