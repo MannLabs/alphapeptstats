@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from alphastats.gui.utils.ui_helper import sidebar_info
+
 import datetime
 
 

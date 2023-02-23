@@ -1,12 +1,20 @@
 import streamlit as st
-from alphastats.gui.utils.analysis_helper import (
-    get_analysis,
-)  
-from alphastats.gui.utils.ui_helper import sidebar_info
-import alphastats.gui.utils.analysis_helper
+
 import pandas as pd
 import io
 
+
+try:
+    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.gui.utils.analysis_helper import (
+    get_analysis,
+)  
+
+except ModuleNotFoundError:
+    from utils.ui_helper import sidebar_info
+    from utils.analysis_helper import (
+    get_analysis,
+)  
 
 def check_if_options_are_loaded(f):
     """

@@ -1,11 +1,22 @@
 from curses import meta
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 import streamlit as st
 
-from alphastats.DataSet import DataSet
-from alphastats.gui.utils.ui_helper import sidebar_info
-from alphastats.gui.utils.analysis_helper import *
-from alphastats.gui.utils.software_options import software_options
+
+try:
+    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.gui.utils.analysis_helper import *
+    from alphastats.gui.utils.software_options import software_options
+    from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+    from alphastats.DataSet import DataSet
+
+except ModuleNotFoundError:
+    from utils.ui_helper import sidebar_info
+    from utils.analysis_helper import *
+    from utils.software_options import software_options
+    from alphastats import MaxQuantLoader
+    from alphastats import DataSet
+
+
 import pandas as pd
 import plotly.express as px
 
