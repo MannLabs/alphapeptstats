@@ -1,3 +1,0 @@
-streamlit>=1.12.2
-streamlit-multipage>=0.0.18
-

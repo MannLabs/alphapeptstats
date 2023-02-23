@@ -16,34 +16,13 @@ def get_long_description():
 
 
 def get_requirements():
-    extra_requirements = {}
-    requirement_file_names = {
-        "development": "requirements_development.txt",
-        "gui": "requirements_gui.txt",
-    }
-    requirement_file_names[""] = "requirements.txt"
-    for extra, requirement_file_name in requirement_file_names.items():
-        full_requirement_file_name = os.path.join(
-            "requirements", requirement_file_name,
-        )
-        with open(full_requirement_file_name) as requirements_file:
-            if extra != "":
-                extra_stable = f"{extra}-stable"
-            else:
-                extra_stable = "stable"
-            extra_requirements[extra_stable] = []
-            extra_requirements[extra] = []
-            for line in requirements_file:
-                extra_requirements[extra_stable].append(line)
-                requirement, *comparison = re.split("[><=~!]", line)
-                requirement == requirement.strip()
-                extra_requirements[extra].append(requirement)
-    requirements = extra_requirements.pop("")
-    return requirements, extra_requirements
-
+    with open('requirements.txt') as f:
+        required = f.read().splitlines()
+    return required
+    
 
 def create_pip_wheel():
-    requirements, extra_requirements = get_requirements()
+    requirements = get_requirements()
     setuptools.setup(
         name="alphastats",
         version="0.4.1",
@@ -91,7 +70,6 @@ def create_pip_wheel():
         include_package_data=True,
         entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},
         install_requires=requirements,
-        extras_require=extra_requirements,
         python_requires=">=3.8,<4",
     )
 
