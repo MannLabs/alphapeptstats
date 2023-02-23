@@ -1,6 +1,7 @@
 from curses import meta
 import streamlit as st
 
+import os
 
 try:
     from alphastats.gui.utils.ui_helper import sidebar_info
@@ -216,10 +217,16 @@ def upload_metadatafile(software):
 
 
 def load_sample_data():
-    loader = MaxQuantLoader(file="sample_data/proteinGroups.txt")
+    _this_file = os.path.abspath(__file__)
+    _this_directory = os.path.dirname(_this_file)
+    filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt")
+    metadatapath =  os.path.join(_this_directory, "sample_data/metadata.xlsx")
+    
+    loader = MaxQuantLoader(file=filepath)
     ds = DataSet(
-        loader=loader, metadata_path="sample_data/metadata.xlsx", sample_column="sample"
+        loader=loader, metadata_path=metadatapath, sample_column="sample"
     )
+    
     ds.metadata = ds.metadata[
         [
             "sample",
