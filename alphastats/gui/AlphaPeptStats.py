@@ -1,11 +1,17 @@
 import streamlit as st
 st.set_page_config(layout="wide")
+
 try:
     from alphastats.gui.utils.ui_helper import sidebar_info, img_to_bytes
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info, img_to_bytes
+import os
+#from PIL import Image
 
 # centering with streamlit is not really centered
+_this_file = os.path.abspath(__file__)
+_this_directory = os.path.dirname(_this_file)
+
 img_center = """
 <head>  
 <title> CSS object-position property </title>  
@@ -19,8 +25,10 @@ img {
 </head>  
 """
 
+icon = os.path.join(_this_directory, "alphapeptstats_logo.png")
+
 header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes("alphapeptstats_logo.png")
+    img_to_bytes(icon)
 )
 
 st.markdown(
@@ -28,7 +36,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
+##
 st.markdown(
     """\n\n
 An open-source Python package for the analysis of mass spectrometry based proteomics data 
