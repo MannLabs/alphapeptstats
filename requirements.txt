@@ -1,4 +1,3 @@
-setuptools==65.5.1
 pandas==1.5.2
 scikit-learn==1.2.0
 data_cache>=0.1.6
@@ -18,6 +17,6 @@ tables==3.7.0
 numpy==1.23.5
 numba==0.56.4
 numba-stats==0.5.0
-swifter==1.0.7
+swifter==1.2.0
 click==8.0.1
 kaleido==0.2.1
