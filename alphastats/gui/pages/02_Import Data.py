@@ -219,8 +219,8 @@ def upload_metadatafile(software):
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
-    filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt")
-    metadatapath =  os.path.join(_this_directory, "sample_data/metadata.xlsx")
+    filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt").replace("pages/","")
+    metadatapath =  os.path.join(_this_directory, "sample_data/metadata.xlsx").replace("pages/","")
     
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(
