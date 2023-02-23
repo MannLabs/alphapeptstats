@@ -6,9 +6,9 @@
 [![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
 
-
-<img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="964.25" height="486.5">
-
+<div align = center>
+<img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="771.4" height="389.2">
+</div>
 
 
 <div align = center>
