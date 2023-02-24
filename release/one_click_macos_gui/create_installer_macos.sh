@@ -23,7 +23,7 @@ cd release/one_click_macos_gui
 pip install "../../dist/alphastats-0.4.1-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
-pip install pyinstaller==5.7
+pip install pyinstaller==5.8
 pyinstaller ../pyinstaller/alphastats.spec -y
 conda deactivate
 
