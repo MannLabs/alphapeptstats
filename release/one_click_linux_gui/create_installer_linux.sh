@@ -30,7 +30,7 @@ conda deactivate
 
 # Wrapping the pyinstaller folder in a .deb package
 mkdir -p dist/alphastats_gui_installer_linux/usr/local/bin/alphastats   
-mv dist/alphastats_gui dist/alphastats_gui_installer_linux/usr/local/bin/alphastats_gui
+mv dist/alphastats dist/alphastats_gui_installer_linux/usr/local/bin/alphastats
 mkdir dist/alphastats_gui_installer_linux/DEBIAN
 cp control dist/alphastats_gui_installer_linux/DEBIAN
 dpkg-deb --build --root-owner-group dist/alphastats_gui_installer_linux/
