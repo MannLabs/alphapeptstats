@@ -22,7 +22,7 @@ block_cipher = None
 location = os.getcwd()
 project = "alphastats"
 remove_tests = True
-bundle_name = "alphastats"
+bundle_name = "AlphaPeptStats"
 #####################
 block_cipher = None
 
@@ -32,10 +32,9 @@ requirements = {
 requirements.add(project)
 requirements.add("distributed")
 hidden_imports = set()
-checked = set()
-
 datas = []
 binaries = []
+checked = set()
 
 while requirements:
 	requirement = requirements.pop()
@@ -58,14 +57,14 @@ while requirements:
 	except ImportError:
 		continue
 	datas += datas_
-	
-	hidden_imports_.append('sklearn')
-	hidden_imports_.append('sklearn.neighbors.typedefs')
-	hidden_imports_.append('sklearn.utils._typedefs')
-	hidden_imports_.append('sklearn.neighbors._partition_nodes')
+
 	hidden_imports_.append('sklearn.metrics._pairwise_distances_reduction._datasets_pair')
+	hidden_imports_.append('sklearn.metrics._pairwise_distances_reduction._middle_term_computer')
+
+	# binaries += binaries_
 	hidden_imports_ = set(hidden_imports_)
 	
+
 	if "" in hidden_imports_:
 		hidden_imports_.remove("")
 	if None in hidden_imports_:
@@ -79,6 +78,7 @@ if remove_tests:
 	)
 else:
 	hidden_imports = sorted(hidden_imports)
+
 
 
 hidden_imports = [h for h in hidden_imports if "__pycache__" not in h]
@@ -107,21 +107,17 @@ a = Analysis(
 	hiddenimports=hidden_imports,
 	hookspath=[],
 	runtime_hooks=[],
-	excludes=[],
+	excludes=[h for h in hidden_imports if "datashader" in h],
 	win_no_prefer_redirects=False,
 	win_private_assemblies=False,
 	cipher=block_cipher,
 	noarchive=False
 )
-
-a.datas += Tree('Users/drq441/opt/anaconda3/envs/alphapeptstatsinstaller/lib/python3.9/site-packages/sklearn/', prefix='sklearn')
-
 pyz = PYZ(
 	a.pure,
 	a.zipped_data,
 	cipher=block_cipher
 )
-
 if sys.platform[:5] == "linux":
 	exe = EXE(
 		pyz,
@@ -164,13 +160,5 @@ else:
 		upx_exclude=[],
 		name=exe_name
 	)
-	if sys.platform[:6] == "darwin":
-		import cmath
-		import shutil
-		shutil.copyfile(
-			cmath.__file__,
-			f"dist/{exe_name}/{os.path.basename(cmath.__file__)}"
-		)
-
 
 
