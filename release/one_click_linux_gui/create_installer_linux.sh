@@ -20,7 +20,7 @@ cd release/one_click_linux_gui
 pip install "../../dist/alphastats-0.4.1-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
-pip install pyinstaller==4.10
+pip install pyinstaller==5.8
 pyinstaller ../pyinstaller/alphastats.spec -y
 conda deactivate
 
@@ -30,7 +30,7 @@ conda deactivate
 
 # Wrapping the pyinstaller folder in a .deb package
 mkdir -p dist/alphastats_gui_installer_linux/usr/local/bin/alphastats   
-mv dist/alphastats dist/alphastats_gui_installer_linux/usr/local/bin/alphastats
+mv dist/alphastats_gui dist/alphastats_gui_installer_linux/usr/local/bin/alphastats_gui
 mkdir dist/alphastats_gui_installer_linux/DEBIAN
 cp control dist/alphastats_gui_installer_linux/DEBIAN
 dpkg-deb --build --root-owner-group dist/alphastats_gui_installer_linux/
