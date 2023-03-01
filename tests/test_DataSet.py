@@ -463,7 +463,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 if idx != idx2:
                     difference = dictdiffer.diff(res.to_plotly_json(), res2.to_plotly_json())
                     self.assertNotEqual(len(list(difference)), 0)
-                    s
+                    
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True)

@@ -150,8 +150,7 @@ class Plot:
 
         if compare_preprocessing_modes:
             params_for_func = locals()
-            del params_for_func["self"]
-            results = self.compare_processing_modes(func="VolcanoPlot",params_for_func=params_for_func)
+            results = self._compare_preprocessing_modes(func=VolcanoPlot,params_for_func=params_for_func)
             return results
         
         else:
