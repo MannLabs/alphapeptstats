@@ -75,8 +75,8 @@ def download_figure(obj, format, plotting_library="plotly"):
     st.download_button(label="Download as " + format, data=buffer, file_name=filename)
 
 
-@st.cache
-def convert_df(df):
+@st.cache_data
+def convert_df(df, user_session_id = st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 

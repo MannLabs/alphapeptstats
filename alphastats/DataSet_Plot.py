@@ -232,6 +232,7 @@ class Plot:
         method="box",
         add_significance=False,
         log_scale=False,
+        compare_preprocessing_modes=False
     ):
         """Plot Intensity of individual Protein/ProteinGroup
 
@@ -246,6 +247,11 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: Plotly Plot
         """
+        if compare_preprocessing_modes:
+            params_for_func = locals()
+            results = self._compare_preprocessing_modes(func=IntensityPlot,params_for_func=params_for_func)
+            return results
+        
         intensity_plot = IntensityPlot(
             dataset = self,
             protein_id=protein_id,

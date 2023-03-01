@@ -190,7 +190,6 @@ class Preprocess:
             )
             
             res = func(**params_for_func)
-            res.show()
             results_list.append(res)
         
         return res

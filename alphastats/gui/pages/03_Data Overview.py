@@ -3,13 +3,13 @@ import pandas as pd
 import plotly.express as px
 
 
-@st.cache
-def convert_df(df):
+@st.cache_data
+def convert_df(df, user_session_id = st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 
-@st.cache
-def get_display_matrix():
+@st.cache_data
+def get_display_matrix(user_session_id = st.session_state.user_session_id):
 
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
