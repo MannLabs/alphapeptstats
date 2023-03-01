@@ -125,7 +125,8 @@ class Plot:
         alpha=0.05,
         draw_line=True,
         perm=100, 
-        fdr=0.05
+        fdr=0.05,
+        compare_preprocessing_modes=False
     ):
         """Plot Volcano Plot
 
@@ -136,31 +137,39 @@ class Plot:
             method (str): "anova", "wald", "ttest", "SAM" Defaul ttest.
             labels (bool): Add text labels to significant Proteins, Default False.
             alpha(float,optional): p-value cut off.
-            min_fc (float): Minimum fold change
+            min_fc (float): Minimum fold change.
             draw_line(boolean): whether to draw cut off lines.
             perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
             fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
+            compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
 
 
         Returns:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
 
-        volcano_plot = VolcanoPlot(
-            dataset=self,
-            group1=group1,
-            group2=group2,
-            column=column,
-            method=method,
-            labels=labels,
-            min_fc=min_fc,
-            alpha=alpha,
-            draw_line=draw_line,
-            perm=perm, 
-            fdr=fdr
-        )
+        if compare_preprocessing_modes:
+            params_for_func = locals()
+            del params_for_func["self"]
+            results = self.compare_processing_modes(func="VolcanoPlot",params_for_func=params_for_func)
+            return results
+        
+        else:
+            volcano_plot = VolcanoPlot(
+                dataset=self,
+                group1=group1,
+                group2=group2,
+                column=column,
+                method=method,
+                labels=labels,
+                min_fc=min_fc,
+                alpha=alpha,
+                draw_line=draw_line,
+                perm=perm, 
+                fdr=fdr
+            )
 
-        return volcano_plot.plot
+            return volcano_plot.plot
 
     def plot_correlation_matrix(self, method="pearson"):
         """Plot Correlation Matrix

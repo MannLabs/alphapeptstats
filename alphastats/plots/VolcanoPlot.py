@@ -11,7 +11,11 @@ from functools import lru_cache
 
 class VolcanoPlot(PlotUtils):
     def __init__(
-        self, dataset, group1, group2, column=None, method=None, labels=None, min_fc=None, alpha=None, draw_line=None, plot=True, perm=100, fdr=0.05
+        self, dataset, group1, group2, 
+        column=None, method=None, 
+        labels=None, min_fc=None, 
+        alpha=None, draw_line=None, 
+        plot=True, perm=100, fdr=0.05
     ):  
         self.dataset = dataset
         self.group1 = group1
