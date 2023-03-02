@@ -18,6 +18,7 @@ except ModuleNotFoundError:
     from alphastats import DataSet
 
 
+
 import pandas as pd
 import plotly.express as px
 
@@ -140,15 +141,14 @@ def select_sample_column_metadata(df, software):
 
 def upload_softwarefile(software):
 
-    st.file_uploader(
+    softwarefile = st.file_uploader(
         print_software_import_info(software=software),
-        key="softwarefile",
         type=["csv", "tsv", "txt", "hdf"],
     )
 
-    if st.session_state.softwarefile is not None:
+    if softwarefile is not None:
 
-        softwarefile_df = read_uploaded_file_into_df(st.session_state.softwarefile)
+        softwarefile_df = read_uploaded_file_into_df(softwarefile)
         # display head a protein data
 
         check_software_file(softwarefile_df, software)
@@ -302,6 +302,10 @@ def empty_session_state():
         del st.session_state[key]
     st.empty()
 
+    from streamlit.runtime import get_instance
+    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+    user_session_id = get_script_run_ctx().session_id
+    st.session_state["user_session_id"] = user_session_id
 
 sidebar_info()
 

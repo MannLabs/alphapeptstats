@@ -7,6 +7,7 @@ import sklearn.ensemble
 import sklearn.impute
 from alphastats.utils import ignore_warning
 from sklearn.experimental import enable_iterative_imputer
+import itertools
 
 
 class Preprocess:
@@ -165,6 +166,34 @@ class Preprocess:
         # reset all preprocessing steps
         self.create_matrix()
         print("All preprocessing steps are reset.")
+    
+    def _compare_preprocessing_modes(self, func, params_for_func):
+        dataset = self
+        imputation_methods = ["mean", "median", "knn"]
+        normalization_methods = ["zscore", "quantile", "vst"]
+        preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
+
+        results_list = []
+
+        del params_for_func["compare_preprocessing_modes"]
+        params_for_func["dataset"] = params_for_func.pop("self")
+
+        for preprocessing_mode in preprocessing_modes:
+            # reset preprocessing
+            dataset.reset_preprocessing()
+            print(f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}")
+            
+            dataset.preprocess(
+                subset=True,
+                normalization = preprocessing_mode[0],
+                imputation = preprocessing_mode[1]
+            )
+            
+            res = func(**params_for_func)
+            results_list.append(res)
+        
+        return results_list
+        
 
     @ignore_warning(RuntimeWarning)
     def preprocess(

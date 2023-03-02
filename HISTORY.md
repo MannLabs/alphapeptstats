@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.4.2
+* ADD option compare_preprocessing_modes
+* update to streamlit 1.19 with new caching functions
+
 # 0.4.1
 * FIX bug when drawing FDR lines
 * ADD functionionality `dataset.reset_preprocessing()` to reset all preprocessing steps

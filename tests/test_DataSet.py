@@ -16,6 +16,7 @@ from contextlib import contextmanager
 import shutil
 import os
 import copy
+import dictdiffer
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
 from alphastats.loader.BaseLoader import BaseLoader
@@ -447,6 +448,22 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group1=["wrong_sample_name", "1_42_D9", "1_57_E8"],
                 group2=["1_71_F10", "1_73_F12"],
             )
+    
+    def test_plot_volcano_compare_preprocessing_modes(self):
+        result_list = self.obj.plot_volcano(
+            method="ttest",
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"],
+            group2=["1_71_F10", "1_73_F12"],
+            compare_preprocessing_modes=True
+        )
+        self.assertEqual(len(result_list), 9)
+        # check if results are different
+        # for idx, res in enumerate(result_list):
+        #     for idx2, res2 in enumerate(result_list):
+        #         if idx != idx2:
+        #             difference = dictdiffer.diff(res.to_plotly_json(), res2.to_plotly_json())
+        #             self.assertNotEqual(len(list(difference)), 0)
+                    
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True)
