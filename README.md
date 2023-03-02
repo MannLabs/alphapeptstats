@@ -29,6 +29,9 @@ An open-source Python package of the AlphaPept ecosystem from the [Mann Group at
 
 * [**About**](#about)
 * [**Installation**](#installation)
+ * [Pip Installation](#pip-installation)
+ * [One Click Installer](#one-click-installer)
+ * [Docker Image](#docker-image)
 * [**Usage**](#usage)
 * [**Troubleshooting**](#troubleshooting)
 * [**Citations**](#citations)
@@ -43,6 +46,12 @@ An open-source Python package for downstream mass spectrometry downstream data a
 ---
 
 ## Installation
+
+AlphaPeptStats can be used as python library (pip-installation), or Graphical User Interface (either pip-installation or one-click installer). Further we provide a Dockerimage for the GUI.
+
+---
+
+## Pip Installation
 
 AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command. 
 
@@ -61,6 +70,23 @@ alphastats gui
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
+
+---
+
+## One Click Installer
+
+One click Installer for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases)
+
+---
+
+## Docker Image
+
+We provide two Dockerfiles, one for the library and one for the Graphical User Interface.
+The Image can be pulled from Dockerhub
+
+```bash
+docker pull elenakrismer/alphapeptstats_streamlit
+```
 
 ---
 
