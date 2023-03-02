@@ -192,7 +192,7 @@ class Preprocess:
             res = func(**params_for_func)
             results_list.append(res)
         
-        return res
+        return results_list
         
 
     @ignore_warning(RuntimeWarning)
