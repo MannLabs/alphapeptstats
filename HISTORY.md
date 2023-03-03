@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.4.3
+* FIX loading dataset with columns
+* ADD log2-transformation
+
 # 0.4.2
 * ADD option compare_preprocessing_modes
 * update to streamlit 1.19 with new caching functions

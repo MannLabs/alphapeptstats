@@ -257,7 +257,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_zscore(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # zscore Normalization
-        self.obj.preprocess(normalization="zscore")
+        self.obj.preprocess(log2_transform=False,normalization="zscore")
         expected_mat = pd.DataFrame(
             {
                 "a": [-1.33630621, 1.06904497, 0.26726124],
@@ -270,7 +270,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_quantile(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # Quantile Normalization
-        self.obj.preprocess(normalization="quantile")
+        self.obj.preprocess(log2_transform=False,normalization="quantile")
         expected_mat = pd.DataFrame(
             {"a": [0.0, 1.0, 0.5], "b": [1.0, 0.0, 0.0], "c": [0.0, 1.0, 0.5]}
         )
@@ -279,7 +279,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_linear(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # Linear Normalization
-        self.obj.preprocess(normalization="linear")
+        self.obj.preprocess(log2_transform=False,normalization="linear")
         expected_mat = pd.DataFrame(
             {
                 "a": [0.37139068, 0.42107596, 0.40824829],
@@ -292,7 +292,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_vst(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # Linear Normalization
-        self.obj.preprocess(normalization="vst")
+        self.obj.preprocess(log2_transform=False,normalization="vst")
         expected_mat = pd.DataFrame(
             {
                 "a": [-1.30773413, 1.12010046, 0.18763367],
@@ -306,7 +306,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(imputation="mean")
+        self.obj.preprocess(log2_transform=False,imputation="mean")
         expected_mat = pd.DataFrame(
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
@@ -316,7 +316,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(imputation="median")
+        self.obj.preprocess(log2_transform=False,imputation="median")
         expected_mat = pd.DataFrame(
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
@@ -326,7 +326,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(imputation="knn")
+        self.obj.preprocess(log2_transform=False,imputation="knn")
         expected_mat = pd.DataFrame(
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
@@ -336,7 +336,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(imputation="randomforest")
+        self.obj.preprocess(log2_transform=False,imputation="randomforest")
         expected_mat = pd.DataFrame(
             {
                 "a": [2.00000000e00, -9.22337204e12, 4.00000000e00],
@@ -372,14 +372,14 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
 
     def test_plot_clustermap(self):
-        self.obj.preprocess(imputation="knn")
+        self.obj.preprocess(log2_transform=False, imputation="knn")
         plot = self.obj.plot_clustermap()
         first_row = plot.data2d.iloc[0].to_list()
         expected = [487618.5371077078, 1293013.103298046]
         self.assertEqual(first_row, expected)
 
     def test_plot_clustermap_with_label_bar(self):
-        self.obj.preprocess(imputation="knn")
+        self.obj.preprocess(log2_transform=False, imputation="knn")
         plot = self.obj.plot_clustermap(label_bar=self.comparison_column)
         first_row = plot.data2d.iloc[0].to_list()
         expected = [487618.5371077078, 1293013.103298046]
@@ -456,17 +456,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True
         )
-        self.assertEqual(len(result_list), 9)
-        # check if results are different
-        # for idx, res in enumerate(result_list):
-        #     for idx2, res2 in enumerate(result_list):
-        #         if idx != idx2:
-        #             difference = dictdiffer.diff(res.to_plotly_json(), res2.to_plotly_json())
-        #             self.assertNotEqual(len(list(difference)), 0)
-                    
+        self.assertEqual(len(result_list), 9)               
 
     def test_preprocess_subset(self):
-        self.obj.preprocess(subset=True)
+        self.obj.preprocess(subset=True, log2_transform=False)
         self.assertEqual(self.obj.mat.shape, (48, 1364))
 
     @patch.object(Statistics, "tukey_test")
@@ -758,7 +751,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         plot = self.obj.plot_volcano(
             column="grouping1", group1="Healthy", group2="Disease", method="anova"
         )
-        expected_y_value = 0.09437708068494619
+        expected_y_value = 0.040890177695653236
         y_value = plot.to_plotly_json().get("data")[0].get("y")[1]
         self.assertAlmostEqual(y_value, expected_y_value)
 

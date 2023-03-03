@@ -130,8 +130,6 @@ class Preprocess:
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
         df = self.mat.transpose()
-        df.rename(columns=df.iloc[0], inplace = True)
-        df.drop(df.index[0], inplace = True)
 
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
@@ -156,9 +154,10 @@ class Preprocess:
                 "Choose from 'zscore', 'quantile', 'linear' normalization. or 'vst' for variance stabilization transformation"
             )
 
-        self.mat = pd.DataFrame(
+        mat = pd.DataFrame(
             normalized_array, index=df.index, columns=df.columns
-        ).transpose()
+        )
+        self.mat = mat.transpose()
         self.preprocessing_info.update({"Normalization": method})
 
     def reset_preprocessing(self):
