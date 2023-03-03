@@ -129,23 +129,26 @@ class Preprocess:
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
+        df = self.mat.transpose()
+        df.rename(columns=df.iloc[0], inplace = True)
+        df.drop(df.index[0], inplace = True)
 
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
-            normalized_array = scaler.fit_transform(self.mat.values)
+            normalized_array = scaler.fit_transform(df.values)
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
-            normalized_array = qt.fit_transform(self.mat.values)
+            normalized_array = qt.fit_transform(df.values)
 
         elif method == "linear":
             normalized_array = sklearn.preprocessing.normalize(
-                self.mat.values, norm="l2"
+                df.values, norm="l2"
             )
 
         elif method == "vst":
             scaler = sklearn.preprocessing.PowerTransformer()
-            normalized_array = scaler.fit_transform(self.mat.values)
+            normalized_array = scaler.fit_transform(df.values)
 
         else:
             raise ValueError(
@@ -153,11 +156,9 @@ class Preprocess:
                 "Choose from 'zscore', 'quantile', 'linear' normalization. or 'vst' for variance stabilization transformation"
             )
 
-        # TODO logarithimic normalization
-
         self.mat = pd.DataFrame(
-            normalized_array, index=self.mat.index, columns=self.mat.columns
-        )
+            normalized_array, index=df.index, columns=df.columns
+        ).transpose()
         self.preprocessing_info.update({"Normalization": method})
 
     def reset_preprocessing(self):
@@ -193,11 +194,16 @@ class Preprocess:
             results_list.append(res)
         
         return results_list
-        
+
+    def _log2_transform(self):
+        self.mat = np.log2(self.mat + 0.1)
+        self.preprocessing_info.update({"Log2 Transformed": True})
+
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
+        log2_transform=True,
         remove_contaminations=False,
         subset=False,
         normalization=None,
@@ -239,6 +245,7 @@ class Preprocess:
 
         Args:
             remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination.
+            log2_transform (bool, optional): Log2 transform data. Default to True.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
@@ -249,6 +256,9 @@ class Preprocess:
 
         if subset:
             self.mat = self._subset()
+        
+        if log2_transform:
+            self._log2_transform()
 
         if normalization is not None:
             self._normalization(method=normalization)
