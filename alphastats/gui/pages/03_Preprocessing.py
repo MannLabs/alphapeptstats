@@ -29,6 +29,11 @@ def preprocessing():
                 options=[True, False],
             )
 
+            log2_transform = st.selectbox(
+                "Log2-transform dataset",
+                options=[True, False],
+            )
+
             normalization = st.selectbox(
                 "Normalization", options=[None, "zscore", "quantile", "vst", "linear"]
             )
@@ -42,6 +47,7 @@ def preprocessing():
         if submitted:
             st.session_state.dataset.preprocess(
                 remove_contaminations=remove_contaminations,
+                log2_transform=log2_transform,
                 subset=subset,
                 normalization=normalization,
                 imputation=imputation,
