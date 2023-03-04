@@ -48,6 +48,7 @@ class SpectronautLoader(BaseLoader):
 
         self._reshape_spectronaut(sample_column=sample_column, gene_names_column=gene_names_column)
         self._add_contamination_column()
+        self._read_all_columns_as_string()
               
 
     def _reshape_spectronaut(self, sample_column, gene_names_column):

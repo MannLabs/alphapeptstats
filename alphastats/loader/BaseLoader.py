@@ -32,6 +32,7 @@ class BaseLoader:
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
+        self._read_all_columns_as_string()
 
     def _check_if_columns_are_present(self):
         """check if given columns present in rawinput"""
@@ -46,9 +47,11 @@ class BaseLoader:
                 "FragPipe Format: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
                 "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
+    
+    def _read_all_columns_as_string(self):
+        self.rawinput.columns = self.rawinput.columns.astype(str)
 
     def _check_if_indexcolumn_is_unique(self):
-        # TODO make own duplicates functions to have less dependencies
         duplicated_values = list(duplicates(self.rawinput[self.index_column].to_list()))
         if len(duplicated_values) > 0:
             # error or warning, duplicates could be resolved with preprocessing/filtering

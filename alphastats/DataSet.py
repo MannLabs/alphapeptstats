@@ -115,7 +115,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         """
 
         regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
-
+        
         df = self.rawinput
         df = df.set_index(self.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
@@ -159,6 +159,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
+        df.columns = df.columns.astype(str)
         self.metadata = df
 
     def _save_dataset_info(self):
@@ -168,6 +169,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
             "Matrix: Number of samples": self.mat.shape[0],
             "Intensity used for analysis": self.intensity_column,
+            "Log2-transformed": False,
             "Normalization": None,
             "Imputation": None,
             "Contaminations have been removed": False,
