@@ -545,7 +545,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertTrue(column_added)  
 
     def test_plot_volcano_sam(self):
-        self.obj.preprocess(imputation="knn", normalization="zscore")
+        self.obj.preprocess(log2_transform=False, imputation="knn", normalization="zscore")
         plot = self.obj.plot_volcano(
             column = "disease",
             group1="type 2 diabetes mellitus", 
