@@ -129,24 +129,23 @@ class Preprocess:
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method):
-        df = self.mat.transpose()
-
+    
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
-            normalized_array = scaler.fit_transform(df.values)
+            normalized_array = scaler.fit_transform(self.mat.values)
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
-            normalized_array = qt.fit_transform(df.values)
+            normalized_array = qt.fit_transform(self.mat.values)
 
         elif method == "linear":
             normalized_array = sklearn.preprocessing.normalize(
-                df.values, norm="l2"
+                self.mat.values, norm="l2"
             )
 
         elif method == "vst":
             scaler = sklearn.preprocessing.PowerTransformer()
-            normalized_array = scaler.fit_transform(df.values)
+            normalized_array = scaler.fit_transform(self.mat.values)
 
         else:
             raise ValueError(
@@ -154,10 +153,10 @@ class Preprocess:
                 "Choose from 'zscore', 'quantile', 'linear' normalization. or 'vst' for variance stabilization transformation"
             )
 
-        mat = pd.DataFrame(
-            normalized_array, index=df.index, columns=df.columns
+        self.mat = pd.DataFrame(
+            normalized_array, index=self.mat.index, columns=self.mat.columns
         )
-        self.mat = mat.transpose()
+
         self.preprocessing_info.update({"Normalization": method})
 
     def reset_preprocessing(self):
