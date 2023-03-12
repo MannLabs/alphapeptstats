@@ -7,6 +7,7 @@ import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
 from functools import lru_cache
+from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 
 
 class Statistics:
@@ -319,3 +320,34 @@ class Statistics:
         df = self.metadata.merge(df, how="inner", on=[self.sample])
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
+    
+    def multi_covariat_analysis(
+            self, 
+            covariates:list,
+            n_permutations=3, 
+            fdr=0.05, 
+            s0=0.05, 
+            subset:dict
+        ):
+        """Multicovarait Analysis
+
+        Args:
+            covariates (list): List of covariates, column names in metadata
+            subset (dict): _description_
+            n_permutations (int, optional): _description_. Defaults to 3.
+            fdr (float, optional): _description_. Defaults to 0.05.
+            s0 (float, optional): _description_. Defaults to 0.05.
+
+        Returns:
+            _type_: _description_
+        """
+        res = MultiCovaAnalysis(
+            dataset=self,
+            covariates=covariates,
+            n_permutations=n_permutations,
+            fdr=fdr,
+            s0=s0,
+            subset=subset
+        ).calculate()
+        return res
+
