@@ -11,7 +11,7 @@ import itertools
 
 
 class Preprocess:
-    def _remove_sampels(self, sample_list):
+    def _remove_sampels(self, sample_list: list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
         self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
@@ -67,7 +67,7 @@ class Preprocess:
 
     @ignore_warning(RuntimeWarning)
     @ignore_warning(UserWarning)
-    def _imputation(self, method):
+    def _imputation(self, method: str):
         # remove ProteinGroups with only NA before
         protein_group_na = self.mat.columns[self.mat.isna().all()].tolist()
 
@@ -128,8 +128,8 @@ class Preprocess:
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
-    def _normalization(self, method):
-    
+    def _normalization(self, method: str):
+
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
             normalized_array = scaler.fit_transform(self.mat.values)
@@ -162,15 +162,17 @@ class Preprocess:
     def reset_preprocessing(self):
         """ Reset all preprocessing steps
         """
-        # reset all preprocessing steps
+        #  reset all preprocessing steps
         self.create_matrix()
         print("All preprocessing steps are reset.")
-    
+
     def _compare_preprocessing_modes(self, func, params_for_func):
         dataset = self
         imputation_methods = ["mean", "median", "knn"]
         normalization_methods = ["zscore", "quantile", "vst"]
-        preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
+        preprocessing_modes = list(
+            itertools.product(normalization_methods, imputation_methods)
+        )
 
         results_list = []
 
@@ -180,33 +182,34 @@ class Preprocess:
         for preprocessing_mode in preprocessing_modes:
             # reset preprocessing
             dataset.reset_preprocessing()
-            print(f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}")
-            
+            print(
+                f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}"
+            )
+
             dataset.preprocess(
                 subset=True,
-                normalization = preprocessing_mode[0],
-                imputation = preprocessing_mode[1]
+                normalization=preprocessing_mode[0],
+                imputation=preprocessing_mode[1],
             )
-            
+
             res = func(**params_for_func)
             results_list.append(res)
-        
+
         return results_list
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat + 0.1)
         self.preprocessing_info.update({"Log2 Transformed": True})
 
-
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
-        log2_transform=True,
-        remove_contaminations=False,
-        subset=False,
-        normalization=None,
-        imputation=None,
-        remove_samples=None,
+        log2_transform: bool = True,
+        remove_contaminations: bool = False,
+        subset: bool = False,
+        normalization: str = None,
+        imputation: str = None,
+        remove_samples: list = None,
     ):
         """Preprocess Protein data
 
@@ -254,7 +257,7 @@ class Preprocess:
 
         if subset:
             self.mat = self._subset()
-        
+
         if log2_transform:
             self._log2_transform()
 

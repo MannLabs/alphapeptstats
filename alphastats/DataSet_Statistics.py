@@ -7,11 +7,12 @@ import pingouin
 from alphastats.utils import ignore_warning
 from tqdm import tqdm
 from functools import lru_cache
+from typing import Union
 from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 
 
 class Statistics:
-    def _add_metadata_column(self, group1_list, group2_list):
+    def _add_metadata_column(self, group1_list: list, group2_list: list):
 
         # create new column in metadata with defined groups
         metadata = self.metadata
@@ -34,8 +35,9 @@ class Statistics:
 
         return column, "group1", "group2"
 
-    def _prepare_anndata(self, column, group1, group2):
+    def _prepare_anndata(self, column: str, group1: str, group2: str):
         import anndata
+
         group_samples = self.metadata[
             (self.metadata[column] == group1) | (self.metadata[column] == group2)
         ][self.sample].tolist()
@@ -64,9 +66,16 @@ class Statistics:
         )
         return anndata_data
 
-
     @ignore_warning(RuntimeWarning)
-    def diff_expression_analysis(self, group1, group2, column=None, method="ttest", perm=10, fdr=0.05):
+    def diff_expression_analysis(
+        self,
+        group1: Union[str, list],
+        group2: Union[str, list],
+        column: str = None,
+        method: str = "ttest",
+        perm: int = 10,
+        fdr: float = 0.05,
+    ) -> pd.DataFrame:
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
@@ -116,6 +125,7 @@ class Statistics:
 
         elif method == "sam":
             from alphastats.multicova import multicova
+
             transposed = self.mat.transpose()
 
             if self.preprocessing_info["Normalization"] is None:
@@ -127,31 +137,35 @@ class Statistics:
 
             res, _ = multicova.perform_ttest_analysis(
                 transposed,
-                c1 =list(self.metadata[self.metadata[column]==group1][self.sample]),                                      
-                c2 =list(self.metadata[self.metadata[column]==group2][self.sample]), 
-                s0=0.05, 
+                c1=list(self.metadata[self.metadata[column] == group1][self.sample]),
+                c2=list(self.metadata[self.metadata[column] == group2][self.sample]),
+                s0=0.05,
                 n_perm=perm,
                 fdr=fdr,
                 id_col=self.index_column,
-                parallelize=True
+                parallelize=True,
             )
 
-            fdr_column = "FDR"  + str(int(fdr*100)) + "%"
-            df = res[[self.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval']]
+            fdr_column = "FDR" + str(int(fdr * 100)) + "%"
+            df = res[
+                [self.index_column, "fc", "tval", "pval", "tval_s0", "pval_s0", "qval"]
+            ]
             df["log2fc"] = res["fc"]
             df["FDR"] = res[fdr_column]
-        
+
         else:
             raise ValueError(
                 f"{method} is invalid choose between 'wald' for Wald-test, 'sam' and 'ttest'"
             )
-        
+
         if method != "sam":
             df = test.summary().rename(columns={"gene": self.index_column})
-        
+
         return df
 
-    def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
+    def _calculate_foldchange(
+        self, mat_transpose, group1_samples, group2_samples
+    ) -> pd.DataFrame:
         mat_transpose += 0.00001
         fc = (
             mat_transpose[group1_samples].T.mean().values
@@ -165,7 +179,7 @@ class Statistics:
         return df
 
     @ignore_warning(RuntimeWarning)
-    def tukey_test(self, protein_id, group, df=None):
+    def tukey_test(self, protein_id: str, group: str, df=None) -> pd.DataFrame:
         """Calculate Pairwise Tukey-HSD post-hoc test
         Wrapper around:
         https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
@@ -210,14 +224,14 @@ class Statistics:
 
         return tukey_df
 
-    #@lru_cache(maxsize=20)
+    # @lru_cache(maxsize=20)
     @ignore_warning(RuntimeWarning)
-    def anova(self, column, protein_ids="all", tukey=True):
+    def anova(self, column: str, protein_ids: str = "all", tukey: bool = True):
         """One-way Analysis of Variance (ANOVA)
 
         Args:
             column (str): A metadata column used to calculate ANOVA
-            ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for all ProteinIDs. Defaults to "all".
+            protein_ids (str or list, optional): ProteinIDs to calculate ANOVA for - dependend variable either ProteinID as string, several ProteinIDs as list or "all" to calculate ANOVA for all ProteinIDs. Defaults to "all".
             tukey (bool, optional): Whether to calculate a Tukey-HSD post-hoc test. Defaults to True.
 
         Returns:
@@ -266,7 +280,7 @@ class Statistics:
             final_df = anova_df
         return final_df
 
-    def _create_tukey_df(self, anova_df, protein_ids_list, group):
+    def _create_tukey_df(self, anova_df, protein_ids_list, group) -> pd.DataFrame:
         #  combine tukey results with anova results
         df = (
             self.mat[protein_ids_list]
@@ -295,7 +309,9 @@ class Statistics:
         return final_df
 
     @lru_cache(maxsize=20)
-    def ancova(self, protein_id, covar, between):
+    def ancova(
+        self, protein_id: Union[str, list], covar: Union[str, list], between: str
+    ) -> pd.DataFrame:
         """Analysis of covariance (ANCOVA) with on or more covariate(s).
         Wrapper around = https://pingouin-stats.org/generated/pingouin.ancova.html
 
@@ -320,34 +336,34 @@ class Statistics:
         df = self.metadata.merge(df, how="inner", on=[self.sample])
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
-    
+
     def multi_covariat_analysis(
-            self, 
-            covariates:list,
-            n_permutations=3, 
-            fdr=0.05, 
-            s0=0.05, 
-            subset:dict
-        ):
-        """Multicovarait Analysis
+        self,
+        covariates: list,
+        n_permutations: int = 3,
+        fdr: float = 0.05,
+        s0: float = 0.05,
+        subset: dict = None,
+    ) -> pd.DataFrame:
+        """_summary_
 
         Args:
-            covariates (list): List of covariates, column names in metadata
-            subset (dict): _description_
-            n_permutations (int, optional): _description_. Defaults to 3.
-            fdr (float, optional): _description_. Defaults to 0.05.
+            covariates (list): list of covariates, column names in metadata
+            n_permutations (int, optional): number of permutations. Defaults to 3.
+            fdr (float, optional): False Discovery Rate. Defaults to 0.05.
             s0 (float, optional): _description_. Defaults to 0.05.
+            subset (dict, optional): _description_. Defaults to None.
 
         Returns:
-            _type_: _description_
+            pd.DataFrame: _description_
         """
+
         res = MultiCovaAnalysis(
             dataset=self,
             covariates=covariates,
             n_permutations=n_permutations,
             fdr=fdr,
             s0=s0,
-            subset=subset
+            subset=subset,
         ).calculate()
         return res
-

@@ -13,6 +13,7 @@ from scipy.spatial.distance import pdist, squareform
 import random
 import itertools
 import plotly.figure_factory
+from typing import Union
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.VolcanoPlot import VolcanoPlot
@@ -53,6 +54,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
+
 class Plot:
     def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
@@ -61,7 +63,7 @@ class Plot:
         return figure_object
 
     @check_for_missing_values
-    def plot_pca(self, group=None, circle=False):
+    def plot_pca(self, group: str = None, circle: bool = False):
         """Plot Principal Component Analysis (PCA)
 
         Args:
@@ -76,9 +78,14 @@ class Plot:
         )
         return dimensionality_reduction.plot
 
-
     @check_for_missing_values
-    def plot_tsne(self, group=None, circle=False, perplexity=5, n_iter=1000):
+    def plot_tsne(
+        self,
+        group: str = None,
+        circle: bool = False,
+        perplexity: int = 5,
+        n_iter: int = 1000,
+    ):
         """Plot t-distributed stochastic neighbor embedding (t-SNE)
 
         Args:
@@ -99,7 +106,7 @@ class Plot:
         return dimensionality_reduction.plot
 
     @check_for_missing_values
-    def plot_umap(self, group=None, circle=False):
+    def plot_umap(self, group: str = None, circle: bool = False):
         """Plot Uniform Manifold Approximation and Projection for Dimension Reduction
 
         Args:
@@ -116,17 +123,17 @@ class Plot:
 
     def plot_volcano(
         self,
-        group1,
-        group2,
-        column=None,
-        method="ttest",
-        labels=False,
-        min_fc=1,
-        alpha=0.05,
-        draw_line=True,
-        perm=100, 
-        fdr=0.05,
-        compare_preprocessing_modes=False
+        group1: Union[str, list],
+        group2: Union[str, list],
+        column: str = None,
+        method: str = "ttest",
+        labels: bool = False,
+        min_fc: float = 1.0,
+        alpha: float = 0.05,
+        draw_line: bool = True,
+        perm: int = 100,
+        fdr: float = 0.05,
+        compare_preprocessing_modes: bool = False,
     ):
         """Plot Volcano Plot
 
@@ -150,9 +157,11 @@ class Plot:
 
         if compare_preprocessing_modes:
             params_for_func = locals()
-            results = self._compare_preprocessing_modes(func=VolcanoPlot,params_for_func=params_for_func)
+            results = self._compare_preprocessing_modes(
+                func=VolcanoPlot, params_for_func=params_for_func
+            )
             return results
-        
+
         else:
             volcano_plot = VolcanoPlot(
                 dataset=self,
@@ -164,13 +173,13 @@ class Plot:
                 min_fc=min_fc,
                 alpha=alpha,
                 draw_line=draw_line,
-                perm=perm, 
-                fdr=fdr
+                perm=perm,
+                fdr=fdr,
             )
 
             return volcano_plot.plot
 
-    def plot_correlation_matrix(self, method="pearson"):
+    def plot_correlation_matrix(self, method: str = "pearson"):
         """Plot Correlation Matrix
 
         Args:
@@ -184,7 +193,9 @@ class Plot:
         plot = px.imshow(corr_matrix)
         return plot
 
-    def plot_sampledistribution(self, method="violin", color=None, log_scale=False):
+    def plot_sampledistribution(
+        self, method: str = "violin", color: bool = None, log_scale: bool = False
+    ):
         """Plot Intensity Distribution for each sample. Either Violin or Boxplot
 
         Args:
@@ -226,18 +237,18 @@ class Plot:
 
     def plot_intensity(
         self,
-        protein_id,
-        group=None,
-        subgroups=None,
-        method="box",
-        add_significance=False,
-        log_scale=False,
-        compare_preprocessing_modes=False
+        protein_id: str,
+        group: str = None,
+        subgroups: list = None,
+        method: str = "box",
+        add_significance: bool = False,
+        log_scale: bool = False,
+        compare_preprocessing_modes: bool = False,
     ):
         """Plot Intensity of individual Protein/ProteinGroup
 
         Args:
-            ID (str): ProteinGroup ID
+            protein_id (str): ProteinGroup ID
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "box".
@@ -249,17 +260,19 @@ class Plot:
         """
         if compare_preprocessing_modes:
             params_for_func = locals()
-            results = self._compare_preprocessing_modes(func=IntensityPlot,params_for_func=params_for_func)
+            results = self._compare_preprocessing_modes(
+                func=IntensityPlot, params_for_func=params_for_func
+            )
             return results
-        
+
         intensity_plot = IntensityPlot(
-            dataset = self,
+            dataset=self,
             protein_id=protein_id,
             group=group,
             subgroups=subgroups,
             method=method,
             add_significance=add_significance,
-            log_scale=log_scale
+            log_scale=log_scale,
         )
 
         return intensity_plot.plot
@@ -267,7 +280,11 @@ class Plot:
     @ignore_warning(UserWarning)
     @check_for_missing_values
     def plot_clustermap(
-        self, label_bar=None, only_significant=False, group=None, subgroups=None
+        self,
+        label_bar: str = None,
+        only_significant: bool = False,
+        group: str = None,
+        subgroups: list = None,
     ):
         """Plot a matrix dataset as a hierarchically-clustered heatmap
 
@@ -282,13 +299,13 @@ class Plot:
         """
 
         clustermap = ClusterMap(
-            dataset = self,
+            dataset=self,
             label_bar=label_bar,
             only_significant=only_significant,
             group=group,
-            subgroups=subgroups
+            subgroups=subgroups,
         )
-        return  clustermap.plot
+        return clustermap.plot
 
     @check_for_missing_values
     def plot_dendrogram(
