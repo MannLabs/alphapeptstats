@@ -6,15 +6,12 @@ import io
 
 try:
     from alphastats.gui.utils.ui_helper import sidebar_info
-    from alphastats.gui.utils.analysis_helper import (
-    get_analysis,
-)  
+    from alphastats.gui.utils.analysis_helper import get_analysis
 
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
-    from utils.analysis_helper import (
-    get_analysis,
-)  
+    from utils.analysis_helper import get_analysis
+
 
 def check_if_options_are_loaded(f):
     """
@@ -76,7 +73,7 @@ def download_figure(obj, format, plotting_library="plotly"):
 
 
 @st.cache_data
-def convert_df(df, user_session_id = st.session_state.user_session_id):
+def convert_df(df, user_session_id=st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 
@@ -86,11 +83,7 @@ def download_preprocessing_info(plot):
     filename = "plot" + plot[0] + "preprocessing_info.csv"
     csv = convert_df(df)
     st.download_button(
-        "Download DataSet Info as .csv",
-        csv,
-        filename,
-        "text/csv",
-        key="preprocessing",
+        "Download DataSet Info as .csv", csv, filename, "text/csv", key="preprocessing",
     )
 
 
@@ -134,7 +127,7 @@ if "plot_list" not in st.session_state:
 
 if "dataset" in st.session_state:
 
-    c1, c2 = st.columns((1,2))
+    c1, c2 = st.columns((1, 2))
 
     plot_to_display = False
     df_to_display = False
@@ -149,7 +142,7 @@ if "dataset" in st.session_state:
                 method=method, options_dict=st.session_state.plotting_options
             )
             plot_to_display = True
-        
+
         elif method in st.session_state.statistic_options.keys():
 
             analysis_result = get_analysis(
@@ -161,21 +154,19 @@ if "dataset" in st.session_state:
         st.markdown("")
         st.markdown("")
         st.markdown("")
-        
 
     with c2:
 
         # --- Plot -------------------------------------------------------
 
         if analysis_result is not None and method != "Clustermap" and plot_to_display:
-            
+
             display_figure(analysis_result)
 
             save_plot_to_session_state(analysis_result, method)
 
             method_plot = [method, analysis_result]
 
-            
         elif method == "Clustermap":
 
             st.write("Download Figure to see full size.")
@@ -183,7 +174,6 @@ if "dataset" in st.session_state:
             display_figure(analysis_result)
 
             save_plot_to_session_state(analysis_result, method)
-
 
         # --- STATISTICAL ANALYSIS -------------------------------------------------------
 
@@ -194,8 +184,6 @@ if "dataset" in st.session_state:
             filename = method + ".csv"
             csv = convert_df(analysis_result)
 
-            
-    
     if analysis_result is not None and method != "Clustermap" and plot_to_display:
         col1, col2, col3 = st.columns([1, 1, 1])
 
@@ -208,7 +196,6 @@ if "dataset" in st.session_state:
         with col3:
             download_preprocessing_info(method_plot)
 
-    
     elif analysis_result is not None and df_to_display:
         col1, col2, col3 = st.columns([1, 1, 1])
 
@@ -219,14 +206,12 @@ if "dataset" in st.session_state:
             download_figure(method_plot, format="svg", plotting_library="seaborn")
 
         with col3:
-             download_preprocessing_info(method_plot)
-    
+            download_preprocessing_info(method_plot)
+
     elif analysis_result is not None and df_to_display:
         st.download_button(
-                "Download as .csv", csv, filename, "text/csv", key="download-csv"
+            "Download as .csv", csv, filename, "text/csv", key="download-csv"
         )
-            
-
 
 
 else:

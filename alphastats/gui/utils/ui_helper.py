@@ -34,7 +34,6 @@ def sidebar_info(show_logo=True):
     )
 
 
-
 def display_sidebar_html_table():
 
     if "dataset" not in st.session_state:

@@ -75,7 +75,14 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             loader : loader
         """
         if not isinstance(
-            loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader)
+            loader,
+            (
+                AlphaPeptLoader,
+                MaxQuantLoader,
+                DIANNLoader,
+                FragPipeLoader,
+                SpectronautLoader,
+            ),
         ):
             raise LoaderError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
@@ -115,7 +122,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         """
 
         regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
-        
+
         df = self.rawinput
         df = df.set_index(self.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)

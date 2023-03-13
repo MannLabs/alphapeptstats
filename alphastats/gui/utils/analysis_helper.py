@@ -77,13 +77,12 @@ def gui_volcano_plot_differential_expression_analysis(chosen_parameter_dict):
     initalize volcano plot object with differential expression analysis results
     """
     volcano_plot = VolcanoPlot(
-        dataset=st.session_state.dataset, 
-        **chosen_parameter_dict, 
-        plot = False
+        dataset=st.session_state.dataset, **chosen_parameter_dict, plot=False
     )
     volcano_plot._perform_differential_expression_analysis()
     volcano_plot._add_hover_data_columns()
     return volcano_plot
+
 
 def gui_volcano_plot():
     """
@@ -91,29 +90,28 @@ def gui_volcano_plot():
     """
     chosen_parameter_dict = helper_compare_two_groups()
     method = st.selectbox(
-        "Differential Analysis using:",
-        options=["ttest", "anova", "wald", "sam"],
+        "Differential Analysis using:", options=["ttest", "anova", "wald", "sam"],
     )
     chosen_parameter_dict.update({"method": method})
 
     # TODO streamlit doesnt allow nested columns check for updates
-    
+
     labels = st.checkbox("Add label")
 
     draw_line = st.checkbox("Draw line")
 
     alpha = st.number_input(
-            label="alpha", min_value=0.001, max_value=0.050, value=0.050
-        )
+        label="alpha", min_value=0.001, max_value=0.050, value=0.050
+    )
 
     min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
- 
+
     plotting_parameter_dict = {
-            "labels": labels,
-            "draw_line": draw_line,
-            "alpha": alpha,
-            "min_fc": min_fc,
-        }
+        "labels": labels,
+        "draw_line": draw_line,
+        "alpha": alpha,
+        "min_fc": min_fc,
+    }
 
     if method == "sam":
         perm = st.number_input(
@@ -124,11 +122,12 @@ def gui_volcano_plot():
         )
         chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
 
-   
     submitted = st.button("Submit")
 
     if submitted:
-        volcano_plot = gui_volcano_plot_differential_expression_analysis(chosen_parameter_dict)
+        volcano_plot = gui_volcano_plot_differential_expression_analysis(
+            chosen_parameter_dict
+        )
         volcano_plot._update(plotting_parameter_dict)
         volcano_plot._annotate_result_df()
         volcano_plot._plot()
@@ -259,15 +258,15 @@ def helper_compare_two_groups():
 
     if group != "< None >":
 
-        #col1, col2 = st.columns(2)
+        # col1, col2 = st.columns(2)
 
         unique_values = get_unique_values_from_column(group)
 
-        #with col1:
+        # with col1:
 
         group1 = st.selectbox("Group 1", options=unique_values)
 
-        #with col2:
+        # with col2:
 
         group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
 
@@ -282,23 +281,23 @@ def helper_compare_two_groups():
 
     else:
 
-        #col1, col2 = st.columns(2)
+        # col1, col2 = st.columns(2)
 
-        #with col1:
+        # with col1:
 
         group1 = st.multiselect(
-                "Group 1 samples:",
-                options=st.session_state.dataset.metadata["sample"].to_list(),
-            )
+            "Group 1 samples:",
+            options=st.session_state.dataset.metadata["sample"].to_list(),
+        )
 
-        #with col2:
+        # with col2:
 
         group2 = st.multiselect(
-                "Group 2 samples:",
-                options=list(
-                    reversed(st.session_state.dataset.metadata["sample"].to_list())
-                ),
-            )
+            "Group 2 samples:",
+            options=list(
+                reversed(st.session_state.dataset.metadata["sample"].to_list())
+            ),
+        )
 
         intersection_list = list(set(group1).intersection(set(group2)))
 
@@ -350,10 +349,7 @@ def st_tsne_options(method_dict):
 
     submitted = st.button("Submit")
     chosen_parameter_dict.update(
-        {
-            "n_iter": n_iter,
-            "perplexity": perplexity,
-        }
+        {"n_iter": n_iter, "perplexity": perplexity,}
     )
 
     if submitted:

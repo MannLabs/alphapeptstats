@@ -16,10 +16,10 @@ def get_long_description():
 
 
 def get_requirements():
-    with open('requirements.txt') as f:
+    with open("requirements.txt") as f:
         required = f.read().splitlines()
     return required
-    
+
 
 def create_pip_wheel():
     requirements = get_requirements()
@@ -56,16 +56,16 @@ def create_pip_wheel():
             "Topic :: Scientific/Engineering :: Bio-Informatics",
         ],
         packages=[
-            "alphastats", 
-            "alphastats.plots", 
+            "alphastats",
+            "alphastats.plots",
             "alphastats.multicova",
-            "alphastats.gui", 
-            "alphastats.data", 
+            "alphastats.gui",
+            "alphastats.data",
             "alphastats.gui.pages",
             "alphastats.gui",
             "alphastats.gui.sample_data",
             "alphastats.gui.utils",
-            "alphastats.loader"
+            "alphastats.loader",
         ],
         include_package_data=True,
         entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},

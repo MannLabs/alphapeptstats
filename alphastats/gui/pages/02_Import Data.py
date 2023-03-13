@@ -18,7 +18,6 @@ except ModuleNotFoundError:
     from alphastats import DataSet
 
 
-
 import pandas as pd
 import plotly.express as px
 
@@ -174,16 +173,30 @@ def upload_softwarefile(software):
             st.session_state["loader"] = loader
 
 
+def create_metadata_file():
+    dataset = DataSet(loader=st.session_state.loader)
+    st.session_state["metadata_columns"] = ["sample"]
+    metadata = dataset.metadata
+
+    if st.button("Add Column"):
+        st.write("xxx")
+        column_name = st.text_input("Column name", "")
+        metadata[column_name] = None
+
+        metadata = st.experimental_data_editor(metadata, num_rows="fixed")
+
+    # st.session_state.loader
+
+
 def upload_metadatafile(software):
 
     st.write("\n\n")
-    st.markdown("### 3. Upload corresponding metadata.")
-    st.file_uploader(
-        "Upload metadata file. with information about your samples",
-        key="metadatafile",
+    st.markdown("### 3. Prepare Metadata.")
+    metadatafile_upload = st.file_uploader(
+        "Upload metadata file. with information about your samples", key="metadatafile",
     )
 
-    if st.session_state.metadatafile is not None:
+    if metadatafile_upload is not None:
 
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
@@ -207,6 +220,9 @@ def upload_metadatafile(software):
 
             display_loaded_dataset()
 
+    if st.button("Create metadata file"):
+        create_metadata_file()
+
     if st.button("Create a DataSet without metadata"):
         st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
         st.session_state["metadata_columns"] = ["sample"]
@@ -219,14 +235,16 @@ def upload_metadatafile(software):
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
-    filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt").replace("pages/","")
-    metadatapath =  os.path.join(_this_directory, "sample_data/metadata.xlsx").replace("pages/","")
-    
-    loader = MaxQuantLoader(file=filepath)
-    ds = DataSet(
-        loader=loader, metadata_path=metadatapath, sample_column="sample"
+    filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt").replace(
+        "pages/", ""
     )
-    
+    metadatapath = os.path.join(_this_directory, "sample_data/metadata.xlsx").replace(
+        "pages/", ""
+    )
+
+    loader = MaxQuantLoader(file=filepath)
+    ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+
     ds.metadata = ds.metadata[
         [
             "sample",
@@ -247,7 +265,14 @@ def import_data():
 
     software = st.selectbox(
         "Select your Proteomics Software",
-        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe", "Spectronaut"],
+        options=[
+            "<select>",
+            "MaxQuant",
+            "AlphaPept",
+            "DIANN",
+            "Fragpipe",
+            "Spectronaut",
+        ],
     )
 
     session_state_empty = False
@@ -304,8 +329,10 @@ def empty_session_state():
 
     from streamlit.runtime import get_instance
     from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+
     user_session_id = get_script_run_ctx().session_id
     st.session_state["user_session_id"] = user_session_id
+
 
 sidebar_info()
 

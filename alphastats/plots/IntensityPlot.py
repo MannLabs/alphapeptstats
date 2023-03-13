@@ -1,4 +1,3 @@
-
 import logging
 import scipy
 import numpy as np
@@ -9,7 +8,8 @@ from alphastats.plots.PlotUtils import plotly_object, PlotUtils
 
 
 class IntensityPlot(PlotUtils):
-    def __init__(self,
+    def __init__(
+        self,
         dataset,
         protein_id,
         group,
@@ -28,7 +28,6 @@ class IntensityPlot(PlotUtils):
 
         self._prepare_data()
         self._plot()
- 
 
     @staticmethod
     def _add_significance(plot):
@@ -52,13 +51,13 @@ class IntensityPlot(PlotUtils):
         if pvalue < 0.001:
             significance_level = "***"
             pvalue_text = "<i>p<0.001</i>"
-        
+
         elif pvalue < 0.01:
             significance_level = "**"
-       
+
         elif pvalue < 0.05:
             significance_level = "*"
-       
+
         else:
             significance_level = "-"
 
@@ -100,32 +99,52 @@ class IntensityPlot(PlotUtils):
 
         plot.update_layout(width=600, height=700)
         return plot
-    
+
     def _prepare_data(self):
         #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
-        df = self.dataset.mat[[self.protein_id]].reset_index().rename(columns={"index": self.dataset.sample})
+        df = (
+            self.dataset.mat[[self.protein_id]]
+            .reset_index()
+            .rename(columns={"index": self.dataset.sample})
+        )
         df = df.merge(self.dataset.metadata, how="inner", on=[self.dataset.sample])
 
         if self.subgroups is not None:
             df = df[df[self.group].isin(self.subgroups)]
 
-        self.y_label = self.protein_id + " - " + self.dataset.intensity_column.replace("[sample]", "")
+        self.y_label = (
+            self.protein_id
+            + " - "
+            + self.dataset.intensity_column.replace("[sample]", "")
+        )
         self.prepared_df = df
 
     def _plot(self):
         if self.method == "violin":
             fig = px.violin(
-                self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
+                self.prepared_df,
+                y=self.protein_id,
+                x=self.group,
+                color=self.group,
+                labels={self.protein_id: self.y_label},
             )
 
         elif self.method == "box":
             fig = px.box(
-                self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
+                self.prepared_df,
+                y=self.protein_id,
+                x=self.group,
+                color=self.group,
+                labels={self.protein_id: self.y_label},
             )
 
         elif self.method == "scatter":
             fig = px.scatter(
-                 self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
+                self.prepared_df,
+                y=self.protein_id,
+                x=self.group,
+                color=self.group,
+                labels={self.protein_id: self.y_label},
             )
 
         else:
@@ -142,9 +161,10 @@ class IntensityPlot(PlotUtils):
 
         fig = plotly_object(fig)
         fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data= self.prepared_df, preprocessing_info=self.dataset.preprocessing_info,  method=self.method
+            figure_object=fig,
+            plotting_data=self.prepared_df,
+            preprocessing_info=self.dataset.preprocessing_info,
+            method=self.method,
         )
 
         self.plot = fig
-
-

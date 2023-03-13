@@ -47,7 +47,7 @@ class BaseLoader:
                 "FragPipe Format: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
                 "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
-    
+
     def _read_all_columns_as_string(self):
         self.rawinput.columns = self.rawinput.columns.astype(str)
 

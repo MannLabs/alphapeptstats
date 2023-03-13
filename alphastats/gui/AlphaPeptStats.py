@@ -1,4 +1,5 @@
 import streamlit as st
+
 st.set_page_config(layout="wide")
 
 try:
@@ -6,7 +7,8 @@ try:
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info, img_to_bytes
 import os
-#from PIL import Image
+
+# from PIL import Image
 
 # centering with streamlit is not really centered
 
@@ -42,8 +44,7 @@ header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
 )
 
 st.markdown(
-    header_html,
-    unsafe_allow_html=True,
+    header_html, unsafe_allow_html=True,
 )
 
 ##

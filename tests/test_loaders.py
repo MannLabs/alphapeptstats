@@ -132,6 +132,7 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
         self.assertEqual(self.obj.rawinput["Only identified by site"].dtype, "bool")
         self.assertEqual(self.obj.rawinput["Potential contaminant"].dtype, "bool")
 
+
 class TestDIANNLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
@@ -190,46 +191,58 @@ class TestFragPipeLoader(BaseTestLoader.BaseTest):
         cls.obj = FragPipeLoader(file="testfiles/fragpipe/combined_proteins.tsv")
         cls.df_dim = (10, 37)
 
+
 class TestSpectronautLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
-        
+
         if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
-            shutil.unpack_archive("testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/")
-        
-        cls.obj = SpectronautLoader(file="testfiles/spectronaut/results.tsv", filter_qvalue=False)
+            shutil.unpack_archive(
+                "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
+            )
+
+        cls.obj = SpectronautLoader(
+            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
+        )
         cls.df_dim = (2458, 11)
 
     def test_reading_non_european_comma(self):
         """
         files with non european comma get read correctly
         """
-        s = SpectronautLoader(file="testfiles/spectronaut/results_non_european_comma.tsv", filter_qvalue=False)
-        mean = s.rawinput["20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03_PG.Quantity"].mean()
+        s = SpectronautLoader(
+            file="testfiles/spectronaut/results_non_european_comma.tsv",
+            filter_qvalue=False,
+        )
+        mean = s.rawinput[
+            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03_PG.Quantity"
+        ].mean()
 
     def test_qvalue_filtering(self):
-        obj = SpectronautLoader(file="testfiles/spectronaut/results.tsv", filter_qvalue=True, qvalue_cutoff=0.00000001)
+        obj = SpectronautLoader(
+            file="testfiles/spectronaut/results.tsv",
+            filter_qvalue=True,
+            qvalue_cutoff=0.00000001,
+        )
         self.assertEqual(obj.rawinput.shape, (2071, 10))
 
     def test_qvalue_filtering_warning(self):
         with self.assertWarns(Warning):
             df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
-            df.drop(columns = ["EG.Qvalue"], axis=1) 
+            df.drop(columns=["EG.Qvalue"], axis=1)
             SpectronautLoader(file=df)
 
     def test_gene_name_column(self):
         df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
         df["PG.Genes"] = 0
         s = SpectronautLoader(file=df, filter_qvalue=False)
-  
+
     @classmethod
     def tearDownClass(cls):
         if os.path.isdir("testfiles/spectronaut/__MACOSX"):
             shutil.rmtree("testfiles/spectronaut/__MACOSX")
 
         os.remove("testfiles/spectronaut/results.tsv")
-       
-        
 
 
 if __name__ == "__main__":

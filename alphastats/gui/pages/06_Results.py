@@ -23,7 +23,7 @@ def save_plotly(plot, format):
 
 
 @st.cache_data
-def convert_df(df, user_session_id = st.session_state.user_session_id):
+def convert_df(df, user_session_id=st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 

@@ -1,5 +1,7 @@
-import alphastats   
+import alphastats
+
 
 def run():
-    import alphastats 
+    import alphastats
+
     alphastats.gui.gui.run()
