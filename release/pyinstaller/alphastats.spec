@@ -9,7 +9,8 @@ import pkg_resources
 import importlib.metadata
 import alphastats
 from PyInstaller.utils.hooks import collect_submodules
-
+import sys  
+sys.setrecursionlimit(5000)
 
 ##################### User definitions
 exe_name = 'alphastats_gui'
