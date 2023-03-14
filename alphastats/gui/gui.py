@@ -1,6 +1,6 @@
 import os
 import sys
-from streamlit import cli as stcli
+from streamlit.web import cli as stcli
 
 def run():
     file_path = os.path.realpath(__file__)
