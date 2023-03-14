@@ -12,7 +12,7 @@ rm -rf dist
 rm -rf build
 
 # Creating a conda environment
-conda create -n alphapeptstatsinstaller python=3.8 -y
+conda create -n alphapeptstatsinstaller python=3.10 -y
 conda activate alphapeptstatsinstaller
 
 # Creating the wheel
@@ -23,7 +23,7 @@ cd release/one_click_macos_gui
 pip install "../../dist/alphastats-0.4.3-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
-pip install pyinstaller==4.10
+pip install pyinstaller==5.8
 pyinstaller ../pyinstaller/alphastats.spec -y
 conda deactivate
 
