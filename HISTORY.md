@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.4.4
+* FIX one click installer
+
 # 0.4.3
 * FIX loading dataset with columns
 * ADD log2-transformation
