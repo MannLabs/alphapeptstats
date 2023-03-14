@@ -12,7 +12,7 @@ rm -rf dist
 rm -rf build
 
 # Creating a conda environment
-conda create -n alphapeptstatsinstaller python=3.9 -y
+conda create -n alphapeptstatsinstaller python=3.8 -y
 conda activate alphapeptstatsinstaller
 
 # Creating the wheel
