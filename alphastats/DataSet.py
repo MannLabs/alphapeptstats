@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import logging
 import warnings
+import plotly
 
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
@@ -19,6 +20,26 @@ from alphastats.utils import LoaderError
 # remove warning from openpyxl
 # only appears on mac
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
+
+plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
+    layout=plotly.graph_objects.Layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        colorway=[
+            "#009599",
+            "#005358",
+            "#772173",
+            "#B65EAF",  # pink
+            "#A73A00",
+            "#6490C1",
+            "#FF894F",
+            "#2B5E8B",
+            "#A87F32",
+        ],
+    )
+)
+
+plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class DataSet(Preprocess, Statistics, Plot, Enrichment):

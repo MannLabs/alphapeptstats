@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.4.5
+* FIX loading of Data on Windows
+
 # 0.4.4
 * FIX one click installer
 
