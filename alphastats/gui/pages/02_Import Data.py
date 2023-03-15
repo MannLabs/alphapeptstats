@@ -218,15 +218,13 @@ def upload_metadatafile(software):
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
-
-    if sys.platform == "win32":
-        filepath = os.path.join(_this_directory, "sample_data\\proteinGroups.txt").replace("pages/","")
-        metadatapath =  os.path.join(_this_directory, "sample_data\\metadata.xlsx").replace("pages/","")
-
-    else:
-        filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt").replace("pages/","")
-        metadatapath =  os.path.join(_this_directory, "sample_data/metadata.xlsx").replace("pages/","")
+    _parent_directory = os.path.dirname(_this_directory)     
+    folder_to_load = os.path.join(_parent_directory, 'sample_data')
     
+    filepath= os.path.join(folder_to_load, "proteinGroups.txt")
+    metadatapath= os.path.join(folder_to_load, "metadata.xlsx")
+
+
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(
         loader=loader, metadata_path=metadatapath, sample_column="sample"
