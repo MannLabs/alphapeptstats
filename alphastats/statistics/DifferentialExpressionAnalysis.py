@@ -1,9 +1,21 @@
 import pandas as pd
 import numpy as np
+
 import scipy
+from typing import Union
 
 class DifferentialExpressionAnalysis:
-    def __init__(self, dataset, group1, group2, column=None, method="ttest", perm=10, fdr=0.05):
+    def __init__(
+            self,
+            dataset,
+            group1: Union[str, list],
+            group2: Union[str, list],
+            column: str = None,
+            method: str = "ttest",
+            perm: int = 10,
+            fdr: float = 0.05,
+        ):
+
         self.dataset = dataset
         self.group1 = group1
         self.group2 = group2
@@ -56,6 +68,7 @@ class DifferentialExpressionAnalysis:
         metadata = self.dataset.metadata
 
         sample_names = metadata[self.dataset.sample].to_list()
+
         misc_samples = list(set(group1_list + group2_list) - set(sample_names))
         if len(misc_samples) > 0:
             raise ValueError(
@@ -72,7 +85,6 @@ class DifferentialExpressionAnalysis:
         self.dataset.metadata = metadata
 
         return column, "group1", "group2"
- 
 
     def sam(self) -> pd.DataFrame:
         from alphastats.multicova import multicova
@@ -147,8 +159,7 @@ class DifferentialExpressionAnalysis:
         )
         df = pd.DataFrame()
         df[self.dataset.index_column], df["pval"] = p_values.index.tolist(), p_values.values
-        df["log2fc"] = fc
-        
+        df["log2fc"] = fc  
         return df
 
     def pairedttest(self) -> pd.DataFrame:
@@ -177,7 +188,6 @@ class DifferentialExpressionAnalysis:
         df = pd.DataFrame()
         df[self.dataset.index_column], df["pval"] = p_values.index.tolist(), p_values.values
         df["log2fc"] = fc
-        
         return df
 
     def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list):
@@ -218,10 +228,11 @@ class DifferentialExpressionAnalysis:
         
         else:
             raise ValueError(
-                f"{self.method} is invalid choose between 'wald' for Wald-test, 'sam' and 'ttest' or 'paired-ttest'"
+                f"{self.method} is invalid choose between 'wald' for Wald-test, 'sam',  and 'ttest', 'welch-ttest' or 'paired-ttest'"
             )
         
         return df
+
 
 
 
