@@ -87,8 +87,8 @@ sparse==0.13.0
 sphinx-argparse==0.3.2 
 sphinx-autodoc-typehints==1.19.4 
 statsmodels==0.13.2 
+tables==3.8.0 
 streamlit==1.20.0 
-tables==3.7.0 
 tabulate==0.9.0 
 tenacity==8.1.0 
 threadpoolctl==3.1.0 
