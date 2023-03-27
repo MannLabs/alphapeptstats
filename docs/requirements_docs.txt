@@ -19,7 +19,7 @@ defusedxml==0.7.1
 diffxpy==0.7.4 
 entrypoints==0.4 
 et-xmlfile==1.1.0 
-fastjsonschema==2.16.2 
+fastjsonschema==2.16.3 
 fonttools==4.38.0 
 fsspec==2022.10.0 
 gitdb==4.0.9 
