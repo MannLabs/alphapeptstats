@@ -106,5 +106,5 @@ validators==0.20.0
 watchdog==2.1.9 
 webencodings==0.5.1 
 xarray==2022.10.0 
-zipp==3.10.0
+zipp==3.15.0
 sphinx-rtd-theme==1.0.0
