@@ -29,7 +29,7 @@ importlib-metadata==5.0.0
 iteration_utilities==0.11.0 
 joblib==1.2.0 
 jsonschema==4.16.0 
-jupyter-client==7.4.3 
+jupyter-client==8.1.0 
 jupyter-core==4.11.2 
 jupyterlab-pygments==0.2.2 
 kiwisolver==1.4.4 
