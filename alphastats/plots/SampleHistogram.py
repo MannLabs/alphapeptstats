@@ -10,6 +10,7 @@ class SampleHistogram:
     """
     def __init__(self, dataset):
         self.dataset = dataset
+        self._get_matrix()
     
     def _get_matrix(self):
         self.data = self.dataset.mat.transpose()
@@ -47,7 +48,7 @@ class SampleHistogram:
         for count, x in enumerate(self.data.columns):
             col, row = self._get_position_in_matrix(count)
 
-            data_column = self.data[self.data[x] != 0][x].drop_na()
+            data_column = self.data[self.data[x] != 0][x].dropna()
            
             self.plot.add_trace(go.Histogram(x=data_column),row=row,col=col)
         

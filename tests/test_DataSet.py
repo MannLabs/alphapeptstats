@@ -662,6 +662,12 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
         self.assertEqual(annotation, "***")
+    
+    def test_plot_samplehistograms(self):
+        fig = self.obj.plot_samplehistograms().to_plotly_json()
+        self.assertEqual(48, len(fig["data"]))
+
+        
 
     # def test_perform_gsea(self):
     #     df = self.obj.perform_gsea(column="disease", 
