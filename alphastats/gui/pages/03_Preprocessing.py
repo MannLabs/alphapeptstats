@@ -63,14 +63,17 @@ def preprocessing():
             )
     
     with c2:
-        st.markdown("**Intensity Distribution per sample**")
-        fig_none_processed = st.session_state.dataset.plot_sampledistribution()
-        st.plotly_chart(fig_none_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
-        
+
         if submitted:
             st.markdown("**Intensity Distribution after preprocessing per sample**")
             fig_processed = st.session_state.dataset.plot_sampledistribution()
             st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
+        
+        else:
+            st.markdown("**Intensity Distribution per sample**")
+            fig_none_processed = st.session_state.dataset.plot_sampledistribution()
+            st.plotly_chart(fig_none_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
+        
     
     reset_steps = st.button("Reset all Preprocessing steps")
         

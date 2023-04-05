@@ -26,6 +26,8 @@ def display_matrix():
         + str(st.session_state.dataset.preprocessing_info["Normalization"])
         + ", Imputation: "
         + str(st.session_state.dataset.preprocessing_info["Imputation"])
+        + ", Log2-transformed: "
+        + str(st.session_state.dataset.preprocessing_info["Log2-transformed"])
     )
 
     st.markdown("**DataFrame used for analysis** *preview*")

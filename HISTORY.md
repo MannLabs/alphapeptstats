@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.5.0
+* ADD plot Sample Distribution Histogram
+* ADD paired-ttest option 
+
 # 0.4.5
 * FIX loading of Data on Windows
 

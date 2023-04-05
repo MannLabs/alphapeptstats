@@ -195,7 +195,8 @@ class Preprocess:
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat + 0.1)
-        self.preprocessing_info.update({"Log2 Transformed": True})
+        self.preprocessing_info.update({"Log2-transformed": True})
+        print("Data has been log2-transformed.")
 
 
     @ignore_warning(RuntimeWarning)
@@ -251,6 +252,9 @@ class Preprocess:
         """
         if remove_contaminations:
             self._filter()
+        
+        if remove_samples is not None:
+            self._remove_sampels(sample_list=remove_samples)
 
         if subset:
             self.mat = self._subset()
@@ -263,9 +267,6 @@ class Preprocess:
 
         if imputation is not None:
             self._imputation(method=imputation)
-
-        if remove_samples is not None:
-            self._remove_sampels(sample_list=remove_samples)
 
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
         self.preprocessed = True

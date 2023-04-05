@@ -8,6 +8,8 @@ from alphastats.utils import ignore_warning
 from tqdm import tqdm
 from functools import lru_cache
 
+from alphastats.statistics.DifferentialExpressionAnalysis import DifferentialExpressionAnalysis
+
 
 class Statistics:
     def _add_metadata_column(self, group1_list, group2_list):
@@ -33,37 +35,6 @@ class Statistics:
 
         return column, "group1", "group2"
 
-    def _prepare_anndata(self, column, group1, group2):
-        import anndata
-        group_samples = self.metadata[
-            (self.metadata[column] == group1) | (self.metadata[column] == group2)
-        ][self.sample].tolist()
-
-        # reduce matrix
-        reduced_matrix = self.mat.loc[group_samples]
-        reduced_matrix = reduced_matrix.loc[:, (reduced_matrix != 0).any(axis=0)]
-        # sort metadata according to matrix values
-        list_to_sort = reduced_matrix.index.to_list()
-        #  reduce metadata
-        obs_metadata = (
-            self.metadata[self.metadata[self.sample].isin(group_samples)]
-            .set_index(self.sample)
-            .loc[list_to_sort]
-        )
-
-        # change comparison group to 0/1
-        obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
-
-        # create a annotated dataset
-        anndata_data = anndata.AnnData(
-            X=reduced_matrix.values,
-            var=pd.DataFrame(index=reduced_matrix.columns.to_list()),
-            obs=obs_metadata,
-            dtype=reduced_matrix.values.dtype,
-        )
-        return anndata_data
-
-
     @ignore_warning(RuntimeWarning)
     def diff_expression_analysis(self, group1, group2, column=None, method="ttest", perm=10, fdr=0.05):
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
@@ -72,7 +43,7 @@ class Statistics:
             column (str): column name in the metadata file with the two groups to compare
             group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
             group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
-            method (str,optional): statistical method to calculate differential expression, for Wald-test 'wald'. Default 'ttest'
+            method (str,optional): statistical method to calculate differential expression, for Wald-test 'wald', paired t-test 'paired-ttest'. Default 'ttest'
 
         Returns:
             pandas.DataFrame:
@@ -89,65 +60,14 @@ class Statistics:
             * ``'ll'``: the log-likelihood of the estimation
         """
 
-        import anndata
-        import diffxpy.api as de
-
-        if isinstance(group1, list) and isinstance(group2, list):
-            column, group1, group2 = self._add_metadata_column(group1, group2)
-
-        elif column is None:
-            raise ValueError(
-                "Column containing group1 and group2 needs to be specified"
-            )
-
-        # ttest and wald require anndata object for analysis
-        if method != "sam":
-            d = self._prepare_anndata(column=column, group1=group1, group2=group2)
-
-        if method == "wald":
-            formula_loc = "~ 1 +" + column
-            test = de.test.wald(
-                data=d, formula_loc=formula_loc, factor_loc_totest=column
-            )
-
-        elif method == "ttest":
-            test = de.test.t_test(data=d, grouping=column)
-
-        elif method == "sam":
-            from alphastats.multicova import multicova
-            transposed = self.mat.transpose()
-
-            if self.preprocessing_info["Normalization"] is None:
-                # needs to be lpog2 transformed for fold change calculations
-                transposed = transposed.transform(lambda x: np.log2(x))
-
-            transposed[self.index_column] = transposed.index
-            transposed = transposed.reset_index(drop=True)
-
-            res, _ = multicova.perform_ttest_analysis(
-                transposed,
-                c1 =list(self.metadata[self.metadata[column]==group1][self.sample]),                                      
-                c2 =list(self.metadata[self.metadata[column]==group2][self.sample]), 
-                s0=0.05, 
-                n_perm=perm,
-                fdr=fdr,
-                id_col=self.index_column,
-                parallelize=True
-            )
-
-            fdr_column = "FDR"  + str(int(fdr*100)) + "%"
-            df = res[[self.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval']]
-            df["log2fc"] = res["fc"]
-            df["FDR"] = res[fdr_column]
-        
-        else:
-            raise ValueError(
-                f"{method} is invalid choose between 'wald' for Wald-test, 'sam' and 'ttest'"
-            )
-        
-        if method != "sam":
-            df = test.summary().rename(columns={"gene": self.index_column})
-        
+        df = DifferentialExpressionAnalysis(
+            dataset=self, 
+            group1=group1, 
+            group2=group2, 
+            column=column, method=method,
+            perm=perm, 
+            fdr=fdr
+        ).perform()
         return df
 
     def _calculate_foldchange(self, mat_transpose, group1_samples, group2_samples):
