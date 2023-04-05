@@ -665,7 +665,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     
     def test_plot_samplehistograms(self):
         fig = self.obj.plot_samplehistograms().to_plotly_json()
-        self.assertEqual(48, len(fig["data"]))
+        self.assertEqual(312, len(fig["data"]))
 
         
 
