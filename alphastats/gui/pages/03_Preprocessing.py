@@ -29,6 +29,11 @@ def preprocessing():
                 options=[True, False],
             )
 
+            remove_samples = st.multiselect(
+                "Remove samples from analysis", 
+                options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list()
+            )
+
             log2_transform = st.selectbox(
                 "Log2-transform dataset",
                 options=[True, False],
@@ -45,9 +50,13 @@ def preprocessing():
             submitted = st.form_submit_button("Submit")
 
         if submitted:
+            if len(remove_samples) == 0:
+                remove_samples = None
+            
             st.session_state.dataset.preprocess(
                 remove_contaminations=remove_contaminations,
                 log2_transform=log2_transform,
+                remove_samples = remove_samples,
                 subset=subset,
                 normalization=normalization,
                 imputation=imputation,

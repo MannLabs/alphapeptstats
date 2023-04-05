@@ -3,6 +3,7 @@
 # 0.5.0
 * ADD plot Sample Distribution Histogram
 * ADD paired-ttest option 
+* ENH add option to remove samples in GUI
 
 # 0.4.5
 * FIX loading of Data on Windows

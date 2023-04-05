@@ -292,7 +292,7 @@ def helper_compare_two_groups():
 
         group1 = st.multiselect(
                 "Group 1 samples:",
-                options=st.session_state.dataset.metadata["sample"].to_list(),
+                options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list(),
             )
 
         #with col2:
@@ -300,7 +300,7 @@ def helper_compare_two_groups():
         group2 = st.multiselect(
                 "Group 2 samples:",
                 options=list(
-                    reversed(st.session_state.dataset.metadata["sample"].to_list())
+                    reversed(st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list())
                 ),
             )
 
