@@ -263,15 +263,9 @@ def helper_compare_two_groups():
 
     if group != "< None >":
 
-        #col1, col2 = st.columns(2)
-
         unique_values = get_unique_values_from_column(group)
 
-        #with col1:
-
         group1 = st.selectbox("Group 1", options=unique_values)
-
-        #with col2:
 
         group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
 
@@ -286,16 +280,10 @@ def helper_compare_two_groups():
 
     else:
 
-        #col1, col2 = st.columns(2)
-
-        #with col1:
-
         group1 = st.multiselect(
                 "Group 1 samples:",
                 options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list(),
             )
-
-        #with col2:
 
         group2 = st.multiselect(
                 "Group 2 samples:",

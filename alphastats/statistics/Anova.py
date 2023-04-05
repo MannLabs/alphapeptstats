@@ -1,7 +1,7 @@
 
 import pandas as pd
 import scipy
-import tqdm
+from tqdm import tqdm
 
 class Anova:
     def __init__(self, dataset, column, protein_ids, tukey):
