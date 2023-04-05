@@ -586,6 +586,19 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
         self.assertTrue(n_labels > 20)
+    
+    def test_plot_volcano_with_labels_proteins_welch_ttest(self):
+        # remove gene names
+        self.obj.gene_names = None
+        plot = self.obj.plot_volcano(
+            column="disease",
+            group1="healthy",
+            group2="liver cirrhosis",
+            method="welch-ttest",
+            labels=True,
+        )
+        n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
+        self.assertTrue(n_labels > 20)
 
     def test_calculate_diff_exp_wrong(self):
         # get groups from comparison column
