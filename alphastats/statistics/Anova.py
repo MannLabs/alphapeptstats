@@ -29,7 +29,7 @@ class Anova:
             axis=1,
         )
         anova_df = pd.DataFrame()
-        anova_df[self.index_column], anova_df["ANOVA_pvalue"] = (
+        anova_df[self.dataset.index_column], anova_df["ANOVA_pvalue"] = (
             p_values.index.tolist(),
             p_values.values,
         )
