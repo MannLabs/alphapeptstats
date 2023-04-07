@@ -678,6 +678,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_samplehistograms(self):
         fig = self.obj.plot_samplehistograms().to_plotly_json()
         self.assertEqual(312, len(fig["data"]))
+    
+    def test_batch_correction(self):
+        self.obj.preprocess(subset=True, imputation="knn", normalization="quantile")
+        self.obj.batch_correction(batch="batch_artifical_added")
+        first_value = self.obj.mat.values[0,0]
+        self.assertAlmostEqual(0.0111, first_value, places=2)
+
 
         
 

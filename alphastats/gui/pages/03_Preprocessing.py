@@ -12,7 +12,7 @@ def preprocessing():
 
         st.markdown(
             "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
-            + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats" 
+            + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats " 
             + "[documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
         )
 
@@ -70,6 +70,25 @@ def preprocessing():
                 pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
                 use_container_width=True,
             )
+        
+        st.markdown("#### Batch correction: correct for technical bias")
+
+        with st.form("Batch correction: correct for technical bias"):
+            batch = st.selectbox(
+                "Batch", 
+                options= st.session_state.dataset.metadata.columns.to_list()
+            )
+            submit_batch_correction = st.form_submit_button("Submit")
+        
+        if submit_batch_correction:
+            st.session_state.dataset.batch_correction(
+                batch=batch
+            )
+            st.info(
+                "Data has been processed. "
+                + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            )
+
     
     with c2:
 

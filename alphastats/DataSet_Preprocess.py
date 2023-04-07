@@ -8,6 +8,7 @@ import sklearn.impute
 from alphastats.utils import ignore_warning
 from sklearn.experimental import enable_iterative_imputer
 import itertools
+from combat.pycombat import pycombat
 
 
 class Preprocess:
@@ -197,17 +198,27 @@ class Preprocess:
         self.mat = np.log2(self.mat + 0.1)
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
+    
+    def batch_correction(self, batch:str):
+        """Correct for technical bias/batch effects
+        Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
 
+        Args:
+            batch (str): column name in the metadata describing the different batches
+        """
+        data = self.mat.transpose()
+        series_of_batches = self.metadata.set_index(self.sample).reindex(data.columns.to_list())[batch]
+        self.mat = pycombat(data=data, batch=series_of_batches).transpose()
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
-        log2_transform=True,
-        remove_contaminations=False,
-        subset=False,
-        normalization=None,
-        imputation=None,
-        remove_samples=None,
+        log2_transform: bool=True,
+        remove_contaminations: bool=False,
+        subset: bool=False,
+        normalization: str=None,
+        imputation: str=None,
+        remove_samples: list=None,
     ):
         """Preprocess Protein data
 
