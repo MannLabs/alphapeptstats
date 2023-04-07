@@ -14,6 +14,24 @@ from alphastats.statistics.Anova import Anova
 
 
 class Statistics:
+    def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list):
+        mat_transpose += 0.00001
+
+        if self.dataset.preprocessing_info["Log2-transformed"]:
+            fc = (
+                mat_transpose[group1_samples].T.mean().values
+                - mat_transpose[group2_samples].T.mean().values
+            )
+        
+        else:
+            fc = (
+                mat_transpose[group1_samples].T.mean().values
+                / mat_transpose[group2_samples].T.mean().values
+            )
+            fc = np.log2(fc)
+
+        return fc
+    
     def _add_metadata_column(self, group1_list: list, group2_list: list):
 
         # create new column in metadata with defined groups
