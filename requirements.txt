@@ -3,7 +3,6 @@ scikit-learn==1.2.1
 data_cache>=0.1.6
 plotly==5.11.0
 statsmodels==0.13.5
-iteration_utilities
 openpyxl>=3.0.10
 sklearn_pandas==2.2.0
 pingouin==0.5.3
