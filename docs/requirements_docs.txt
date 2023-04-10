@@ -99,7 +99,7 @@ tornado==6.2
 tqdm==4.64.1 
 traitlets==5.5.0 
 typing-extensions==4.4.0 
-tzdata==2022.5 
+tzdata==2023.3 
 tzlocal==4.2 
 umap-learn==0.5.3 
 validators==0.20.0 
