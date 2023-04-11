@@ -71,8 +71,10 @@ def st_general(method_dict):
             return method_dict["function"](**chosen_parameter_dict)
 
 
-@st.cache(persist=True, max_entries=10, allow_output_mutation=True)
-def gui_volcano_plot_differential_expression_analysis(chosen_parameter_dict):
+@st.cache_data
+def gui_volcano_plot_differential_expression_analysis(
+        chosen_parameter_dict, user_session_id = st.session_state.user_session_id
+    ):
     """
     initalize volcano plot object with differential expression analysis results
     """
@@ -92,7 +94,7 @@ def gui_volcano_plot():
     chosen_parameter_dict = helper_compare_two_groups()
     method = st.selectbox(
         "Differential Analysis using:",
-        options=["ttest", "anova", "wald", "sam"],
+        options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
     )
     chosen_parameter_dict.update({"method": method})
 
@@ -128,7 +130,9 @@ def gui_volcano_plot():
     submitted = st.button("Submit")
 
     if submitted:
-        volcano_plot = gui_volcano_plot_differential_expression_analysis(chosen_parameter_dict)
+        volcano_plot = gui_volcano_plot_differential_expression_analysis(
+            chosen_parameter_dict, user_session_id = st.session_state.user_session_id
+        )
         volcano_plot._update(plotting_parameter_dict)
         volcano_plot._annotate_result_df()
         volcano_plot._plot()
@@ -259,15 +263,9 @@ def helper_compare_two_groups():
 
     if group != "< None >":
 
-        #col1, col2 = st.columns(2)
-
         unique_values = get_unique_values_from_column(group)
 
-        #with col1:
-
         group1 = st.selectbox("Group 1", options=unique_values)
-
-        #with col2:
 
         group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
 
@@ -282,21 +280,15 @@ def helper_compare_two_groups():
 
     else:
 
-        #col1, col2 = st.columns(2)
-
-        #with col1:
-
         group1 = st.multiselect(
                 "Group 1 samples:",
-                options=st.session_state.dataset.metadata["sample"].to_list(),
+                options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list(),
             )
-
-        #with col2:
 
         group2 = st.multiselect(
                 "Group 2 samples:",
                 options=list(
-                    reversed(st.session_state.dataset.metadata["sample"].to_list())
+                    reversed(st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list())
                 ),
             )
 
