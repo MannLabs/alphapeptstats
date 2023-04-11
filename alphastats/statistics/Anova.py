@@ -21,7 +21,7 @@ class Anova:
         else:
             self.protein_ids_list = self.protein_ids
 
-    def perform_anova(self):
+    def perform_anova(self) -> pd.DataFrame:
         p_values = self.mat_transpose.apply(
             lambda row: scipy.stats.f_oneway(
                 *[row[elem].values.flatten() for elem in self.all_groups]
@@ -47,7 +47,7 @@ class Anova:
 
         self.mat_transpose = self.dataset.mat[self.protein_ids_list].transpose()
            
-    def _create_tukey_df(self, anova_df) -> pd.DataFrame:
+    def _create_tukey_df(self, anova_df: pd.DataFrame) -> pd.DataFrame:
         #  combine tukey results with anova results
         df = (
             self.dataset.mat[self.protein_ids_list]
