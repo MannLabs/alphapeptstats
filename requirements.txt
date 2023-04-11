@@ -13,7 +13,7 @@ anndata==0.8.0
 umap-learn==0.5.3
 streamlit==1.19.0
 tables==3.7.0
-numpy==1.24.2
+numpy==1.23.5
 numba==0.56.4
 numba-stats==0.5.0
 swifter==1.2.0
