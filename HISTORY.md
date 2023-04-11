@@ -6,6 +6,7 @@
 * ENH add option to remove samples in GUI
 * ADD pyComBat Batch correction Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
 * remove iteration utilities, remove C++ dependency
+* ENH upgrade to pandas 2.0.0
 
 # 0.4.5
 * FIX loading of Data on Windows

@@ -14,7 +14,7 @@ from alphastats.statistics.Anova import Anova
 
 
 class Statistics:
-    def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list):
+    def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list) -> pd.DataFrame:
         mat_transpose += 0.00001
 
         if self.preprocessing_info["Log2-transformed"]:
@@ -30,7 +30,7 @@ class Statistics:
             )
             fc = np.log2(fc)
 
-        return fc
+        return pd.DataFrame(fc, columns=["fc"])
     
     def _add_metadata_column(self, group1_list: list, group2_list: list):
 

@@ -167,7 +167,7 @@ class Preprocess:
         self.create_matrix()
         print("All preprocessing steps are reset.")
     
-    def _compare_preprocessing_modes(self, func, params_for_func):
+    def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
         imputation_methods = ["mean", "median", "knn"]
         normalization_methods = ["zscore", "quantile", "vst"]
