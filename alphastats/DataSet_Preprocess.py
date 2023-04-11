@@ -8,7 +8,7 @@ import sklearn.impute
 from alphastats.utils import ignore_warning
 from sklearn.experimental import enable_iterative_imputer
 import itertools
-from combat.pycombat import pycombat
+
 
 
 class Preprocess:
@@ -206,6 +206,8 @@ class Preprocess:
         Args:
             batch (str): column name in the metadata describing the different batches
         """
+        import combat
+        from combat.pycombat import pycombat
         data = self.mat.transpose()
         series_of_batches = self.metadata.set_index(self.sample).reindex(data.columns.to_list())[batch]
         self.mat = pycombat(data=data, batch=series_of_batches).transpose()
