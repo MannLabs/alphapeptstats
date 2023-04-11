@@ -30,7 +30,7 @@ class Statistics:
             )
             fc = np.log2(fc)
 
-        return pd.DataFrame({"fc": fc, self.index_column: mat_transpose.index})
+        return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
     
     def _add_metadata_column(self, group1_list: list, group2_list: list):
 

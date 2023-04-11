@@ -310,7 +310,7 @@ def get_fdr_line(t_limit, s0, n_x, n_y, plot=False,
     s_df_neg = s_df.copy()
     s_df_neg.fc_s = -s_df_neg.fc_s
 
-    s_df = s_df.append(s_df_neg)
+    s_df = s_df.concat(s_df_neg)
 
     if (plot):
         fig = px.scatter(x=s_df.fc_s,
