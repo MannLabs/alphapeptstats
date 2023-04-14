@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.5.1
+* ENH increase limit uplaod size in GUI
+
 # 0.5.0
 * ADD plot Sample Distribution Histogram
 * ADD paired-ttest option 
