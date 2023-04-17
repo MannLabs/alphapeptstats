@@ -75,7 +75,7 @@ def check_software_file(df, software):
             st.error("This is not a valid Spectronaut file.")
 
     elif software == "FragPipe":
-        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
+        expected_columns = ["Protein"]
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error(
                 "This is not a valid FragPipe file. Please check:"
