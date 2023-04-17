@@ -260,7 +260,7 @@ def import_data():
 
     software = st.selectbox(
         "Select your Proteomics Software",
-        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe", "Spectronaut"],
+        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "FragPipe", "Spectronaut"],
     )
 
     session_state_empty = False
