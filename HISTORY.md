@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.5.2
+* FIX FragPipe import #173
+
 # 0.5.1
 * ENH increase limit uplaod size in GUI
 

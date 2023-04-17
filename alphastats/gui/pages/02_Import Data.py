@@ -75,7 +75,7 @@ def check_software_file(df, software):
             st.error("This is not a valid Spectronaut file.")
 
     elif software == "FragPipe":
-        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
+        expected_columns = ["Protein"]
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error(
                 "This is not a valid FragPipe file. Please check:"
@@ -260,7 +260,7 @@ def import_data():
 
     software = st.selectbox(
         "Select your Proteomics Software",
-        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "Fragpipe", "Spectronaut"],
+        options=["<select>", "MaxQuant", "AlphaPept", "DIANN", "FragPipe", "Spectronaut"],
     )
 
     session_state_empty = False
