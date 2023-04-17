@@ -1,5 +1,5 @@
 alphastats==0.1.1 
-altair==4.2.0 
+altair==4.2.2 
 anndata==0.8.0 
 attrs==22.1.0 
 batchglm==0.7.4 
