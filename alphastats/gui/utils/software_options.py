@@ -25,8 +25,8 @@ software_options = {
     },
     "FragPipe": {
         "import_file": "combined_protein.tsv",
-        "intensity_column": ["[sample] MaxLFQ Intensity "],
-        "index_column": ["Protein"],
+        "intensity_column": ["[sample] MaxLFQ Intensity", "[sample] Intensity"],
+        "index_column": ["Protein", "Protein ID"],
         "loader_function": FragPipeLoader,
     },
     "Spectronaut": {
