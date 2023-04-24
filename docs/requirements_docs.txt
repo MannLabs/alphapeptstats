@@ -69,7 +69,7 @@ protobuf==3.20.3
 pyarrow==9.0.0 
 pydeck==0.8.0b4 
 pympler==1.0.1 
-pynndescent==0.5.7 
+pynndescent==0.5.10 
 pyrsistent==0.18.1 
 python-dateutil==2.8.2 
 pyyaml==6.0 
