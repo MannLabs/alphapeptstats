@@ -1,4 +1,4 @@
-alphastats==0.5.4 
+alphastats==0.5.3
 altair==4.2.0 
 anndata==0.8.0 
 attrs==22.1.0 
