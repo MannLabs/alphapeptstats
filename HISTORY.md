@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.5.4
+* FIX altair version - binning of streamlit version
+
 # 0.5.3
 * FIX FragPipe loading issue
 
