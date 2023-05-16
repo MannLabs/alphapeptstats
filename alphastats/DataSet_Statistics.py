@@ -197,7 +197,7 @@ class Statistics:
         s0: float = 0.05,
         subset: dict = None,
     ) -> pd.DataFrame:
-        """_summary_
+        """Perform Multicovariat Analysis
 
         Args:
             covariates (list): list of covariates, column names in metadata
@@ -207,7 +207,7 @@ class Statistics:
             subset (dict, optional): _description_. Defaults to None.
 
         Returns:
-            pd.DataFrame: _description_
+            pd.DataFrame: Multicova Analysis results
         """
 
         res = MultiCovaAnalysis(

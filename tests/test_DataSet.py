@@ -703,10 +703,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(subset=True, imputation="knn", normalization="quantile")
         self.obj.batch_correction(batch="batch_artifical_added")
         first_value = self.obj.mat.values[0,0]
-        self.assertAlmostEqual(0.0111, first_value, places=2)
-
-
-        
+        self.assertAlmostEqual(0.0111, first_value, places=2)   
 
     def test_multicova_analysis(self):
         results = self.obj.multi_covariat_analysis(
