@@ -1,6 +1,7 @@
 import streamlit as st
 import sys
 import os
+import io
 
 try:
     from alphastats.gui.utils.ui_helper import sidebar_info
@@ -186,16 +187,20 @@ def create_metadata_file():
     dataset = DataSet(loader=st.session_state.loader)
     st.session_state["metadata_columns"] = ["sample"]
     metadata = dataset.metadata
+    buffer = io.BytesIO()
 
-    if st.button("Add Column"):
-        st.write("xxx")
-        column_name = st.text_input("Column name", "")
-        metadata[column_name] = None
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        # Write each dataframe to a different worksheet.
+        metadata.to_excel(writer, sheet_name='Sheet1', index=False)
+        # Close the Pandas Excel writer and output the Excel file to the buffer
+        writer.close()
 
-        metadata = st.experimental_data_editor(metadata, num_rows="fixed")
-
-    # st.session_state.loader
-
+        st.download_button(
+            label="Download metadata template as Excel",
+            data=buffer,
+            file_name='metadata.xlsx',
+            mime='application/vnd.ms-excel'
+        )
 
 def upload_metadatafile(software):
 
@@ -229,8 +234,10 @@ def upload_metadatafile(software):
 
             display_loaded_dataset()
 
-    if st.button("Create metadata file"):
-        create_metadata_file()
+    create_metadata_file()
+    st.write("Download the template file and add additional information as columns to your samples such as disease group. "
+                 + "Upload the updated metadata file.")
+    
 
     if st.button("Create a DataSet without metadata"):
         st.session_state["dataset"] = DataSet(loader=st.session_state.loader)

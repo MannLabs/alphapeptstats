@@ -2,7 +2,7 @@
 import scipy
 import tqdm
 import pandas as pd
-from statistics.StatisticUtils import StatisticUtils
+from alphastats.statistics.StatisticUtils import StatisticUtils
 
 class MultiCovaAnalysis(StatisticUtils):
     def __init__(self, dataset, covariates: list, n_permutations: int=3, 

@@ -10,8 +10,6 @@ from functools import lru_cache
 from typing import Union
 
 from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
-
-
 from alphastats.statistics.DifferentialExpressionAnalysis import DifferentialExpressionAnalysis
 from alphastats.statistics.Anova import Anova
 

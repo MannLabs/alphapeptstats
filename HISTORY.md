@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.6.0
+* ENH download metadata template in the GUI
+
 # 0.5.4
 * FIX altair version - binning of streamlit version
 
