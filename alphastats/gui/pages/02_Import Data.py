@@ -1,6 +1,5 @@
-from curses import meta
 import streamlit as st
-
+import sys
 import os
 
 try:
@@ -20,6 +19,16 @@ except ModuleNotFoundError:
 
 import pandas as pd
 import plotly.express as px
+
+from streamlit.runtime import get_instance
+from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+
+runtime = get_instance()
+session_id = get_script_run_ctx().session_id
+session_info = runtime._session_mgr.get_session_info(session_id)
+
+user_session_id = session_id
+st.session_state["user_session_id"] = user_session_id
 
 
 def load_options():
@@ -65,7 +74,7 @@ def check_software_file(df, software):
             st.error("This is not a valid Spectronaut file.")
 
     elif software == "FragPipe":
-        expected_columns = ["Protein Probability", "Indistinguishable Proteins"]
+        expected_columns = ["Protein"]
         if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
             st.error(
                 "This is not a valid FragPipe file. Please check:"
@@ -235,8 +244,16 @@ def upload_metadatafile(software):
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
-    filepath = os.path.join(_this_directory, "sample_data/proteinGroups.txt").replace(
-        "pages/", ""
+    _parent_directory = os.path.dirname(_this_directory)     
+    folder_to_load = os.path.join(_parent_directory, 'sample_data')
+    
+    filepath= os.path.join(folder_to_load, "proteinGroups.txt")
+    metadatapath= os.path.join(folder_to_load, "metadata.xlsx")
+
+
+    loader = MaxQuantLoader(file=filepath)
+    ds = DataSet(
+        loader=loader, metadata_path=metadatapath, sample_column="sample"
     )
     metadatapath = os.path.join(_this_directory, "sample_data/metadata.xlsx").replace(
         "pages/", ""
@@ -273,6 +290,7 @@ def import_data():
             "Fragpipe",
             "Spectronaut",
         ],
+
     )
 
     session_state_empty = False

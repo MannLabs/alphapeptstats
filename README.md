@@ -24,50 +24,69 @@
 
 [link]:https://alphapeptstats.readthedocs.io/en/main/
 
-An open-source Python package of the AlphaPept ecosystem from the [Mann Group at the University of Copenhagen](https://www.biochem.mpg.de/mann).
+An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
 
 
-* [**About**](#about)
+* [**Citation**](#citation)
 * [**Installation**](#installation)
-* [**Usage**](#usage)
 * [**Troubleshooting**](#troubleshooting)
-* [**Citations**](#citations)
 * [**License**](#license)
 * [**How to contribute**](#how-to-contribute)
 * [**Changelog**](#changelog)
 
 ---
-## About
-An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
+## Citation
+Manuscript: [AlphaPeptStats: an open-source Python package for automated, scalable and industrial-strength statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1101/2023.03.10.532057)
+> **Citation:** <br>
+> Krismer, E., Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated, scalable and industrial-strength statistical analysis of mass spectrometry-based proteomics. BioRxiv [Preprint] 
+> https://doi.org/10.1101/2023.03.10.532057
 
 ---
-
 ## Installation
+
+AlphaPeptStats can be used as 
+ * python library (pip-installation), or 
+ * Graphical User Interface (either pip-installation or one-click installer). 
+ 
+Further we provide a Dockerimage for the GUI.
+
+### Pip Installation
 
 AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command. 
 
 ```bash
 pip install alphastats
 ```
----
-## Usage
 
-For the Graphical User Interface
+In case you want to use the Graphical User Interface, use following command in the command line:
  
 ```bash
 alphastats gui
 ```
 
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
-
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
----
 
+### One Click Installer
+
+One click Installer for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases).
+
+
+### Docker Image
+
+We provide two Dockerfiles, one for the library and one for the Graphical User Interface.
+The Image can be pulled from Dockerhub
+
+```bash
+docker pull elenakrismer/alphapeptstats_streamlit
+```
+
+---
 ## GUI
 ![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)
 
-
+---
 ## Troubleshooting
 
 In case of issues, check out the following:
@@ -88,3 +107,10 @@ If you like this software, you can give us a [star](https://github.com/MannLabs/
 ## Changelog
 
 See the [HISTORY.md](HISTORY.md) for a full overview of the changes made in each version.
+
+
+---
+## FAQ
+
+### How can I resolve the Microsoft visual error message when installing: error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools"?
+Please, find a description on how to update required tools [here](https://github.com/MannLabs/alphapeptstats/issues/158).

@@ -26,6 +26,8 @@ def display_matrix():
         + str(st.session_state.dataset.preprocessing_info["Normalization"])
         + ", Imputation: "
         + str(st.session_state.dataset.preprocessing_info["Imputation"])
+        + ", Log2-transformed: "
+        + str(st.session_state.dataset.preprocessing_info["Log2-transformed"])
     )
 
     st.markdown("**DataFrame used for analysis** *preview*")
@@ -39,6 +41,16 @@ def display_matrix():
     st.download_button(
         "Download as .csv", csv, "analysis_matrix.csv", "text/csv", key="download-csv"
     )
+
+
+@st.cache_data
+def get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id):
+    return st.session_state.dataset.plot_samplehistograms()
+
+@st.cache_data
+def get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id):
+    return st.session_state.dataset.plot_sampledistribution()
+
 
 
 if "dataset" in st.session_state:
@@ -57,10 +69,16 @@ if "dataset" in st.session_state:
     with c2:
 
         st.markdown("**Intensity distribution data per sample used for analysis**")
-        fig_processed = st.session_state.dataset.plot_sampledistribution()
         st.plotly_chart(
-            fig_processed.update_layout(plot_bgcolor="white"), use_container_width=True
+            get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id)
+                        .update_layout(plot_bgcolor="white"), use_container_width=True
         )
+ 
+    st.plotly_chart(
+        get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id)
+                    .update_layout(plot_bgcolor="white"), use_container_width=True
+    )
+
 
     display_matrix()
 

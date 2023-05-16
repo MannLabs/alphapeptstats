@@ -1,9 +1,8 @@
-pandas==1.5.2
+pandas==2.0.0
 scikit-learn==1.2.1
 data_cache>=0.1.6
 plotly==5.11.0
 statsmodels==0.13.5
-iteration_utilities
 openpyxl>=3.0.10
 sklearn_pandas==2.2.0
 pingouin==0.5.3
@@ -12,7 +11,7 @@ tqdm>=4.64.0
 diffxpy==0.7.4
 anndata==0.8.0
 umap-learn==0.5.3
-streamlit==1.19.0
+streamlit==1.22.0
 tables==3.7.0
 numpy==1.23.5
 numba==0.56.4
@@ -20,3 +19,4 @@ numba-stats==0.5.0
 swifter==1.2.0
 click==8.0.1
 kaleido==0.2.1
+combat==0.3.3

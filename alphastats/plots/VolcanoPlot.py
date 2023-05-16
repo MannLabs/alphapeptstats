@@ -82,12 +82,15 @@ class VolcanoPlot(PlotUtils):
 
         elif self.method == "anova":
             self._anova()
-
+        
+        elif self.method == "welch-ttest":
+            self._welch_ttest()
+        
+        elif self.method == "paired-ttest":
+            self._pairedttest()
+        
         elif self.method == "sam":
             self._sam()
-
-        # elif self.method == "Multi Covariates":
-        #    raise NotImplementedError
 
         else:
             raise ValueError(
@@ -191,9 +194,35 @@ class VolcanoPlot(PlotUtils):
         self.pvalue_column = "qval"
 
     @lru_cache(maxsize=20)
+    def _welch_ttest(self):
+
+        print("Calculating Welchs t-test...")
+
+        self.res = self.dataset.diff_expression_analysis(
+            column=self.column,
+            group1=self.group1,
+            group2=self.group2,
+            method=self.method,
+        )
+        self.pvalue_column = "pval"
+    
+    @lru_cache(maxsize=20)
     def _ttest(self):
 
-        print("Calculating t-test...")
+        print("Calculating Students t-test...")
+
+        self.res = self.dataset.diff_expression_analysis(
+            column=self.column,
+            group1=self.group1,
+            group2=self.group2,
+            method=self.method,
+        )
+        self.pvalue_column = "pval"
+    
+    @lru_cache(maxsize=20)
+    def _pairedttest(self):
+
+        print("Calculating paired t-test...")
 
         self.res = self.dataset.diff_expression_analysis(
             column=self.column,

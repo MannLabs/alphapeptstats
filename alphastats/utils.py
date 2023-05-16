@@ -85,3 +85,21 @@ def list_to_tuple(function):
         return result
 
     return wrapper
+
+def find_duplicates_in_list(l:list) -> list:
+    """Find duplicates in a list
+
+    Args:
+        l (list): list
+
+    Returns:
+        list: list with duplicated values
+    """
+    duplicates = []
+    ys = sorted(l)
+
+    for n in range(1, len(l)):
+        if ys[n] == ys[n-1]:
+            duplicates.append(ys[n])
+    return duplicates
+    

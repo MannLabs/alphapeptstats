@@ -9,7 +9,8 @@ import pkg_resources
 import importlib.metadata
 import alphastats
 from PyInstaller.utils.hooks import collect_submodules
-
+import sys  
+sys.setrecursionlimit(5000)
 
 ##################### User definitions
 exe_name = 'alphastats_gui'
@@ -84,7 +85,7 @@ else:
 hidden_imports = [h for h in hidden_imports if "__pycache__" not in h]
 datas = [d for d in datas if ("__pycache__" not in d[0]) and (d[1] not in [".", "Resources", "scripts"])]
 
-
+[]
 
 if sys.platform[:5] == "win32":
 	base_path = os.path.dirname(sys.executable)

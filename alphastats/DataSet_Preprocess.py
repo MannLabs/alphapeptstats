@@ -10,6 +10,7 @@ from sklearn.experimental import enable_iterative_imputer
 import itertools
 
 
+
 class Preprocess:
     def _remove_sampels(self, sample_list: list):
         # exclude samples for analysis
@@ -165,8 +166,8 @@ class Preprocess:
         #  reset all preprocessing steps
         self.create_matrix()
         print("All preprocessing steps are reset.")
-
-    def _compare_preprocessing_modes(self, func, params_for_func):
+    
+    def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
         imputation_methods = ["mean", "median", "knn"]
         normalization_methods = ["zscore", "quantile", "vst"]
@@ -199,17 +200,30 @@ class Preprocess:
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat + 0.1)
-        self.preprocessing_info.update({"Log2 Transformed": True})
+        self.preprocessing_info.update({"Log2-transformed": True})
+        print("Data has been log2-transformed.")
+    
+    def batch_correction(self, batch:str):
+        """Correct for technical bias/batch effects
+        Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
+        Args:
+            batch (str): column name in the metadata describing the different batches
+        """
+        import combat
+        from combat.pycombat import pycombat
+        data = self.mat.transpose()
+        series_of_batches = self.metadata.set_index(self.sample).reindex(data.columns.to_list())[batch]
+        self.mat = pycombat(data=data, batch=series_of_batches).transpose()
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
-        log2_transform: bool = True,
-        remove_contaminations: bool = False,
-        subset: bool = False,
-        normalization: str = None,
-        imputation: str = None,
-        remove_samples: list = None,
+        log2_transform: bool=True,
+        remove_contaminations: bool=False,
+        subset: bool=False,
+        normalization: str=None,
+        imputation: str=None,
+        remove_samples: list=None,
     ):
         """Preprocess Protein data
 
@@ -254,6 +268,9 @@ class Preprocess:
         """
         if remove_contaminations:
             self._filter()
+        
+        if remove_samples is not None:
+            self._remove_sampels(sample_list=remove_samples)
 
         if subset:
             self.mat = self._subset()
@@ -266,9 +283,6 @@ class Preprocess:
 
         if imputation is not None:
             self._imputation(method=imputation)
-
-        if remove_samples is not None:
-            self._remove_sampels(sample_list=remove_samples)
 
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
         self.preprocessed = True

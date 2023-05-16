@@ -1,5 +1,31 @@
 # Changelog
 
+# 0.5.4
+* FIX altair version - binning of streamlit version
+
+# 0.5.3
+* FIX FragPipe loading issue
+
+# 0.5.2
+* FIX FragPipe import #173
+
+# 0.5.1
+* ENH increase limit uplaod size in GUI
+
+# 0.5.0
+* ADD plot Sample Distribution Histogram
+* ADD paired-ttest option 
+* ENH add option to remove samples in GUI
+* ADD pyComBat Batch correction Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
+* remove iteration utilities, remove C++ dependency
+* ENH upgrade to pandas 2.0.0
+
+# 0.4.5
+* FIX loading of Data on Windows
+
+# 0.4.4
+* FIX one click installer
+
 # 0.4.3
 * FIX loading dataset with columns
 * ADD log2-transformation

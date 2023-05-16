@@ -2,7 +2,7 @@ import pandas as pd
 import logging
 import os
 import numpy as np
-from iteration_utilities import duplicates
+from alphastats.utils import find_duplicates_in_list
 import pkg_resources
 
 
@@ -52,7 +52,7 @@ class BaseLoader:
         self.rawinput.columns = self.rawinput.columns.astype(str)
 
     def _check_if_indexcolumn_is_unique(self):
-        duplicated_values = list(duplicates(self.rawinput[self.index_column].to_list()))
+        duplicated_values = find_duplicates_in_list(self.rawinput[self.index_column].to_list())
         if len(duplicated_values) > 0:
             # error or warning, duplicates could be resolved with preprocessing/filtering
             logging.warning(

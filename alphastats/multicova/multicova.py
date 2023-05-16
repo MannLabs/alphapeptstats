@@ -18,6 +18,7 @@ from statsmodels.stats.multitest import multipletests
 import os
 from pathlib import Path
 
+# code taken from Isabel Bludau - multicova
 
 def get_std(x):
     """
@@ -339,7 +340,7 @@ def get_fdr_line(
     s_df_neg = s_df.copy()
     s_df_neg.fc_s = -s_df_neg.fc_s
 
-    s_df = s_df.append(s_df_neg)
+    s_df = pd.concat([s_df, s_df_neg])
 
     if plot:
         fig = px.scatter(x=s_df.fc_s, y=-np.log10(s_df.pvals), template="simple_white")
@@ -528,7 +529,7 @@ def get_fdr_line_regression(
         s_df_neg = s_df.copy()
         s_df_neg.fc_s = -s_df_neg.fc_s
 
-        s_df = s_df.append(s_df_neg)
+        s_df = pd.concat([s_df, s_df_neg])
 
         if plot:
             fig = px.scatter(

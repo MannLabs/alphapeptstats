@@ -16,3 +16,6 @@ textColor = '#302E30'
 # Accepted values (serif | sans serif | monospace) 
 # Default: "sans serif"
 font = "sans serif"
+
+[server]
+maxUploadSize = 500

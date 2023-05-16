@@ -19,6 +19,7 @@ from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 from alphastats.plots.IntensityPlot import IntensityPlot
 from alphastats.plots.ClusterMap import ClusterMap
+from alphastats.plots.SampleHistogram import SampleHistogram
 from alphastats.utils import ignore_warning, check_for_missing_values
 
 
@@ -306,6 +307,14 @@ class Plot:
             subgroups=subgroups,
         )
         return clustermap.plot
+
+    def plot_samplehistograms(self):
+        """Plots the Denisty distribution of each sample
+
+        Returns:
+            plotly: Plotly Graph Object
+        """
+        return SampleHistogram(dataset=self).plot()
 
     @check_for_missing_values
     def plot_dendrogram(
