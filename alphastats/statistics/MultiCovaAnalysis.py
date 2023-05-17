@@ -3,11 +3,12 @@ import scipy
 import tqdm
 import pandas as pd
 import numpy as np
+import plotly.express as px
 from alphastats.statistics.StatisticUtils import StatisticUtils
 
 class MultiCovaAnalysis(StatisticUtils):
     def __init__(self, dataset, covariates: list, n_permutations: int=3, 
-                 fdr: float=0.05, s0: float=0.05, subset: dict=None):
+                 fdr: float=0.05, s0: float=0.05, subset: dict=None, plot:bool=False):
 
         self.dataset = dataset
         self.covariates = covariates
@@ -15,6 +16,7 @@ class MultiCovaAnalysis(StatisticUtils):
         self.fdr = fdr
         self.s0 = s0
         self.subset = subset
+        self.plot = plot
 
         self._subset_metadata()
         self._check_covariat_input()
@@ -65,13 +67,29 @@ class MultiCovaAnalysis(StatisticUtils):
                     subset_prompt = "¨subset={" + col + ":[" + col_values[0] + ","+ col_values[1]+"]}"
                     Warning(f"Covariate: {col} contains not exactly 2 binary values, instead {col_values}. "
                             f"Specify the values of the covariates you want to use for your analysis as: {subset_prompt} ")
-
+                    self.covariates.remove(col)
 
     def _prepare_matrix(self):
         transposed = self.dataset.mat.transpose()
         transposed[self.dataset.index_column] = transposed.index
         transposed = transposed.reset_index(drop=True)
         self.transposed = transposed[self.metadata[self.dataset.sample].to_list()]
+
+    def _plot_volcano_regression(self, res_real, variable):
+        
+        sig_col = res_real.filter(regex=variable+"_"+"FDR").columns[0]
+        sig_level = sig_col.replace("_", " ")
+
+        fig = px.scatter(x=res_real[variable+"_"+"fc"],
+                        y=-np.log10(res_real[variable+"_"+"pval"]),
+                        color=res_real[sig_col],
+                        color_discrete_map={'sig': '#009599', 'non_sig': '#404040'},
+                        hover_name=res_real[self.dataset.index_column],
+                        title=variable,
+                        labels=dict(x="beta value", y="-log10(p-value)", color=sig_level))
+        fig.show()
+        return fig
+
     
     def calculate(self):
         from alphastats.multicova import multicova
@@ -89,7 +107,15 @@ class MultiCovaAnalysis(StatisticUtils):
             fdr=self.fdr, 
             s0=self.s0
         )
-        return res
+        res[self.dataset.index_column] = self.dataset.mat.columns.to_list()
+        plot_list = []
+        
+        if self.plot:
+            for variable in self.covariates:
+                plot = self._plot_volcano_regression(res_real=res, variable=variable)
+                plot_list.append(plot)
+        
+        return res, plot_list
     
 
 

@@ -95,7 +95,7 @@ class VolcanoPlot(PlotUtils):
         else:
             raise ValueError(
                 f"{self.method} is not available."
-                + "Please select from 'ttest', 'sam' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
+                + "Please select from 'ttest', 'sam', 'paired-ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
 
     @lru_cache(maxsize=20)

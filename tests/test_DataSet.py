@@ -706,11 +706,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertAlmostEqual(0.0111, first_value, places=2)   
 
     def test_multicova_analysis(self):
-        results = self.obj.multi_covariat_analysis(
+        self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
+        res, plot_list = self.obj.multicova_analysis(
             covariates=["disease", "Alkaline phosphatase measurement (88810008)"],
             subset={"disease": ["healthy", "liver cirrhosis"]},
         )
-        pass
+        self.assertAlmostEqual(-0.2873, res['disease_fc'].iloc[1], places=2)
+        
 
     def test_multicova_analysis_invalid_covariates(self):
         pass
