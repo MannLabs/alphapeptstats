@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from alphastats.statistics.StatisticUtils import StatisticUtils
+import warnings
 
 class MultiCovaAnalysis(StatisticUtils):
     def __init__(self, dataset, covariates: list, n_permutations: int=3, 
@@ -18,8 +19,8 @@ class MultiCovaAnalysis(StatisticUtils):
         self.subset = subset
         self.plot = plot
 
-        self._subset_metadata()
         self._check_covariat_input()
+        self._subset_metadata()
         self._check_na_values()
         self._convert_string_to_binary()
         self._prepare_matrix()
@@ -37,9 +38,9 @@ class MultiCovaAnalysis(StatisticUtils):
     
     def _check_covariat_input(self):
         # check whether covariates in metadata column
-        misc_covariates = list(set(self.metadata.columns.to_list()) - set(self.covariates))
+        misc_covariates = list(set(self.covariates) - set(self.dataset.metadata.columns.to_list()))
         if len(misc_covariates)> 0:
-            Warning(f"Covariates: {misc_covariates} are not found in Metadata.")
+            warnings.warn(f"Covariates: {misc_covariates} are not found in Metadata.")
             self.covariates = [x for x in self.covariates if x not in misc_covariates]
 
 
@@ -47,11 +48,11 @@ class MultiCovaAnalysis(StatisticUtils):
         for covariate in self.covariates:
             if self.dataset.metadata[covariate].isna().any():
                 self.covariates.remove(covariate)
-                Warning(f"Covariate: {covariate} contains missing values" +
+                warnings.warn(f"Covariate: {covariate} contains missing values" +
                         f"in metadata and will not be used for analysis.")
                 
     def _convert_string_to_binary(self):
-        string_cols = self.metadata.select_dtypes(include=[object]).columns.to_list()
+        string_cols = self.metadata[self.covariates].select_dtypes(include=[object]).columns.to_list()
     
         if len(string_cols) > 0:
             for col in string_cols:
@@ -65,7 +66,7 @@ class MultiCovaAnalysis(StatisticUtils):
                         col_values.append("example")
                     
                     subset_prompt = "¨subset={" + col + ":[" + col_values[0] + ","+ col_values[1]+"]}"
-                    Warning(f"Covariate: {col} contains not exactly 2 binary values, instead {col_values}. "
+                    warnings.warn(f"Covariate: {col} contains not exactly 2 binary values, instead {col_values}. "
                             f"Specify the values of the covariates you want to use for your analysis as: {subset_prompt} ")
                     self.covariates.remove(col)
 
@@ -76,7 +77,6 @@ class MultiCovaAnalysis(StatisticUtils):
         self.transposed = transposed[self.metadata[self.dataset.sample].to_list()]
 
     def _plot_volcano_regression(self, res_real, variable):
-        
         sig_col = res_real.filter(regex=variable+"_"+"FDR").columns[0]
         sig_level = sig_col.replace("_", " ")
 

@@ -196,26 +196,30 @@ class Statistics:
         fdr: float = 0.05,
         s0: float = 0.05,
         subset: dict = None,
-    ) -> pd.DataFrame:
+    ) -> Union[pd.DataFrame, list]:
         """Perform Multicovariat Analysis
+        will return a pandas DataFrame with the results and a list of volcano plots (for each covariat)
 
         Args:
             covariates (list): list of covariates, column names in metadata
             n_permutations (int, optional): number of permutations. Defaults to 3.
             fdr (float, optional): False Discovery Rate. Defaults to 0.05.
-            s0 (float, optional): _description_. Defaults to 0.05.
-            subset (dict, optional): _description_. Defaults to None.
+            s0 (float, optional): . Defaults to 0.05.
+            subset (dict, optional): for categorical covariates . Defaults to None.
 
         Returns:
             pd.DataFrame: Multicova Analysis results
         """
-
-        res = MultiCovaAnalysis(
+        
+        res, plot_list= MultiCovaAnalysis(
             dataset=self,
             covariates=covariates,
             n_permutations=n_permutations,
             fdr=fdr,
             s0=s0,
             subset=subset,
+            plot=True
         ).calculate()
-        return res
+        return res, plot_list
+
+        

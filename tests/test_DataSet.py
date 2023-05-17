@@ -708,14 +708,19 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_multicova_analysis(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, plot_list = self.obj.multicova_analysis(
-            covariates=["disease", "Alkaline phosphatase measurement (88810008)"],
+            covariates=["disease", "Alkaline phosphatase measurement"],
             subset={"disease": ["healthy", "liver cirrhosis"]},
         )
         self.assertAlmostEqual(-0.2873, res['disease_fc'].iloc[1], places=2)
         
 
     def test_multicova_analysis_invalid_covariates(self):
-        pass
+        self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
+        res, _ = self.obj.multicova_analysis(
+            covariates=["disease", "Alkaline phosphatase measurement", "Body mass index ", "not here"],
+            subset={"disease": ["healthy", "liver cirrhosis"]},
+        )
+        self.assertEqual(res.shape[1], 45)
 
     # def test_perform_gsea(self):
     #     df = self.obj.perform_gsea(column="disease",
