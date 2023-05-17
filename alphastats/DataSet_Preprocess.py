@@ -29,6 +29,34 @@ class Preprocess:
         """Print summary of preprocessing steps"""
         print(pd.DataFrame(self.preprocessing_info.items()))
 
+    def _remove_na_values(self, cut_off):
+        cut = 1 - cut_off
+        limit = self.mat.shape[0] * cut
+        
+        keep_list = list()
+        invalid = 0
+        for column_name in self.mat.columns:
+            column = self.mat[column_name]
+            # Get the count of Zeros in column 
+            count = (column == 0).sum()
+            try:
+                count = count.item()
+                if isinstance(count, int):
+                    if count < limit:
+                        keep_list += [column_name]
+                    
+            except ValueError:
+                invalid +=1
+                continue
+        
+        self.mat= self.mat[keep_list]
+        self.preprocessing_info.update(
+            {"Data completeness cut-off": cut_off}
+        )
+        percentage = cut_off * 100
+        print(f"Proteins with a data completeness across all samples of less than {percentage} % have been removed.")
+
+
     def _filter(self):
         if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
@@ -221,6 +249,7 @@ class Preprocess:
         log2_transform: bool=True,
         remove_contaminations: bool=False,
         subset: bool=False,
+        data_completeness: float=0,
         normalization: str=None,
         imputation: str=None,
         remove_samples: list=None,
@@ -262,6 +291,7 @@ class Preprocess:
             remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination.
             log2_transform (bool, optional): Log2 transform data. Default to True.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
+            data_completeness (float, optional): data completeness across all samples between 0-1. Defaults to 0.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
             subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
@@ -274,6 +304,9 @@ class Preprocess:
 
         if subset:
             self.mat = self._subset()
+        
+        if data_completeness> 0:
+            self._remove_na_values(cut_off=data_completeness)
 
         if log2_transform:
             self._log2_transform()

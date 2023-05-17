@@ -34,6 +34,11 @@ def preprocessing():
                 options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list()
             )
 
+            data_completeness = st.number_input(
+                f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
+                value=0, min_value=0, max_value=1
+            )
+
             log2_transform = st.selectbox(
                 "Log2-transform dataset", options=[True, False],
             )
@@ -56,6 +61,7 @@ def preprocessing():
                 remove_contaminations=remove_contaminations,
                 log2_transform=log2_transform,
                 remove_samples = remove_samples,
+                data_completeness=data_completeness,
                 subset=subset,
                 normalization=normalization,
                 imputation=imputation,

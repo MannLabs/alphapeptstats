@@ -356,3 +356,7 @@ def load_options():
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
+
+
+def gui_multicova_analysis():
+    pass

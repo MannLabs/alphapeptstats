@@ -203,6 +203,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             "Contaminations have been removed": False,
             "Contamination columns": self.filter_columns,
             "Number of removed ProteinGroups due to contaminaton": 0,
+            "Data completeness cut-off": 0,
         }
         return preprocessing_dict
 

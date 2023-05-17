@@ -415,6 +415,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         pca_plot = self.obj.plot_pca(group=self.comparison_column)
         # 5 different disease
         self.assertEqual(len(pca_plot.to_plotly_json().get("data")), 5)
+    
+    def test_data_completeness(self):
+        self.obj.preprocess(log2_transform=False, data_completeness=0.7)
+        self.assertEqual(self.obj.mat.shape[1], 433)
 
     def test_plot_pca_circles(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
