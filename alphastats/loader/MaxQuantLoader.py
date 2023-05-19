@@ -9,13 +9,13 @@ class MaxQuantLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column="LFQ intensity [sample]",
-        index_column="Protein IDs",
-        gene_names_column="Gene names",
-        filter_columns=["Only identified by site", "Reverse", "Potential contaminant"],
-        confidence_column="Q-value",
+        intensity_column:str="LFQ intensity [sample]",
+        index_column:str="Protein IDs",
+        gene_names_column:str="Gene names",
+        filter_columns:list=["Only identified by site", "Reverse", "Potential contaminant"],
+        confidence_column:str="Q-value",
         evidence_file=None,
-        sep="\t",
+        sep:str="\t",
         **kwargs
     ):
         """Loader MaxQuant output

@@ -10,6 +10,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.GenericLoader import GenericLoader
 
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
@@ -69,6 +70,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         self.create_matrix()
         self._check_matrix_values()
         self.metadata = None
+        
         if metadata_path is not None:
             self.sample = sample_column
             self.load_metadata(file_path=metadata_path)
@@ -76,6 +78,10 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         else:
             self._create_metadata()
+        
+        if self.loader == "Generic":
+            intensity_column = loader._extract_sample_names(metadata=self.metadata, sample_column=self.sample)
+            self.intensity_column = intensity_column
 
         # save preprocessing settings
         self.preprocessing_info = self._save_dataset_info()
@@ -103,6 +109,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
                 DIANNLoader,
                 FragPipeLoader,
                 SpectronautLoader,
+                GenericLoader
             ),
         ):
             raise LoaderError(

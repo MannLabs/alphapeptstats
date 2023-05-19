@@ -189,6 +189,7 @@ class Statistics:
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
 
+    @ignore_warning(RuntimeWarning)
     def multicova_analysis(
         self,
         covariates: list,

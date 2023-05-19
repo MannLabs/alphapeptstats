@@ -4,6 +4,7 @@
 * ENH download metadata template in the GUI
 * ENH multicova analysis
 * ENH filter data completeness `dataset.preprocess(data_completeness=0.7)` 
+* ADD `GenericLoader` for not supported data formats
 
 # 0.5.4
 * FIX altair version - binning of streamlit version

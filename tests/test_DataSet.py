@@ -26,6 +26,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
@@ -899,6 +900,45 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
             shutil.rmtree("testfiles/spectronaut/__MACOSX")
 
         os.remove("testfiles/spectronaut/results.tsv")
+    
+class TestGenericDataSet(BaseTestDataSet.BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        if os.path.isfile("testfiles/fragpipe/combined_proteins.tsv") == False:
+            shutil.unpack_archive(
+                "testfiles/fragpipe/combined_proteins.tsv.zip", "testfiles/fragpipe"
+            )
+
+        cls.cls_loader = GenericLoader(
+            file="testfiles/fragpipe/combined_proteins.tsv",
+            intensity_column=[
+                "S1 Razor Intensity",	"S2 Razor Intensity", "S3 Razor Intensity",
+                "S4 Razor Intensity",	"S5 Razor Intensity",	"S6 Razor Intensity", 
+                "S7 Razor Intensity", "S8 Razor Intensity"
+            ],
+            index_column="Protein",
+        )
+        cls.cls_metadata_path = "testfiles/fragpipe/metadata.xlsx"
+        cls.cls_obj = DataSet(
+            loader=cls.cls_loader,
+            metadata_path=cls.cls_metadata_path,
+            sample_column="analytical_sample external_id",
+        )
+      
+    def setUp(self):
+        self.loader = copy.deepcopy(self.cls_loader)
+        self.metadata_path = copy.deepcopy(self.cls_metadata_path)
+        self.obj = copy.deepcopy(self.cls_obj)
+        self.matrix_dim = (8, 6)
+        self.matrix_dim_filtered = (8, 6)
+        self.comparison_column = "grouping1"
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.isdir("testfiles/fragpipe/__MACOSX"):
+            shutil.rmtree("testfiles/fragpipe/__MACOSX")
+
+        os.remove("testfiles/fragpipe/results.tsv")
 
 
 if __name__ == "__main__":

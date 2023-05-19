@@ -84,12 +84,17 @@ def check_software_file(df, software):
 
 
 def print_software_import_info(software):
-    import_file = software_options.get(software).get("import_file")
-    string_output = f"Please upload {import_file} file from {software}."
+    if software != "Other":
+        import_file = software_options.get(software).get("import_file")
+        string_output = f"Please upload {import_file} file from {software}."
+   
+    else: 
+        string_output = f"Please upload your proteomics file."
+    
     return string_output
 
 
-def select_columns_for_loaders(software):
+def select_columns_for_loaders(software, software_df:None):
     """
     select intensity and index column depending on software
     will be saved in session state
@@ -98,19 +103,37 @@ def select_columns_for_loaders(software):
     st.markdown("### 2. Select columns used for further analysis.")
     st.markdown("Select intensity columns for further analysis")
 
-    st.selectbox(
-        "Intensity Column",
-        options=software_options.get(software).get("intensity_column"),
-        key="intensity_column",
-    )
+    if software != "Other":
 
-    st.markdown("Select index column (with ProteinGroups) for further analysis")
+        st.selectbox(
+            "Intensity Column",
+            options=software_options.get(software).get("intensity_column"),
+            key="intensity_column",
+        )
 
-    st.selectbox(
-        "Index Column",
-        options=software_options.get(software).get("index_column"),
-        key="index_column",
-    )
+        st.markdown("Select index column (with ProteinGroups) for further analysis")
+
+        st.selectbox(
+            "Index Column",
+            options=software_options.get(software).get("index_column"),
+           
+            key="index_column",
+        )
+    else:
+        st.selectbox(
+            "Intensity Columns",
+            options=software_df.columns.to_list(),
+            key="intensity_column",
+        )
+
+        st.markdown("Select index column (with ProteinGroups) for further analysis")
+
+        st.selectbox(
+            "Index Column",
+            options=software_df.columns.to_list(),
+            key="index_column",
+        )
+
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
@@ -296,6 +319,7 @@ def import_data():
             "DIANN",
             "Fragpipe",
             "Spectronaut",
+            "Other",
         ],
 
     )
