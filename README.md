@@ -24,6 +24,19 @@
 
 [link]:https://alphapeptstats.readthedocs.io/en/main/
 
+<div align = center>
+<br>
+<br>
+
+[<kbd> <br> Streamlit WebApp <br> </kbd>][link_streamlit]
+
+</div>
+
+<br>
+<br>
+
+[link_streamlit]:https://mannlabs-alphapeptstats-alphastatsguialphapeptstats-qyzgwd.streamlit.app/
+
 An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
 
 
