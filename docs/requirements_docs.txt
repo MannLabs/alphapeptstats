@@ -100,7 +100,7 @@ tqdm==4.64.1
 traitlets==5.5.0 
 typing-extensions==4.4.0 
 tzdata==2022.5 
-tzlocal==4.2 
+tzlocal==5.0.1 
 umap-learn==0.5.3 
 validators==0.20.0 
 watchdog==2.1.9 
