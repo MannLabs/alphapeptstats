@@ -2,7 +2,7 @@ pandas==2.0.0
 scikit-learn==1.2.0
 data_cache>=0.1.6
 plotly==5.14.1
-statsmodels==0.13.5
+statsmodels==0.14.0
 iteration_utilities
 openpyxl>=3.0.10
 sklearn_pandas==2.2.0
