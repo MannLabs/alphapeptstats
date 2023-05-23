@@ -20,3 +20,4 @@ swifter==1.2.0
 click==8.0.1
 kaleido==0.2.1
 combat==0.3.3
+pyteomics==4.6.0

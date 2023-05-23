@@ -10,6 +10,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.mzTabLoader import mzTabLoader
 
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
@@ -96,7 +97,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             loader : loader
         """
         if not isinstance(
-            loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader)
+            loader, (AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader, mzTabLoader)
         ):
             raise LoaderError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
