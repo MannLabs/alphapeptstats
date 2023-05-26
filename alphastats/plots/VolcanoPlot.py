@@ -15,7 +15,8 @@ class VolcanoPlot(PlotUtils):
         column=None, method=None, 
         labels=None, min_fc=None, 
         alpha=None, draw_line=None, 
-        plot=True, perm=100, fdr=0.05
+        plot=True, perm=100, fdr=0.05,
+        color_list=[]
     ):  
         self.dataset = dataset
         self.group1 = group1
@@ -31,6 +32,7 @@ class VolcanoPlot(PlotUtils):
         self.res = None
         self.pvalue_column = None
         self.perm=perm
+        self.color_list = color_list
         self._check_input()
        
         if plot:
@@ -266,6 +268,10 @@ class VolcanoPlot(PlotUtils):
 
         value = ["down", "up"]
         self.res["color"] = np.select(condition, value, default="non_sig")   
+
+        if len(self.color_list) > 0:
+            self.res["color"] = np.where(self.res[self.dataset.index_column].isin(self.color_list), 
+                                          "color", "no_color")   
         
 
     def _add_labels_plot(self):
@@ -327,6 +333,17 @@ class VolcanoPlot(PlotUtils):
             line_shape='spline',
             showlegend=False)
         )
+    
+    def _color_data_points(self):
+         # update coloring
+        if len(self.color_list) == 0:
+            color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
+    
+        else:
+            color_dict = {"no_color": "#404040", "color": "#B65EAF"}
+        
+        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
+
 
 
     def _plot(self):
@@ -339,8 +356,7 @@ class VolcanoPlot(PlotUtils):
         )
         
         # update coloring
-        color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
-        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
+        self._color_data_points()
 
         if self.labels:
             self._add_labels_plot()

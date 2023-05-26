@@ -119,15 +119,16 @@ class Plot:
         self,
         group1,
         group2,
-        column=None,
-        method="ttest",
-        labels=False,
-        min_fc=1,
-        alpha=0.05,
-        draw_line=True,
-        perm=100, 
-        fdr=0.05,
-        compare_preprocessing_modes=False
+        column:str=None,
+        method:str="ttest",
+        labels:bool=False,
+        min_fc:float=1.0,
+        alpha:float=0.05,
+        draw_line:bool=True,
+        perm:int=100, 
+        fdr:float=0.05,
+        compare_preprocessing_modes:bool=False,
+        color_list:list=[]
     ):
         """Plot Volcano Plot
 
@@ -142,6 +143,7 @@ class Plot:
             draw_line(boolean): whether to draw cut off lines.
             perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
             fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
+            color_list (list): list with ProteinIDs that should be highlighted.
             compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
 
 
@@ -166,7 +168,8 @@ class Plot:
                 alpha=alpha,
                 draw_line=draw_line,
                 perm=perm, 
-                fdr=fdr
+                fdr=fdr,
+                color_list=color_list
             )
 
             return volcano_plot.plot

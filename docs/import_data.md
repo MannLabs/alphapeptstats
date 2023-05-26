@@ -3,6 +3,22 @@
 
 Currently, AlphaStats allows the analysis of five quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe, MaxQuant and Spectronaut. As the output of these software differs significantly data needs to be loaded in customized loaders.
 
+Imported proteomics data and metadata can be combined in a DataSet, which will be used for the downstream analysis.
+
+```python
+import alphastats 
+
+maxquant_data = alphastats.MaxQuantLoader(
+    file="testfiles/maxquant_proteinGroups.txt"
+)
+
+dataset = alphastats.DataSet(
+    loader = maxquant_data, 
+    metadata_path="../testfiles/maxquant/metadata.xlsx", 
+    sample_column="sample"
+)
+```
+
 
 ## Importing data from a Proteomics software
 To import data from these software the columns describing intensity and Protein/ProteinGroups have to be specified when loading. Each loader has a default for the `intensity_column`and the `index_column`, however, the column naming can vary depending on the version of the software and personalized settings.
