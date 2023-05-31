@@ -195,7 +195,7 @@ class TestmzTabLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
         cls.obj = mzTabLoader(file="testfiles/mzTab/test.mztab")
-        cls.df_dim = (283, 264)
+        cls.df_dim = (283, 265)
 
 class TestSpectronautLoader(BaseTestLoader.BaseTest):
     @classmethod
