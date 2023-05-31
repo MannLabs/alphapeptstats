@@ -14,6 +14,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.mzTabLoader import mzTabLoader
 from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
@@ -189,6 +190,12 @@ class TestFragPipeLoader(BaseTestLoader.BaseTest):
     def setUpClass(cls):
         cls.obj = FragPipeLoader(file="testfiles/fragpipe/combined_proteins.tsv")
         cls.df_dim = (10, 37)
+
+class TestmzTabLoader(BaseTestLoader.BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        cls.obj = mzTabLoader(file="testfiles/mzTab/test.mztab")
+        cls.df_dim = (283, 265)
 
 class TestSpectronautLoader(BaseTestLoader.BaseTest):
     @classmethod

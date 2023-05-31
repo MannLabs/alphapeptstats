@@ -128,6 +128,12 @@ class IntensityPlot(PlotUtils):
                  self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
             )
 
+        elif self.method == "all":
+            fig = px.violin(
+                 self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label},
+                 box=True, points="all"
+            )
+
         else:
             raise ValueError(
                 f"{self.method} is not available."

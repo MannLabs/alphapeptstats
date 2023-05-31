@@ -561,6 +561,14 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         self.assertEqual(line_1, "spline")
         self.assertEqual(line_2, "spline")
+    
+    def test_plot_volcano_list(self):
+        self.obj.preprocess(imputation="mean")
+        plot = self.obj.plot_volcano( method="ttest",
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"],
+            group2=["1_71_F10", "1_73_F12"],
+            color_list=self.obj.mat.columns.to_list()[0:20])
+        self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 20)
 
 
     def test_plot_clustermap_significant(self):
@@ -674,6 +682,15 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
         self.assertEqual(annotation, "***")
+
+    def test_plot_intensity_all(self):
+        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            method="all",
+            add_significance=True)
+        self.assertEqual(plot.to_plotly_json()["data"][0]["points"], "all")
+
     
     def test_plot_samplehistograms(self):
         fig = self.obj.plot_samplehistograms().to_plotly_json()
