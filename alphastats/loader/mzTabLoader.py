@@ -8,6 +8,7 @@ class mzTabLoader(BaseLoader):
         self.intensity_column = intensity_column
         self.index_column = index_column
         self._load_protein_table(file=file)
+        self._add_contamination_column()
 
 
     def _load_protein_table(self, file):
