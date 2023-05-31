@@ -7,6 +7,9 @@ class mzTabLoader(BaseLoader):
         self.gene_names = None
         self.intensity_column = intensity_column
         self.index_column = index_column
+        self.confidence_column = None
+        self.evidence_df = None
+        self.gene_names = None
         self._load_protein_table(file=file)
         self._add_contamination_column()
 
