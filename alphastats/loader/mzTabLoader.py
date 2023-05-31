@@ -1,12 +1,14 @@
 from pyteomics import mztab
+from alphastats.loader.BaseLoader import BaseLoader
 
-class mzTabLoader:
+class mzTabLoader(BaseLoader):
     def __init__(self, file, intensity_column: str="protein_abundance_[sample]", index_column:str="accession"):
         self.filter_columns = []
         self.gene_names = None
         self.intensity_column = intensity_column
         self.index_column = index_column
         self._load_protein_table(file=file)
+
 
     def _load_protein_table(self, file):
         tables = mztab.MzTab(file)
