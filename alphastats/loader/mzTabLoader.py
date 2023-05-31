@@ -3,6 +3,13 @@ from alphastats.loader.BaseLoader import BaseLoader
 
 class mzTabLoader(BaseLoader):
     def __init__(self, file, intensity_column: str="protein_abundance_[sample]", index_column:str="accession"):
+        """Load mzTab file. Will add contamination column for further analysis.
+
+        Args:
+            file (str): path to mzTab file.
+            intensity_column (str, optional):  columns where the intensity of the proteins are given.. Defaults to "protein_abundance_[sample]".
+            index_column (str, optional): column indicating the protein groups.  Defaults to "accession".
+        """
         self.filter_columns = []
         self.gene_names = None
         self.intensity_column = intensity_column

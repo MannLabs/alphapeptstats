@@ -682,6 +682,15 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
         self.assertEqual(annotation, "***")
+
+    def test_plot_intensity_all(self):
+        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            method="all",
+            add_significance=True)
+        self.assertEqual(plot.to_plotly_json()["data"][0]["points"], "all")
+
     
     def test_plot_samplehistograms(self):
         fig = self.obj.plot_samplehistograms().to_plotly_json()
