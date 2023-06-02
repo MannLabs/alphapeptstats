@@ -115,6 +115,8 @@ class Plot:
         )
         return dimensionality_reduction.plot
 
+    
+    @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
         group1,

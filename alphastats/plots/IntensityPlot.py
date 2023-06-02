@@ -4,8 +4,29 @@ import scipy
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly
 
 from alphastats.plots.PlotUtils import plotly_object, PlotUtils
+
+plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
+    layout=plotly.graph_objects.Layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        colorway=[
+            "#009599",
+            "#005358",
+            "#772173",
+            "#B65EAF",  # pink
+            "#A73A00",
+            "#6490C1",
+            "#FF894F",
+            "#2B5E8B",
+            "#A87F32",
+        ],
+    )
+)
+
+plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class IntensityPlot(PlotUtils):
@@ -115,23 +136,26 @@ class IntensityPlot(PlotUtils):
     def _plot(self):
         if self.method == "violin":
             fig = px.violin(
-                self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
+                self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label},
+                template="simple_white+alphastats_colors"
             )
 
         elif self.method == "box":
             fig = px.box(
-                self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
+                self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label},
+                template="simple_white+alphastats_colors"
             )
 
         elif self.method == "scatter":
             fig = px.scatter(
-                 self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label}
+                 self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label},
+                 template="simple_white+alphastats_colors"
             )
 
         elif self.method == "all":
             fig = px.violin(
                  self.prepared_df, y=self.protein_id, x=self.group, color=self.group, labels={self.protein_id: self.y_label},
-                 box=True, points="all"
+                 box=True, points="all", template= "simple_white+alphastats_colors"
             )
 
         else:

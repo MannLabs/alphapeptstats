@@ -146,6 +146,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         df.columns = df.columns.str.replace(substring_to_remove, "")
         # transpose dataframe
         mat = df.transpose()
+        mat.replace([np.inf, -np.inf], np.nan, inplace=True)
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         self.mat = self.mat.astype(float)
