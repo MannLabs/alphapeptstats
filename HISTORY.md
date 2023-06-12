@@ -1,4 +1,6 @@
 # Changelog
+# 0.6.1
+* FIX data loading
 # 0.6.0
 * ADD mzTAB support
 * ENH color Volcano Plot data points using list of protein names `color_list=your_protein_list`
