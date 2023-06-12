@@ -148,6 +148,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         mat = df.transpose()
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
+        self.mat = self.mat.astype(float)
         # reset preproccessing info
         self.preprocessing_info = self._save_dataset_info()
         self.preprocessed = False
