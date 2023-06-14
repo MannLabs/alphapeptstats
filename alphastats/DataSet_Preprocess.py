@@ -288,17 +288,11 @@ class Preprocess:
         
         if log2_transform and self.preprocessing_info.get("Log2-transformed") is False:
             self._log2_transform()
-        
-       # if normalization == "vst" and imputation is not None:
-        #    self._normalization(method=normalization)
-         #   self.mat[:] = np.nan_to_num(self.mat)
-          #  self._imputation(method=imputation)
 
         if normalization is not None:
             self._normalization(method=normalization)
             self.mat[:] = np.nan_to_num(self.mat)
 
-       # if imputation is not None and normalization != "vst" :
         if imputation is not None:
             self._imputation(method=imputation)
 
