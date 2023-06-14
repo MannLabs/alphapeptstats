@@ -27,11 +27,11 @@ def create_pip_wheel():
         name="alphastats",
         version="0.6.2",
         license="Apache",
-        description="An open-source Python package for Mass Spectrometry Analysis",
+        description="An open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics",
         long_description=get_long_description(),
         long_description_content_type="text/markdown",
         author="Mann Labs",
-        author_email="elena.krismer@hotmail.com",
+        author_email="elena.krismer@gmail.com",
         url="https://github.com/MannLabs/alphastats",
         project_urls={
             "Mann Labs at MPIB": "https://www.biochem.mpg.de/mann",
