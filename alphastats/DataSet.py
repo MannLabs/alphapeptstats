@@ -206,7 +206,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         dataset_overview = (
             "Attributes of the DataSet can be accessed using: \n"
             + "DataSet.rawinput:\t Raw Protein data.\n"
-            + "DataSet.mat:\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
+            + "DataSet.mat:\t\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
             + "DataSet.metadata:\tMetadata for the samples in the matrix. Metadata will be matched with DataSet.mat when needed (for instance Volcano Plot)."
         )
         print(dataset_overview)
