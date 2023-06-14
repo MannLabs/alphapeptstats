@@ -2,6 +2,7 @@
 
 # 0.6.2
 * FIX preprocessing with VST floats and inf
+* FIX plotly display
 
 # 0.6.1
 * FIX data loading

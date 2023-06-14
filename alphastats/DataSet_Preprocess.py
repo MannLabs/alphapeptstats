@@ -168,20 +168,15 @@ class Preprocess:
         print("All preprocessing steps are reset.")
     
     @ignore_warning(RuntimeWarning)
-    def _compare_preprocessing_modes(self, func, params_for_func, methods=None) -> list:
+    def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
 
-        if isinstance(methods, dict):
-            normalization_methods = methods["normalization"]
-            imputation_methods = methods["imputation"]
+        #    normalization_methods = methods["normalization"]
+       # if isinstance(methods, dict):
+        #    imputation_methods = methods["imputation"]
         
-        else:
-            imputation_methods = [
-                #"mean", 
-                                  "median", "knn", "randomforest"]
-            normalization_methods = ["vst","zscore", "quantile", 
-                                     #"vst"
-                                     ]
+        imputation_methods = ["mean", "median", "knn", "randomforest"]
+        normalization_methods = ["vst","zscore", "quantile" ]
         
         preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
 
