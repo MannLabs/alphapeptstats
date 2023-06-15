@@ -286,6 +286,7 @@ class Preprocess:
 
         if normalization is not None:
             self._normalization(method=normalization)
+            self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
             #self.mat[:] = np.nan_to_num(self.mat)
 
         if imputation is not None:
