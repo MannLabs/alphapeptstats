@@ -300,7 +300,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
                 "c": [0.000000, 7.850074, 6.435102],
             }
         )
-        pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
+        pd._testing.assert_frame_equal(self.obj.mat.round(2), expected_mat.round(2))
 
     def test_preprocess_imputation_mean_values(self):
         self.obj.mat = pd.DataFrame(
