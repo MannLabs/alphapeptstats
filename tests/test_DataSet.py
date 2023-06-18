@@ -295,12 +295,12 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False,normalization="vst")
         expected_mat = pd.DataFrame(
             {
-                "a": [-1.30773413, 1.12010046, 0.18763367],
-                "b": [1.41421361, -0.70710674, -0.70710674],
-                "c": [-1.39384919, 0.90401955, 0.48982964],
+                "a": [ 3.19059101,  11.591763, 8.365096],
+                "b": [0.084829, 0.084829, 0.084829],
+                "c": [0.000000, 7.850074, 6.435102],
             }
         )
-        pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
+        pd._testing.assert_frame_equal(self.obj.mat.round(2), expected_mat.round(2))
 
     def test_preprocess_imputation_mean_values(self):
         self.obj.mat = pd.DataFrame(
@@ -456,7 +456,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True
         )
-        self.assertEqual(len(result_list), 9)               
+        self.assertEqual(len(result_list), 12)               
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)

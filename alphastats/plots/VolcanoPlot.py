@@ -5,9 +5,28 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
+import plotly
 from functools import lru_cache
 
+plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
+    layout=plotly.graph_objects.Layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        colorway=[
+            "#009599",
+            "#005358",
+            "#772173",
+            "#B65EAF",  # pink
+            "#A73A00",
+            "#6490C1",
+            "#FF894F",
+            "#2B5E8B",
+            "#A87F32",
+        ],
+    )
+)
+
+plotly.io.templates.default = "simple_white+alphastats_colors"
 
 class VolcanoPlot(PlotUtils):
     def __init__(
@@ -245,7 +264,7 @@ class VolcanoPlot(PlotUtils):
         convert pvalue to log10
         add color labels for up and down regulates
         """
-        self.res = self.res[(self.res["log2fc"] < 10) & (self.res["log2fc"] > -10)]
+        self.res = self.res[(self.res["log2fc"] < 20) & (self.res["log2fc"] > -20)]
         self.res["-log10(p-value)"] = -np.log10(self.res[self.pvalue_column])
         
         self.alpha = -np.log10(self.alpha)
@@ -353,6 +372,7 @@ class VolcanoPlot(PlotUtils):
             y="-log10(p-value)",
             color="color",
             hover_data=self.hover_data,
+            template= "simple_white+alphastats_colors"
         )
         
         # update coloring
