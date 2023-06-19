@@ -83,7 +83,7 @@ six==1.16.0
 sklearn==0.0 
 sklearn_pandas==2.2.0 
 smmap==5.0.0 
-sparse==0.13.0 
+sparse==0.14.0 
 sphinx-argparse==0.3.2 
 sphinx-autodoc-typehints==1.19.4 
 statsmodels==0.13.2 
