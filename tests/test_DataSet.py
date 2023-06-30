@@ -297,12 +297,12 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False, normalization="vst")
         expected_mat = pd.DataFrame(
             {
-                "a": [-1.30773413, 1.12010046, 0.18763367],
-                "b": [1.41421361, -0.70710674, -0.70710674],
-                "c": [-1.39384919, 0.90401955, 0.48982964],
+                "a": [ 3.19059101,  11.591763, 8.365096],
+                "b": [0.084829, 0.084829, 0.084829],
+                "c": [0.000000, 7.850074, 6.435102],
             }
         )
-        pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
+        pd._testing.assert_frame_equal(self.obj.mat.round(2), expected_mat.round(2))
 
     def test_preprocess_imputation_mean_values(self):
         self.obj.mat = pd.DataFrame(
@@ -460,7 +460,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True,
         )
-        self.assertEqual(len(result_list), 9)
+
+        self.assertEqual(len(result_list), 12)               
+
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)
@@ -568,6 +570,14 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         self.assertEqual(line_1, "spline")
         self.assertEqual(line_2, "spline")
+    
+    def test_plot_volcano_list(self):
+        self.obj.preprocess(imputation="mean")
+        plot = self.obj.plot_volcano( method="ttest",
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"],
+            group2=["1_71_F10", "1_73_F12"],
+            color_list=self.obj.mat.columns.to_list()[0:20])
+        self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 20)
 
     def test_plot_clustermap_significant(self):
         import sys
@@ -699,6 +709,15 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
         )
         self.assertEqual(annotation, "***")
+
+    def test_plot_intensity_all(self):
+        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
+            group="disease", 
+            subgroups=["liver cirrhosis", "healthy"],
+            method="all",
+            add_significance=True)
+        self.assertEqual(plot.to_plotly_json()["data"][0]["points"], "all")
+
     
     def test_plot_samplehistograms(self):
         fig = self.obj.plot_samplehistograms().to_plotly_json()

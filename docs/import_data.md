@@ -1,9 +1,23 @@
 # Data import
 
 
-Currently, AlphaStats allows the analysis of four quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe, MaxQuant and Spectronaut. As the output of these software differs significantly data needs to be loaded in customized loaders.
+Currently, AlphaStats allows the analysis of five quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe, MaxQuant and Spectronaut. As the output of these software differs significantly data needs to be loaded in customized loaders.
 
+Imported proteomics data and metadata can be combined in a DataSet, which will be used for the downstream analysis.
 
+```python
+import alphastats 
+
+maxquant_data = alphastats.MaxQuantLoader(
+    file="testfiles/maxquant_proteinGroups.txt"
+)
+
+dataset = alphastats.DataSet(
+    loader = maxquant_data, 
+    metadata_path="../testfiles/maxquant/metadata.xlsx", 
+    sample_column="sample"
+)
+```
 
 
 ## Importing data from a Proteomics software
@@ -13,7 +27,7 @@ As we are dealing with wide data, a column represents the intensity for one samp
 
 Upon data import, the proteomics data gets processed in an internal format.
 
-## Additional modifications by AlphaStats
+### Additional modifications by AlphaStats
 
 When importing the data, AlphaStats will identify potential contaminations based on a contaminant library, created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full). This information will be added as an extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.
 
@@ -70,19 +84,49 @@ fragpipe_data = alphastats.FragPipeLoader(file="testfiles/fragpipe_combined_prot
 
 Find more details about the file format [here](https://biognosys.com/content/uploads/2022/12/Spectronaut17_UserManual.pdf).
 
-```python
-import alphastats
-spectronaut_data = alphastats.FragPipeLoader(file="testfiles/spectronaut/results.tsv")
-```
+
 As default alphastats will use "PG.ProteinGroups" and "PG.Quantity" for the analysis. For an ananlysis on a peptide level the "F.PeakArea" and the peptide sequences ("PEP.StrippedSequence") can be used.
 
 ```python
-spectronaut_data = alphastats.FragPipeLoader(
+import alphastats
+spectronaut_data = alphastats.SpectronautLoader(
     file="testfiles/spectronaut/results.tsv",
     intensity_column = "F.PeakArea",
     index_column = "PEP.StrippedSequence"
     )
 ```
 
+### mzTab 
+
+Find more details about the file format [here](https://www.psidev.info/mztab).
+
+```python
+import alphastats
+mztab_data = alphastats.mzTabLoader(
+    file="testfiles/mztab/test.mztab"
+    )
+```
+
+
 ## Preparing metadata
+
 To compare samples across various conditions in the downstream analysis, a metadata file in form of a table (excel, csv, tsv) is required. This file should contain a column with the sample IDs (raw file names) matching the sample names annotated in the output file of your proteomics software. Further, information can be provided like disease and various clinical parameters. Examples of metadata files can be found in the [testfiles-folder](https://github.com/MannLabs/alphastats/tree/main/testfiles).
+
+
+## Creating a DataSet
+
+The whole downstream analysis can be perforemd on the alphastats.DataSet. To create the DataSet you need to provide the loader object as well as the metadata.
+
+```python
+import alphastats 
+
+maxquant_data = alphastats.MaxQuantLoader(
+    file="testfiles/maxquant_proteinGroups.txt"
+)
+
+dataset = alphastats.DataSet(
+    loader = maxquant_data, 
+    metadata_path="../testfiles/maxquant/metadata.xlsx", 
+    sample_column="sample"
+)
+```

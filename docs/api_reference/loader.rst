@@ -32,3 +32,9 @@ SpectronautLoader
 .. automodule:: alphastats.loader.SpectronautLoader
     :members:
     :undoc-members:
+
+mzTabLoader
+~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: alphastats.loader.mzTabLoader
+    :members:
+    :undoc-members:

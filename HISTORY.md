@@ -1,10 +1,23 @@
 # Changelog
 
-# 0.6.0
+
+# 0.6.3
 * ENH download metadata template in the GUI
 * ENH multicova analysis
 * ENH filter data completeness `dataset.preprocess(data_completeness=0.7)` 
 * ADD `GenericLoader` for not supported data formats
+
+# 0.6.2
+* FIX preprocessing with VST floats and inf
+* FIX plotly display
+
+# 0.6.1
+* FIX data loading
+
+# 0.6.0
+* ADD mzTAB support
+* ENH color Volcano Plot data points using list of protein names `color_list=your_protein_list`
+
 
 # 0.5.4
 * FIX altair version - binning of streamlit version

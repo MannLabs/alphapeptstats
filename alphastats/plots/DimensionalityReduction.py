@@ -134,6 +134,7 @@ class DimensionalityReduction(PlotUtils):
             labels=self.labels,
             color=group_color,
             hover_data=[components[self.dataset.sample]],
+            template="simple_white+alphastats_colors"
         )
 
         # rename hover_data_0 to sample

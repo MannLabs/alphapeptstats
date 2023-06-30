@@ -109,11 +109,11 @@ class Preprocess:
         logging.info("Imputing data...")
 
         if method == "mean":
-            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="mean")
+            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="mean", keep_empty_features=True)
             imputation_array = imp.fit_transform(self.mat.values)
 
         elif method == "median":
-            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="median")
+            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="median", keep_empty_features=True)
             imputation_array = imp.fit_transform(self.mat.values)
 
         elif method == "knn":
@@ -173,7 +173,7 @@ class Preprocess:
             )
 
         elif method == "vst":
-            scaler = sklearn.preprocessing.PowerTransformer()
+            scaler = sklearn.preprocessing.PowerTransformer(standardize=False)
             normalized_array = scaler.fit_transform(self.mat.values)
 
         else:
@@ -195,13 +195,14 @@ class Preprocess:
         self.create_matrix()
         print("All preprocessing steps are reset.")
     
+    @ignore_warning(RuntimeWarning)
     def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
-        imputation_methods = ["mean", "median", "knn"]
-        normalization_methods = ["zscore", "quantile", "vst"]
-        preprocessing_modes = list(
-            itertools.product(normalization_methods, imputation_methods)
-        )
+        imputation_methods = ["mean", "median", "knn", "randomforest"]
+        normalization_methods = ["vst","zscore", "quantile" ]
+        
+        preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
+
 
         results_list = []
 
@@ -211,9 +212,8 @@ class Preprocess:
         for preprocessing_mode in preprocessing_modes:
             # reset preprocessing
             dataset.reset_preprocessing()
-            print(
-                f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}"
-            )
+            print(f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}")
+            dataset.mat.replace([np.inf, -np.inf], np.nan, inplace=True)
 
             dataset.preprocess(
                 subset=True,
@@ -223,6 +223,8 @@ class Preprocess:
 
             res = func(**params_for_func)
             results_list.append(res)
+        
+            print("\t")
 
         return results_list
 
@@ -305,15 +307,17 @@ class Preprocess:
         if subset:
             self.mat = self._subset()
         
+
         if data_completeness> 0:
             self._remove_na_values(cut_off=data_completeness)
 
-        if log2_transform:
+        if log2_transform and self.preprocessing_info.get("Log2-transformed") is False:
             self._log2_transform()
 
         if normalization is not None:
             self._normalization(method=normalization)
-
+            self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
+            
         if imputation is not None:
             self._imputation(method=imputation)
 

@@ -11,6 +11,8 @@ from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
 from alphastats.loader.GenericLoader import GenericLoader
+from alphastats.loader.mzTabLoader import mzTabLoader
+
 
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
@@ -102,6 +104,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             loader : loader
         """
         if not isinstance(
+
             loader,
             (
                 AlphaPeptLoader,
@@ -109,8 +112,10 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
                 DIANNLoader,
                 FragPipeLoader,
                 SpectronautLoader,
-                GenericLoader
+                GenericLoader,
+                mzTabLoader
             ),
+
         ):
             raise LoaderError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
@@ -159,8 +164,10 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         df.columns = df.columns.str.replace(substring_to_remove, "")
         # transpose dataframe
         mat = df.transpose()
+        mat.replace([np.inf, -np.inf], np.nan, inplace=True)
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
+        self.mat = self.mat.astype(float)
         # reset preproccessing info
         self.preprocessing_info = self._save_dataset_info()
         self.preprocessed = False
@@ -219,7 +226,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         dataset_overview = (
             "Attributes of the DataSet can be accessed using: \n"
             + "DataSet.rawinput:\t Raw Protein data.\n"
-            + "DataSet.mat:\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
+            + "DataSet.mat:\t\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
             + "DataSet.metadata:\tMetadata for the samples in the matrix. Metadata will be matched with DataSet.mat when needed (for instance Volcano Plot)."
         )
         print(dataset_overview)

@@ -122,19 +122,22 @@ class Plot:
         )
         return dimensionality_reduction.plot
 
+    
+    @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
         group1: Union[str, list],
         group2: Union[str, list],
-        column: str = None,
-        method: str = "ttest",
-        labels: bool = False,
-        min_fc: float = 1.0,
-        alpha: float = 0.05,
-        draw_line: bool = True,
-        perm: int = 100,
-        fdr: float = 0.05,
-        compare_preprocessing_modes: bool = False,
+        column:str=None,
+        method:str="ttest",
+        labels:bool=False,
+        min_fc:float=1.0,
+        alpha:float=0.05,
+        draw_line:bool=True,
+        perm:int=100, 
+        fdr:float=0.05,
+        compare_preprocessing_modes:bool=False,
+        color_list:list=[]
     ):
         """Plot Volcano Plot
 
@@ -149,6 +152,7 @@ class Plot:
             draw_line(boolean): whether to draw cut off lines.
             perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
             fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
+            color_list (list): list with ProteinIDs that should be highlighted.
             compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
 
 
@@ -174,8 +178,9 @@ class Plot:
                 min_fc=min_fc,
                 alpha=alpha,
                 draw_line=draw_line,
-                perm=perm,
+                perm=perm, 
                 fdr=fdr,
+                color_list=color_list
             )
 
             return volcano_plot.plot
@@ -252,7 +257,7 @@ class Plot:
             protein_id (str): ProteinGroup ID
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
-            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter". Defaults to "box".
+            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter" or "all". Defaults to "box".
             add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Defaults False.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
 

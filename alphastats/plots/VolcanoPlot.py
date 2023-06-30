@@ -5,26 +5,38 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
+import plotly
 from functools import lru_cache
 
+plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
+    layout=plotly.graph_objects.Layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        colorway=[
+            "#009599",
+            "#005358",
+            "#772173",
+            "#B65EAF",  # pink
+            "#A73A00",
+            "#6490C1",
+            "#FF894F",
+            "#2B5E8B",
+            "#A87F32",
+        ],
+    )
+)
+
+plotly.io.templates.default = "simple_white+alphastats_colors"
 
 class VolcanoPlot(PlotUtils):
     def __init__(
-        self,
-        dataset,
-        group1,
-        group2,
-        column=None,
-        method=None,
-        labels=None,
-        min_fc=None,
-        alpha=None,
-        draw_line=None,
-        plot=True,
-        perm=100,
-        fdr=0.05,
-    ):
+        self, dataset, group1, group2, 
+        column=None, method=None, 
+        labels=None, min_fc=None, 
+        alpha=None, draw_line=None, 
+        plot=True, perm=100, fdr=0.05,
+        color_list=[]
+    ):  
         self.dataset = dataset
         self.group1 = group1
         self.group2 = group2
@@ -38,7 +50,8 @@ class VolcanoPlot(PlotUtils):
         self.hover_data = None
         self.res = None
         self.pvalue_column = None
-        self.perm = perm
+        self.perm=perm
+        self.color_list = color_list
         self._check_input()
 
         if plot:
@@ -284,7 +297,7 @@ class VolcanoPlot(PlotUtils):
         convert pvalue to log10
         add color labels for up and down regulates
         """
-        self.res = self.res[(self.res["log2fc"] < 10) & (self.res["log2fc"] > -10)]
+        self.res = self.res[(self.res["log2fc"] < 20) & (self.res["log2fc"] > -20)]
         self.res["-log10(p-value)"] = -np.log10(self.res[self.pvalue_column])
 
         self.alpha = -np.log10(self.alpha)
@@ -307,7 +320,14 @@ class VolcanoPlot(PlotUtils):
             ]
 
         value = ["down", "up"]
-        self.res["color"] = np.select(condition, value, default="non_sig")
+
+        self.res["color"] = np.select(condition, value, default="non_sig")   
+
+        if len(self.color_list) > 0:
+            self.res["color"] = np.where(self.res[self.dataset.index_column].isin(self.color_list), 
+                                          "color", "no_color")   
+        
+
 
     def _add_labels_plot(self):
         """
@@ -372,6 +392,17 @@ class VolcanoPlot(PlotUtils):
                 showlegend=False,
             )
         )
+    
+    def _color_data_points(self):
+         # update coloring
+        if len(self.color_list) == 0:
+            color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
+    
+        else:
+            color_dict = {"no_color": "#404040", "color": "#B65EAF"}
+        
+        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
+
 
     def _plot(self):
         self.plot = px.scatter(
@@ -380,11 +411,11 @@ class VolcanoPlot(PlotUtils):
             y="-log10(p-value)",
             color="color",
             hover_data=self.hover_data,
+            template= "simple_white+alphastats_colors"
         )
 
         # update coloring
-        color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
-        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
+        self._color_data_points()
 
         if self.labels:
             self._add_labels_plot()
