@@ -308,17 +308,22 @@ def get_sample_names_from_software_file():
     """
     extract sample names from software
     """
-    regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
-        "[sample]", ".*"
-    )
-
-    df = st.session_state.loader.rawinput
-    df = df.set_index(st.session_state.loader.index_column)
-    df = df.filter(regex=(regex_find_intensity_columns), axis=1)
-    # remove Intensity so only sample names remain
-    substring_to_remove = regex_find_intensity_columns.replace(".*", "")
-    df.columns = df.columns.str.replace(substring_to_remove, "")
-    return df.columns.to_list()
+    if isinstance(st.session_state.loader.intensity_column, str):
+        regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
+            "[sample]", ".*"
+        )
+        df = st.session_state.loader.rawinput
+        df = df.set_index(st.session_state.loader.index_column)
+        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+        # remove Intensity so only sample names remain
+        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+        df.columns = df.columns.str.replace(substring_to_remove, "")
+        sample_names = df.columns.to_list()
+    
+    else:
+        sample_names = st.session_state.loader.intensity_column
+    
+    return sample_names
 
 
 def get_analysis(method, options_dict):

@@ -31,6 +31,9 @@ session_info = runtime._session_mgr.get_session_info(session_id)
 user_session_id = session_id
 st.session_state["user_session_id"] = user_session_id
 
+if "loader" not in st.session_state:
+    st.session_state["loader"] = None
+
 
 def load_options():
 
@@ -82,18 +85,6 @@ def check_software_file(df, software):
                 "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
             )
 
-
-def print_software_import_info(software):
-    if software != "Other":
-        import_file = software_options.get(software).get("import_file")
-        string_output = f"Please upload {import_file} file from {software}."
-   
-    else: 
-        string_output = f"Please upload your proteomics file."
-    
-    return string_output
-
-
 def select_columns_for_loaders(software, software_df:None):
     """
     select intensity and index column depending on software
@@ -116,11 +107,11 @@ def select_columns_for_loaders(software, software_df:None):
         st.selectbox(
             "Index Column",
             options=software_options.get(software).get("index_column"),
-           
             key="index_column",
         )
+        
     else:
-        st.selectbox(
+        st.multiselect(
             "Intensity Columns",
             options=software_df.columns.to_list(),
             key="intensity_column",
@@ -133,7 +124,6 @@ def select_columns_for_loaders(software, software_df:None):
             options=software_df.columns.to_list(),
             key="index_column",
         )
-
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
@@ -159,7 +149,7 @@ def select_sample_column_metadata(df, software):
         )
 
     st.write(
-        f"Select column that contains sample IDs matching the sample names described"
+        f"Select column that contains sample IDs matching the sample names described "
         + f"in {software_options.get(software).get('import_file')}"
     )
 
@@ -174,7 +164,7 @@ def select_sample_column_metadata(df, software):
 def upload_softwarefile(software):
 
     softwarefile = st.file_uploader(
-        print_software_import_info(software=software),
+        software_options.get(software).get("import_file"),
         type=["csv", "tsv", "txt", "hdf"],
     )
 
@@ -191,7 +181,7 @@ def upload_softwarefile(software):
         )
         st.dataframe(softwarefile_df.head(5))
 
-        select_columns_for_loaders(software=software)
+        select_columns_for_loaders(software=software, software_df=softwarefile_df)
 
         if (
             "intensity_column" in st.session_state
@@ -233,7 +223,7 @@ def upload_metadatafile(software):
         "Upload metadata file. with information about your samples", key="metadatafile",
     )
 
-    if metadatafile_upload is not None:
+    if metadatafile_upload is not None and  st.session_state.loader is not None:
 
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
@@ -257,18 +247,20 @@ def upload_metadatafile(software):
 
             display_loaded_dataset()
 
-    create_metadata_file()
-    st.write("Download the template file and add additional information as columns to your samples such as disease group. "
+    if st.session_state.loader is not None:
+        create_metadata_file()
+        st.write("Download the template file and add additional information as "
+                 + "columns to your samples such as disease group. "
                  + "Upload the updated metadata file.")
     
+    if st.session_state.loader is not None:
+        if st.button("Create a DataSet without metadata"):
+            st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
+            st.session_state["metadata_columns"] = ["sample"]
 
-    if st.button("Create a DataSet without metadata"):
-        st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
-        st.session_state["metadata_columns"] = ["sample"]
+            load_options()
 
-        load_options()
-
-        display_loaded_dataset()
+            display_loaded_dataset()
 
 
 def load_sample_data():
@@ -279,7 +271,6 @@ def load_sample_data():
     
     filepath= os.path.join(folder_to_load, "proteinGroups.txt")
     metadatapath= os.path.join(folder_to_load, "metadata.xlsx")
-
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(
@@ -309,29 +300,18 @@ def load_sample_data():
 
 
 def import_data():
+    options = ["<select>"] + list(software_options.keys())
 
     software = st.selectbox(
         "Select your Proteomics Software",
-        options=[
-            "<select>",
-            "MaxQuant",
-            "AlphaPept",
-            "DIANN",
-            "Fragpipe",
-            "Spectronaut",
-            "Other",
-        ],
-
+        options=options,
     )
-
     session_state_empty = False
 
     if software != "<select>":
-        # if
-        # reset()
         upload_softwarefile(software=software)
 
-    if "loader" in st.session_state:
+    if st.session_state.loader is not None:
         upload_metadatafile(software)
 
 

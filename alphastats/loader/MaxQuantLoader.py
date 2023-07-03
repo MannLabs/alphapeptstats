@@ -1,6 +1,7 @@
 from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
+from typing import Union
 
 
 class MaxQuantLoader(BaseLoader):
@@ -9,7 +10,7 @@ class MaxQuantLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column:str="LFQ intensity [sample]",
+        intensity_column:Union[str, list]="LFQ intensity [sample]",
         index_column:str="Protein IDs",
         gene_names_column:str="Gene names",
         filter_columns:list=["Only identified by site", "Reverse", "Potential contaminant"],

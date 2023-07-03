@@ -9,7 +9,7 @@ from typing import Union
 class BaseLoader:
     """Parent class of Loaders"""
 
-    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:str, index_column:str, sep:str):
+    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:Union[str, list], index_column:str, sep:str):
         """BaseLoader for AlphaPept, MaxQuant, Fragpipe, Spectronau and DIANNLoader
 
         Args:

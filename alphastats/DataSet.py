@@ -154,14 +154,18 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         rows the samples.
         """
 
-        regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
-
         df = self.rawinput
         df = df.set_index(self.index_column)
-        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
-        # remove Intensity so only sample names remain
-        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
-        df.columns = df.columns.str.replace(substring_to_remove, "")
+
+        if isinstance(self.intensity_column, str):
+            regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
+            df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+            # remove Intensity so only sample names remain
+            substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+            df.columns = df.columns.str.replace(substring_to_remove, "")
+        
+        else:
+            df = df[self.intensity_column]
         # transpose dataframe
         mat = df.transpose()
         mat.replace([np.inf, -np.inf], np.nan, inplace=True)

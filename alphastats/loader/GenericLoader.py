@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Union
 
 class GenericLoader(BaseLoader):
-    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:list, index_column:str, sep:str):
+    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:list, index_column:str, sep:str=None):
         """Generic Loader for you proteomics data
 
         Args:
@@ -14,11 +14,12 @@ class GenericLoader(BaseLoader):
             index_column (str): column with Protein IDs or Gene names, used for indexing
             sep (str): file separation
         """
-        if isinstance(file, pd.DataFrame):
-            self.rawinput = file
+
+        if sep is None:
+            self.rawinput = self.load_file(file_path=file)
         else:
             self.rawinput = pd.read_csv(file, sep=sep, low_memory=False)
-        self.intensity_column = "[sample]"
+        self.intensity_column = intensity_column
         self.intensity_column_list = intensity_column
         self.index_column = index_column
         self.filter_columns = []
@@ -41,4 +42,18 @@ class GenericLoader(BaseLoader):
         
         self.intensity_column = sample_structure
         return sample_structure
+
+    def load_file(self, file_path):
+        if isinstance(file_path, pd.DataFrame):
+            df = file_path
+        #  loading file needs to be more beautiful
+        elif file_path.endswith(".xlsx"):
+            df = pd.read_excel(file_path)
+            # find robust way to detect file format
+            # else give file separation as variable
+        elif file_path.endswith(".txt") or file_path.endswith(".tsv"):
+            df = pd.read_csv(file_path, delimiter="\t")
+        elif file_path.endswith(".csv"):
+            df = pd.read_csv(file_path)
+        return df
 
