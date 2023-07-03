@@ -419,7 +419,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     
     def test_data_completeness(self):
         self.obj.preprocess(log2_transform=False, data_completeness=0.7)
-        self.assertEqual(self.obj.mat.shape[1], 433)
+        self.assertEqual(self.obj.mat.shape[1], 517)
 
     def test_plot_pca_circles(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
@@ -936,6 +936,7 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
                 "S7 Razor Intensity", "S8 Razor Intensity"
             ],
             index_column="Protein",
+            sep="\t"
         )
         cls.cls_metadata_path = "testfiles/fragpipe/metadata.xlsx"
         cls.cls_obj = DataSet(
