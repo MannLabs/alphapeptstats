@@ -938,7 +938,7 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
             index_column="Protein",
             sep="\t"
         )
-        cls.cls_metadata_path = "testfiles/fragpipe/metadata.xlsx"
+        cls.cls_metadata_path = "testfiles/fragpipe/metadata2.xlsx"
         cls.cls_obj = DataSet(
             loader=cls.cls_loader,
             metadata_path=cls.cls_metadata_path,
@@ -949,8 +949,8 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
         self.loader = copy.deepcopy(self.cls_loader)
         self.metadata_path = copy.deepcopy(self.cls_metadata_path)
         self.obj = copy.deepcopy(self.cls_obj)
-        self.matrix_dim = (8, 6)
-        self.matrix_dim_filtered = (8, 6)
+        self.matrix_dim = (8, 5)
+        self.matrix_dim_filtered = (8, 5)
         self.comparison_column = "grouping1"
 
     @classmethod
