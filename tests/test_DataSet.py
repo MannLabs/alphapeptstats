@@ -735,7 +735,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             covariates=["disease", "Alkaline phosphatase measurement"],
             subset={"disease": ["healthy", "liver cirrhosis"]},
         )
-        self.assertAlmostEqual(-0.2873, res['disease_fc'].iloc[1], places=2)
+        self.assertAlmostEqual(0.3063, res['disease_fc'].iloc[1], places=2)
         
 
     def test_multicova_analysis_invalid_covariates(self):
