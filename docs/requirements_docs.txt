@@ -37,7 +37,7 @@ lazy-loader==0.1rc2
 littleutils==0.2.2 
 llvmlite==0.39.1 
 locket==1.0.0 
-markdown-it-py==2.1.0 
+markdown-it-py==3.0.0 
 matplotlib==3.6.0 
 mdit-py-plugins==0.3.1 
 mdurl==0.1.2 
