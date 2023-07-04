@@ -958,8 +958,7 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
         if os.path.isdir("testfiles/fragpipe/__MACOSX"):
             shutil.rmtree("testfiles/fragpipe/__MACOSX")
 
-        os.remove("testfiles/fragpipe/results.tsv")
-
+       
 
 if __name__ == "__main__":
     unittest.main()
