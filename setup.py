@@ -16,16 +16,16 @@ def get_long_description():
 
 
 def get_requirements():
-    with open('requirements.txt') as f:
+    with open("requirements.txt") as f:
         required = f.read().splitlines()
     return required
-    
+
 
 def create_pip_wheel():
     requirements = get_requirements()
     setuptools.setup(
         name="alphastats",
-        version="0.6.2",
+        version="0.6.3",
         license="Apache",
         description="An open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics",
         long_description=get_long_description(),
@@ -56,16 +56,16 @@ def create_pip_wheel():
             "Topic :: Scientific/Engineering :: Bio-Informatics",
         ],
         packages=[
-            "alphastats", 
-            "alphastats.plots", 
+            "alphastats",
+            "alphastats.plots",
             "alphastats.multicova",
-            "alphastats.gui", 
-            "alphastats.data", 
+            "alphastats.gui",
+            "alphastats.data",
             "alphastats.gui.pages",
             "alphastats.gui",
             "alphastats.gui.sample_data",
             "alphastats.gui.utils",
-            "alphastats.loader"
+            "alphastats.loader",
         ],
         include_package_data=True,
         entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},

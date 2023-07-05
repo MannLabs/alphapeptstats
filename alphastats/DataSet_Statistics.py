@@ -9,6 +9,7 @@ from tqdm import tqdm
 from functools import lru_cache
 from typing import Union
 
+from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 from alphastats.statistics.DifferentialExpressionAnalysis import DifferentialExpressionAnalysis
 from alphastats.statistics.Anova import Anova
 
@@ -87,7 +88,6 @@ class Statistics:
             * ``'coef_sd'``: the standard deviation of the coefficient in liker-space
             * ``'ll'``: the log-likelihood of the estimation
         """
-
         df = DifferentialExpressionAnalysis(
             dataset=self, 
             group1=group1, 
@@ -188,3 +188,39 @@ class Statistics:
         df = self.metadata.merge(df, how="inner", on=[self.sample])
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
+
+    @ignore_warning(RuntimeWarning)
+    def multicova_analysis(
+        self,
+        covariates: list,
+        n_permutations: int = 3,
+        fdr: float = 0.05,
+        s0: float = 0.05,
+        subset: dict = None,
+    ) -> Union[pd.DataFrame, list]:
+        """Perform Multicovariat Analysis
+        will return a pandas DataFrame with the results and a list of volcano plots (for each covariat)
+
+        Args:
+            covariates (list): list of covariates, column names in metadata
+            n_permutations (int, optional): number of permutations. Defaults to 3.
+            fdr (float, optional): False Discovery Rate. Defaults to 0.05.
+            s0 (float, optional): . Defaults to 0.05.
+            subset (dict, optional): for categorical covariates . Defaults to None.
+
+        Returns:
+            pd.DataFrame: Multicova Analysis results
+        """
+        
+        res, plot_list= MultiCovaAnalysis(
+            dataset=self,
+            covariates=covariates,
+            n_permutations=n_permutations,
+            fdr=fdr,
+            s0=s0,
+            subset=subset,
+            plot=True
+        ).calculate()
+        return res, plot_list
+
+        

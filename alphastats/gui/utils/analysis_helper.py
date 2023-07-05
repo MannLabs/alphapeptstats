@@ -79,13 +79,12 @@ def gui_volcano_plot_differential_expression_analysis(
     initalize volcano plot object with differential expression analysis results
     """
     volcano_plot = VolcanoPlot(
-        dataset=st.session_state.dataset, 
-        **chosen_parameter_dict, 
-        plot = False
+        dataset=st.session_state.dataset, **chosen_parameter_dict, plot=False
     )
     volcano_plot._perform_differential_expression_analysis()
     volcano_plot._add_hover_data_columns()
     return volcano_plot
+
 
 def gui_volcano_plot():
     """
@@ -99,23 +98,23 @@ def gui_volcano_plot():
     chosen_parameter_dict.update({"method": method})
 
     # TODO streamlit doesnt allow nested columns check for updates
-    
+
     labels = st.checkbox("Add label")
 
     draw_line = st.checkbox("Draw line")
 
     alpha = st.number_input(
-            label="alpha", min_value=0.001, max_value=0.050, value=0.050
-        )
+        label="alpha", min_value=0.001, max_value=0.050, value=0.050
+    )
 
     min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
- 
+
     plotting_parameter_dict = {
-            "labels": labels,
-            "draw_line": draw_line,
-            "alpha": alpha,
-            "min_fc": min_fc,
-        }
+        "labels": labels,
+        "draw_line": draw_line,
+        "alpha": alpha,
+        "min_fc": min_fc,
+    }
 
     if method == "sam":
         perm = st.number_input(
@@ -126,7 +125,6 @@ def gui_volcano_plot():
         )
         chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
 
-   
     submitted = st.button("Submit")
 
     if submitted:
@@ -263,6 +261,7 @@ def helper_compare_two_groups():
 
     if group != "< None >":
 
+
         unique_values = get_unique_values_from_column(group)
 
         group1 = st.selectbox("Group 1", options=unique_values)
@@ -292,6 +291,7 @@ def helper_compare_two_groups():
                 ),
             )
 
+
         intersection_list = list(set(group1).intersection(set(group2)))
 
         if len(intersection_list) > 0:
@@ -308,17 +308,22 @@ def get_sample_names_from_software_file():
     """
     extract sample names from software
     """
-    regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
-        "[sample]", ".*"
-    )
-
-    df = st.session_state.loader.rawinput
-    df = df.set_index(st.session_state.loader.index_column)
-    df = df.filter(regex=(regex_find_intensity_columns), axis=1)
-    # remove Intensity so only sample names remain
-    substring_to_remove = regex_find_intensity_columns.replace(".*", "")
-    df.columns = df.columns.str.replace(substring_to_remove, "")
-    return df.columns.to_list()
+    if isinstance(st.session_state.loader.intensity_column, str):
+        regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
+            "[sample]", ".*"
+        )
+        df = st.session_state.loader.rawinput
+        df = df.set_index(st.session_state.loader.index_column)
+        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+        # remove Intensity so only sample names remain
+        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+        df.columns = df.columns.str.replace(substring_to_remove, "")
+        sample_names = df.columns.to_list()
+    
+    else:
+        sample_names = st.session_state.loader.intensity_column
+    
+    return sample_names
 
 
 def get_analysis(method, options_dict):
@@ -342,10 +347,7 @@ def st_tsne_options(method_dict):
 
     submitted = st.button("Submit")
     chosen_parameter_dict.update(
-        {
-            "n_iter": n_iter,
-            "perplexity": perplexity,
-        }
+        {"n_iter": n_iter, "perplexity": perplexity,}
     )
 
     if submitted:
@@ -359,3 +361,7 @@ def load_options():
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
+
+
+def gui_multicova_analysis():
+    pass

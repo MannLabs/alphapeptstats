@@ -12,7 +12,7 @@ import itertools
 
 
 class Preprocess:
-    def _remove_sampels(self, sample_list):
+    def _remove_sampels(self, sample_list: list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
         self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
@@ -28,6 +28,34 @@ class Preprocess:
     def preprocess_print_info(self):
         """Print summary of preprocessing steps"""
         print(pd.DataFrame(self.preprocessing_info.items()))
+
+    def _remove_na_values(self, cut_off):
+        cut = 1 - cut_off
+        limit = self.mat.shape[0] * cut
+        
+        keep_list = list()
+        invalid = 0
+        for column_name in self.mat.columns:
+            column = self.mat[column_name]
+            # Get the count of Zeros in column 
+            count = (column == 0).sum()
+            try:
+                count = count.item()
+                if isinstance(count, int):
+                    if count < limit:
+                        keep_list += [column_name]
+                    
+            except ValueError:
+                invalid +=1
+                continue
+        
+        self.mat= self.mat[keep_list]
+        self.preprocessing_info.update(
+            {"Data completeness cut-off": cut_off}
+        )
+        percentage = cut_off * 100
+        print(f"Proteins with a data completeness across all samples of less than {percentage} % have been removed.")
+
 
     def _filter(self):
         if len(self.filter_columns) == 0:
@@ -68,7 +96,7 @@ class Preprocess:
 
     @ignore_warning(RuntimeWarning)
     @ignore_warning(UserWarning)
-    def _imputation(self, method):
+    def _imputation(self, method: str):
         # remove ProteinGroups with only NA before
         protein_group_na = self.mat.columns[self.mat.isna().all()].tolist()
 
@@ -129,8 +157,8 @@ class Preprocess:
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
-    def _normalization(self, method):
-    
+    def _normalization(self, method: str):
+
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
             normalized_array = scaler.fit_transform(self.mat.values)
@@ -163,22 +191,18 @@ class Preprocess:
     def reset_preprocessing(self):
         """ Reset all preprocessing steps
         """
-        # reset all preprocessing steps
+        #  reset all preprocessing steps
         self.create_matrix()
         print("All preprocessing steps are reset.")
     
     @ignore_warning(RuntimeWarning)
     def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
-
-        #    normalization_methods = methods["normalization"]
-       # if isinstance(methods, dict):
-        #    imputation_methods = methods["imputation"]
-        
         imputation_methods = ["mean", "median", "knn", "randomforest"]
         normalization_methods = ["vst","zscore", "quantile" ]
         
         preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
+
 
         results_list = []
 
@@ -190,12 +214,13 @@ class Preprocess:
             dataset.reset_preprocessing()
             print(f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}")
             dataset.mat.replace([np.inf, -np.inf], np.nan, inplace=True)
+
             dataset.preprocess(
                 subset=True,
-                normalization = preprocessing_mode[0],
-                imputation = preprocessing_mode[1]
+                normalization=preprocessing_mode[0],
+                imputation=preprocessing_mode[1],
             )
-            
+
             res = func(**params_for_func)
             results_list.append(res)
         
@@ -211,7 +236,6 @@ class Preprocess:
     def batch_correction(self, batch:str):
         """Correct for technical bias/batch effects
         Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
-
         Args:
             batch (str): column name in the metadata describing the different batches
         """
@@ -227,6 +251,7 @@ class Preprocess:
         log2_transform: bool=True,
         remove_contaminations: bool=False,
         subset: bool=False,
+        data_completeness: float=0,
         normalization: str=None,
         imputation: str=None,
         remove_samples: list=None,
@@ -268,6 +293,7 @@ class Preprocess:
             remove_contaminations (bool, optional): remove ProteinGroups that are identified as contamination.
             log2_transform (bool, optional): Log2 transform data. Default to True.
             normalization (str, optional): method to normalize data: either "zscore", "quantile", "linear". Defaults to None.
+            data_completeness (float, optional): data completeness across all samples between 0-1. Defaults to 0.
             remove_samples (list, optional): list with sample ids to remove. Defaults to None.
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
             subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
@@ -281,14 +307,17 @@ class Preprocess:
         if subset:
             self.mat = self._subset()
         
+
+        if data_completeness> 0:
+            self._remove_na_values(cut_off=data_completeness)
+
         if log2_transform and self.preprocessing_info.get("Log2-transformed") is False:
             self._log2_transform()
 
         if normalization is not None:
             self._normalization(method=normalization)
             self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
-            #self.mat[:] = np.nan_to_num(self.mat)
-
+            
         if imputation is not None:
             self._imputation(method=imputation)
 

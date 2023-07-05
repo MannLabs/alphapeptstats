@@ -52,12 +52,15 @@ class BaseTestDataSet:
 
         def test_go_abundance_correction_with_list(self):
             df = self.obj.go_abundance_correction(
-                bg_sample=self.bg_sample, fg_protein_list=self.obj.mat.columns.to_list()[200:300]
+                bg_sample=self.bg_sample,
+                fg_protein_list=self.obj.mat.columns.to_list()[200:300],
             )
             self.assertTrue(df.empty)
 
         def test_go_genome_list(self):
-            df = self.obj.go_genome(protein_list=self.obj.mat.columns.to_list()[600:700])
+            df = self.obj.go_genome(
+                protein_list=self.obj.mat.columns.to_list()[600:700]
+            )
             self.assertFalse(df.empty)
 
         def test_go_genome_sample(self):
@@ -92,7 +95,6 @@ class TestMaxQuantGODataSet(BaseTestDataSet.BaseTest):
         )
         self.fg_sample = "AC399"
         self.bg_sample = "UT822"
-
 
 
 if __name__ == "__main__":

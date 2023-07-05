@@ -1,5 +1,6 @@
 from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
+from typing import Union
 
 # Philosopher
 # class name needs to be discussed whether MSFragger/Fragpipe/Philospher
@@ -10,12 +11,12 @@ class FragPipeLoader(BaseLoader):
 
     def __init__(
         self,
-        file,
-        intensity_column="[sample] MaxLFQ Intensity ",
-        index_column="Protein",
-        gene_names_column="Gene Names",
-        confidence_column="Protein Probability",
-        sep="\t",
+        file:Union[str, pd.DataFrame],
+        intensity_column:str="[sample] MaxLFQ Intensity ",
+        index_column:str="Protein",
+        gene_names_column:str="Gene Names",
+        confidence_column:str="Protein Probability",
+        sep:str="\t",
         **kwargs
     ):
 

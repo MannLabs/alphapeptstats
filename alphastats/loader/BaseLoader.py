@@ -4,20 +4,20 @@ import os
 import numpy as np
 from alphastats.utils import find_duplicates_in_list
 import pkg_resources
-
+from typing import Union
 
 class BaseLoader:
     """Parent class of Loaders"""
 
-    def __init__(self, file, intensity_column, index_column, sep):
-        """BaseLoader for AlphaPept, MaxQuant, Fragpipe and DIANNLoader
+    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:Union[str, list], index_column:str, sep:str):
+        """BaseLoader for AlphaPept, MaxQuant, Fragpipe, Spectronau and DIANNLoader
 
         Args:
             file_path (str): path to file
             sep (str, optional): file separation. Defaults to "\t".
         """
 
-        # self._check_if_file_exists(file=file)
+
         if isinstance(file, pd.DataFrame):
             self.rawinput = file
         else:
@@ -47,7 +47,7 @@ class BaseLoader:
                 "FragPipe Format: https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
                 "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
-    
+
     def _read_all_columns_as_string(self):
         self.rawinput.columns = self.rawinput.columns.astype(str)
 

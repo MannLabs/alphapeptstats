@@ -17,6 +17,7 @@ import shutil
 import os
 import copy
 import dictdiffer
+
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 
 from alphastats.loader.BaseLoader import BaseLoader
@@ -25,6 +26,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
@@ -184,10 +186,10 @@ class BaseTestDataSet:
             self.assertEqual(len(plot_dict.get("data")), 1)
             #  check if it is logscale
             self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
-        
+
         def test_reset_preprocessing(self):
             self.assertEqual(self.obj.mat.shape, self.matrix_dim)
-            
+
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
 
@@ -257,7 +259,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_zscore(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # zscore Normalization
-        self.obj.preprocess(log2_transform=False,normalization="zscore")
+        self.obj.preprocess(log2_transform=False, normalization="zscore")
         expected_mat = pd.DataFrame(
             {
                 "a": [-1.33630621, 1.06904497, 0.26726124],
@@ -270,7 +272,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_quantile(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # Quantile Normalization
-        self.obj.preprocess(log2_transform=False,normalization="quantile")
+        self.obj.preprocess(log2_transform=False, normalization="quantile")
         expected_mat = pd.DataFrame(
             {"a": [0.0, 1.0, 0.5], "b": [1.0, 0.0, 0.0], "c": [0.0, 1.0, 0.5]}
         )
@@ -279,7 +281,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_linear(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # Linear Normalization
-        self.obj.preprocess(log2_transform=False,normalization="linear")
+        self.obj.preprocess(log2_transform=False, normalization="linear")
         expected_mat = pd.DataFrame(
             {
                 "a": [0.37139068, 0.42107596, 0.40824829],
@@ -292,7 +294,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_preprocess_normalize_vst(self):
         self.obj.mat = pd.DataFrame({"a": [2, 5, 4], "b": [5, 4, 4], "c": [0, 10, 8]})
         # Linear Normalization
-        self.obj.preprocess(log2_transform=False,normalization="vst")
+        self.obj.preprocess(log2_transform=False, normalization="vst")
         expected_mat = pd.DataFrame(
             {
                 "a": [ 3.19059101,  11.591763, 8.365096],
@@ -306,7 +308,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(log2_transform=False,imputation="mean")
+        self.obj.preprocess(log2_transform=False, imputation="mean")
         expected_mat = pd.DataFrame(
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
@@ -316,7 +318,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(log2_transform=False,imputation="median")
+        self.obj.preprocess(log2_transform=False, imputation="median")
         expected_mat = pd.DataFrame(
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
@@ -326,7 +328,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(log2_transform=False,imputation="knn")
+        self.obj.preprocess(log2_transform=False, imputation="knn")
         expected_mat = pd.DataFrame(
             {"a": [2.0, 3.0, 4.0], "b": [5.0, 4.0, 4.0], "c": [10.0, 10.0, 10.0]}
         )
@@ -336,7 +338,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.mat = pd.DataFrame(
             {"a": [2, np.nan, 4], "b": [5, 4, 4], "c": [np.nan, 10, np.nan]}
         )
-        self.obj.preprocess(log2_transform=False,imputation="randomforest")
+        self.obj.preprocess(log2_transform=False, imputation="randomforest")
         expected_mat = pd.DataFrame(
             {
                 "a": [2.00000000e00, -9.22337204e12, 4.00000000e00],
@@ -404,18 +406,20 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         with self.assertRaises(ValueError):
             loader = MaxQuantLoader(
                 file="testfiles/maxquant/proteinGroups.txt",
-                evidence_file="testfiles/maxquant_go/evidence.txt"
+                evidence_file="testfiles/maxquant_go/evidence.txt",
             )
             DataSet(
-                loader=loader,
-                metadata_path=self.metadata_path,
-                sample_column="sample",
+                loader=loader, metadata_path=self.metadata_path, sample_column="sample",
             )
 
     def test_plot_pca_group(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column)
         # 5 different disease
         self.assertEqual(len(pca_plot.to_plotly_json().get("data")), 5)
+    
+    def test_data_completeness(self):
+        self.obj.preprocess(log2_transform=False, data_completeness=0.7)
+        self.assertEqual(self.obj.mat.shape[1], 517)
 
     def test_plot_pca_circles(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
@@ -448,15 +452,17 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group1=["wrong_sample_name", "1_42_D9", "1_57_E8"],
                 group2=["1_71_F10", "1_73_F12"],
             )
-    
+
     def test_plot_volcano_compare_preprocessing_modes(self):
         result_list = self.obj.plot_volcano(
             method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
-            compare_preprocessing_modes=True
+            compare_preprocessing_modes=True,
         )
+
         self.assertEqual(len(result_list), 12)               
+
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)
@@ -505,9 +511,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_tukey_test(self):
         protein_id = "K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1"
-        tukey_df = self.obj.tukey_test(
-            protein_id=protein_id, group="disease", df=None
-        )
+        tukey_df = self.obj.tukey_test(protein_id=protein_id, group="disease", df=None)
         self.assertEqual(tukey_df["p-tukey"][0], 0.674989009816342)
 
     def test_ancova(self):
@@ -538,21 +542,26 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Volcano Plot with wald test and list of samples
         """
         self.obj.preprocess(imputation="knn")
-        self.obj.plot_volcano(group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
-                    group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
+        self.obj.plot_volcano(
+            group1=["1_31_C6", "1_32_C7", "1_33_C8"],
+            group2=["1_78_G5", "1_77_G4", "1_76_G3"],
+            method="ttest",
+        )
 
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
-        self.assertTrue(column_added)  
+        self.assertTrue(column_added)
 
     def test_plot_volcano_sam(self):
-        self.obj.preprocess(log2_transform=False, imputation="knn", normalization="zscore")
+        self.obj.preprocess(
+            log2_transform=False, imputation="knn", normalization="zscore"
+        )
         plot = self.obj.plot_volcano(
-            column = "disease",
-            group1="type 2 diabetes mellitus", 
-            group2 ="type 2 diabetes mellitus|non-alcoholic fatty liver disease",
+            column="disease",
+            group1="type 2 diabetes mellitus",
+            group2="type 2 diabetes mellitus|non-alcoholic fatty liver disease",
             method="sam",
-            draw_line =True,
-            perm= 10
+            draw_line=True,
+            perm=10,
         )
 
         # fdr lines get drawn
@@ -570,9 +579,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             color_list=self.obj.mat.columns.to_list()[0:20])
         self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 20)
 
-
     def test_plot_clustermap_significant(self):
         import sys
+
         sys.setrecursionlimit(100000)
         self.obj.preprocess(imputation="knn")
         plot = self.obj.plot_clustermap(
@@ -629,58 +638,76 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_diff_expression_analysis_list(self):
         self.obj.diff_expression_analysis(
-            group1 = ["1_31_C6", "1_32_C7", "1_33_C8"],
-            group2 = ["1_78_G5", "1_77_G4", "1_76_G3"], method="ttest")
+            group1=["1_31_C6", "1_32_C7", "1_33_C8"],
+            group2=["1_78_G5", "1_77_G4", "1_76_G3"],
+            method="ttest",
+        )
 
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
-        self.assertTrue(column_added)  
+        self.assertTrue(column_added)
 
     def test_plot_intensity_non_sign(self):
         """
         No significant label is added to intensity plot
         """
-        plot = self.obj.plot_intensity(protein_id="S6BAR0", 
-            group="disease", 
+        plot = self.obj.plot_intensity(
+            protein_id="S6BAR0",
+            group="disease",
             subgroups=["liver cirrhosis", "healthy"],
-            add_significance=True)
+            add_significance=True,
+        )
 
-        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        annotation = (
+            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        )
         self.assertEqual(annotation, "-")
 
     def test_plot_intensity_sign(self):
         """
         Significant label * is added to intensity plot
         """
-        plot = self.obj.plot_intensity(protein_id="Q9UL94", 
-            group="disease", 
+        plot = self.obj.plot_intensity(
+            protein_id="Q9UL94",
+            group="disease",
             subgroups=["liver cirrhosis", "healthy"],
-            add_significance=True)
+            add_significance=True,
+        )
 
-        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        annotation = (
+            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        )
         self.assertEqual(annotation, "*")
 
     def test_plot_intensity_sign_01(self):
         """
         Significant label ** is added to intensity plot
         """
-        plot = self.obj.plot_intensity(protein_id="Q96JD0;Q96JD1;P01721", 
-            group="disease", 
+        plot = self.obj.plot_intensity(
+            protein_id="Q96JD0;Q96JD1;P01721",
+            group="disease",
             subgroups=["liver cirrhosis", "healthy"],
-            add_significance=True)
+            add_significance=True,
+        )
 
-        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        annotation = (
+            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        )
         self.assertEqual(annotation, "**")
 
     def test_plot_intensity_sign_001(self):
         """
         Highly significant label is added to intensity plot
         """
-        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
-            group="disease", 
+        plot = self.obj.plot_intensity(
+            protein_id="Q9BWP8",
+            group="disease",
             subgroups=["liver cirrhosis", "healthy"],
-            add_significance=True)
+            add_significance=True,
+        )
 
-        annotation = plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        annotation = (
+            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
+        )
         self.assertEqual(annotation, "***")
 
     def test_plot_intensity_all(self):
@@ -700,14 +727,28 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(subset=True, imputation="knn", normalization="quantile")
         self.obj.batch_correction(batch="batch_artifical_added")
         first_value = self.obj.mat.values[0,0]
-        self.assertAlmostEqual(0.0111, first_value, places=2)
+        self.assertAlmostEqual(0.0111, first_value, places=2)   
 
-
+    def test_multicova_analysis(self):
+        self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
+        res, plot_list = self.obj.multicova_analysis(
+            covariates=["disease", "Alkaline phosphatase measurement"],
+            subset={"disease": ["healthy", "liver cirrhosis"]},
+        )
+        self.assertAlmostEqual(-0.3063, res['disease_fc'].iloc[1], places=2)
         
 
+    def test_multicova_analysis_invalid_covariates(self):
+        self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
+        res, _ = self.obj.multicova_analysis(
+            covariates=["disease", "Alkaline phosphatase measurement", "Body mass index ", "not here"],
+            subset={"disease": ["healthy", "liver cirrhosis"]},
+        )
+        self.assertEqual(res.shape[1], 45)
+
     # def test_perform_gsea(self):
-    #     df = self.obj.perform_gsea(column="disease", 
-    #                             group1="healthy", 
+    #     df = self.obj.perform_gsea(column="disease",
+    #                             group1="healthy",
     #                                     group2="liver cirrhosis",
     #                                     gene_sets= 'KEGG_2019_Human')
 
@@ -848,34 +889,76 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
 class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
-        
+
         if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
-            shutil.unpack_archive("testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/")
-        
-        cls.cls_loader = SpectronautLoader(file="testfiles/spectronaut/results.tsv", filter_qvalue=False)
+            shutil.unpack_archive(
+                "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
+            )
+
+        cls.cls_loader = SpectronautLoader(
+            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
+        )
         cls.cls_metadata_path = "testfiles/spectronaut/metadata.xlsx"
         cls.cls_obj = DataSet(
             loader=cls.cls_loader,
             metadata_path=cls.cls_metadata_path,
-            sample_column="sample"
+            sample_column="sample",
         )
 
     def setUp(self):
         self.loader = copy.deepcopy(self.cls_loader)
         self.metadata_path = copy.deepcopy(self.cls_metadata_path)
         self.obj = copy.deepcopy(self.cls_obj)
-        self.matrix_dim = (9,2458)
+        self.matrix_dim = (9, 2458)
         self.matrix_dim_filtered = (9, 2453)
         self.comparison_column = "condition"
-    
+
     @classmethod
     def tearDownClass(cls):
         if os.path.isdir("testfiles/spectronaut/__MACOSX"):
             shutil.rmtree("testfiles/spectronaut/__MACOSX")
 
         os.remove("testfiles/spectronaut/results.tsv")
+    
+class TestGenericDataSet(BaseTestDataSet.BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        if os.path.isfile("testfiles/fragpipe/combined_proteins.tsv") == False:
+            shutil.unpack_archive(
+                "testfiles/fragpipe/combined_proteins.tsv.zip", "testfiles/fragpipe"
+            )
 
+        cls.cls_loader = GenericLoader(
+            file="testfiles/fragpipe/combined_proteins.tsv",
+            intensity_column=[
+                "S1 Razor Intensity",	"S2 Razor Intensity", "S3 Razor Intensity",
+                "S4 Razor Intensity",	"S5 Razor Intensity",	"S6 Razor Intensity", 
+                "S7 Razor Intensity", "S8 Razor Intensity"
+            ],
+            index_column="Protein",
+            sep="\t"
+        )
+        cls.cls_metadata_path = "testfiles/fragpipe/metadata2.xlsx"
+        cls.cls_obj = DataSet(
+            loader=cls.cls_loader,
+            metadata_path=cls.cls_metadata_path,
+            sample_column="analytical_sample external_id",
+        )
+      
+    def setUp(self):
+        self.loader = copy.deepcopy(self.cls_loader)
+        self.metadata_path = copy.deepcopy(self.cls_metadata_path)
+        self.obj = copy.deepcopy(self.cls_obj)
+        self.matrix_dim = (8, 5)
+        self.matrix_dim_filtered = (8, 5)
+        self.comparison_column = "grouping1"
 
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.isdir("testfiles/fragpipe/__MACOSX"):
+            shutil.rmtree("testfiles/fragpipe/__MACOSX")
+
+       
 
 if __name__ == "__main__":
     unittest.main()

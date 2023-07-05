@@ -2,6 +2,7 @@ import plotly
 import seaborn as sns
 import plotly.graph_objects as go
 
+
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
         paper_bgcolor="rgba(0,0,0,0)",
@@ -22,6 +23,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
+
 class PlotUtils:
     def __init__(self) -> None:
         pass
@@ -40,7 +42,9 @@ class PlotUtils:
         # convert dict back to plotly figure
         return go.Figure(fig_dict)
 
-    def _update_figure_attributes(self, figure_object, plotting_data, preprocessing_info, method=None):
+    def _update_figure_attributes(
+        self, figure_object, plotting_data, preprocessing_info, method=None
+    ):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", preprocessing_info)
         setattr(figure_object, "method", method)

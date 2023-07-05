@@ -110,12 +110,12 @@ class DimensionalityReduction(PlotUtils):
 
     def _umap(self):
 
-        # TODO umap import is reallly buggy 
+        # TODO umap import is reallly buggy
         try:
             import umap.umap_ as umap
         except ModuleNotFoundError:
             import umap
-        
+
         umap_2d = umap.UMAP(n_components=2, init="random", random_state=0)
         self.components = umap_2d.fit_transform(self.prepared_df)
         self.labels = {
@@ -152,7 +152,7 @@ class DimensionalityReduction(PlotUtils):
             figure_object=fig,
             plotting_data=pd.DataFrame(components),
             method=self.method,
-            preprocessing_info=self.dataset.preprocessing_info
+            preprocessing_info=self.dataset.preprocessing_info,
         )
 
         # draw circles around plotted groups

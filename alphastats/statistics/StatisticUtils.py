@@ -1,3 +1,5 @@
+import numpy as no
+
 class StatisticUtils:
     def __init__(self) -> None:
         pass

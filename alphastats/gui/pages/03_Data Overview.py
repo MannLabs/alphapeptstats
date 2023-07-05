@@ -4,12 +4,12 @@ import plotly.express as px
 
 
 @st.cache_data
-def convert_df(df, user_session_id = st.session_state.user_session_id):
+def convert_df(df, user_session_id=st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 
 @st.cache_data
-def get_display_matrix(user_session_id = st.session_state.user_session_id):
+def get_display_matrix(user_session_id=st.session_state.user_session_id):
 
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
@@ -57,15 +57,15 @@ if "dataset" in st.session_state:
     st.markdown("## DataSet overview")
 
     c1, c2 = st.columns(2)
-    
+
     with c1:
 
         st.markdown("**Intensity distribution raw data per sample**")
         st.plotly_chart(
             st.session_state.distribution_plot.update_layout(plot_bgcolor="white"),
-            use_container_width=True
+            use_container_width=True,
         )
-    
+
     with c2:
 
         st.markdown("**Intensity distribution data per sample used for analysis**")
@@ -78,6 +78,7 @@ if "dataset" in st.session_state:
         get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id)
                     .update_layout(plot_bgcolor="white"), use_container_width=True
     )
+
 
     display_matrix()
 
