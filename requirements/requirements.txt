@@ -1,4 +1,4 @@
-pandas==2.0.0
+pandas==2.0.3
 scikit-learn==1.2.0
 data_cache>=0.1.6
 plotly==5.14.1
