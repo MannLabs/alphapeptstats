@@ -8,7 +8,7 @@ rm -rf dist
 rm -rf build
 
 # Creating a conda environment
-conda create -n alphapeptstats_installer python=3.10 -y
+conda create -n alphapeptstats_installer python=3.10  openssl=1.1.1 -y
 conda activate alphapeptstats_installer
 
 # Creating the wheel
