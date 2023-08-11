@@ -19,3 +19,6 @@ font = "sans serif"
 
 [server]
 maxUploadSize = 500
+
+[browser]
+gatherUsageStats = true
