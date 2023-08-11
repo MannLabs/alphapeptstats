@@ -1,0 +1,29 @@
+cff-version: 6.3.0
+message: "If you use this software, please cite both the article from preferred-citation and the software itself."
+authors:
+  - family-names: Krismer
+    given-names: Elena
+    orcid: 
+title: "AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics "
+version: 6.3.0
+doi: "10.1093/bioinformatics/btad461"
+date-released: 2023-12-11
+repository-code: https://github.com/MannLabs/alphapeptstats
+license: Apache
+preferred-citation:
+  authors:
+    - family-names: Krismer
+      given-names: Elena
+    - family-names: Bludau
+      given-names: Isabell
+    - family-names: Strauss
+      given-names: Maximilian T. 
+    - family-names: Mann
+      given-names: Matthias
+  title: "AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics"
+  type: article
+  year: 2023
+  doi: "10.1093/bioinformatics/btad461"
+  journal: "Bioinformatics"
+
+  

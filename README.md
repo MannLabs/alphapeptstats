@@ -49,10 +49,10 @@ An open-source Python package for downstream mass spectrometry downstream data a
 
 ---
 ## Citation
-Manuscript: [AlphaPeptStats: an open-source Python package for automated, scalable and industrial-strength statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1101/2023.03.10.532057)
+Publication: [AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1093/bioinformatics/btad461)
 > **Citation:** <br>
-> Krismer, E., Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated, scalable and industrial-strength statistical analysis of mass spectrometry-based proteomics. BioRxiv [Preprint] 
-> https://doi.org/10.1101/2023.03.10.532057
+> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics 
+> https://doi.org/10.1093/bioinformatics/btad461
 
 ---
 ## Installation
