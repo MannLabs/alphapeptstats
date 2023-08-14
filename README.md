@@ -127,3 +127,11 @@ See the [HISTORY.md](HISTORY.md) for a full overview of the changes made in each
 
 ### How can I resolve the Microsoft visual error message when installing: error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools"?
 Please, find a description on how to update required tools [here](https://github.com/MannLabs/alphapeptstats/issues/158).
+
+## How to resolve ERROR:: Could not find a local HDF5 installation. on Mac M1?
+
+Before installing AlphaPeptStats you might need to install pytables first:
+
+````
+conda install -c anaconda pytables
+````

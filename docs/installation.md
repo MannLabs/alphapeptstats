@@ -13,3 +13,10 @@ AlphaStats can be installed in an existing Python 3.8 environment with a single 
 ```bash
 pip install alphastats
 ```
+
+#### MacOS M1
+On M1 Mac the installation initally might fail due to a missing local HDF5 installation. To solve this issue install pytables manually:
+
+````
+conda install -c anaconda pytables
+``
