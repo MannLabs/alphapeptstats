@@ -1,5 +1,7 @@
 # Changelog
 
+# 0.6.4
+* FIX windows installer
 
 # 0.6.3
 * ENH download metadata template in the GUI

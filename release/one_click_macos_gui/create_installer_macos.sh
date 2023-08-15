@@ -20,7 +20,7 @@ python setup.py sdist bdist_wheel
 
 # Setting up the local package
 cd release/one_click_macos_gui
-pip install "../../dist/alphastats-0.6.3-py3-none-any.whl"
+pip install "../../dist/alphastats-0.6.4-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
 pip install pyinstaller==5.8
