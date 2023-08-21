@@ -200,7 +200,7 @@ class Plot:
         return plot
 
     def plot_sampledistribution(
-        self, method: str = "violin", color: bool = None, log_scale: bool = False
+        self, method: str = "violin", color: str = None, log_scale: bool = False
     ):
         """Plot Intensity Distribution for each sample. Either Violin or Boxplot
 
@@ -221,10 +221,14 @@ class Plot:
             df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if method == "violin":
-            fig = px.violin(df, x=self.sample, y="Intensity", color=color)
+            fig = px.violin(df, x=self.sample, y="Intensity", color=color,
+                            template="simple_white+alphastats_colors"
+                            )
 
         elif method == "box":
-            fig = px.box(df, x=self.sample, y="Intensity", color=color)
+            fig = px.box(df, x=self.sample, y="Intensity", color=color,
+                         template="simple_white+alphastats_colors"
+                         )
 
         else:
             raise ValueError(
@@ -386,6 +390,7 @@ class Plot:
             color="Imputation",
             opacity=0.8,
             hover_data=plot_df.columns,
+            template="simple_white+alphastats_colors"
         )
 
         pass

@@ -5,7 +5,7 @@ authors:
     given-names: Elena
     orcid: 
 title: "AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics "
-version: 6.3.0
+version: 0.6.5
 doi: "10.1093/bioinformatics/btad461"
 date-released: 2023-12-11
 repository-code: https://github.com/MannLabs/alphapeptstats
