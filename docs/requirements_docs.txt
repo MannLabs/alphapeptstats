@@ -49,7 +49,7 @@ nbconvert==7.2.2
 nbformat==5.7.0 
 nbsphinx==0.8.9 
 nest-asyncio==1.5.6 
-numba==0.56.3 
+numba==0.57.1 
 numexpr==2.8.3 
 numpy==1.24.2 
 openpyxl==3.1.0 
