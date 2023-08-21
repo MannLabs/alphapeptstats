@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.6.5
+* FIX coloring of plot_sampledistribution issue #229
+* ADD nbformat requirement issue #230
+
 # 0.6.4
 * FIX windows installer
 
