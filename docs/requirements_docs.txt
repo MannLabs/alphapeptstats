@@ -102,7 +102,7 @@ typing-extensions==4.4.0
 tzdata==2022.5 
 tzlocal==4.2 
 umap-learn==0.5.3 
-validators==0.20.0 
+validators==0.21.2 
 watchdog==2.1.9 
 webencodings==0.5.1 
 xarray==2022.10.0 
