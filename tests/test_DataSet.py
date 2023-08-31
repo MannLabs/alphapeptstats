@@ -390,7 +390,8 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
 class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
-        self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
+        self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt",
+                                     replace_zero_with_nan=False)
         self.metadata_path = "testfiles/maxquant/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
@@ -406,7 +407,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         with self.assertRaises(ValueError):
             loader = MaxQuantLoader(
                 file="testfiles/maxquant/proteinGroups.txt",
-                evidence_file="testfiles/maxquant_go/evidence.txt",
+                evidence_file="testfiles/maxquant_go/evidence.txt"
             )
             DataSet(
                 loader=loader, metadata_path=self.metadata_path, sample_column="sample",
@@ -737,16 +738,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         self.assertEqual(res.shape[1], 45)
 
-    # def test_perform_gsea(self):
-    #     df = self.obj.perform_gsea(column="disease",
-    #                             group1="healthy",
-    #                                     group2="liver cirrhosis",
-    #                                     gene_sets= 'KEGG_2019_Human')
-
-    #     cholesterol_enhanced = 'Cholesterol metabolism' in df.index.to_list()
-    #     self.assertTrue(cholersterol_enhanced)
-
-
 class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = DIANNLoader(file="testfiles/diann/report_final.pg_matrix.tsv")
@@ -843,27 +834,13 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
                 method="wrongmethod",
             )
 
-    # def test_diff_expression_analysis_with_list(self):
-    #     self.obj.preprocess(imputation="knn")
-    #     column="grouping1"
-    #     group1="Healthy"
-    #     group2="Disease"
-    #     group1_samples = self.obj.metadata[self.obj.metadata[column] == group1][
-    #             "sample"
-    #         ].tolist()
-    #     group2_samples = self.obj.metadata[self.obj.metadata[column] == group2][
-    #             "sample"
-    #         ].tolist()
-    #     self.obj.diff_expression_analysis(
-    #         group1=group1_samples,
-    #         group2=group2_samples)
-
 
 class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = FragPipeLoader(
             file="testfiles/fragpipe/combined_proteins.tsv",
             intensity_column="[sample] Razor Intensity",
+            replace_zero_with_nan=False
         )
         self.metadata_path = "testfiles/fragpipe/metadata.xlsx"
         self.obj = DataSet(
@@ -887,7 +864,8 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
             )
 
         cls.cls_loader = SpectronautLoader(
-            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
+            file="testfiles/spectronaut/results.tsv", filter_qvalue=False,
+            replace_zero_with_nan=False
         )
         cls.cls_metadata_path = "testfiles/spectronaut/metadata.xlsx"
         cls.cls_obj = DataSet(
@@ -927,7 +905,8 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
                 "S7 Razor Intensity", "S8 Razor Intensity"
             ],
             index_column="Protein",
-            sep="\t"
+            sep="\t",
+            replace_zero_with_nan=False
         )
         cls.cls_metadata_path = "testfiles/fragpipe/metadata2.xlsx"
         cls.cls_obj = DataSet(

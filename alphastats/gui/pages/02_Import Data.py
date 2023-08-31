@@ -102,6 +102,10 @@ def select_columns_for_loaders(software, software_df:None):
             key="intensity_column",
         )
 
+        st.checkbox("Replace 0 values with NaN/mark as missing values in the Intensity columns. ", value = True,
+                    key="replace_zero_with_nan")
+
+
         st.markdown("Select index column (with ProteinGroups) for further analysis")
 
         st.selectbox(
@@ -117,6 +121,9 @@ def select_columns_for_loaders(software, software_df:None):
             key="intensity_column",
         )
 
+        st.checkbox("Replace 0 values with NaN/mark as missing values in the Intensity columns. ", value = True,
+                    key="replace_zero_with_nan")
+
         st.markdown("Select index column (with ProteinGroups) for further analysis")
 
         st.selectbox(
@@ -126,10 +133,10 @@ def select_columns_for_loaders(software, software_df:None):
         )
 
 
-def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
+def load_proteomics_data(uploaded_file, intensity_column, index_column, replace_zero_with_nan, software):
     """load software file into loader object from alphastats"""
     loader = software_options.get(software)["loader_function"](
-        uploaded_file, intensity_column, index_column
+        uploaded_file, intensity_column, index_column, replace_zero_with_nan,
     )
     return loader
 
@@ -191,6 +198,7 @@ def upload_softwarefile(software):
                 softwarefile_df,
                 intensity_column=st.session_state.intensity_column,
                 index_column=st.session_state.index_column,
+                replace_zero_with_nan=st.session_state.replace_zero_with_nan,
                 software=software,
             )
             st.session_state["loader"] = loader
