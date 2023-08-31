@@ -9,7 +9,7 @@ from typing import Union
 class BaseLoader:
     """Parent class of Loaders"""
 
-    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:Union[str, list], index_column:str, sep:str):
+    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:Union[str, list], index_column:str, sep:str, replace_zero_with_nan=True):
         """BaseLoader for AlphaPept, MaxQuant, Fragpipe, Spectronau and DIANNLoader
 
         Args:
@@ -30,6 +30,7 @@ class BaseLoader:
         self.evidence_df = None
         self.gene_names = None
         self.ptm_df = None
+        self.replace_zero_with_nan = replace_zero_with_nan
         self._add_contamination_column()
         self._check_if_columns_are_present()
         self._read_all_columns_as_string()

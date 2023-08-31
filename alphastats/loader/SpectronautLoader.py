@@ -2,6 +2,7 @@ from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
 import logging
+from typing import Union
 
 
 class SpectronautLoader(BaseLoader):
@@ -10,31 +11,34 @@ class SpectronautLoader(BaseLoader):
 
     def __init__(
         self,
-        file,
-        intensity_column="PG.Quantity",
-        index_column="PG.ProteinGroups",
-        sample_column="R.FileName",
-        gene_names_column="PG.Genes",
-        filter_qvalue=True,
-        qvalue_cutoff=0.01,
+        file:Union[str, pd.DataFrame],
+        intensity_column:str="PG.Quantity",
+        index_column:str="PG.ProteinGroups",
+        sample_column:str="R.FileName",
+        gene_names_column:str="PG.Genes",
+        filter_qvalue:bool=True,
+        qvalue_cutoff:float=0.01,
+        replace_zero_with_nan:bool=True,
         sep="\t",
     ):
         """Loads Spectronaut output. Will add contamination column for further analysis.
 
         Args:
-            file (str): path to Spectronaut outputfile or pandas.DataFrame 
+            file (str, pd.DataFrame): path to Spectronaut outputfile or pandas.DataFrame 
             intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "PG.Quantity".
             index_column (str, optional): column indicating the protein groups. Defaults to "PG.ProteinGroups".
             sample_column (str, optional): column that contains sample names used for downstream analysis. Defaults to "R.FileName".
             gene_names_column (str, optional): column with gene names. Defaults to "PG.Genes".
             filter_qvalue (bool, optional): will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.. Defaults to True.
             qvalue_cutoff (float, optional): cut off vaéie. Defaults to 0.01.
+            replace_zero_with_nan (bool, optional): whether zero values should be replaced with NaN when loading the data. Defaults to True.
             sep (str, optional): file separation of file. Defaults to "\t".
         """
 
         self.software = "Spectronaut"
         self.intensity_column = intensity_column
         self.index_column = index_column
+        self.replace_zero_with_nan = replace_zero_with_nan
         self.confidence_column = None
         self.filter_columns = []
         self.evidence_df = None

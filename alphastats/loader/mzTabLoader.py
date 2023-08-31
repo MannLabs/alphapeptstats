@@ -1,19 +1,22 @@
 from pyteomics import mztab
 from alphastats.loader.BaseLoader import BaseLoader
 
+
 class mzTabLoader(BaseLoader):
-    def __init__(self, file, intensity_column: str="protein_abundance_[sample]", index_column:str="accession"):
+    def __init__(self, file, intensity_column: str="protein_abundance_[sample]", index_column:str="accession",replace_zero_with_nan:bool=True):
         """Load mzTab file. Will add contamination column for further analysis.
 
         Args:
             file (str): path to mzTab file.
             intensity_column (str, optional):  columns where the intensity of the proteins are given.. Defaults to "protein_abundance_[sample]".
             index_column (str, optional): column indicating the protein groups.  Defaults to "accession".
+            replace_zero_with_nan (bool, optional): whether zero values should be replaced with NaN when loading the data. Defaults to True.
         """
         self.filter_columns = []
         self.gene_names = None
         self.intensity_column = intensity_column
         self.index_column = index_column
+        self.replace_zero_with_nan = replace_zero_with_nan
         self.confidence_column = None
         self.evidence_df = None
         self.gene_names = None

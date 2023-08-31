@@ -5,13 +5,14 @@ import pandas as pd
 from typing import Union
 
 class GenericLoader(BaseLoader):
-    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:list, index_column:str, sep:str=None):
+    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:list, index_column:str, sep:str=None, replace_zero_with_nan:bool=True):
         """Generic Loader for you proteomics data
 
         Args:
             file (Union[str, pd.DataFrame]): path to your proteomics file or pandas.DataFrame
             intensity_column (list): list of samples with intensity
-            index_column (str): column with Protein IDs or Gene names, used for indexing
+            index_column (str): column with Protein IDs or Gene names, used for indexing.
+            replace_zero_with_nan (bool, optional): whether zero values should be replaced with NaN when loading the data. Defaults to True.
             sep (str): file separation
         """
 
@@ -21,6 +22,7 @@ class GenericLoader(BaseLoader):
             self.rawinput = pd.read_csv(file, sep=sep, low_memory=False)
         self.intensity_column = intensity_column
         self.intensity_column_list = intensity_column
+        self.replace_zero_with_nan = replace_zero_with_nan
         self.index_column = index_column
         self.filter_columns = []
         self.confidence_column = None

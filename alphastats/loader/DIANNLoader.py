@@ -13,6 +13,7 @@ class DIANNLoader(BaseLoader):
         intensity_column="[sample]",
         index_column="Protein.Group",
         sep="\t",
+        replace_zero_with_nan = True,
         **kwargs
     ):
         """Import DIA-NN output data report.pg_matrix.tsv
@@ -21,11 +22,13 @@ class DIANNLoader(BaseLoader):
             file (str): DIA-NN output file report.pg_matrix.tsv
             intensity_column (str, optional): columns containing the intensity column for each experiment. Defaults to "[experiment]".
             index_column (str, optional): column with the Protein IDs. Defaults to "Protein.Group".
+            replace_zero_with_nan (bool, optional): whether zero values should be replaced with NaN when loading the data. Defaults to True.
             sep (str, optional): file separation of the input file. Defaults to "\t".
         """
 
         super().__init__(file, intensity_column, index_column, sep)
         self.software = "DIANN"
+        self.replace_zero_with_nan = replace_zero_with_nan
         self.no_sample_column = [
             "PG.Q.value",
             "Global.PG.Q.value",

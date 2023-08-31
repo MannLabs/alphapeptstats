@@ -16,6 +16,7 @@ class MaxQuantLoader(BaseLoader):
         filter_columns:list=["Only identified by site", "Reverse", "Potential contaminant"],
         confidence_column:str="Q-value",
         evidence_file=None,
+        replace_zero_with_nan:bool=True,
         sep:str="\t",
         **kwargs
     ):
@@ -27,12 +28,14 @@ class MaxQuantLoader(BaseLoader):
             index_column (str, optional): column with Protein IDs . Defaults to "Protein IDs".
             filter_columns (list, optional): columns that should be used for filtering. Defaults to ["Only identified by site", "Reverse", "Potential contaminant"].
             confidence_column (str, optional): column with the Q-value given. Defaults to "Q-value".
+            replace_zero_with_nan (bool, optional): whether zero values should be replaced with NaN when loading the data. Defaults to True.
             sep (str, optional): separation of the input file. Defaults to "\t".
         """
 
         super().__init__(file, intensity_column, index_column, sep)
         self.filter_columns = filter_columns + self.filter_columns
         self.confidence_column = confidence_column
+        self.replace_zero_with_nan = replace_zero_with_nan
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
         self._read_all_columns_as_string()

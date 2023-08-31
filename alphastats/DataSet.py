@@ -67,6 +67,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         self.filter_columns = loader.filter_columns
         self.evidence_df = loader.evidence_df
         self.gene_names = loader.gene_names
+        self.replace_zero_with_nan = loader.replace_zero_with_nan
 
         # include filtering before
         self.create_matrix()
@@ -169,6 +170,10 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         # transpose dataframe
         mat = df.transpose()
         mat.replace([np.inf, -np.inf], np.nan, inplace=True)
+        
+        if self.replace_zero_with_nan:
+             mat.replace([0], np.nan, inplace=True)
+        
         # remove proteins with only zero
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         self.mat = self.mat.astype(float)
@@ -222,6 +227,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             "Contamination columns": self.filter_columns,
             "Number of removed ProteinGroups due to contaminaton": 0,
             "Data completeness cut-off": 0,
+            "Zeros replaced with NaN": self.replace_zero_with_nan,
         }
         return preprocessing_dict
 

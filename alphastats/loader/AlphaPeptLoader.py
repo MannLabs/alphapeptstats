@@ -2,7 +2,7 @@ from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
 import logging
-
+from typing import Union
 
 class AlphaPeptLoader(BaseLoader):
     """Loader for AlphaPept outputfiles
@@ -11,10 +11,11 @@ class AlphaPeptLoader(BaseLoader):
 
     def __init__(
         self,
-        file,
-        intensity_column="[sample]_LFQ",
-        index_column="Unnamed: 0",  # column name to be changed
-        sep=",",
+        file:Union[str, pd.DataFrame],
+        intensity_column:str="[sample]_LFQ",
+        index_column:str="Unnamed: 0",  # column name to be changed
+        sep:str=",",
+        replace_zero_with_nan:bool=True,
         **kwargs
     ):
         """Loads Alphapept output: results_proteins.csv. Will add contamination column for further analysis.
@@ -23,6 +24,7 @@ class AlphaPeptLoader(BaseLoader):
             file (str): AlphaPept output, either results_proteins.csv file or the hdf_file with the protein_table given
             intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "[sample]_LFQ".
             index_column (str, optional): column indicating the protein groups. Defaults to "Unnamed: 0".
+            replace_zero_with_nan (bool, optional): whether zero values should be replaced with NaN when loading the data. Defaults to True.
             sep (str, optional): file separation of file. Defaults to ",".
         """
 
@@ -33,6 +35,7 @@ class AlphaPeptLoader(BaseLoader):
 
         self.intensity_column = intensity_column
         self.index_column = index_column
+        self.replace_zero_with_nan = replace_zero_with_nan
         self.filter_columns = []
         self.confidence_column = None
         self.software = "AlphaPept"
