@@ -33,7 +33,7 @@ jupyter-client==7.4.3
 jupyter-core==4.11.2 
 jupyterlab-pygments==0.2.2 
 kiwisolver==1.4.4 
-lazy-loader==0.1rc2 
+lazy-loader==0.3 
 littleutils==0.2.2 
 llvmlite==0.39.1 
 locket==1.0.0 
