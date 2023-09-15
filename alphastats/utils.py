@@ -103,3 +103,19 @@ def find_duplicates_in_list(l:list) -> list:
             duplicates.append(ys[n])
     return duplicates
     
+def join_with_and(str_list:list):
+    """join list of strings with and 
+
+    Args:
+        str_list (list): _description_
+
+    Returns:
+        str: 
+    """
+    str_list = [str(item) for item in str_list]
+    if len(str_list) == 0:
+        return ""
+    elif len(str_list) == 1:
+        return str_list[0]
+    else:
+        return ", ".join(str_list[:-1]) + " and " + str_list[-1]

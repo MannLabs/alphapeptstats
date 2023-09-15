@@ -43,11 +43,12 @@ class PlotUtils:
         return go.Figure(fig_dict)
 
     def _update_figure_attributes(
-        self, figure_object, plotting_data, preprocessing_info, method=None
+        self, figure_object, plotting_data, preprocessing_info, method=None, figure_description=""
     ):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", preprocessing_info)
         setattr(figure_object, "method", method)
+        setattr(figure_object, "figure_description", figure_description)
         return figure_object
 
 
@@ -55,9 +56,11 @@ class plotly_object(plotly.graph_objs._figure.Figure):
     plotting_data = None
     preprocessing = None
     method = None
+    figure_description = None
 
 
 class seaborn_object(sns.matrix.ClusterGrid):
     plotting_data = None
     preprocessing = None
     method = None
+    figure_description = None

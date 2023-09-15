@@ -1,5 +1,5 @@
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
-from alphastats.utils import ignore_warning, check_for_missing_values
+from alphastats.utils import ignore_warning, check_for_missing_values, join_with_and
 
 import numpy as np
 import pandas as pd
@@ -52,12 +52,14 @@ class VolcanoPlot(PlotUtils):
         self.pvalue_column = None
         self.perm=perm
         self.color_list = color_list
+        self.figure_description = f"*Figure:* "
         self._check_input()
 
         if plot:
             self._perform_differential_expression_analysis()
             self._annotate_result_df()
             self._add_hover_data_columns()
+            self._get_figure_description()
             self._plot()
 
     def _check_input(self):
@@ -436,4 +438,44 @@ class VolcanoPlot(PlotUtils):
             plotting_data=self.res,
             preprocessing_info=self.dataset.preprocessing_info,
             method=self.method,
+            figure_description=self.figure_description
         )
+    
+    def _get_regulated_proteins_for_description(self):
+        if len(self.color_list) > 0:
+            return ""
+        
+        if self.dataset.gene_names is not None:
+            protein_ids = self.dataset.gene_names
+        else:
+            protein_ids = self.dataset.index_column
+        
+        df = self.res[self.res.color != "non_sig"].sort_values(by=["-log10(p-value)"]).head(7)
+        upregulated = df[df.color == "up"][protein_ids].to_list()
+        downregulated = df[df.color == "down"][protein_ids].to_list()  
+        upregulated_str, downregulated_str  = join_with_and(upregulated), join_with_and(downregulated) 
+
+        description = ""
+        
+        if len(upregulated_str) > 0 and len(downregulated_str) > 0:
+            description += f"""Demonstrating significantly up-regulation of {upregulated_str} in {self.group2} 
+            and down-regulation of {downregulated_str}."""
+
+        elif len(upregulated) > 0:
+            description += f"""Demonstrating significantly up-regulation of {upregulated_str} in {self.group2}."""
+
+        
+        elif len(downregulated) > 0:
+            description += f"Demonstrating significantly down-regulation of {downregulated_str} in {self.group2}. "
+
+        
+        return description
+
+    
+    def _get_figure_description(self):
+        description =  f"""Volcano plot of statistical significance against log2-fold change between {self.group1} 
+            and {self.group2} samples. Significance is controlled by P-value ({self.method}) and minimum fold change. """ 
+        
+        description += self._get_regulated_proteins_for_description()
+    
+        self.figure_description += description
