@@ -13,8 +13,7 @@ class SpectronautLoader(BaseLoader):
         file,
         intensity_column="PG.Quantity",
         index_column="PG.ProteinGroups",
-        # sample_column="R.FileName",
-        sample_column="experiment", # 
+        sample_column="R.FileName",
         gene_names_column="PG.Genes",
         filter_qvalue=True,
         qvalue_cutoff=0.01,
@@ -64,17 +63,12 @@ class SpectronautLoader(BaseLoader):
         self.rawinput["sample"] = (
             self.rawinput[sample_column] + "_" + self.intensity_column
         )
-        print("self.rawinput[sample_column]", (
-            self.rawinput[sample_column] + "_" + self.intensity_column
-        ))
         indexing_columns = [self.index_column]
-        print("print(indexing_columns)", indexing_columns)
         if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names = gene_names_column
             indexing_columns.append(self.gene_names)
 
         keep_columns = [self.intensity_column, "sample"] + indexing_columns
-        print("keep_columns", keep_columns)
         df = self.rawinput[keep_columns].drop_duplicates()
         df = df.pivot(
             columns="sample", index=indexing_columns, values=self.intensity_column
@@ -82,8 +76,6 @@ class SpectronautLoader(BaseLoader):
         df.reset_index(inplace=True)
 
         self.rawinput = df
-        print(self.rawinput.columns.to_list())
-        df.to_csv("~/Downloads/wide_test.tsv", sep="\t", index=False)
 
         self.intensity_column = "[sample]_" + self.intensity_column
 
@@ -123,8 +115,7 @@ class SpectronautLoader(BaseLoader):
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)
         else:
-            df = self.read_uploaded_file_into_df(file)
-            # сonvert from european
+            df = pd.read_csv(file, sep=sep, low_memory=False)
             for column in df.columns:
                 try:
                     if df[column].dtype == np.float64:
