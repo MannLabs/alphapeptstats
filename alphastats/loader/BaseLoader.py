@@ -83,3 +83,23 @@ class BaseLoader:
             + "The contaminant library was created by Frankenfield et al."
             + ":https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
         )
+    def read_uploaded_file_into_df(self, file):
+        filename = file.name
+
+        if filename.endswith(".xlsx"):
+            df = pd.read_excel(file)
+
+        elif filename.endswith(".txt") or filename.endswith(".tsv"):
+            df = pd.read_csv(file, delimiter="\t", low_memory=False)
+
+        elif filename.endswith(".csv"):
+            df = pd.read_csv(file, low_memory=False)
+
+        else:
+            df = None
+            logging.warning(
+                "WARNING: File could not be read. \nFile has to be a .xslx, .tsv, .csv or .txt file"
+            )
+            return
+
+        return df
