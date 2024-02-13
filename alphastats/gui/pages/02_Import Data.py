@@ -34,9 +34,14 @@ st.session_state["user_session_id"] = user_session_id
 if "loader" not in st.session_state:
     st.session_state["loader"] = None
 
+if "gene_to_prot_id" not in st.session_state:
+    st.session_state["gene_to_prot_id"] = {}
+
+if "organism" not in st.session_state:
+    st.session_state["organism"] = 9606
+
 
 def load_options():
-
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options
@@ -85,7 +90,8 @@ def check_software_file(df, software):
                 "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
             )
 
-def select_columns_for_loaders(software, software_df:None):
+
+def select_columns_for_loaders(software, software_df: None):
     """
     select intensity and index column depending on software
     will be saved in session state
@@ -95,7 +101,6 @@ def select_columns_for_loaders(software, software_df:None):
     st.markdown("Select intensity columns for further analysis")
 
     if software != "Other":
-
         st.selectbox(
             "Intensity Column",
             options=software_options.get(software).get("intensity_column"),
@@ -109,7 +114,7 @@ def select_columns_for_loaders(software, software_df:None):
             options=software_options.get(software).get("index_column"),
             key="index_column",
         )
-        
+
     else:
         st.multiselect(
             "Intensity Columns",
@@ -162,14 +167,12 @@ def select_sample_column_metadata(df, software):
 
 
 def upload_softwarefile(software):
-
     softwarefile = st.file_uploader(
         software_options.get(software).get("import_file"),
         type=["csv", "tsv", "txt", "hdf"],
     )
 
     if softwarefile is not None:
-
         softwarefile_df = read_uploaded_file_into_df(softwarefile)
         # display head a protein data
 
@@ -202,29 +205,29 @@ def create_metadata_file():
     metadata = dataset.metadata
     buffer = io.BytesIO()
 
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         # Write each dataframe to a different worksheet.
-        metadata.to_excel(writer, sheet_name='Sheet1', index=False)
+        metadata.to_excel(writer, sheet_name="Sheet1", index=False)
         # Close the Pandas Excel writer and output the Excel file to the buffer
         writer.close()
 
         st.download_button(
             label="Download metadata template as Excel",
             data=buffer,
-            file_name='metadata.xlsx',
-            mime='application/vnd.ms-excel'
+            file_name="metadata.xlsx",
+            mime="application/vnd.ms-excel",
         )
 
-def upload_metadatafile(software):
 
+def upload_metadatafile(software):
     st.write("\n\n")
     st.markdown("### 3. Prepare Metadata.")
     metadatafile_upload = st.file_uploader(
-        "Upload metadata file. with information about your samples", key="metadatafile",
+        "Upload metadata file. with information about your samples",
+        key="metadatafile",
     )
 
-    if metadatafile_upload is not None and  st.session_state.loader is not None:
-
+    if metadatafile_upload is not None and st.session_state.loader is not None:
         metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
         # display metadata
         st.write(
@@ -249,10 +252,12 @@ def upload_metadatafile(software):
 
     if st.session_state.loader is not None:
         create_metadata_file()
-        st.write("Download the template file and add additional information as "
-                 + "columns to your samples such as disease group. "
-                 + "Upload the updated metadata file.")
-    
+        st.write(
+            "Download the template file and add additional information as "
+            + "columns to your samples such as disease group. "
+            + "Upload the updated metadata file."
+        )
+
     if st.session_state.loader is not None:
         if st.button("Create a DataSet without metadata"):
             st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
@@ -266,16 +271,14 @@ def upload_metadatafile(software):
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
-    _parent_directory = os.path.dirname(_this_directory)     
-    folder_to_load = os.path.join(_parent_directory, 'sample_data')
-    
-    filepath= os.path.join(folder_to_load, "proteinGroups.txt")
-    metadatapath= os.path.join(folder_to_load, "metadata.xlsx")
+    _parent_directory = os.path.dirname(_this_directory)
+    folder_to_load = os.path.join(_parent_directory, "sample_data")
+
+    filepath = os.path.join(folder_to_load, "proteinGroups.txt")
+    metadatapath = os.path.join(folder_to_load, "metadata.xlsx")
 
     loader = MaxQuantLoader(file=filepath)
-    ds = DataSet(
-        loader=loader, metadata_path=metadatapath, sample_column="sample"
-    )
+    ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
     metadatapath = os.path.join(_this_directory, "sample_data/metadata.xlsx").replace(
         "pages/", ""
     )
@@ -316,7 +319,6 @@ def import_data():
 
 
 def display_loaded_dataset():
-
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
 
@@ -377,7 +379,6 @@ if "dataset" not in st.session_state:
     st.markdown("### Or Load sample Dataset")
 
 if st.button("Load sample DataSet - PXD011839"):
-
     st.write(
         """
 
@@ -413,11 +414,9 @@ if "dataset" in st.session_state:
         save_plot_sampledistribution_rawdata()
 
     if st.button("New Session: Import new dataset"):
-
         empty_session_state()
 
         import_data()
 
     if "dataset" in st.session_state:
-
         display_loaded_dataset()
