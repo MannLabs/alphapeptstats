@@ -24,3 +24,4 @@ pyteomics==4.6.0
 openpyxl>=3.0.10
 nbformat>=5.0
 biopython==1.83
+openai==1.12.0
