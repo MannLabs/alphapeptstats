@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Union
 from pathlib import Path
 import requests
@@ -315,8 +316,8 @@ def get_assistant_functions(
                             "description": "False Discovery Rate cutoff for SAM",
                         },
                     },
+                "required": ["column", "group1", "group2"],
                 },
-                "required": ["group", "subgroups"],
             },
         },
         {"type": "code_interpreter"},
@@ -574,10 +575,10 @@ def get_info(genes_list: list[str], organism_id: str) -> list[str]:
 
 def get_gene_function(gene_name: Union[str, dict], organism_id: str = None) -> str:
     """
-    Get the gene function and description by UniProt lookup of gene identifier/name.
+    Get the gene function and description by UniProt lookup of gene identifier / name.
 
     Args:
-        gene_name (Union[str, dict]): Gene identifier/name for UniProt lookup.
+        gene_name (Union[str, dict]): Gene identifier / name for UniProt lookup.
         organism_id (str): The UniProt organism ID to search in.
 
     Returns:
@@ -615,7 +616,7 @@ def turn_args_to_float(json_string: Union[str, bytes, bytearray]) -> dict:
 
 
 def get_gene_to_prot_id_mapping(gene_id: str) -> str:
-    """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id (LLM moment).
+    """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
     'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
     Args:
         gene_id (str): Gene id
@@ -624,11 +625,12 @@ def get_gene_to_prot_id_mapping(gene_id: str) -> str:
         str: Protein id or gene id if not present in the mapping.
     """
     import streamlit as st
-
-    print(st.session_state["gene_to_prot_id"])
-    if gene_id in st.session_state["gene_to_prot_id"]:
-        return st.session_state["gene_to_prot_id"][gene_id]
-    for gene, prot_id in st.session_state["gene_to_prot_id"].items():
+    session_state_copy = dict(copy.deepcopy(st.session_state))
+    if "gene_to_prot_id" not in session_state_copy:
+        session_state_copy["gene_to_prot_id"] = {}
+    if gene_id in session_state_copy["gene_to_prot_id"]:
+        return session_state_copy["gene_to_prot_id"][gene_id]
+    for gene, prot_id in session_state_copy["gene_to_prot_id"].items():
         if gene_id in gene.split(";"):
             return prot_id
     return gene_id

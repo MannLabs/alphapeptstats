@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from openai import OpenAI
 
@@ -256,11 +257,11 @@ elif (
         display_proteins([], st.session_state["downregulated"])
 
 st.session_state["instructions"] = (
-    "You are an expert biologist and have extensive experience in molecular biology, medicine and biochemistry.\n"
+    f"You are an expert biologist and have extensive experience in molecular biology, medicine and biochemistry.{os.linesep}"
     "A user will present you with data regarding proteins upregulated in certain cells "
     "sourced from UniProt and abstracts from scientific publications. They seek your "
     "expertise in understanding the connections between these proteins and their potential role "
-    "in disease genesis. \nProvide a detailed and insightful, yet concise response based on the given information. "
+    f"in disease genesis. {os.linesep}Provide a detailed and insightful, yet concise response based on the given information. "
     f"The data you have has following groups and respective subgroups: {str(get_subgroups_for_each_group(st.session_state.dataset.metadata))}."
     "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that."
 )
@@ -268,8 +269,8 @@ if "column" in chosen_parameter_dict and "upregulated" in st.session_state:
     st.session_state["user_prompt"] = (
         f"We've recently identified several proteins that appear to be differently regulated in cells "
         f"when comparing {chosen_parameter_dict['group1']} and {chosen_parameter_dict['group2']} in the {chosen_parameter_dict['column']} group. "
-        f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(st.session_state['upregulated'])}.\n\n"
-        f"Here is the list of proteins that are downregulated: {', '.join(st.session_state['downregulated'])}.\n\n"
+        f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(st.session_state['upregulated'])}.{os.linesep}{os.linesep}"
+        f"Here is the list of proteins that are downregulated: {', '.join(st.session_state['downregulated'])}.{os.linesep}{os.linesep}"
         f"Help us understand the potential connections between these proteins and how they might be contributing "
         f"to the differences. After that provide a high level summary"
     )
