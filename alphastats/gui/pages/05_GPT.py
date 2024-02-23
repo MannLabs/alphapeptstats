@@ -59,7 +59,6 @@ except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
 
 
-client = OpenAI()
 st.session_state.plot_dict = {}
 
 
@@ -301,6 +300,8 @@ if (
     st.session_state["gpt_submitted_clicked"]
     > st.session_state["gpt_submitted_counter"]
 ):
+    try_to_set_api_key()
+    client = OpenAI()
     st.session_state["assistant"] = client.beta.assistants.create(
         instructions=st.session_state["instructions"],
         name="Proteomics interpreter",
