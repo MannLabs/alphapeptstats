@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 
 try:
     from alphastats.gui.utils.analysis_helper import (
@@ -136,7 +136,7 @@ with c1:
 
     try:
         client = OpenAI()
-    except openai.OpenAIError:
+    except OpenAIError:
         pass
     method = st.selectbox(
         "Differential Analysis using:",
