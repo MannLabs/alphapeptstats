@@ -778,10 +778,10 @@ def try_to_set_api_key(api_key: str = None) -> None:
         secret_path.parent.mkdir(parents=True, exist_ok=True)
         with open(secret_path, "w") as f:
             f.write(f'openai_api_key = "{api_key}"')
-        openai.api_key = api_key
+        openai.OpenAI.api_key = api_key
         return
     try:
-        openai.api_key = st.secrets["openai_api_key"]
+        openai.OpenAI.api_key = st.secrets["openai_api_key"]
     except:
         st.write(
             "OpenAI API key not found in environment variables. Please enter your API key to continue."

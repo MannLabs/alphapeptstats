@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from openai import OpenAI, OpenAIError
+from openai import OpenAI, OpenAIError, AuthenticationError
 
 try:
     from alphastats.gui.utils.analysis_helper import (
@@ -135,7 +135,7 @@ with c1:
     try_to_set_api_key(api_key)
 
     try:
-        client = OpenAI()
+        client = OpenAI(api_key=st.secrets["openai_api_key"])
     except OpenAIError:
         pass
     method = st.selectbox(
@@ -305,8 +305,11 @@ if (
     > st.session_state["gpt_submitted_counter"]
 ):
     try_to_set_api_key()
-    client = OpenAI()
-    st.session_state["assistant"] = client.beta.assistants.create(
+    
+    client = OpenAI(api_key=st.secrets["openai_api_key"])
+    
+    try:
+        st.session_state["assistant"] = client.beta.assistants.create(
         instructions=st.session_state["instructions"],
         name="Proteomics interpreter",
         model=st.session_state["openai_model"],
@@ -318,6 +321,9 @@ if (
             ),
         ),
     )
+    except AuthenticationError:
+        st.warning("Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX")
+        st.stop()
 
 if "plot_enum_dict" not in st.session_state:
     st.session_state["plot_enum_dict"] = {}
