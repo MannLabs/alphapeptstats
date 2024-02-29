@@ -198,16 +198,21 @@ if (
     volcano_plot._plot()
     genes_of_interest_colored = volcano_plot.get_colored_labels()
     genes_of_interest_colored_df = volcano_plot.get_colored_labels_df()
+    print(genes_of_interest_colored_df)
+
+    gene_names_colname = st.session_state["loader"].gene_names
+    prot_ids_colname = st.session_state["loader"].index_column
+
     st.session_state["prot_id_to_gene"] = dict(
         zip(
-            genes_of_interest_colored_df["Protein IDs"].tolist(),
-            genes_of_interest_colored_df["Gene names"].tolist(),
+            genes_of_interest_colored_df[prot_ids_colname].tolist(),
+            genes_of_interest_colored_df[gene_names_colname].tolist(),
         )
     )
     st.session_state["gene_to_prot_id"] = dict(
         zip(
-            genes_of_interest_colored_df["Gene names"].tolist(),
-            genes_of_interest_colored_df["Protein IDs"].tolist(),
+            genes_of_interest_colored_df[gene_names_colname].tolist(),
+            genes_of_interest_colored_df[prot_ids_colname].tolist(),
         )
     )
 

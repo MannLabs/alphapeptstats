@@ -38,7 +38,7 @@ class SpectronautLoader(BaseLoader):
         self.confidence_column = None
         self.filter_columns = []
         self.evidence_df = None
-        self.gene_names = None
+        self.gene_names = gene_names_column
 
         self._read_spectronaut_file(file=file, sep=sep)
 

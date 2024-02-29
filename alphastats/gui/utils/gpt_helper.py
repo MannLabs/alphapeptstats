@@ -745,16 +745,21 @@ def send_message_save_thread(client: openai.OpenAI, message: str) -> Optional[li
         thread_id=st.session_state["thread_id"],
         assistant_id=st.session_state["assistant"].id,
     )
-
-    plots = wait_for_run_completion(client, st.session_state["thread_id"], run.id)
-
+    try:
+        plots = wait_for_run_completion(client, st.session_state["thread_id"], run.id)
+    except KeyError as e:
+        print(e)
+        plots = None
     messages = client.beta.threads.messages.list(
         thread_id=st.session_state["thread_id"]
     )
     st.session_state.messages = []
     for num, message in enumerate(messages.data[::-1]):
         role = message.role
-        content = message.content[0].text.value
+        if message.content:
+            content = message.content[0].text.value
+        else:
+            content = "Sorry, I was unable to process this message. Try again or change your request."
         st.session_state.messages.append({"role": role, "content": content})
     if not plots:
         return
