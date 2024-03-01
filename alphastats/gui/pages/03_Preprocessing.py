@@ -36,7 +36,7 @@ def preprocessing():
 
             data_completeness = st.number_input(
                 f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
-                value=0, min_value=0, max_value=1
+                value=0., min_value=0., max_value=1., step=0.1
             )
 
             log2_transform = st.selectbox(

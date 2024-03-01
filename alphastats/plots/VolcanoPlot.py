@@ -350,7 +350,10 @@ class VolcanoPlot(PlotUtils):
             self.res = self.res[self.res["label"] != ""]
         if "color" not in self.res.columns:
             self._annotate_result_df()
-        return dict(zip(self.res["label"].tolist(), self.res["color"].tolist()))
+        
+        labels = [";".join([i for i in j.split(";")  if i]) for j in self.res["label"].tolist()]
+        self.res["label"] = labels
+        return dict(zip(labels, self.res["color"].tolist()))
 
     def get_colored_labels_df(self):
         """
@@ -387,10 +390,11 @@ class VolcanoPlot(PlotUtils):
         )
         #  replace nas with empty string (can cause error when plotting with gene names)
         self.res["label"] = self.res["label"].fillna("")
+        self.res["label"] = [";".join([i for i in j.split(";")  if i]) for j in self.res["label"].tolist()]
         self.res = self.res[self.res["label"] != ""]
-
+        
         for x, y, label_column in self.res[
-            ["log2fc", "-log10(p-value)", label_column]
+            ["log2fc", "-log10(p-value)", "label"]
         ].itertuples(index=False):
             self.plot.add_annotation(
                 x=x, y=y, text=label_column, showarrow=False, yshift=10
