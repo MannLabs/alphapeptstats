@@ -8,6 +8,8 @@ import random
 import json
 
 from Bio import Entrez
+from gprofiler import GProfiler
+
 import openai
 import pandas as pd
 import streamlit as st
@@ -316,7 +318,34 @@ def get_assistant_functions(
                             "description": "False Discovery Rate cutoff for SAM",
                         },
                     },
-                "required": ["column", "group1", "group2"],
+                    "required": ["column", "group1", "group2"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_enrichment_data",
+                "description": "Get enrichment data for a list of differentially expressed genes",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "difexpressed": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "A list of differentially expressed gene names to search for",
+                        },
+                        "organism_id": {
+                            "type": "string",
+                            "description": "The Uniprot organism ID to search in",
+                        },
+                        "tool": {
+                            "type": "string",
+                            "description": "The tool to use for enrichment analysis",
+                            "enum": ["gprofiler", "string"],
+                        },
+                    },
+                    "required": ["difexpressed", "organism_id"],
                 },
             },
         },
@@ -427,18 +456,19 @@ def extract_data(data: dict) -> dict:
 
     # 6. Functional Comments
     function_comments = [
-        c["texts"][0]["value"]
-        for c in data.get("comments", [])
-        if c["commentType"] == "FUNCTION"
+        text["value"]
+        for comment in data.get("comments", [])
+        if comment["commentType"] == "FUNCTION"
+        for text in comment.get("texts", [])
     ]
-
     extracted["functionComments"] = function_comments
 
     # 7. Subunit Details
     subunit_comments = [
-        c["texts"][0]["value"]
-        for c in data.get("comments", [])
-        if c["commentType"] == "SUBUNIT"
+        text["value"]
+        for comment in data.get("comments", [])
+        if comment["commentType"] == "SUBUNIT"
+        for text in comment.get("texts", [])
     ]
     extracted["subunitComments"] = subunit_comments
 
@@ -467,18 +497,23 @@ def extract_data(data: dict) -> dict:
     extracted["interactions"] = interactions
 
     # 9. Subcellular Locations
-    locations = [
-        c["subcellularLocations"][0]["location"]["value"]
+    subcellular_locations_comments = [
+        c["subcellularLocations"]
         for c in data.get("comments", [])
         if c["commentType"] == "SUBCELLULAR LOCATION"
     ]
+    locations = [
+        location["location"]["value"]
+        for locations_comment in subcellular_locations_comments
+        for location in locations_comment
+    ]
     extracted["subcellularLocations"] = locations
 
-    # 10. Tissue Specificity
     tissue_specificities = [
-        c["texts"][0]["value"]
-        for c in data.get("comments", [])
-        if c["commentType"] == "TISSUE SPECIFICITY"
+        text["value"]
+        for comment in data.get("comments", [])
+        if comment["commentType"] == "TISSUE SPECIFICITY"
+        for text in comment.get("texts", [])
     ]
     extracted["tissueSpecificity"] = tissue_specificities
 
@@ -566,11 +601,81 @@ def get_info(genes_list: list[str], organism_id: str) -> list[str]:
     gene_functions = []
     for gene in results:
         if results[gene]["functionComments"]:
-            gene_functions.append(f"{gene}: {results[gene]['functionComments'][0]}")
+            gene_functions.append(f"{gene}: {results[gene]['functionComments']}")
         else:
             gene_functions.append(f"{gene}: ?")
 
     return gene_functions
+
+
+def get_functional_annotation_STRING(identifier, species_id="9606") -> pd.DataFrame:
+    """
+    Get functional annotation from STRING for a gene identifier.
+
+    Args:
+        identifier (str): A gene identifier.
+        species_id (str, optional): The Uniprot organism ID to search in.
+
+    Returns:
+        pd.DataFrame: The functional annotation data.
+    """
+    url = f"https://string-db.org/api/json/enrichment?identifiers={identifier}&species={int(species_id)}&caller_identity=alphapeptstats"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        df = pd.DataFrame(data)
+        return df
+    else:
+        print(f"Request failed with status code {response.status_code}")
+        return None
+
+
+def get_functional_annotation_GProfiler(identifiers: list[str]) -> pd.DataFrame:
+    """
+    Get functional annotation from g:Profiler for a list of gene identifiers.
+
+    Args:
+        identifiers (list[str]): A list of gene identifiers.
+
+    Returns:
+        pd.DataFrame: The functional annotation data.
+    """
+    gp = GProfiler(
+        user_agent="AlphaPeptStats",
+        return_dataframe=True,
+    )
+    df = gp.profile(query=identifiers)
+    return df
+
+
+def get_enrichment_data(
+    difexpressed: list[str], organism_id: str = 9606, tool: str = "gprofiler"
+) -> pd.DataFrame:
+    """
+    Get enrichment data for a list of differentially expressed genes.
+
+    Args:
+        difexpressed (list[str]): A list of differentially expressed genes.
+        organism_id (str, optional): The Uniprot organism ID to search in.
+        tool (str, optional): The tool to use for enrichment analysis.
+
+    Returns:
+        pd.DataFrame: The enrichment data.
+    """
+    enrichment_data = {}
+    assert tool in [
+        "gprofiler",
+        "string",
+    ], "Tool must be either 'gprofiler' or 'string'"
+    if tool == "gprofiler":
+        enrichment_data = get_functional_annotation_GProfiler(difexpressed)
+    else:
+        enrichment_data = get_functional_annotation_STRING(
+            "%0d".join(difexpressed), organism_id
+        )
+
+    return enrichment_data
 
 
 def get_gene_function(gene_name: Union[str, dict], organism_id: str = None) -> str:
@@ -590,7 +695,7 @@ def get_gene_function(gene_name: Union[str, dict], organism_id: str = None) -> s
         gene_name = gene_name["gene_name"]
     result = get_uniprot_data(gene_name, organism_id)
     if result and extract_data(result)["functionComments"]:
-        return extract_data(result)["functionComments"][0]
+        return str(extract_data(result)["functionComments"])
     else:
         return "No data found"
 
@@ -625,6 +730,7 @@ def get_gene_to_prot_id_mapping(gene_id: str) -> str:
         str: Protein id or gene id if not present in the mapping.
     """
     import streamlit as st
+
     session_state_copy = dict(copy.deepcopy(st.session_state))
     if "gene_to_prot_id" not in session_state_copy:
         session_state_copy["gene_to_prot_id"] = {}
@@ -646,17 +752,17 @@ def wait_for_run_completion(
         client (openai.OpenAI): The OpenAI client.
         thread_id (int): The thread ID.
         run_id (int): The run ID.
-        check_interval (int, optional): The interval to check for run completion. Defaults to 2.
+        check_interval (int, optional): The interval to check for run completion. Defaults to 2 seconds.
 
     Returns:
         Optional[list]: A list of plots, if any.
     """
-    plots = []
+    artefacts = []
     while True:
         run_status = client.beta.threads.runs.retrieve(
             thread_id=thread_id, run_id=run_id
         )
-        plot_functions = {
+        assistant_functions = {
             "create_intensity_plot",
             "perform_dimensionality_reduction",
             "create_sample_histogram",
@@ -666,12 +772,13 @@ def wait_for_run_completion(
             "st.session_state.dataset.plot_pca",
             "st.session_state.dataset.plot_umap",
             "st.session_state.dataset.plot_tsne",
+            "get_enrichment_data",
         }
         if run_status.status == "completed":
             print("Run is completed!")
-            if plots:
-                print("Returning plots")
-                return plots
+            if artefacts:
+                print("Returning artefacts")
+                return artefacts
             break
         elif run_status.status == "requires_action":
             print("requires_action", run_status)
@@ -681,7 +788,6 @@ def wait_for_run_completion(
                     for i in st.session_state.plotting_options
                 ]
             )
-            print(plot_functions)
             tool_calls = run_status.required_action.submit_tool_outputs.tool_calls
             tool_outputs = []
             for tool_call in tool_calls:
@@ -691,11 +797,11 @@ def wait_for_run_completion(
                         type(tool_call.function.arguments), tool_call.function.arguments
                     )
                     prompt = json.loads(tool_call.function.arguments)["gene_name"]
-                    image_url = get_gene_function(prompt)
+                    gene_function = get_gene_function(prompt)
                     tool_outputs.append(
                         {
                             "tool_call_id": tool_call.id,
-                            "output": image_url,
+                            "output": gene_function,
                         },
                     )
                 elif (
@@ -704,18 +810,18 @@ def wait_for_run_completion(
                         st.session_state.plotting_options[i]["function"].__name__
                         for i in st.session_state.plotting_options
                     ]
-                    or tool_call.function.name in plot_functions
+                    or tool_call.function.name in assistant_functions
                 ):
                     args = tool_call.function.arguments
                     args = turn_args_to_float(args)
                     print(f"{tool_call.function.name}(**{args})")
-                    image = eval(f"{tool_call.function.name}(**{args})")
-                    image_json = image.to_json()
+                    artefact = eval(f"{tool_call.function.name}(**{args})")
+                    artefact_json = artefact.to_json()
 
                     tool_outputs.append(
-                        {"tool_call_id": tool_call.id, "output": image_json},
+                        {"tool_call_id": tool_call.id, "output": artefact_json},
                     )
-                    plots.append(image)
+                    artefacts.append(artefact)
 
             if tool_outputs:
                 _run = client.beta.threads.runs.submit_tool_outputs(

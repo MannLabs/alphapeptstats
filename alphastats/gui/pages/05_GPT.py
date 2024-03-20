@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+import pandas as pd
 from openai import OpenAI, OpenAIError, AuthenticationError
 
 try:
@@ -107,7 +108,7 @@ if "plot_list" not in st.session_state:
 
 if "openai_model" not in st.session_state:
     # st.session_state["openai_model"] = "gpt-3.5-turbo-16k"
-    st.session_state["openai_model"] = "gpt-4-1106-preview"
+    st.session_state["openai_model"] = "gpt-4-0125-preview"  # "gpt-4-1106-preview"
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
@@ -310,28 +311,30 @@ if (
     > st.session_state["gpt_submitted_counter"]
 ):
     try_to_set_api_key()
-    
+
     client = OpenAI(api_key=st.secrets["openai_api_key"])
-    
+
     try:
         st.session_state["assistant"] = client.beta.assistants.create(
-        instructions=st.session_state["instructions"],
-        name="Proteomics interpreter",
-        model=st.session_state["openai_model"],
-        tools=get_assistant_functions(
-            gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
-            metadata=st.session_state["dataset"].metadata,
-            subgroups_for_each_group=get_subgroups_for_each_group(
-                st.session_state["dataset"].metadata
+            instructions=st.session_state["instructions"],
+            name="Proteomics interpreter",
+            model=st.session_state["openai_model"],
+            tools=get_assistant_functions(
+                gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
+                metadata=st.session_state["dataset"].metadata,
+                subgroups_for_each_group=get_subgroups_for_each_group(
+                    st.session_state["dataset"].metadata
+                ),
             ),
-        ),
-    )
+        )
     except AuthenticationError:
-        st.warning("Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX")
+        st.warning(
+            "Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX"
+        )
         st.stop()
 
-if "plot_enum_dict" not in st.session_state:
-    st.session_state["plot_enum_dict"] = {}
+if "artefact_enum_dict" not in st.session_state:
+    st.session_state["artefact_enum_dict"] = {}
 
 if (
     st.session_state["gpt_submitted_counter"]
@@ -340,25 +343,30 @@ if (
     st.session_state["gpt_submitted_counter"] = st.session_state[
         "gpt_submitted_clicked"
     ]
-    st.session_state["plot_enum_dict"] = {}
+    st.session_state["artefact_enum_dict"] = {}
     thread = client.beta.threads.create()
     st.session_state["thread_id"] = thread.id
-    plots = send_message_save_thread(client, st.session_state["user_prompt"])
-    if plots:
-        st.session_state["plot_enum_dict"][len(st.session_state.messages) - 1] = plots
+    artefacts = send_message_save_thread(client, st.session_state["user_prompt"])
+    if artefacts:
+        st.session_state["artefact_enum_dict"][
+            len(st.session_state.messages) - 1
+        ] = artefacts
 
 if st.session_state["gpt_submitted_clicked"] > 0:
     if prompt := st.chat_input("Say something"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        plots = send_message_save_thread(client, prompt)
-        if plots:
-            st.session_state["plot_enum_dict"][
+        artefacts = send_message_save_thread(client, prompt)
+        if artefacts:
+            st.session_state["artefact_enum_dict"][
                 len(st.session_state.messages) - 1
-            ] = plots
+            ] = artefacts
     for num, role_content_dict in enumerate(st.session_state.messages):
         with st.chat_message(role_content_dict["role"]):
             st.markdown(role_content_dict["content"])
-            if num in st.session_state["plot_enum_dict"]:
-                for plot in st.session_state["plot_enum_dict"][num]:
-                    st.plotly_chart(plot)
-    print(st.session_state["plot_enum_dict"])
+            if num in st.session_state["artefact_enum_dict"]:
+                for artefact in st.session_state["artefact_enum_dict"][num]:
+                    if isinstance(artefact, pd.DataFrame):
+                        st.dataframe(artefact)
+                    else:
+                        st.plotly_chart(artefact)
+    print(st.session_state["artefact_enum_dict"])
