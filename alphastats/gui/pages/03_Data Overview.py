@@ -44,13 +44,15 @@ def display_matrix():
 
 
 @st.cache_data
-def get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id):
+def get_sample_histogram_matrix(user_session_id=st.session_state.user_session_id):
     return st.session_state.dataset.plot_samplehistograms()
 
-@st.cache_data
-def get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id):
-    return st.session_state.dataset.plot_sampledistribution()
 
+@st.cache_data
+def get_intensity_distribution_processed(
+    user_session_id=st.session_state.user_session_id,
+):
+    return st.session_state.dataset.plot_sampledistribution()
 
 
 if "dataset" in st.session_state:
@@ -70,15 +72,18 @@ if "dataset" in st.session_state:
 
         st.markdown("**Intensity distribution data per sample used for analysis**")
         st.plotly_chart(
-            get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id)
-                        .update_layout(plot_bgcolor="white"), use_container_width=True
+            get_intensity_distribution_processed(
+                user_session_id=st.session_state.user_session_id
+            ).update_layout(plot_bgcolor="white"),
+            use_container_width=True,
         )
- 
-    st.plotly_chart(
-        get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id)
-                    .update_layout(plot_bgcolor="white"), use_container_width=True
-    )
 
+    st.plotly_chart(
+        get_sample_histogram_matrix(
+            user_session_id=st.session_state.user_session_id
+        ).update_layout(plot_bgcolor="white"),
+        use_container_width=True,
+    )
 
     display_matrix()
 

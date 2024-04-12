@@ -135,23 +135,7 @@ def display_proteins(overexpressed: list[str], underexpressed: list[str]) -> Non
     st.markdown(full_html, unsafe_allow_html=True)
 
 
-def get_assistant_functions(
-    gene_to_prot_id_dict: dict,
-    metadata: pd.DataFrame,
-    subgroups_for_each_group: dict,
-) -> list[dict]:
-    """
-    Get a list of assistant functions for function calling in the ChatGPT model.
-    You can call this function with no arguments, arguments are given for clarity on what changes the behavior of the function.
-    For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
-
-    Args:
-        gene_to_prot_id_dict (dict, optional): A dictionary with gene names as keys and protein IDs as values.
-        metadata (pd.DataFrame, optional): The metadata dataframe (which sample has which disease/treatment/condition/etc).
-        subgroups_for_each_group (dict, optional): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
-    Returns:
-        list[dict]: A list of assistant functions.
-    """
+def get_general_assistant_functions() -> list[dict]:
     return [
         {
             "type": "function",
@@ -170,6 +154,54 @@ def get_assistant_functions(
                 },
             },
         },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_enrichment_data",
+                "description": "Get enrichment data for a list of differentially expressed genes",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "difexpressed": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "A list of differentially expressed gene names to search for",
+                        },
+                        "organism_id": {
+                            "type": "string",
+                            "description": "The Uniprot organism ID to search in",
+                        },
+                        "tool": {
+                            "type": "string",
+                            "description": "The tool to use for enrichment analysis",
+                            "enum": ["gprofiler", "string"],
+                        },
+                    },
+                    "required": ["difexpressed", "organism_id"],
+                },
+            },
+        },
+    ]
+
+
+def get_assistant_functions(
+    gene_to_prot_id_dict: dict,
+    metadata: pd.DataFrame,
+    subgroups_for_each_group: dict,
+) -> list[dict]:
+    """
+    Get a list of assistant functions for function calling in the ChatGPT model.
+    You can call this function with no arguments, arguments are given for clarity on what changes the behavior of the function.
+    For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
+
+    Args:
+        gene_to_prot_id_dict (dict, optional): A dictionary with gene names as keys and protein IDs as values.
+        metadata (pd.DataFrame, optional): The metadata dataframe (which sample has which disease/treatment/condition/etc).
+        subgroups_for_each_group (dict, optional): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
+    Returns:
+        list[dict]: A list of assistant functions.
+    """
+    return [
         {
             "type": "function",
             "function": {
@@ -319,33 +351,6 @@ def get_assistant_functions(
                         },
                     },
                     "required": ["column", "group1", "group2"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "get_enrichment_data",
-                "description": "Get enrichment data for a list of differentially expressed genes",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "difexpressed": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "A list of differentially expressed gene names to search for",
-                        },
-                        "organism_id": {
-                            "type": "string",
-                            "description": "The Uniprot organism ID to search in",
-                        },
-                        "tool": {
-                            "type": "string",
-                            "description": "The tool to use for enrichment analysis",
-                            "enum": ["gprofiler", "string"],
-                        },
-                    },
-                    "required": ["difexpressed", "organism_id"],
                 },
             },
         },
@@ -762,6 +767,7 @@ def wait_for_run_completion(
         run_status = client.beta.threads.runs.retrieve(
             thread_id=thread_id, run_id=run_id
         )
+        print(run_status.status, run_id, run_status.required_action)
         assistant_functions = {
             "create_intensity_plot",
             "perform_dimensionality_reduction",
@@ -827,12 +833,19 @@ def wait_for_run_completion(
                 _run = client.beta.threads.runs.submit_tool_outputs(
                     thread_id=thread_id, run_id=run_id, tool_outputs=tool_outputs
                 )
+                print("submitted")
         else:
             print("Run is not yet completed. Waiting...", run_status.status, run_id)
             time.sleep(check_interval)
 
 
-def send_message_save_thread(client: openai.OpenAI, message: str) -> Optional[list]:
+def send_message_save_thread(
+    client: openai.OpenAI,
+    message: str,
+    assistant_id: str,
+    thread_id: str,
+    storing_variable: str = "messages",
+) -> Optional[list]:
     """
     Send a message to the OpenAI ChatGPT model and save the thread in the session state, return plots if GPT called a function to create them.
 
@@ -844,29 +857,27 @@ def send_message_save_thread(client: openai.OpenAI, message: str) -> Optional[li
         Optional[list]: A list of plots, if any.
     """
     message = client.beta.threads.messages.create(
-        thread_id=st.session_state["thread_id"], role="user", content=message
+        thread_id=thread_id, role="user", content=message
     )
 
     run = client.beta.threads.runs.create(
-        thread_id=st.session_state["thread_id"],
-        assistant_id=st.session_state["assistant"].id,
+        thread_id=thread_id,
+        assistant_id=assistant_id,
     )
     try:
-        plots = wait_for_run_completion(client, st.session_state["thread_id"], run.id)
+        plots = wait_for_run_completion(client, thread_id, run.id)
     except KeyError as e:
         print(e)
         plots = None
-    messages = client.beta.threads.messages.list(
-        thread_id=st.session_state["thread_id"]
-    )
-    st.session_state.messages = []
+    messages = client.beta.threads.messages.list(thread_id=thread_id)
+    st.session_state[storing_variable] = []
     for num, message in enumerate(messages.data[::-1]):
         role = message.role
         if message.content:
             content = message.content[0].text.value
         else:
             content = "Sorry, I was unable to process this message. Try again or change your request."
-        st.session_state.messages.append({"role": role, "content": content})
+        st.session_state[storing_variable].append({"role": role, "content": content})
     if not plots:
         return
     return plots

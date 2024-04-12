@@ -27,11 +27,11 @@ def display_figure(plot):
         st.pyplot(plot)
 
 
-def save_plot_to_session_state(plot, method):
+def save_plot_to_session_state(plot, method, variable_name="plot_list"):
     """
     save plot with method to session state to retrieve old results
     """
-    st.session_state["plot_list"] += [(method, plot)]
+    st.session_state[variable_name].append((method, plot))
 
 
 def display_df(df):

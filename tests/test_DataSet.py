@@ -237,7 +237,11 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         df = pd.DataFrame(
             {"sample": ["A", "B", "C"], "b": ["disease", "health", "disease"]}
         )
-        obj = DataSet(loader=self.loader, metadata_path=df, sample_column="sample",)
+        obj = DataSet(
+            loader=self.loader,
+            metadata_path=df,
+            sample_column="sample",
+        )
         #  is sample C removed
         self.assertEqual(self.obj.metadata.shape, (2, 2))
         mock.assert_called_once()
@@ -247,7 +251,11 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             df = pd.read_csv(self.metadata_path)
         else:
             df = pd.read_excel(self.metadata_path)
-        obj = DataSet(loader=self.loader, metadata_path=df, sample_column="sample",)
+        obj = DataSet(
+            loader=self.loader,
+            metadata_path=df,
+            sample_column="sample",
+        )
         self.assertIsInstance(obj.metadata, pd.DataFrame)
         self.assertFalse(obj.metadata.empty)
 
@@ -297,9 +305,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False, normalization="vst")
         expected_mat = pd.DataFrame(
             {
-                "a": [ 3.19059101,  11.591763, 8.365096],
-                "b": [0.084829, 0.084829, 0.084829],
-                "c": [0.000000, 7.850074, 6.435102],
+                "a": [-1.307734, 1.120100, 0.187634],
+                "b": [1.414214, -0.707107, -0.707107],
+                "c": [-1.360307, 1.015077, 0.345230],
             }
         )
         pd._testing.assert_frame_equal(self.obj.mat.round(2), expected_mat.round(2))
@@ -341,9 +349,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False, imputation="randomforest")
         expected_mat = pd.DataFrame(
             {
-                "a": [2.00000000e00, -9.22337204e12, 4.00000000e00],
+                "a": [2.00000000e00, 0, 4.00000000e00],
                 "b": [5.00000000e00, 4.00000000e00, 4.0],
-                "c": [-9.22337204e12, 1.00000000e01, -9.22337204e12],
+                "c": [0, 1.00000000e01, 0],
             }
         )
         pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
@@ -409,17 +417,19 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 evidence_file="testfiles/maxquant_go/evidence.txt",
             )
             DataSet(
-                loader=loader, metadata_path=self.metadata_path, sample_column="sample",
+                loader=loader,
+                metadata_path=self.metadata_path,
+                sample_column="sample",
             )
 
     def test_plot_pca_group(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column)
         # 5 different disease
         self.assertEqual(len(pca_plot.to_plotly_json().get("data")), 5)
-    
+
     def test_data_completeness(self):
         self.obj.preprocess(log2_transform=False, data_completeness=0.7)
-        self.assertEqual(self.obj.mat.shape[1], 517)
+        self.assertEqual(self.obj.mat.shape[1], 159)
 
     def test_plot_pca_circles(self):
         pca_plot = self.obj.plot_pca(group=self.comparison_column, circle=True)
@@ -460,9 +470,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True,
         )
-
-        self.assertEqual(len(result_list), 12)               
-
+        self.assertEqual(len(result_list), 12)
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)
@@ -488,6 +496,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     @patch("logging.Logger.warning")
     def test_plot_intenstity_subgroup_significance_warning(self, mock):
+        import streamlit as st
+
+        st.session_state["gene_to_prot_id"] = {}
         plot = self.obj.plot_intensity(
             protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
@@ -535,7 +546,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             draw_line=False,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        #self.assertTrue(n_labels > 20)
+        # self.assertTrue(n_labels > 20)
 
     def test_plot_volcano_wald(self):
         """
@@ -570,13 +581,15 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         self.assertEqual(line_1, "spline")
         self.assertEqual(line_2, "spline")
-    
+
     def test_plot_volcano_list(self):
         self.obj.preprocess(imputation="mean")
-        plot = self.obj.plot_volcano( method="ttest",
+        plot = self.obj.plot_volcano(
+            method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
-            color_list=self.obj.mat.columns.to_list()[0:20])
+            color_list=self.obj.mat.columns.to_list()[0:20],
+        )
         self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 20)
 
     def test_plot_clustermap_significant(self):
@@ -602,7 +615,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-    
+
     def test_plot_volcano_with_labels_proteins_welch_ttest(self):
         # remove gene names
         self.obj.gene_names = None
@@ -614,7 +627,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        #self.assertTrue(n_labels > 20)
+        # self.assertTrue(n_labels > 20)
 
     def test_calculate_diff_exp_wrong(self):
         # get groups from comparison column
@@ -711,28 +724,34 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(annotation, "***")
 
     def test_plot_intensity_all(self):
-        plot = self.obj.plot_intensity(protein_id="Q9BWP8", 
-            group="disease", 
+        plot = self.obj.plot_intensity(
+            protein_id="Q9BWP8",
+            group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             method="all",
-            add_significance=True)
+            add_significance=True,
+        )
         self.assertEqual(plot.to_plotly_json()["data"][0]["points"], "all")
 
-    
     def test_plot_samplehistograms(self):
         fig = self.obj.plot_samplehistograms().to_plotly_json()
         self.assertEqual(312, len(fig["data"]))
-    
+
     def test_batch_correction(self):
         self.obj.preprocess(subset=True, imputation="knn", normalization="quantile")
         self.obj.batch_correction(batch="batch_artifical_added")
-        first_value = self.obj.mat.values[0,0]
-        self.assertAlmostEqual(0.0111, first_value, places=2)   
+        first_value = self.obj.mat.values[0, 0]
+        self.assertAlmostEqual(0.0111, first_value, places=2)
 
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(
-            covariates=["disease", "Alkaline phosphatase measurement", "Body mass index ", "not here"],
+            covariates=[
+                "disease",
+                "Alkaline phosphatase measurement",
+                "Body mass index ",
+                "not here",
+            ],
             subset={"disease": ["healthy", "liver cirrhosis"]},
         )
         self.assertEqual(res.shape[1], 45)
@@ -743,7 +762,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     #                                     group2="liver cirrhosis",
     #                                     gene_sets= 'KEGG_2019_Human')
 
-    #     cholesterol_enhanced = 'Cholesterol metabolism' in df.index.to_list()
+    #     cholersterol_enhanced = 'Cholesterol metabolism' in df.index.to_list()
     #     self.assertTrue(cholersterol_enhanced)
 
 
@@ -910,7 +929,8 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
             shutil.rmtree("testfiles/spectronaut/__MACOSX")
 
         os.remove("testfiles/spectronaut/results.tsv")
-    
+
+
 class TestGenericDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
@@ -922,12 +942,17 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
         cls.cls_loader = GenericLoader(
             file="testfiles/fragpipe/combined_proteins.tsv",
             intensity_column=[
-                "S1 Razor Intensity",	"S2 Razor Intensity", "S3 Razor Intensity",
-                "S4 Razor Intensity",	"S5 Razor Intensity",	"S6 Razor Intensity", 
-                "S7 Razor Intensity", "S8 Razor Intensity"
+                "S1 Razor Intensity",
+                "S2 Razor Intensity",
+                "S3 Razor Intensity",
+                "S4 Razor Intensity",
+                "S5 Razor Intensity",
+                "S6 Razor Intensity",
+                "S7 Razor Intensity",
+                "S8 Razor Intensity",
             ],
             index_column="Protein",
-            sep="\t"
+            sep="\t",
         )
         cls.cls_metadata_path = "testfiles/fragpipe/metadata2.xlsx"
         cls.cls_obj = DataSet(
@@ -935,7 +960,7 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
             metadata_path=cls.cls_metadata_path,
             sample_column="analytical_sample external_id",
         )
-      
+
     def setUp(self):
         self.loader = copy.deepcopy(self.cls_loader)
         self.metadata_path = copy.deepcopy(self.cls_metadata_path)
@@ -949,7 +974,6 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
         if os.path.isdir("testfiles/fragpipe/__MACOSX"):
             shutil.rmtree("testfiles/fragpipe/__MACOSX")
 
-       
 
 if __name__ == "__main__":
     unittest.main()

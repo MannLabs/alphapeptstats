@@ -28,6 +28,7 @@ try:
         wait_for_run_completion,
         send_message_save_thread,
         try_to_set_api_key,
+        get_general_assistant_functions,
     )
     from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -56,6 +57,7 @@ except ModuleNotFoundError:
         wait_for_run_completion,
         send_message_save_thread,
         try_to_set_api_key,
+        get_general_assistant_functions,
     )
     from utils.ui_helper import sidebar_info
 
@@ -88,7 +90,7 @@ sidebar_info()
 
 
 # set background to white so downloaded pngs dont have grey background
-styl = f"""
+style = f"""
     <style>
         .css-jc5rf5 {{
             position: absolute;
@@ -99,11 +101,11 @@ styl = f"""
         }}
     </style>
     """
-st.markdown(styl, unsafe_allow_html=True)
+st.markdown(style, unsafe_allow_html=True)
 
 
-if "plot_list" not in st.session_state:
-    st.session_state["plot_list"] = []
+if "plot_list_GPT" not in st.session_state:
+    st.session_state["plot_list_GPT"] = []
 
 
 if "openai_model" not in st.session_state:
@@ -225,7 +227,7 @@ if (
         st.stop()
     print("genes_of_interest", genes_of_interest_colored)
 
-    save_plot_to_session_state(volcano_plot, method)
+    save_plot_to_session_state(volcano_plot, method, "plot_list_GPT")
     st.session_state["genes_of_interest_colored"] = genes_of_interest_colored
     # st.session_state["gene_functions"] = get_info(genes_of_interest_colored, organism)
     st.session_state["upregulated"] = [
@@ -251,10 +253,10 @@ elif (
     st.session_state["plot_submitted_counter"] > 0
     and st.session_state["plot_submitted_counter"]
     == st.session_state["plot_submitted_clicked"]
-    and len(st.session_state["plot_list"]) > 0
+    and len(st.session_state["plot_list_GPT"]) > 0
 ):
     with c2:
-        display_figure(st.session_state["plot_list"][-1][1].plot)
+        display_figure(st.session_state["plot_list_GPT"][-1][1].plot)
 
     st.subheader("Genes of interest")
     c1, c2 = st.columns((1, 2), gap="medium")
@@ -305,7 +307,6 @@ if gpt_submitted and "user_prompt" not in st.session_state:
 if gpt_submitted:
     st.session_state["gpt_submitted_clicked"] += 1
 
-# creating new assistant only once TODO: add a button to create new assistant
 if (
     st.session_state["gpt_submitted_clicked"]
     > st.session_state["gpt_submitted_counter"]
@@ -319,13 +320,16 @@ if (
             instructions=st.session_state["instructions"],
             name="Proteomics interpreter",
             model=st.session_state["openai_model"],
-            tools=get_assistant_functions(
-                gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
-                metadata=st.session_state["dataset"].metadata,
-                subgroups_for_each_group=get_subgroups_for_each_group(
-                    st.session_state["dataset"].metadata
+            tools=[
+                *get_general_assistant_functions(),
+                *get_assistant_functions(
+                    gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
+                    metadata=st.session_state["dataset"].metadata,
+                    subgroups_for_each_group=get_subgroups_for_each_group(
+                        st.session_state["dataset"].metadata
+                    ),
                 ),
-            ),
+            ],
         )
     except AuthenticationError:
         st.warning(
@@ -345,8 +349,14 @@ if (
     ]
     st.session_state["artefact_enum_dict"] = {}
     thread = client.beta.threads.create()
-    st.session_state["thread_id"] = thread.id
-    artefacts = send_message_save_thread(client, st.session_state["user_prompt"])
+    thread_id = thread.id
+    st.session_state["thread_id"] = thread_id
+    artefacts = send_message_save_thread(
+        client,
+        st.session_state["user_prompt"],
+        st.session_state["assistant"].id,
+        st.session_state["thread_id"],
+    )
     if artefacts:
         st.session_state["artefact_enum_dict"][
             len(st.session_state.messages) - 1
@@ -355,7 +365,12 @@ if (
 if st.session_state["gpt_submitted_clicked"] > 0:
     if prompt := st.chat_input("Say something"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        artefacts = send_message_save_thread(client, prompt)
+        artefacts = send_message_save_thread(
+            client,
+            prompt,
+            st.session_state["assistant"].id,
+            st.session_state["thread_id"],
+        )
         if artefacts:
             st.session_state["artefact_enum_dict"][
                 len(st.session_state.messages) - 1

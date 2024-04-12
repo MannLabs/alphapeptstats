@@ -163,6 +163,11 @@ def select_sample_column_metadata(df, software):
         submitted = st.form_submit_button("Create DataSet")
 
     if submitted:
+        if len(df[st.session_state.sample_column].to_list()) != len(
+            df[st.session_state.sample_column].unique()
+        ):
+            st.error("Sample names have to be unique.")
+            st.stop()
         return True
 
 
@@ -209,7 +214,6 @@ def create_metadata_file():
         # Write each dataframe to a different worksheet.
         metadata.to_excel(writer, sheet_name="Sheet1", index=False)
         # Close the Pandas Excel writer and output the Excel file to the buffer
-        writer.close()
 
         st.download_button(
             label="Download metadata template as Excel",
@@ -248,8 +252,6 @@ def upload_metadatafile(software):
 
             load_options()
 
-            display_loaded_dataset()
-
     if st.session_state.loader is not None:
         create_metadata_file()
         st.write(
@@ -265,8 +267,6 @@ def upload_metadatafile(software):
 
             load_options()
 
-            display_loaded_dataset()
-
 
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
@@ -279,9 +279,11 @@ def load_sample_data():
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
-    metadatapath = os.path.join(_this_directory, "sample_data", "metadata.xlsx").replace(
-        "pages/", ""
-    ).replace("pages\\", "")
+    metadatapath = (
+        os.path.join(_this_directory, "sample_data", "metadata.xlsx")
+        .replace("pages/", "")
+        .replace("pages\\", "")
+    )
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
@@ -305,17 +307,19 @@ def load_sample_data():
 def import_data():
     options = ["<select>"] + list(software_options.keys())
 
-    software = st.selectbox(
+    st.selectbox(
         "Select your Proteomics Software",
         options=options,
+        key="software",
     )
     session_state_empty = False
 
-    if software != "<select>":
-        upload_softwarefile(software=software)
-
+    if st.session_state.software != "<select>":
+        upload_softwarefile(software=st.session_state.software)
+    if "loader" not in st.session_state:
+        st.session_state["loader"] = None
     if st.session_state.loader is not None:
-        upload_metadatafile(software)
+        upload_metadatafile(st.session_state.software)
 
 
 def display_loaded_dataset():
@@ -357,6 +361,7 @@ def empty_session_state():
     for key in st.session_state.keys():
         del st.session_state[key]
     st.empty()
+    st.session_state["software"] = "<select>"
 
     from streamlit.runtime import get_instance
     from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
@@ -367,7 +372,6 @@ def empty_session_state():
 
 sidebar_info()
 
-
 if "dataset" not in st.session_state:
     st.markdown("### Import Proteomics Data")
 
@@ -375,8 +379,17 @@ if "dataset" not in st.session_state:
         "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
     )
 
-    import_data()
-    st.markdown("### Or Load sample Dataset")
+import_data()
+
+if "dataset" in st.session_state:
+    st.info("DataSet has been imported")
+
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
+
+    display_loaded_dataset()
+
+st.markdown("### Or Load sample Dataset")
 
 if st.button("Load sample DataSet - PXD011839"):
     st.write(
@@ -407,16 +420,9 @@ if st.button("Load sample DataSet - PXD011839"):
 
     load_sample_data()
 
-if "dataset" in st.session_state:
-    st.info("DataSet has been imported")
 
-    if "distribution_plot" not in st.session_state:
-        save_plot_sampledistribution_rawdata()
+st.markdown("### To start a new session:")
 
-    if st.button("New Session: Import new dataset"):
-        empty_session_state()
-
-        import_data()
-
-    if "dataset" in st.session_state:
-        display_loaded_dataset()
+if st.button("New Session: Import new dataset"):
+    empty_session_state()
+    st.rerun()
