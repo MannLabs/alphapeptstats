@@ -189,11 +189,11 @@ class Preprocess:
 
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
-            normalized_array = scaler.fit_transform(self.mat.values)
+            normalized_array = scaler.fit_transform(self.mat.values.transpose()).transpose()
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
-            normalized_array = qt.fit_transform(self.mat.values)
+            normalized_array = qt.fit_transform(self.mat.values.transpose()).transpose()
 
         elif method == "linear":
             normalized_array = self._linear_normalization(self.mat)
@@ -201,8 +201,8 @@ class Preprocess:
         elif method == "vst":
             minmax = sklearn.preprocessing.MinMaxScaler()
             scaler = sklearn.preprocessing.PowerTransformer()
-            minmaxed_array = minmax.fit_transform(self.mat.values)
-            normalized_array = scaler.fit_transform(minmaxed_array)
+            minmaxed_array = minmax.fit_transform(self.mat.values.transpose())
+            normalized_array = scaler.fit_transform(minmaxed_array).transpose()
 
         else:
             raise ValueError(
