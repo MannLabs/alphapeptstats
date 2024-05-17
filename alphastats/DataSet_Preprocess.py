@@ -1,15 +1,15 @@
-from random import random
+import itertools
+import logging
+
+import numpy as np
 import pandas as pd
 import sklearn
-import logging
-import numpy as np
 import sklearn.ensemble
 import sklearn.impute
-from alphastats.utils import ignore_warning
-from sklearn.experimental import enable_iterative_imputer
-import itertools
-
 import streamlit as st
+
+from sklearn.experimental import enable_iterative_imputer
+from alphastats.utils import ignore_warning
 
 
 class Preprocess:
@@ -31,9 +31,14 @@ class Preprocess:
         print(pd.DataFrame(self.preprocessing_info.items()))
 
     def _remove_na_values(self, cut_off):
-        if self.preprocessing_info.get("Missing values were removed") and self.preprocessing_info.get("Data completeness cut-off") == cut_off:
+        if (
+            self.preprocessing_info.get("Missing values were removed")
+            and self.preprocessing_info.get("Data completeness cut-off") == cut_off
+        ):
             logging.info("Missing values have already been filtered.")
-            st.warning("Missing values have already been filtered. To apply another cutoff, reset preprocessing.")
+            st.warning(
+                "Missing values have already been filtered. To apply another cutoff, reset preprocessing."
+            )
             return
         cut = 1 - cut_off
 
@@ -59,25 +64,25 @@ class Preprocess:
 
         self.preprocessing_info.update(
             {
-                "Number of removed ProteinGroups due to data completeness cutoff": num_proteins - self.mat.shape[1],
+                "Number of removed ProteinGroups due to data completeness cutoff": num_proteins
+                - self.mat.shape[1],
                 "Missing values were removed": True,
                 "Data completeness cut-off": cut_off,
             }
         )
-       
 
     def _filter(self):
         if len(self.filter_columns) == 0:
             logging.info("No columns to filter.")
             return
 
-        if self.preprocessing_info.get("Contaminations have been removed") == True:
+        if self.preprocessing_info.get("Contaminations have been removed"):
             logging.info("Contaminatons have already been filtered.")
             return
 
         #  print column names with contamination
         protein_groups_to_remove = self.rawinput[
-            (self.rawinput[self.filter_columns] == True).any(axis=1)
+            self.rawinput[self.filter_columns].any(axis=1)
         ][self.index_column].tolist()
 
         protein_groups_to_remove = list(
@@ -186,10 +191,11 @@ class Preprocess:
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method: str):
-
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
-            normalized_array = scaler.fit_transform(self.mat.values.transpose()).transpose()
+            normalized_array = scaler.fit_transform(
+                self.mat.values.transpose()
+            ).transpose()
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
@@ -268,7 +274,6 @@ class Preprocess:
         Args:
             batch (str): column name in the metadata describing the different batches
         """
-        import combat
         from combat.pycombat import pycombat
 
         data = self.mat.transpose()

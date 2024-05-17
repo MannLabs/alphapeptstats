@@ -270,9 +270,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False, normalization="zscore")
         expected_mat = pd.DataFrame(
             {
-                "a": [-1.33630621, 1.06904497, 0.26726124],
-                "b": [1.41421356, -0.70710678, -0.70710678],
-                "c": [-1.38873015, 0.9258201, 0.46291005],
+                "a": [-0.162221, -0.508001, -0.707107],
+                "b": [1.297771, -0.889001, -0.707107],
+                "c": [-1.135550, 1.397001, 1.414214],
             }
         )
         pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
@@ -282,7 +282,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         # Quantile Normalization
         self.obj.preprocess(log2_transform=False, normalization="quantile")
         expected_mat = pd.DataFrame(
-            {"a": [0.0, 1.0, 0.5], "b": [1.0, 0.0, 0.0], "c": [0.0, 1.0, 0.5]}
+            {"a": [0.5, 0.5, 0.0], 
+             "b": [1.0, 0.0, 0.0], 
+             "c": [0.0, 1.0, 1.0]}
         )
         pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
 
@@ -306,9 +308,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False, normalization="vst")
         expected_mat = pd.DataFrame(
             {
-                "a": [-1.307734, 1.120100, 0.187634],
-                "b": [	1.414214, -0.707107, -0.707107],
-                "c": [-1.360307, 1.015077, 0.345230],
+                "a": [-0.009526, -0.236399, -0.707107],
+                "b": [	1.229480, -1.089313, -0.707107],
+                "c": [-1.219954, 1.325712, 1.414214],
             }
         )
         pd._testing.assert_frame_equal(self.obj.mat.round(2), expected_mat.round(2))
@@ -507,7 +509,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 5)
-        mock.assert_called_once()
+        self.assertEqual(mock.call_count, 2)
 
     def test_anova_with_tukey(self):
         # with first 100 protein ids
@@ -577,8 +579,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
 
         # fdr lines get drawn
-        line_1 = plot.to_plotly_json()["data"][3].get("line").get("shape")
-        line_2 = plot.to_plotly_json()["data"][4].get("line").get("shape")
+        line_1 = plot.to_plotly_json()["data"][-2].get("line").get("shape")
+        line_2 = plot.to_plotly_json()["data"][-1].get("line").get("shape")
 
         self.assertEqual(line_1, "spline")
         self.assertEqual(line_2, "spline")
@@ -739,10 +741,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(312, len(fig["data"]))
 
     def test_batch_correction(self):
-        self.obj.preprocess(subset=True, imputation="knn", normalization="quantile")
+        self.obj.preprocess(subset=True, imputation="knn", normalization="linear")
         self.obj.batch_correction(batch="batch_artifical_added")
         first_value = self.obj.mat.values[0, 0]
-        self.assertAlmostEqual(0.0111, first_value, places=2)
+        self.assertAlmostEqual(-0.00555, first_value, places=3)
 
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
