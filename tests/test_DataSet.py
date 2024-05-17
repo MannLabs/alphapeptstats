@@ -352,9 +352,9 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(log2_transform=False, imputation="randomforest")
         expected_mat = pd.DataFrame(
             {
-                "a": [2.00000000e00, 0, 4.00000000e00],
-                "b": [5.00000000e00, 4.00000000e00, 4.0],
-                "c": [0, 1.00000000e01, 0],
+                "a": [2.0, 3.0, 4.0],
+                "b": [5.0, 4.0, 4.0],
+                "c": [10.0, 10.0, 10.0],
             }
         )
         pd._testing.assert_frame_equal(self.obj.mat, expected_mat)

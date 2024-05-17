@@ -8,7 +8,7 @@ import sklearn.ensemble
 import sklearn.impute
 import streamlit as st
 
-from sklearn.experimental import enable_iterative_imputer
+from sklearn.experimental import enable_iterative_imputer #noqa
 from alphastats.utils import ignore_warning
 
 
@@ -140,25 +140,11 @@ class Preprocess:
             imputation_array = imp.fit_transform(self.mat.values)
 
         elif method == "randomforest":
-            randomforest = sklearn.ensemble.RandomForestRegressor(
-                max_depth=10,
-                bootstrap=True,
-                max_samples=0.5,
-                n_jobs=2,
-                random_state=0,
-                verbose=0,  #  random forest takes a while print progress
+            imp = sklearn.ensemble.HistGradientBoostingRegressor(
+                max_depth=10, max_iter=100, random_state=0
             )
-            imp = sklearn.impute.IterativeImputer(
-                random_state=0, estimator=randomforest
-            )
-
-            # the random forest imputer doesnt work with float32/float16..
-            #  so the values are multiplied and converted to integers
-            array_multi_mio = self.mat.values * 1000000
-            array_int = array_multi_mio.astype("int")
-
-            imputation_array = imp.fit_transform(array_int)
-            imputation_array = imputation_array / 1000000
+            imp = sklearn.impute.IterativeImputer(random_state=0, estimator=imp)
+            imputation_array = imp.fit_transform(self.mat.values)
 
         else:
             raise ValueError(
