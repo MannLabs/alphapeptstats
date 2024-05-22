@@ -158,20 +158,20 @@ class Preprocess:
         )
         self.preprocessing_info.update({"Imputation": method})
 
-    def _linear_normalization(self, array):
+    def _linear_normalization(self, dataframe: pd.DataFrame):
         """Normalize data using l2 norm without breaking when encoutering nones
         l2 = sqrt(sum(x**2))
 
         Args:
-            array (pd.Series): array to normalize (1D array)
+            dataframe (pd.DataFrame): dataframe to normalize
 
         Returns:
-            np.array: normalized array
+            np.array: normalized np.array
         """
-        square_sum_per_row = array.pow(2).sum(axis=1, skipna=True)
+        square_sum_per_row = dataframe.pow(2).sum(axis=1, skipna=True)
 
         l2_norms = np.sqrt(square_sum_per_row)
-        normalized_vals = array.div(l2_norms.replace(0, 1), axis=0)
+        normalized_vals = dataframe.div(l2_norms.replace(0, 1), axis=0)
         return normalized_vals.values
 
     @ignore_warning(UserWarning)

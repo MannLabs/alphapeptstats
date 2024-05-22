@@ -42,7 +42,7 @@ if "gene_to_prot_id" not in st.session_state:
     st.session_state["gene_to_prot_id"] = {}
 
 if "organism" not in st.session_state:
-    st.session_state["organism"] = 9606
+    st.session_state["organism"] = 9606 # human
 
 
 def load_options():
