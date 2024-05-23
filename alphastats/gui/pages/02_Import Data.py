@@ -279,9 +279,11 @@ def load_sample_data():
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
-    metadatapath = os.path.join(_this_directory, "sample_data", "metadata.xlsx").replace(
-        "pages/", ""
-    ).replace("pages\\", "")
+    metadatapath = (
+        os.path.join(_this_directory, "sample_data", "metadata.xlsx")
+        .replace("pages/", "")
+        .replace("pages\\", "")
+    )
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")

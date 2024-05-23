@@ -10,7 +10,6 @@ from sklearn.experimental import enable_iterative_imputer
 import itertools
 
 
-
 class Preprocess:
     def _remove_sampels(self, sample_list: list):
         # exclude samples for analysis
@@ -46,16 +45,15 @@ class Preprocess:
                         keep_list += [column_name]
 
             except ValueError:
-                invalid +=1
+                invalid += 1
                 continue
 
-        self.mat= self.mat[keep_list]
-        self.preprocessing_info.update(
-            {"Data completeness cut-off": cut_off}
-        )
+        self.mat = self.mat[keep_list]
+        self.preprocessing_info.update({"Data completeness cut-off": cut_off})
         percentage = cut_off * 100
-        print(f"Proteins with a data completeness across all samples of less than {percentage} % have been removed.")
-
+        print(
+            f"Proteins with a data completeness across all samples of less than {percentage} % have been removed."
+        )
 
     def _filter(self):
         if len(self.filter_columns) == 0:
@@ -109,11 +107,15 @@ class Preprocess:
         logging.info("Imputing data...")
 
         if method == "mean":
-            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="mean", keep_empty_features=True)
+            imp = sklearn.impute.SimpleImputer(
+                missing_values=np.nan, strategy="mean", keep_empty_features=True
+            )
             imputation_array = imp.fit_transform(self.mat.values)
 
         elif method == "median":
-            imp = sklearn.impute.SimpleImputer(missing_values=np.nan, strategy="median", keep_empty_features=True)
+            imp = sklearn.impute.SimpleImputer(
+                missing_values=np.nan, strategy="median", keep_empty_features=True
+            )
             imputation_array = imp.fit_transform(self.mat.values)
 
         elif method == "knn":
@@ -158,7 +160,6 @@ class Preprocess:
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _normalization(self, method: str):
-
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
             normalized_array = scaler.fit_transform(self.mat.values)
@@ -189,8 +190,7 @@ class Preprocess:
         self.preprocessing_info.update({"Normalization": method})
 
     def reset_preprocessing(self):
-        """ Reset all preprocessing steps
-        """
+        """Reset all preprocessing steps"""
         #  reset all preprocessing steps
         self.create_matrix()
         print("All preprocessing steps are reset.")
@@ -199,10 +199,11 @@ class Preprocess:
     def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
         imputation_methods = ["mean", "median", "knn", "randomforest"]
-        normalization_methods = ["vst","zscore", "quantile" ]
+        normalization_methods = ["vst", "zscore", "quantile"]
 
-        preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
-
+        preprocessing_modes = list(
+            itertools.product(normalization_methods, imputation_methods)
+        )
 
         results_list = []
 
@@ -212,7 +213,9 @@ class Preprocess:
         for preprocessing_mode in preprocessing_modes:
             # reset preprocessing
             dataset.reset_preprocessing()
-            print(f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}")
+            print(
+                f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}"
+            )
             dataset.mat.replace([np.inf, -np.inf], np.nan, inplace=True)
 
             dataset.preprocess(
@@ -233,7 +236,7 @@ class Preprocess:
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
 
-    def batch_correction(self, batch:str):
+    def batch_correction(self, batch: str):
         """Correct for technical bias/batch effects
         Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
         Args:
@@ -241,20 +244,23 @@ class Preprocess:
         """
         import combat
         from combat.pycombat import pycombat
+
         data = self.mat.transpose()
-        series_of_batches = self.metadata.set_index(self.sample).reindex(data.columns.to_list())[batch]
+        series_of_batches = self.metadata.set_index(self.sample).reindex(
+            data.columns.to_list()
+        )[batch]
         self.mat = pycombat(data=data, batch=series_of_batches).transpose()
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
-        log2_transform: bool=True,
-        remove_contaminations: bool=False,
-        subset: bool=False,
-        data_completeness: float=0,
-        normalization: str=None,
-        imputation: str=None,
-        remove_samples: list=None,
+        log2_transform: bool = True,
+        remove_contaminations: bool = False,
+        subset: bool = False,
+        data_completeness: float = 0,
+        normalization: str = None,
+        imputation: str = None,
+        remove_samples: list = None,
     ):
         """Preprocess Protein data
 
@@ -307,8 +313,7 @@ class Preprocess:
         if subset:
             self.mat = self._subset()
 
-
-        if data_completeness> 0:
+        if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)
 
         if log2_transform and self.preprocessing_info.get("Log2-transformed") is False:

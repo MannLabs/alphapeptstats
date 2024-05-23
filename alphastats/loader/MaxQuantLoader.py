@@ -10,14 +10,18 @@ class MaxQuantLoader(BaseLoader):
     def __init__(
         self,
         file,
-        intensity_column:Union[str, list]="LFQ intensity [sample]",
-        index_column:str="Protein IDs",
-        gene_names_column:str="Gene names",
-        filter_columns:list=["Only identified by site", "Reverse", "Potential contaminant"],
-        confidence_column:str="Q-value",
+        intensity_column: Union[str, list] = "LFQ intensity [sample]",
+        index_column: str = "Protein IDs",
+        gene_names_column: str = "Gene names",
+        filter_columns: list = [
+            "Only identified by site",
+            "Reverse",
+            "Potential contaminant",
+        ],
+        confidence_column: str = "Q-value",
         evidence_file=None,
-        sep:str="\t",
-        **kwargs
+        sep: str = "\t",
+        **kwargs,
     ):
         """Loader MaxQuant output
 

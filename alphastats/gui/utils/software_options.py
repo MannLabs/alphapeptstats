@@ -10,7 +10,12 @@ software_options = {
     "MaxQuant": {
         "import_file": "Please upload proteinGroups.txt",
         "intensity_column": ["LFQ intensity [sample]", "Intensity [sample]"],
-        "index_column": ["Protein IDs", "Gene names", "Majority protein IDs", "Protein names"],
+        "index_column": [
+            "Protein IDs",
+            "Gene names",
+            "Majority protein IDs",
+            "Protein names",
+        ],
         "loader_function": MaxQuantLoader,
     },
     "AlphaPept": {
@@ -37,13 +42,13 @@ software_options = {
         "index_column": ["PG.ProteinGroups", "PEP.StrippedSequence"],
         "loader_function": SpectronautLoader,
     },
-     "Other": {
+    "Other": {
         "import_file": "Please upload your proteomics file.",
         "intensity_column": [],
         "index_column": [],
         "loader_function": GenericLoader,
     },
-     "mzTab": {
+    "mzTab": {
         "import_file": "Please upload your .mzTab file with quantitative proteomics data.",
         "intensity_column": ["protein_abundance_[sample]"],
         "index_column": ["accession"],

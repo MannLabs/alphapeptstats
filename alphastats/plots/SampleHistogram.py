@@ -4,10 +4,12 @@ import plotly.express as px
 
 import math
 
+
 class SampleHistogram:
     """
     Plot denisty plot of each sample in a matrix
     """
+
     def __init__(self, dataset):
         self.dataset = dataset
         self._get_matrix()
@@ -17,7 +19,7 @@ class SampleHistogram:
 
     def _get_position_in_matrix(self, count):
         count += 1
-        row = math.ceil(count / 4 )
+        row = math.ceil(count / 4)
         col = count % 4
 
         if col == 0:
@@ -33,13 +35,11 @@ class SampleHistogram:
             n_columns = n_samples
 
         else:
-            n_rows = math.ceil(n_samples/4)
+            n_rows = math.ceil(n_samples / 4)
             n_columns = 4
 
         self.plot = make_subplots(
-            rows=n_rows,
-            cols=n_columns,
-            subplot_titles=self.data.columns.to_list()
+            rows=n_rows, cols=n_columns, subplot_titles=self.data.columns.to_list()
         )
 
     def plot(self):
@@ -50,7 +50,7 @@ class SampleHistogram:
 
             data_column = self.data[self.data[x] != 0][x].dropna()
 
-            self.plot.add_trace(go.Histogram(x=data_column),row=row,col=col)
+            self.plot.add_trace(go.Histogram(x=data_column), row=row, col=col)
 
         self.plot.update_layout(showlegend=False)
 

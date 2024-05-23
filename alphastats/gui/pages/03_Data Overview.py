@@ -10,7 +10,6 @@ def convert_df(df, user_session_id=st.session_state.user_session_id):
 
 @st.cache_data
 def get_display_matrix(user_session_id=st.session_state.user_session_id):
-
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
@@ -20,7 +19,6 @@ def get_display_matrix(user_session_id=st.session_state.user_session_id):
 
 
 def display_matrix():
-
     text = (
         "Normalization: "
         + str(st.session_state.dataset.preprocessing_info["Normalization"])
@@ -44,13 +42,15 @@ def display_matrix():
 
 
 @st.cache_data
-def get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id):
+def get_sample_histogram_matrix(user_session_id=st.session_state.user_session_id):
     return st.session_state.dataset.plot_samplehistograms()
 
-@st.cache_data
-def get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id):
-    return st.session_state.dataset.plot_sampledistribution()
 
+@st.cache_data
+def get_intensity_distribution_processed(
+    user_session_id=st.session_state.user_session_id,
+):
+    return st.session_state.dataset.plot_sampledistribution()
 
 
 if "dataset" in st.session_state:
@@ -59,7 +59,6 @@ if "dataset" in st.session_state:
     c1, c2 = st.columns(2)
 
     with c1:
-
         st.markdown("**Intensity distribution raw data per sample**")
         st.plotly_chart(
             st.session_state.distribution_plot.update_layout(plot_bgcolor="white"),
@@ -67,18 +66,20 @@ if "dataset" in st.session_state:
         )
 
     with c2:
-
         st.markdown("**Intensity distribution data per sample used for analysis**")
         st.plotly_chart(
-            get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id)
-                        .update_layout(plot_bgcolor="white"), use_container_width=True
+            get_intensity_distribution_processed(
+                user_session_id=st.session_state.user_session_id
+            ).update_layout(plot_bgcolor="white"),
+            use_container_width=True,
         )
 
     st.plotly_chart(
-        get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id)
-                    .update_layout(plot_bgcolor="white"), use_container_width=True
+        get_sample_histogram_matrix(
+            user_session_id=st.session_state.user_session_id
+        ).update_layout(plot_bgcolor="white"),
+        use_container_width=True,
     )
-
 
     display_matrix()
 

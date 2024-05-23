@@ -6,17 +6,23 @@ from alphastats.utils import find_duplicates_in_list
 import pkg_resources
 from typing import Union
 
+
 class BaseLoader:
     """Parent class of Loaders"""
 
-    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:Union[str, list], index_column:str, sep:str):
+    def __init__(
+        self,
+        file: Union[str, pd.DataFrame],
+        intensity_column: Union[str, list],
+        index_column: str,
+        sep: str,
+    ):
         """BaseLoader for AlphaPept, MaxQuant, Fragpipe, Spectronau and DIANNLoader
 
         Args:
             file_path (str): path to file
             sep (str, optional): file separation. Defaults to "\t".
         """
-
 
         if isinstance(file, pd.DataFrame):
             self.rawinput = file
@@ -52,7 +58,9 @@ class BaseLoader:
         self.rawinput.columns = self.rawinput.columns.astype(str)
 
     def _check_if_indexcolumn_is_unique(self):
-        duplicated_values = find_duplicates_in_list(self.rawinput[self.index_column].to_list())
+        duplicated_values = find_duplicates_in_list(
+            self.rawinput[self.index_column].to_list()
+        )
         if len(duplicated_values) > 0:
             # error or warning, duplicates could be resolved with preprocessing/filtering
             logging.warning(
@@ -83,6 +91,7 @@ class BaseLoader:
             + "The contaminant library was created by Frankenfield et al."
             + ":https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
         )
+
     def read_uploaded_file_into_df(self, file):
         filename = file.name
 
