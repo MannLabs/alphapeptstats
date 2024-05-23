@@ -17,16 +17,11 @@ from unittest.mock import patch, MagicMock
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 import streamlit as st
 
-st.session_state.metadata_columns = ["disease"]
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
-from alphastats.gui.utils.options import plotting_options, statistic_options
 
 if "gene_to_prot_id" not in st.session_state:
     st.session_state["gene_to_prot_id"] = {}
-
-st.session_state["plotting_options"] = plotting_options
-st.session_state["statistic_options"] = statistic_options
 
 from alphastats.gui.utils.gpt_helper import (
     get_assistant_functions,

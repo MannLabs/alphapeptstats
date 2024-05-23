@@ -1,26 +1,30 @@
-import streamlit as st
-import sys
-import os
 import io
+import os
+
+import streamlit as st
 
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info
-    from alphastats.gui.utils.analysis_helper import *
-    from alphastats.gui.utils.software_options import software_options
-    from alphastats.loader.MaxQuantLoader import MaxQuantLoader
     from alphastats.DataSet import DataSet
+    from alphastats.gui.utils.analysis_helper import (
+        get_sample_names_from_software_file,
+        read_uploaded_file_into_df,
+    )
+    from alphastats.gui.utils.software_options import software_options
+    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
-    from utils.analysis_helper import *
+    from utils.analysis_helper import (
+        get_sample_names_from_software_file,
+        read_uploaded_file_into_df,
+    )
     from utils.software_options import software_options
     from alphastats import MaxQuantLoader
     from alphastats import DataSet
 
-
 import pandas as pd
 import plotly.express as px
-
 from streamlit.runtime import get_instance
 from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
@@ -38,7 +42,7 @@ if "gene_to_prot_id" not in st.session_state:
     st.session_state["gene_to_prot_id"] = {}
 
 if "organism" not in st.session_state:
-    st.session_state["organism"] = 9606
+    st.session_state["organism"] = 9606 # human
 
 
 def load_options():
@@ -56,7 +60,7 @@ def check_software_file(df, software):
 
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+        if not set(expected_columns).issubset(set(df.columns.to_list())):
             st.error(
                 "This is not a valid MaxQuant file. Please check:"
                 "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
@@ -71,7 +75,7 @@ def check_software_file(df, software):
             "Protein.Group",
         ]
 
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+        if not set(expected_columns).issubset(set(df.columns.to_list())):
             st.error("This is not a valid DIA-NN file.")
 
     elif software == "Spectronaut":
@@ -79,12 +83,12 @@ def check_software_file(df, software):
             "PG.ProteinGroups",
         ]
 
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+        if not set(expected_columns).issubset(set(df.columns.to_list())):
             st.error("This is not a valid Spectronaut file.")
 
     elif software == "FragPipe":
         expected_columns = ["Protein"]
-        if (set(expected_columns).issubset(set(df.columns.to_list()))) == False:
+        if not set(expected_columns).issubset(set(df.columns.to_list())):
             st.error(
                 "This is not a valid FragPipe file. Please check:"
                 "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
@@ -154,7 +158,7 @@ def select_sample_column_metadata(df, software):
         )
 
     st.write(
-        f"Select column that contains sample IDs matching the sample names described "
+        "Select column that contains sample IDs matching the sample names described "
         + f"in {software_options.get(software).get('import_file')}"
     )
 
@@ -163,6 +167,11 @@ def select_sample_column_metadata(df, software):
         submitted = st.form_submit_button("Create DataSet")
 
     if submitted:
+        if len(df[st.session_state.sample_column].to_list()) != len(
+            df[st.session_state.sample_column].unique()
+        ):
+            st.error("Sample names have to be unique.")
+            st.stop()
         return True
 
 
@@ -208,8 +217,6 @@ def create_metadata_file():
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         # Write each dataframe to a different worksheet.
         metadata.to_excel(writer, sheet_name="Sheet1", index=False)
-        # Close the Pandas Excel writer and output the Excel file to the buffer
-        writer.close()
 
         st.download_button(
             label="Download metadata template as Excel",
@@ -245,10 +252,7 @@ def upload_metadatafile(software):
                 sample_column=st.session_state.sample_column,
             )
             st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
-
             load_options()
-
-            display_loaded_dataset()
 
     if st.session_state.loader is not None:
         create_metadata_file()
@@ -265,8 +269,6 @@ def upload_metadatafile(software):
 
             load_options()
 
-            display_loaded_dataset()
-
 
 def load_sample_data():
     _this_file = os.path.abspath(__file__)
@@ -279,9 +281,11 @@ def load_sample_data():
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
-    metadatapath = os.path.join(_this_directory, "sample_data", "metadata.xlsx").replace(
-        "pages/", ""
-    ).replace("pages\\", "")
+    metadatapath = (
+        os.path.join(_this_directory, "sample_data", "metadata.xlsx")
+        .replace("pages/", "")
+        .replace("pages\\", "")
+    )
 
     loader = MaxQuantLoader(file=filepath)
     ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
@@ -305,17 +309,18 @@ def load_sample_data():
 def import_data():
     options = ["<select>"] + list(software_options.keys())
 
-    software = st.selectbox(
+    st.selectbox(
         "Select your Proteomics Software",
         options=options,
+        key="software",
     )
-    session_state_empty = False
 
-    if software != "<select>":
-        upload_softwarefile(software=software)
-
+    if st.session_state.software != "<select>":
+        upload_softwarefile(software=st.session_state.software)
+    if "loader" not in st.session_state:
+        st.session_state["loader"] = None
     if st.session_state.loader is not None:
-        upload_metadatafile(software)
+        upload_metadatafile(st.session_state.software)
 
 
 def display_loaded_dataset():
@@ -325,10 +330,10 @@ def display_loaded_dataset():
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
     st.dataframe(st.session_state.dataset.rawinput.head(5))
 
-    st.markdown(f"*Preview:* Metadata")
+    st.markdown("*Preview:* Metadata")
     st.dataframe(st.session_state.dataset.metadata.head(5))
 
-    st.markdown(f"*Preview:* Matrix")
+    st.markdown("*Preview:* Matrix")
 
     df = pd.DataFrame(
         st.session_state.dataset.mat.values,
@@ -357,8 +362,8 @@ def empty_session_state():
     for key in st.session_state.keys():
         del st.session_state[key]
     st.empty()
+    st.session_state["software"] = "<select>"
 
-    from streamlit.runtime import get_instance
     from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
     user_session_id = get_script_run_ctx().session_id
@@ -375,8 +380,17 @@ if "dataset" not in st.session_state:
         "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
     )
 
-    import_data()
-    st.markdown("### Or Load sample Dataset")
+import_data()
+
+if "dataset" in st.session_state:
+    st.info("DataSet has been imported")
+
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
+
+    display_loaded_dataset()
+
+st.markdown("### Or Load sample Dataset")
 
 if st.button("Load sample DataSet - PXD011839"):
     st.write(
@@ -407,16 +421,9 @@ if st.button("Load sample DataSet - PXD011839"):
 
     load_sample_data()
 
-if "dataset" in st.session_state:
-    st.info("DataSet has been imported")
 
-    if "distribution_plot" not in st.session_state:
-        save_plot_sampledistribution_rawdata()
+st.markdown("### To start a new session:")
 
-    if st.button("New Session: Import new dataset"):
-        empty_session_state()
-
-        import_data()
-
-    if "dataset" in st.session_state:
-        display_loaded_dataset()
+if st.button("New Session: Import new dataset"):
+    empty_session_state()
+    st.rerun()

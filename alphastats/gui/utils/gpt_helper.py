@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, Union
+from typing import Optional, Union, List
 from pathlib import Path
 import requests
 
@@ -92,7 +92,7 @@ def get_subgroups_for_each_group(
     return group_to_subgroup_values
 
 
-def get_unique_values_from_column(column: str, metadata: pd.DataFrame) -> list[str]:
+def get_unique_values_from_column(column: str, metadata: pd.DataFrame) -> List[str]:
     """
     Get the unique values from a column in the metadata file.
 
@@ -107,7 +107,7 @@ def get_unique_values_from_column(column: str, metadata: pd.DataFrame) -> list[s
     return [str(i) for i in unique_values]
 
 
-def display_proteins(overexpressed: list[str], underexpressed: list[str]) -> None:
+def display_proteins(overexpressed: List[str], underexpressed: List[str]) -> None:
     """
     Display a list of overexpressed and underexpressed proteins in a Streamlit app.
 
@@ -139,7 +139,7 @@ def get_assistant_functions(
     gene_to_prot_id_dict: dict,
     metadata: pd.DataFrame,
     subgroups_for_each_group: dict,
-) -> list[dict]:
+) -> List[dict]:
     """
     Get a list of assistant functions for function calling in the ChatGPT model.
     You can call this function with no arguments, arguments are given for clarity on what changes the behavior of the function.
@@ -363,7 +363,7 @@ def perform_dimensionality_reduction(group, method, circle, **kwargs):
 def get_uniprot_data(
     gene_name: str,
     organism_id: str,
-    fields: list[str] = uniprot_fields,
+    fields: List[str] = uniprot_fields,
 ) -> dict:
     """
     Get data from UniProt for a given gene name and organism ID.
@@ -557,7 +557,7 @@ def extract_data(data: dict) -> dict:
     return extracted
 
 
-def get_info(genes_list: list[str], organism_id: str) -> list[str]:
+def get_info(genes_list: List[str], organism_id: str) -> List[str]:
     """
     Get info from UniProt for a list of genes.
 
@@ -631,7 +631,7 @@ def get_functional_annotation_STRING(identifier, species_id="9606") -> pd.DataFr
         return None
 
 
-def get_functional_annotation_GProfiler(identifiers: list[str]) -> pd.DataFrame:
+def get_functional_annotation_GProfiler(identifiers: List[str]) -> pd.DataFrame:
     """
     Get functional annotation from g:Profiler for a list of gene identifiers.
 
@@ -650,7 +650,7 @@ def get_functional_annotation_GProfiler(identifiers: list[str]) -> pd.DataFrame:
 
 
 def get_enrichment_data(
-    difexpressed: list[str], organism_id: str = 9606, tool: str = "gprofiler"
+    difexpressed: List[str], organism_id: str = 9606, tool: str = "gprofiler"
 ) -> pd.DataFrame:
     """
     Get enrichment data for a list of differentially expressed genes.
