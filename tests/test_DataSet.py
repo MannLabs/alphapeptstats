@@ -509,7 +509,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 5)
-        self.assertEqual(mock.call_count, 2)
+        self.assertEqual(mock.call_count, 1)
 
     def test_anova_with_tukey(self):
         # with first 100 protein ids
