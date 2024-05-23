@@ -1,16 +1,16 @@
 Uniprot ID	Entry name	Status	Protein names	Gene names	Organism	Length	Source of Contamination
 P00722	BGAL_ECOLI	reviewed	Beta-galactosidase (Beta-gal) (EC 3.2.1.23) (Lactase)	lacZ b0344 JW0335	Escherichia coli (strain K12)	1024	Bacterial Ecoli
-P09870	CLOS_HATHI	reviewed	"Clostripain (EC 3.4.22.8) (Clostridiopeptidase B) [Cleaved into: Clostripain light chain; Clostripain heavy chain]"	cloSI	Hathewaya histolytica (Clostridium histolyticum)	526	Enzyme 
-P30879	PEPC_PIG	reviewed	Gastricsin (EC 3.4.23.3) (Pepsinogen C) (Fragment)	PGC	Sus scrofa (Pig)	73	Enzyme 
-P0C1U8	SSPA_STAAU	reviewed	Glutamyl endopeptidase (EC 3.4.21.19) (Endoproteinase Glu-C) (Staphylococcal serine proteinase) (V8 protease) (V8 proteinase)	sspA	Staphylococcus aureus	336	Enzyme 
-Q2FZL2	SSPA_STAA8	reviewed	Glutamyl endopeptidase (EC 3.4.21.19) (Endoproteinase Glu-C) (Staphylococcal serine proteinase) (V8 protease) (V8 proteinase)	sspA SAOUHSC_00988	Staphylococcus aureus (strain NCTC 8325 / PS 47)	336	Enzyme 
-P00698	LYSC_CHICK	reviewed	Lysozyme C (EC 3.2.1.17) (1,4-beta-N-acetylmuramidase C) (Allergen Gal d IV) (allergen Gal d 4)	LYZ	Gallus gallus (Chicken)	147	Enzyme 
-Q7M135	LYSC_LYSEN	reviewed	Lysyl endopeptidase (EC 3.4.21.50) (Lys-C)		Lysobacter enzymogenes	269	Enzyme 
-P13717	NUCA_SERMA	reviewed	"Nuclease (EC 3.1.30.2) (Endonuclease) [Cleaved into: Nuclease isoform Sm2; Nuclease isoform Sm3; Nuclease isoform Sm1]"	nucA nuc	Serratia marcescens	266	Enzyme 
-P00791	PEPA_PIG	reviewed	Pepsin A (EC 3.4.23.1)	PGA	Sus scrofa (Pig)	385	Enzyme 
-Q10735	PEPB_PIG	reviewed	Pepsin B (EC 3.4.23.2) (Parapepsin I) (Fragment)	PGB	Sus scrofa (Pig)	67	Enzyme 
-P81054	PLMP_GRIFR	reviewed	Peptidyl-Lys metalloendopeptidase (MEP) (EC 3.4.24.20) (GfMEP)	MEP	Grifola frondosa (Maitake) (Polyporus frondosus)	348	Enzyme 
-P15636	API_ACHLY	reviewed	Protease 1 (EC 3.4.21.50) (API) (Lysyl endopeptidase) (Protease I)		Achromobacter lyticus	653	Enzyme 
+P09870	CLOS_HATHI	reviewed	"Clostripain (EC 3.4.22.8) (Clostridiopeptidase B) [Cleaved into: Clostripain light chain; Clostripain heavy chain]"	cloSI	Hathewaya histolytica (Clostridium histolyticum)	526	Enzyme
+P30879	PEPC_PIG	reviewed	Gastricsin (EC 3.4.23.3) (Pepsinogen C) (Fragment)	PGC	Sus scrofa (Pig)	73	Enzyme
+P0C1U8	SSPA_STAAU	reviewed	Glutamyl endopeptidase (EC 3.4.21.19) (Endoproteinase Glu-C) (Staphylococcal serine proteinase) (V8 protease) (V8 proteinase)	sspA	Staphylococcus aureus	336	Enzyme
+Q2FZL2	SSPA_STAA8	reviewed	Glutamyl endopeptidase (EC 3.4.21.19) (Endoproteinase Glu-C) (Staphylococcal serine proteinase) (V8 protease) (V8 proteinase)	sspA SAOUHSC_00988	Staphylococcus aureus (strain NCTC 8325 / PS 47)	336	Enzyme
+P00698	LYSC_CHICK	reviewed	Lysozyme C (EC 3.2.1.17) (1,4-beta-N-acetylmuramidase C) (Allergen Gal d IV) (allergen Gal d 4)	LYZ	Gallus gallus (Chicken)	147	Enzyme
+Q7M135	LYSC_LYSEN	reviewed	Lysyl endopeptidase (EC 3.4.21.50) (Lys-C)		Lysobacter enzymogenes	269	Enzyme
+P13717	NUCA_SERMA	reviewed	"Nuclease (EC 3.1.30.2) (Endonuclease) [Cleaved into: Nuclease isoform Sm2; Nuclease isoform Sm3; Nuclease isoform Sm1]"	nucA nuc	Serratia marcescens	266	Enzyme
+P00791	PEPA_PIG	reviewed	Pepsin A (EC 3.4.23.1)	PGA	Sus scrofa (Pig)	385	Enzyme
+Q10735	PEPB_PIG	reviewed	Pepsin B (EC 3.4.23.2) (Parapepsin I) (Fragment)	PGB	Sus scrofa (Pig)	67	Enzyme
+P81054	PLMP_GRIFR	reviewed	Peptidyl-Lys metalloendopeptidase (MEP) (EC 3.4.24.20) (GfMEP)	MEP	Grifola frondosa (Maitake) (Polyporus frondosus)	348	Enzyme
+P15636	API_ACHLY	reviewed	Protease 1 (EC 3.4.21.50) (API) (Lysyl endopeptidase) (Protease I)		Achromobacter lyticus	653	Enzyme
 AAAA1	Anti-FLAG_AffinityTag 	manually added 	Anti-FLAG_AffinityTag 	FLAG			FLAG Affinity beads
 Q9U6Y5	GFPL1_ZOASP	reviewed	GFP-like fluorescent chromoprotein FP506 (zFP506)		Zoanthus sp. (Green polyp)	231	GFP Fluorescent Protein
 P42212	GFP_AEQVI	reviewed	Green fluorescent protein	GFP	Aequorea victoria (Water jellyfish) (Mesonema victoria)	238	GFP Fluorescent Protein
@@ -169,32 +169,32 @@ Q9NSB4	KRT82_HUMAN	reviewed	Keratin, type II cuticular Hb2 (Keratin-82) (K82) (T
 P15252	REF_HEVBR	reviewed	Rubber elongation factor protein (HbREF) (allergen Hev b 1)		Hevea brasiliensis (Para rubber tree) (Siphonia brasiliensis)	138	Latex gloves
 O82803	SRPP_HEVBR	reviewed	Small rubber particle protein (HbSRPP) (22 kDa rubber particle protein) (22 kDa RPP) (27 kDa natural rubber allergen) (Latex allergen Hev b 3) (allergen Hev b 3)	SRPP HEVB3	Hevea brasiliensis (Para rubber tree) (Siphonia brasiliensis)	204	Latex gloves
 Q1WEI2	Q1WEI2_PSEAI	unreviewed	Protease IV	prpL	Pseudomonas aeruginosa	462	Lys-C protease enzyme
-Q61765	K1H1_MOUSE	reviewed	Keratin, type I cuticular Ha1 (HKA-1) (Hair keratin, type I Ha1) (Keratin-31) (K31)	Krt31 Hka1 Krt1-1 Krtha1	Mus musculus (Mouse)	416	Mouse skin and hair 
-Q62168	K1H2_MOUSE	reviewed	Keratin, type I cuticular Ha2 (Hair keratin, type I Ha2) (Keratin-32) (K32)	Krt32 Hka2 Krt1-2 Krtha2	Mus musculus (Mouse)	407	Mouse skin and hair 
-Q9D646	KRT34_MOUSE	reviewed	Keratin, type I cuticular Ha4 (Hair keratin, type I Ha4) (Keratin-34) (K34)	Krt34 Ha4 Krt1-4	Mus musculus (Mouse)	392	Mouse skin and hair 
-Q497I4	KRT35_MOUSE	reviewed	Keratin, type I cuticular Ha5 (Hair keratin, type I Ha5) (Keratin-35) (K35)	Krt35 Krt1-24	Mus musculus (Mouse)	455	Mouse skin and hair 
-P02535	K1C10_MOUSE	reviewed	Keratin, type I cytoskeletal 10 (56 kDa cytokeratin) (Cytokeratin-10) (CK-10) (Keratin, type I cytoskeletal 59 kDa) (Keratin-10) (K10)	Krt10 Krt1-10	Mus musculus (Mouse)	570	Mouse skin and hair 
-P08730	K1C13_MOUSE	reviewed	Keratin, type I cytoskeletal 13 (47 kDa cytokeratin) (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	Krt13 Krt1-13	Mus musculus (Mouse)	437	Mouse skin and hair 
-Q9Z2K1	K1C16_MOUSE	reviewed	Keratin, type I cytoskeletal 16 (Cytokeratin-16) (CK-16) (Keratin-16) (K16)	Krt16 Krt1-16	Mus musculus (Mouse)	469	Mouse skin and hair 
-Q9QWL7	K1C17_MOUSE	reviewed	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	Krt17 Krt1-17	Mus musculus (Mouse)	433	Mouse skin and hair 
-P05784	K1C18_MOUSE	reviewed	Keratin, type I cytoskeletal 18 (Cytokeratin endo B) (Keratin D) (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	Krt18 Kerd Krt1-18	Mus musculus (Mouse)	423	Mouse skin and hair 
-P19001	K1C19_MOUSE	reviewed	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	Krt19 Krt1-19	Mus musculus (Mouse)	403	Mouse skin and hair 
-Q9D312	K1C20_MOUSE	reviewed	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20)	Krt20	Mus musculus (Mouse)	431	Mouse skin and hair 
-Q99PS0	K1C23_MOUSE	reviewed	Keratin, type I cytoskeletal 23 (Cytokeratin-23) (CK-23) (Keratin-23) (K23)	Krt23 Haik1 Krt1-23	Mus musculus (Mouse)	422	Mouse skin and hair 
-Q6IFX4	K1C39_MOUSE	reviewed	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	Krt39 Ka35	Mus musculus (Mouse)	482	Mouse skin and hair 
-Q6IFX2	K1C42_MOUSE	reviewed	Keratin, type I cytoskeletal 42 (Cytokeratin-42) (CK-42) (Keratin-17n) (Keratin-42) (K42) (Type I keratin Ka22)	Krt42 Ka22	Mus musculus (Mouse)	452	Mouse skin and hair 
-Q6IFZ6	K2C1B_MOUSE	reviewed	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Embryonic type II keratin-1) (Keratin-77) (K77) (Type-II keratin Kb39)	Krt77 Krt1b	Mus musculus (Mouse)	572	Mouse skin and hair 
-Q3TTY5	K22E_MOUSE	reviewed	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	Krt2 K2e Krt2-17 Krt2a	Mus musculus (Mouse)	707	Mouse skin and hair 
-P07744	K2C4_MOUSE	reviewed	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Cytoskeletal 57 kDa keratin) (Keratin-4) (K4) (Type-II keratin Kb4)	Krt4 Krt2-4	Mus musculus (Mouse)	525	Mouse skin and hair 
-Q922U2	K2C5_MOUSE	reviewed	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	Krt5 Krt2-5	Mus musculus (Mouse)	580	Mouse skin and hair 
-P50446	K2C6A_MOUSE	reviewed	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Keratin-6-alpha) (mK6-alpha) (Keratin-6A) (K6A)	Krt6a Ker2 Krt2-6 Krt2-6a Krt6	Mus musculus (Mouse)	553	Mouse skin and hair 
-Q9DCV7	K2C7_MOUSE	reviewed	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	Krt7 Krt2-7	Mus musculus (Mouse)	457	Mouse skin and hair 
-Q9R0H5	K2C71_MOUSE	reviewed	Keratin, type II cytoskeletal 71 (Cytokeratin-6G) (CK-6G) (Cytokeratin-71) (CK-71) (Keratin-6G) (K6G) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (mK6irs) (mK6irs1/Krt2-6g) (Type-II keratin Kb34)	Krt71 K6irs1 Kb34 Krt2-6g Krt6g	Mus musculus (Mouse)	524	Mouse skin and hair 
-Q6IME9	K2C72_MOUSE	reviewed	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	Krt72 Kb35 Krt72-ps	Mus musculus (Mouse)	520	Mouse skin and hair 
-Q6NXH9	K2C73_MOUSE	reviewed	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	Krt73 Kb36	Mus musculus (Mouse)	539	Mouse skin and hair 
-Q8BGZ7	K2C75_MOUSE	reviewed	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (mK6hf) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	Krt75 Kb18	Mus musculus (Mouse)	551	Mouse skin and hair 
-Q8VED5	K2C79_MOUSE	reviewed	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-79) (K79) (Type-II keratin Kb38)	Krt79 Kb38	Mus musculus (Mouse)	531	Mouse skin and hair 
-Q0VBK2	K2C80_MOUSE	reviewed	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	Krt80 Kb20	Mus musculus (Mouse)	452	Mouse skin and hair 
+Q61765	K1H1_MOUSE	reviewed	Keratin, type I cuticular Ha1 (HKA-1) (Hair keratin, type I Ha1) (Keratin-31) (K31)	Krt31 Hka1 Krt1-1 Krtha1	Mus musculus (Mouse)	416	Mouse skin and hair
+Q62168	K1H2_MOUSE	reviewed	Keratin, type I cuticular Ha2 (Hair keratin, type I Ha2) (Keratin-32) (K32)	Krt32 Hka2 Krt1-2 Krtha2	Mus musculus (Mouse)	407	Mouse skin and hair
+Q9D646	KRT34_MOUSE	reviewed	Keratin, type I cuticular Ha4 (Hair keratin, type I Ha4) (Keratin-34) (K34)	Krt34 Ha4 Krt1-4	Mus musculus (Mouse)	392	Mouse skin and hair
+Q497I4	KRT35_MOUSE	reviewed	Keratin, type I cuticular Ha5 (Hair keratin, type I Ha5) (Keratin-35) (K35)	Krt35 Krt1-24	Mus musculus (Mouse)	455	Mouse skin and hair
+P02535	K1C10_MOUSE	reviewed	Keratin, type I cytoskeletal 10 (56 kDa cytokeratin) (Cytokeratin-10) (CK-10) (Keratin, type I cytoskeletal 59 kDa) (Keratin-10) (K10)	Krt10 Krt1-10	Mus musculus (Mouse)	570	Mouse skin and hair
+P08730	K1C13_MOUSE	reviewed	Keratin, type I cytoskeletal 13 (47 kDa cytokeratin) (Cytokeratin-13) (CK-13) (Keratin-13) (K13)	Krt13 Krt1-13	Mus musculus (Mouse)	437	Mouse skin and hair
+Q9Z2K1	K1C16_MOUSE	reviewed	Keratin, type I cytoskeletal 16 (Cytokeratin-16) (CK-16) (Keratin-16) (K16)	Krt16 Krt1-16	Mus musculus (Mouse)	469	Mouse skin and hair
+Q9QWL7	K1C17_MOUSE	reviewed	Keratin, type I cytoskeletal 17 (Cytokeratin-17) (CK-17) (Keratin-17) (K17)	Krt17 Krt1-17	Mus musculus (Mouse)	433	Mouse skin and hair
+P05784	K1C18_MOUSE	reviewed	Keratin, type I cytoskeletal 18 (Cytokeratin endo B) (Keratin D) (Cytokeratin-18) (CK-18) (Keratin-18) (K18)	Krt18 Kerd Krt1-18	Mus musculus (Mouse)	423	Mouse skin and hair
+P19001	K1C19_MOUSE	reviewed	Keratin, type I cytoskeletal 19 (Cytokeratin-19) (CK-19) (Keratin-19) (K19)	Krt19 Krt1-19	Mus musculus (Mouse)	403	Mouse skin and hair
+Q9D312	K1C20_MOUSE	reviewed	Keratin, type I cytoskeletal 20 (Cytokeratin-20) (CK-20) (Keratin-20) (K20)	Krt20	Mus musculus (Mouse)	431	Mouse skin and hair
+Q99PS0	K1C23_MOUSE	reviewed	Keratin, type I cytoskeletal 23 (Cytokeratin-23) (CK-23) (Keratin-23) (K23)	Krt23 Haik1 Krt1-23	Mus musculus (Mouse)	422	Mouse skin and hair
+Q6IFX4	K1C39_MOUSE	reviewed	Keratin, type I cytoskeletal 39 (Cytokeratin-39) (CK-39) (Keratin-39) (K39) (Type I hair keratin Ka35)	Krt39 Ka35	Mus musculus (Mouse)	482	Mouse skin and hair
+Q6IFX2	K1C42_MOUSE	reviewed	Keratin, type I cytoskeletal 42 (Cytokeratin-42) (CK-42) (Keratin-17n) (Keratin-42) (K42) (Type I keratin Ka22)	Krt42 Ka22	Mus musculus (Mouse)	452	Mouse skin and hair
+Q6IFZ6	K2C1B_MOUSE	reviewed	Keratin, type II cytoskeletal 1b (Cytokeratin-1B) (CK-1B) (Embryonic type II keratin-1) (Keratin-77) (K77) (Type-II keratin Kb39)	Krt77 Krt1b	Mus musculus (Mouse)	572	Mouse skin and hair
+Q3TTY5	K22E_MOUSE	reviewed	Keratin, type II cytoskeletal 2 epidermal (Cytokeratin-2e) (CK-2e) (Epithelial keratin-2e) (Keratin-2 epidermis) (Keratin-2e) (K2e) (Type-II keratin Kb2)	Krt2 K2e Krt2-17 Krt2a	Mus musculus (Mouse)	707	Mouse skin and hair
+P07744	K2C4_MOUSE	reviewed	Keratin, type II cytoskeletal 4 (Cytokeratin-4) (CK-4) (Cytoskeletal 57 kDa keratin) (Keratin-4) (K4) (Type-II keratin Kb4)	Krt4 Krt2-4	Mus musculus (Mouse)	525	Mouse skin and hair
+Q922U2	K2C5_MOUSE	reviewed	Keratin, type II cytoskeletal 5 (Cytokeratin-5) (CK-5) (Keratin-5) (K5) (Type-II keratin Kb5)	Krt5 Krt2-5	Mus musculus (Mouse)	580	Mouse skin and hair
+P50446	K2C6A_MOUSE	reviewed	Keratin, type II cytoskeletal 6A (Cytokeratin-6A) (CK-6A) (Keratin-6-alpha) (mK6-alpha) (Keratin-6A) (K6A)	Krt6a Ker2 Krt2-6 Krt2-6a Krt6	Mus musculus (Mouse)	553	Mouse skin and hair
+Q9DCV7	K2C7_MOUSE	reviewed	Keratin, type II cytoskeletal 7 (Cytokeratin-7) (CK-7) (Keratin-7) (K7) (Type-II keratin Kb7)	Krt7 Krt2-7	Mus musculus (Mouse)	457	Mouse skin and hair
+Q9R0H5	K2C71_MOUSE	reviewed	Keratin, type II cytoskeletal 71 (Cytokeratin-6G) (CK-6G) (Cytokeratin-71) (CK-71) (Keratin-6G) (K6G) (Keratin-71) (K71) (Type II inner root sheath-specific keratin-K6irs1) (mK6irs) (mK6irs1/Krt2-6g) (Type-II keratin Kb34)	Krt71 K6irs1 Kb34 Krt2-6g Krt6g	Mus musculus (Mouse)	524	Mouse skin and hair
+Q6IME9	K2C72_MOUSE	reviewed	Keratin, type II cytoskeletal 72 (Cytokeratin-72) (CK-72) (Keratin-72) (K72) (Type II inner root sheath-specific keratin-K6irs2) (Type-II keratin Kb35)	Krt72 Kb35 Krt72-ps	Mus musculus (Mouse)	520	Mouse skin and hair
+Q6NXH9	K2C73_MOUSE	reviewed	Keratin, type II cytoskeletal 73 (Cytokeratin-73) (CK-73) (Keratin-73) (K73) (Type II inner root sheath-specific keratin-K6irs3) (Type-II keratin Kb36)	Krt73 Kb36	Mus musculus (Mouse)	539	Mouse skin and hair
+Q8BGZ7	K2C75_MOUSE	reviewed	Keratin, type II cytoskeletal 75 (Cytokeratin-75) (CK-75) (Keratin-6 hair follicle) (mK6hf) (Keratin-75) (K75) (Type II keratin-K6hf) (Type-II keratin Kb18)	Krt75 Kb18	Mus musculus (Mouse)	551	Mouse skin and hair
+Q8VED5	K2C79_MOUSE	reviewed	Keratin, type II cytoskeletal 79 (Cytokeratin-79) (CK-79) (Keratin-79) (K79) (Type-II keratin Kb38)	Krt79 Kb38	Mus musculus (Mouse)	531	Mouse skin and hair
+Q0VBK2	K2C80_MOUSE	reviewed	Keratin, type II cytoskeletal 80 (Cytokeratin-80) (CK-80) (Keratin-80) (K80) (Type-II keratin Kb20)	Krt80 Kb20	Mus musculus (Mouse)	452	Mouse skin and hair
 P00330	ADH1_YEAST	reviewed	Alcohol dehydrogenase 1 (EC 1.1.1.1) (Alcohol dehydrogenase I) (YADH-1)	ADH1 ADC1 YOL086C O0947	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	348	Others
 P00004	CYC_HORSE	reviewed	Cytochrome c	CYCS CYC	Equus caballus (Horse)	105	Others
 P00883	ALDOA_RABIT	reviewed	Fructose-bisphosphate aldolase A (EC 4.1.2.13) (Muscle-type aldolase)	ALDOA	Oryctolagus cuniculus (Rabbit)	364	Others

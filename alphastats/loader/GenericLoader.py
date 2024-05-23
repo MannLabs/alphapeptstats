@@ -34,12 +34,12 @@ class GenericLoader(BaseLoader):
 
     def _extract_sample_names(self, metadata:pd.DataFrame, sample_column:str):
         sample_names = metadata[sample_column].to_list()
-        
+
         for intensity_column in self.intensity_column_list:
             for sample in sample_names:
                 if sample in intensity_column:
                     sample_structure = intensity_column.replace(sample, "[sample]")
-        
+
         self.intensity_column = sample_structure
         return sample_structure
 
@@ -56,4 +56,3 @@ class GenericLoader(BaseLoader):
         elif file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
         return df
-

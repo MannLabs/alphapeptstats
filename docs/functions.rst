@@ -11,8 +11,8 @@ Preprocessing
 Figures
 ----------
 
-To generate interactive plots, AlphaStats uses the graphing library `Plotly <https://plotly.com/python/>`_ 
-and all plotting methods will return a plotly object. 
+To generate interactive plots, AlphaStats uses the graphing library `Plotly <https://plotly.com/python/>`_
+and all plotting methods will return a plotly object.
 The plotly graphs returned by AlphaStats can be customized.
 A description on how do customize your plots can be found `here <https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html>`_
 
@@ -40,7 +40,7 @@ A description on how do customize your plots can be found `here <https://maegul.
 **Volcano Plot**
 
 To estimate the differential expression between two groups, the function plot_volcano() either performs a t-test, an ANOVA
-or a Wald-test using the package `diffxpy <https://github.com/theislab/diffxpy>`_ . 
+or a Wald-test using the package `diffxpy <https://github.com/theislab/diffxpy>`_ .
 
 * Volcano Plot :py:meth:`~DataSet.plot_volcano`
 
@@ -57,7 +57,7 @@ The plots will return a plotly object, thus you can use write_image() from plotl
 More details on how to save plotly figures you can find `here <https://plotly.com/python/static-image-export/>`_.
 
 .. code-block::python
-    
+
     plot = DataSet.plot_volcano(column = "disease", group1 = "healthy", group2 = "cancer")
     plot.write_image("images/volcano_plot.svg")
 
@@ -83,13 +83,13 @@ The GO Analysis uses the API from `aGOtool <https://agotool.org/>`_.
 
 **Visualization of GO Analysis results**
 
-All GO-analysis functions will return a DataFrame with the results. 
+All GO-analysis functions will return a DataFrame with the results.
 
 * Plot Scatterplot with -log10(p-value) on x-axis and effect size on y-axis. `df.plot_scatter()`
 * Plot p-values as Barplot `df.plot_bar`
 
 
-Misc 
+Misc
 ------
 
 Get an overview over your dataset
@@ -97,5 +97,3 @@ Get an overview over your dataset
 * :py:meth:`~alphastats.DataSet.overview`
 
 * :py:meth:`~alphastats.DataSet_Preprocess.Preprocess.preprocess_print_info`
-
-

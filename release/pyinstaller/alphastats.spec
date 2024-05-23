@@ -9,7 +9,7 @@ import pkg_resources
 import importlib.metadata
 import alphastats
 from PyInstaller.utils.hooks import collect_submodules
-import sys  
+import sys
 sys.setrecursionlimit(5000)
 
 ##################### User definitions
@@ -64,7 +64,7 @@ while requirements:
 
 	# binaries += binaries_
 	hidden_imports_ = set(hidden_imports_)
-	
+
 
 	if "" in hidden_imports_:
 		hidden_imports_.remove("")
@@ -161,5 +161,3 @@ else:
 		upx_exclude=[],
 		name=exe_name
 	)
-
-

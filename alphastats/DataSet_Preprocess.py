@@ -32,23 +32,23 @@ class Preprocess:
     def _remove_na_values(self, cut_off):
         cut = 1 - cut_off
         limit = self.mat.shape[0] * cut
-        
+
         keep_list = list()
         invalid = 0
         for column_name in self.mat.columns:
             column = self.mat[column_name]
-            # Get the count of Zeros in column 
+            # Get the count of Zeros in column
             count = (column == 0).sum()
             try:
                 count = count.item()
                 if isinstance(count, int):
                     if count < limit:
                         keep_list += [column_name]
-                    
+
             except ValueError:
                 invalid +=1
                 continue
-        
+
         self.mat= self.mat[keep_list]
         self.preprocessing_info.update(
             {"Data completeness cut-off": cut_off}
@@ -194,13 +194,13 @@ class Preprocess:
         #  reset all preprocessing steps
         self.create_matrix()
         print("All preprocessing steps are reset.")
-    
+
     @ignore_warning(RuntimeWarning)
     def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
         imputation_methods = ["mean", "median", "knn", "randomforest"]
         normalization_methods = ["vst","zscore", "quantile" ]
-        
+
         preprocessing_modes = list(itertools.product(normalization_methods, imputation_methods))
 
 
@@ -223,7 +223,7 @@ class Preprocess:
 
             res = func(**params_for_func)
             results_list.append(res)
-        
+
             print("\t")
 
         return results_list
@@ -232,7 +232,7 @@ class Preprocess:
         self.mat = np.log2(self.mat + 0.1)
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
-    
+
     def batch_correction(self, batch:str):
         """Correct for technical bias/batch effects
         Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
@@ -300,13 +300,13 @@ class Preprocess:
         """
         if remove_contaminations:
             self._filter()
-        
+
         if remove_samples is not None:
             self._remove_sampels(sample_list=remove_samples)
 
         if subset:
             self.mat = self._subset()
-        
+
 
         if data_completeness> 0:
             self._remove_na_values(cut_off=data_completeness)
@@ -317,7 +317,7 @@ class Preprocess:
         if normalization is not None:
             self._normalization(method=normalization)
             self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
-            
+
         if imputation is not None:
             self._imputation(method=imputation)
 

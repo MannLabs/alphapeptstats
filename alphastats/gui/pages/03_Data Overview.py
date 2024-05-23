@@ -73,7 +73,7 @@ if "dataset" in st.session_state:
             get_intensity_distribution_processed(user_session_id = st.session_state.user_session_id)
                         .update_layout(plot_bgcolor="white"), use_container_width=True
         )
- 
+
     st.plotly_chart(
         get_sample_histogram_matrix(user_session_id = st.session_state.user_session_id)
                     .update_layout(plot_bgcolor="white"), use_container_width=True

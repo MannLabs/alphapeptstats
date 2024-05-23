@@ -122,7 +122,7 @@ class Plot:
         )
         return dimensionality_reduction.plot
 
-    
+
     @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
@@ -134,7 +134,7 @@ class Plot:
         min_fc:float=1.0,
         alpha:float=0.05,
         draw_line:bool=True,
-        perm:int=100, 
+        perm:int=100,
         fdr:float=0.05,
         compare_preprocessing_modes:bool=False,
         color_list:list=[]
@@ -178,7 +178,7 @@ class Plot:
                 min_fc=min_fc,
                 alpha=alpha,
                 draw_line=draw_line,
-                perm=perm, 
+                perm=perm,
                 fdr=fdr,
                 color_list=color_list
             )
