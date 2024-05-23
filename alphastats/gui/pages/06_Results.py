@@ -12,13 +12,13 @@ def display_plotly_figure(plot):
     st.plotly_chart(plot)
 
 
-def save_plotly(plot, format):
+def save_plotly(plot, name, format):
     # Create an in-memory buffer
     buffer = io.BytesIO()
     # Save the figure as a pdf to the buffer
-    plot[1].write_image(file=buffer, format=format)
+    plot.write_image(file=buffer, format=format)
     st.download_button(
-        label="Download as " + format, data=buffer, file_name=plot[0] + "." + format
+        label="Download as " + format, data=buffer, file_name=name + "." + format
     )
 
 
@@ -27,11 +27,12 @@ def convert_df(df, user_session_id=st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 
-def download_preprocessing_info(plot, count):
-    preprocesing_dict = plot[1].preprocessing
+def download_preprocessing_info(plot, name, count):
+    preprocesing_dict = plot.preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + plot[0] + "preprocessing_info.csv"
+    filename = "plot" + name + "preprocessing_info.csv"
     csv = convert_df(df)
+    print("preprocessing" + count)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
@@ -47,23 +48,30 @@ sidebar_info()
 
 if "plot_list" in st.session_state:
     for count, plot in enumerate(st.session_state.plot_list):
+        print("plot", type(plot), count)
         count = str(count)
 
         st.markdown("\n\n")
-        st.write(plot[0])
+        name = plot[0]
+        print("name", name)
+        plot = plot[1]
+        if name == "ttest":
+            plot = plot.plot
+        st.write(name)
 
-        display_plotly_figure(plot[1])
+        print(plot)
+        display_plotly_figure(plot)
 
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
-            save_plotly(plot, format="pdf")
+            save_plotly(plot, name + count, format="pdf")
 
         with col2:
-            save_plotly(plot, format="svg")
+            save_plotly(plot, name + count, format="svg")
 
         with col3:
-            download_preprocessing_info(plot, count)
+            download_preprocessing_info(plot, name, count)
 
 
 else:

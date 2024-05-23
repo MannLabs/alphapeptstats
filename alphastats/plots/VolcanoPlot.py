@@ -28,15 +28,24 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
+
 class VolcanoPlot(PlotUtils):
     def __init__(
-        self, dataset, group1, group2, 
-        column=None, method=None, 
-        labels=None, min_fc=None, 
-        alpha=None, draw_line=None, 
-        plot=True, perm=100, fdr=0.05,
-        color_list=[]
-    ):  
+        self,
+        dataset,
+        group1,
+        group2,
+        column=None,
+        method=None,
+        labels=None,
+        min_fc=None,
+        alpha=None,
+        draw_line=None,
+        plot=True,
+        perm=100,
+        fdr=0.05,
+        color_list=[],
+    ):
         self.dataset = dataset
         self.group1 = group1
         self.group2 = group2
@@ -50,7 +59,7 @@ class VolcanoPlot(PlotUtils):
         self.hover_data = None
         self.res = None
         self.pvalue_column = None
-        self.perm=perm
+        self.perm = perm
         self.color_list = color_list
         self._check_input()
 
@@ -95,13 +104,13 @@ class VolcanoPlot(PlotUtils):
 
         elif self.method == "anova":
             self._anova()
-        
+
         elif self.method == "welch-ttest":
             self._welch_ttest()
-        
+
         elif self.method == "paired-ttest":
             self._pairedttest()
-        
+
         elif self.method == "sam":
             self._sam()
 
@@ -194,7 +203,6 @@ class VolcanoPlot(PlotUtils):
 
     @lru_cache(maxsize=20)
     def _wald(self):
-
         print(
             "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
         )
@@ -208,7 +216,6 @@ class VolcanoPlot(PlotUtils):
 
     @lru_cache(maxsize=20)
     def _welch_ttest(self):
-
         print("Calculating Welchs t-test...")
 
         self.res = self.dataset.diff_expression_analysis(
@@ -218,10 +225,9 @@ class VolcanoPlot(PlotUtils):
             method=self.method,
         )
         self.pvalue_column = "pval"
-    
+
     @lru_cache(maxsize=20)
     def _ttest(self):
-
         print("Calculating Students t-test...")
 
         self.res = self.dataset.diff_expression_analysis(
@@ -231,10 +237,9 @@ class VolcanoPlot(PlotUtils):
             method=self.method,
         )
         self.pvalue_column = "pval"
-    
+
     @lru_cache(maxsize=20)
     def _pairedttest(self):
-
         print("Calculating paired t-test...")
 
         self.res = self.dataset.diff_expression_analysis(
@@ -247,7 +252,6 @@ class VolcanoPlot(PlotUtils):
 
     @lru_cache(maxsize=20)
     def _anova(self):
-
         print("Calculating ANOVA with follow-up tukey test...")
 
         result_df = self.dataset.anova(
@@ -304,7 +308,6 @@ class VolcanoPlot(PlotUtils):
         # add color variable to plot
 
         if self.method != "sam":
-
             condition = [
                 (self.res["log2fc"] < -self.min_fc)
                 & (self.res["-log10(p-value)"] > self.alpha),
@@ -313,7 +316,6 @@ class VolcanoPlot(PlotUtils):
             ]
 
         else:
-
             condition = [
                 (self.res["log2fc"] < 0) & (self.res["FDR"] == "sig"),
                 (self.res["log2fc"] > 0) & (self.res["FDR"] == "sig"),
@@ -321,13 +323,57 @@ class VolcanoPlot(PlotUtils):
 
         value = ["down", "up"]
 
-        self.res["color"] = np.select(condition, value, default="non_sig")   
+        self.res["color"] = np.select(condition, value, default="non_sig")
 
         if len(self.color_list) > 0:
-            self.res["color"] = np.where(self.res[self.dataset.index_column].isin(self.color_list), 
-                                          "color", "no_color")   
-        
+            self.res["color"] = np.where(
+                self.res[self.dataset.index_column].isin(self.color_list),
+                "color",
+                "no_color",
+            )
 
+    def get_colored_labels(self):
+        """
+        get dict of upregulated and downregulated genes in form of {gene_name: color}
+        """
+        if "label" not in self.res.columns:
+            if self.dataset.gene_names is not None:
+                label_column = self.dataset.gene_names
+            else:
+                label_column = self.dataset.index_column
+
+            self.res["label"] = np.where(
+                self.res.color != "non_sig", self.res[label_column], ""
+            )
+            #  replace nas with empty string (can cause error when plotting with gene names)
+            self.res["label"] = self.res["label"].fillna("")
+            self.res = self.res[self.res["label"] != ""]
+        if "color" not in self.res.columns:
+            self._annotate_result_df()
+        
+        labels = [";".join([i for i in j.split(";")  if i]) for j in self.res["label"].tolist()]
+        self.res["label"] = labels
+        return dict(zip(labels, self.res["color"].tolist()))
+
+    def get_colored_labels_df(self):
+        """
+        get dataframe of upregulated and downregulated genes in form of {gene_name: color}
+        """
+        if "label" not in self.res.columns:
+            if self.dataset.gene_names is not None:
+                label_column = self.dataset.gene_names
+            else:
+                label_column = self.dataset.index_column
+
+            self.res["label"] = np.where(
+                self.res.color != "non_sig", self.res[label_column], ""
+            )
+            #  replace nas with empty string (can cause error when plotting with gene names)
+            self.res["label"] = self.res["label"].fillna("")
+            self.res = self.res[self.res["label"] != ""]
+        if "color" not in self.res.columns:
+            self._annotate_result_df()
+        return self.res
 
     def _add_labels_plot(self):
         """
@@ -344,10 +390,11 @@ class VolcanoPlot(PlotUtils):
         )
         #  replace nas with empty string (can cause error when plotting with gene names)
         self.res["label"] = self.res["label"].fillna("")
+        self.res["label"] = [";".join([i for i in j.split(";")  if i]) for j in self.res["label"].tolist()]
         self.res = self.res[self.res["label"] != ""]
-
+        
         for x, y, label_column in self.res[
-            ["log2fc", "-log10(p-value)", label_column]
+            ["log2fc", "-log10(p-value)", "label"]
         ].itertuples(index=False):
             self.plot.add_annotation(
                 x=x, y=y, text=label_column, showarrow=False, yshift=10
@@ -392,17 +439,16 @@ class VolcanoPlot(PlotUtils):
                 showlegend=False,
             )
         )
-    
+
     def _color_data_points(self):
-         # update coloring
+        # update coloring
         if len(self.color_list) == 0:
             color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
-    
+
         else:
             color_dict = {"no_color": "#404040", "color": "#B65EAF"}
-        
-        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
 
+        self.plot = self._update_colors_plotly(self.plot, color_dict=color_dict)
 
     def _plot(self):
         self.plot = px.scatter(
@@ -411,7 +457,7 @@ class VolcanoPlot(PlotUtils):
             y="-log10(p-value)",
             color="color",
             hover_data=self.hover_data,
-            template= "simple_white+alphastats_colors"
+            template="simple_white+alphastats_colors",
         )
 
         # update coloring
