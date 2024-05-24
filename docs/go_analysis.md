@@ -20,6 +20,3 @@ In case there is no information about PTMs available, a list of upregulated prot
 More details about the GO Analysis can be found here:
  - [aGOtool](https://agotool.org/)
  - Publication: [Schölz et al. 2015](https://doi.org/10.1038/nmeth.3621)
-
-
-

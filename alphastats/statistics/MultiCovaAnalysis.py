@@ -8,7 +8,7 @@ from alphastats.statistics.StatisticUtils import StatisticUtils
 import warnings
 
 class MultiCovaAnalysis(StatisticUtils):
-    def __init__(self, dataset, covariates: list, n_permutations: int=3, 
+    def __init__(self, dataset, covariates: list, n_permutations: int=3,
                  fdr: float=0.05, s0: float=0.05, subset: dict=None, plot:bool=False):
 
         self.dataset = dataset
@@ -24,7 +24,7 @@ class MultiCovaAnalysis(StatisticUtils):
         self._check_na_values()
         self._convert_string_to_binary()
         self._prepare_matrix()
-    
+
     def _subset_metadata(self):
         columns_to_keep = self.covariates + [self.dataset.sample]
         if self.subset is not None:
@@ -35,7 +35,7 @@ class MultiCovaAnalysis(StatisticUtils):
 
         else:
             self.metadata = self.dataset.metadata[columns_to_keep]
-    
+
     def _check_covariat_input(self):
         # check whether covariates in metadata column
         misc_covariates = list(set(self.covariates) - set(self.dataset.metadata.columns.to_list()))
@@ -50,21 +50,21 @@ class MultiCovaAnalysis(StatisticUtils):
                 self.covariates.remove(covariate)
                 warnings.warn(f"Covariate: {covariate} contains missing values" +
                         f"in metadata and will not be used for analysis.")
-                
+
     def _convert_string_to_binary(self):
         string_cols = self.metadata[self.covariates].select_dtypes(include=[object]).columns.to_list()
-    
+
         if len(string_cols) > 0:
             for col in string_cols:
                 col_values = list(set(self.metadata[col].to_list()))
-                
+
                 if len(col_values) == 2:
                     self.metadata[col] = np.where(self.metadata[col] == col_values[0], 0, 1)
-                
+
                 else:
-                    if len(col_values) < 2: 
+                    if len(col_values) < 2:
                         col_values.append("example")
-                    
+
                     subset_prompt = "¨subset={" + col + ":[" + col_values[0] + ","+ col_values[1]+"]}"
                     warnings.warn(f"Covariate: {col} contains not exactly 2 binary values, instead {col_values}. "
                             f"Specify the values of the covariates you want to use for your analysis as: {subset_prompt} ")
@@ -90,34 +90,29 @@ class MultiCovaAnalysis(StatisticUtils):
         fig.show()
         return fig
 
-    
+
     def calculate(self):
         from alphastats.multicova import multicova
-        
+
         if len(self.covariates) == 0:
             print("Covariates are invalid for analysis.")
             return
-        
+
         res, tlim = multicova.full_regression_analysis(
             quant_data = self.transposed,
             annotation = self.metadata,
             covariates = self.covariates,
             sample_column = self.dataset.sample,
             n_permutations=self.n_permutations,
-            fdr=self.fdr, 
+            fdr=self.fdr,
             s0=self.s0
         )
         res[self.dataset.index_column] = self.dataset.mat.columns.to_list()
         plot_list = []
-        
+
         if self.plot:
             for variable in self.covariates:
                 plot = self._plot_volcano_regression(res_real=res, variable=variable)
                 plot_list.append(plot)
-        
+
         return res, plot_list
-    
-
-
-
-

@@ -19,12 +19,12 @@ def sidebar_info(show_logo=True):
     )
 
     st.sidebar.markdown(
-        """ <head><style type ='text/css' > 
-    .footer{ position: fixed;     
-        text-align: left;    
-        bottom: 14px; 
+        """ <head><style type ='text/css' >
+    .footer{ position: fixed;
+        text-align: left;
+        bottom: 14px;
         width: 100%;
-    }  
+    }
     </style>
     </head>
     <body>

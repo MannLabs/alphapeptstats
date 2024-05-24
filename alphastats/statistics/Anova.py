@@ -9,15 +9,15 @@ class Anova:
         self.column = column
         self.protein_ids = protein_ids
         self.tukey = tukey
-        
+
     def _get_protein_ids_list(self):
         if self.protein_ids == "all":
             self.protein_ids_list = self.dataset.mat.columns.tolist()
-        
+
         elif isinstance(self.protein_ids, str):
             # convert id to list
             self.protein_ids_list = [self.protein_ids]
-       
+
         else:
             self.protein_ids_list = self.protein_ids
 
@@ -46,7 +46,7 @@ class Anova:
             self.all_groups.append(group_list)
 
         self.mat_transpose = self.dataset.mat[self.protein_ids_list].transpose()
-           
+
     def _create_tukey_df(self, anova_df: pd.DataFrame) -> pd.DataFrame:
         #  combine tukey results with anova results
         df = (
@@ -74,14 +74,13 @@ class Anova:
             values="p-tukey",
         )
         return final_df
-    
+
     def perform(self) -> pd.DataFrame:
         self._get_protein_ids_list()
         self._prepare_data()
         anova_df = self.perform_anova()
-        
+
         if self.tukey:
             anova_df = self._create_tukey_df(anova_df=anova_df)
-        
-        return anova_df
 
+        return anova_df

@@ -350,7 +350,7 @@ class VolcanoPlot(PlotUtils):
             self.res = self.res[self.res["label"] != ""]
         if "color" not in self.res.columns:
             self._annotate_result_df()
-        
+
         labels = [";".join([i for i in j.split(";")  if i]) for j in self.res["label"].tolist()]
         self.res["label"] = labels
         return dict(zip(labels, self.res["color"].tolist()))
@@ -392,7 +392,7 @@ class VolcanoPlot(PlotUtils):
         self.res["label"] = self.res["label"].fillna("")
         self.res["label"] = [";".join([i for i in j.split(";")  if i]) for j in self.res["label"].tolist()]
         self.res = self.res[self.res["label"] != ""]
-        
+
         for x, y, label_column in self.res[
             ["log2fc", "-log10(p-value)", "label"]
         ].itertuples(index=False):

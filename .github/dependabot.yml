@@ -6,4 +6,4 @@ updates:
       interval: "weekly"
     target-branch: "developer"
     labels:
-      - "pip dependencies"   
+      - "pip dependencies"
