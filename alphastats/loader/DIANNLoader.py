@@ -13,7 +13,7 @@ class DIANNLoader(BaseLoader):
         intensity_column="[sample]",
         index_column="Protein.Group",
         sep="\t",
-        **kwargs
+        **kwargs,
     ):
         """Import DIA-NN output data report.pg_matrix.tsv
 

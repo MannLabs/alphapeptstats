@@ -1,11 +1,11 @@
 import numpy as no
 
+
 class StatisticUtils:
     def __init__(self) -> None:
         pass
 
     def _add_metadata_column(self, group1_list: list, group2_list: list):
-
         # create new column in metadata with defined groups
         metadata = self.metadata
 

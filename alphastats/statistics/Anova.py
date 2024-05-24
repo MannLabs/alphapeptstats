@@ -1,7 +1,7 @@
-
 import pandas as pd
 import scipy
 from tqdm import tqdm
+
 
 class Anova:
     def __init__(self, dataset, column, protein_ids, tukey):
@@ -40,9 +40,9 @@ class Anova:
         subgroup = self.dataset.metadata[self.column].unique().tolist()
         self.all_groups = []
         for sub in subgroup:
-            group_list = self.dataset.metadata[self.dataset.metadata[self.column] == sub][
-                self.dataset.sample
-            ].tolist()
+            group_list = self.dataset.metadata[
+                self.dataset.metadata[self.column] == sub
+            ][self.dataset.sample].tolist()
             self.all_groups.append(group_list)
 
         self.mat_transpose = self.dataset.mat[self.protein_ids_list].transpose()
