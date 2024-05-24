@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.6.6
+* FIX preprocessing with 0 / NA discrepancy
+
 # 0.6.5
 * FIX coloring of plot_sampledistribution issue #229
 * ADD nbformat requirement issue #230
