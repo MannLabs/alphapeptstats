@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
+          miniconda-version: "latest"
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
       - name: Master version bumped
@@ -39,6 +40,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
+          miniconda-version: "latest"
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
       - name: Conda info
@@ -82,6 +84,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
+          miniconda-version: "latest"
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
       - name: Conda info
