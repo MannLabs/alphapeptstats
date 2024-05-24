@@ -6,20 +6,21 @@ name: CI
 
 
 on: [push, pull_request]
-#  push:
-#    branches: [ "main", "developer"]
-#  pull_request:
-#    branches: [ "main", "developer"]
 
 jobs:
-  build:
-
+  pre-commit:
+    name: Run all pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.1
+  build-and-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -34,7 +35,7 @@ jobs:
         pip install dictdiffer
     - name: Test installation
       run: |
-        pip install -e.
+        pip install -e .
     - name: Run tests
       run: |
         coverage run -m unittest
