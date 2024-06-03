@@ -12,13 +12,13 @@ def display_plotly_figure(plot):
     st.plotly_chart(plot)
 
 
-def save_plotly(plot, format):
+def save_plotly(plot, name, format):
     # Create an in-memory buffer
     buffer = io.BytesIO()
     # Save the figure as a pdf to the buffer
-    plot[1].write_image(file=buffer, format=format)
+    plot.write_image(file=buffer, format=format)
     st.download_button(
-        label="Download as " + format, data=buffer, file_name=plot[0] + "." + format
+        label="Download as " + format, data=buffer, file_name=name + "." + format
     )
 
 
@@ -27,10 +27,10 @@ def convert_df(df, user_session_id=st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
 
 
-def download_preprocessing_info(plot, count):
-    preprocesing_dict = plot[1].preprocessing
+def download_preprocessing_info(plot, name, count):
+    preprocesing_dict = plot.preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + plot[0] + "preprocessing_info.csv"
+    filename = "plot" + name + "preprocessing_info.csv"
     csv = convert_df(df)
     st.download_button(
         "Download DataSet Info as .csv",
@@ -50,21 +50,24 @@ if "plot_list" in st.session_state:
         count = str(count)
 
         st.markdown("\n\n")
-        st.write(plot[0])
+        name = plot[0]
+        plot = plot[1]
+        if name == "ttest":
+            plot = plot.plot
+        st.write(name)
 
-        display_plotly_figure(plot[1])
+        display_plotly_figure(plot)
 
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
-            save_plotly(plot, format="pdf")
+            save_plotly(plot, name + count, format="pdf")
 
         with col2:
-            save_plotly(plot, format="svg")
+            save_plotly(plot, name + count, format="svg")
 
         with col3:
-            download_preprocessing_info(plot, count)
-
+            download_preprocessing_info(plot, name, count)
 
 else:
     st.info("No analysis performed yet.")

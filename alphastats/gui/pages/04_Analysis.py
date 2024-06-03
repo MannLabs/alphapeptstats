@@ -131,6 +131,7 @@ if "dataset" in st.session_state:
 
     plot_to_display = False
     df_to_display = False
+    method_plot = None
 
     with c1:
 
@@ -196,7 +197,7 @@ if "dataset" in st.session_state:
         with col3:
             download_preprocessing_info(method_plot)
 
-    elif analysis_result is not None and df_to_display:
+    elif analysis_result is not None and df_to_display and method_plot:
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
