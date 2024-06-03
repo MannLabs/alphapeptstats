@@ -28,7 +28,7 @@ def sidebar_info(show_logo=True):
     </style>
     </head>
     <body>
-        <div class="footer">Mann Group, 2022</div>
+        <div class="footer">Mann Group, 2024</div>
     </body>""",
         unsafe_allow_html=True,
     )
