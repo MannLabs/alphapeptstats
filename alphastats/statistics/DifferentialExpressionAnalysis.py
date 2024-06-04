@@ -23,7 +23,7 @@ class DifferentialExpressionAnalysis:
         self.method = method
         self.perm = perm
         self.fdr = fdr
-    
+
     def _check_groups(self):
         if isinstance(self.group1, list) and isinstance(self.group2, list):
             self.column, self.group1, self.group2 = self._add_metadata_column(self.group1, self.group2)
@@ -99,9 +99,9 @@ class DifferentialExpressionAnalysis:
 
         res, _ = multicova.perform_ttest_analysis(
             transposed,
-            c1 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample]),                                      
-            c2 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample]), 
-            s0=0.05, 
+            c1 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample]),
+            c2 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample]),
+            s0=0.05,
             n_perm=self.perm,
             fdr=self.fdr,
             id_col=self.dataset.index_column,
@@ -113,23 +113,23 @@ class DifferentialExpressionAnalysis:
         df["log2fc"] = res["fc"]
         df["FDR"] = res[fdr_column]
 
-        return df      
+        return df
 
     def wald(self) -> pd.DataFrame:
         import diffxpy.api as de
         d = self._prepare_anndata()
         formula_loc = "~ 1 +" + self.column
-        
+
         test = de.test.wald(
             data=d, formula_loc=formula_loc, factor_loc_totest=self.column
         )
         df = test.summary().rename(columns={"gene": self.dataset.index_column})
         return df
-    
+
     def welch_ttest(self) -> pd.DataFrame:
         import diffxpy.api as de
         d = self._prepare_anndata()
-        
+
         test = de.test.t_test(data=d, grouping=self.column)
         df = test.summary().rename(columns={"gene": self.dataset.index_column})
         return df
@@ -143,7 +143,7 @@ class DifferentialExpressionAnalysis:
         ].tolist()
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.dataset.mat.transpose()
-        
+
         p_values = mat_transpose.apply(
             lambda row: scipy.stats.ttest_ind(
                 row[group1_samples].values.flatten(),
@@ -153,13 +153,13 @@ class DifferentialExpressionAnalysis:
         )
 
         fc = self._calculate_foldchange(
-            mat_transpose=mat_transpose, 
-            group1_samples=group1_samples, 
+            mat_transpose=mat_transpose,
+            group1_samples=group1_samples,
             group2_samples=group2_samples
         )
         df = pd.DataFrame()
         df[self.dataset.index_column], df["pval"] = p_values.index.tolist(), p_values.values
-        df["log2fc"] = fc  
+        df["log2fc"] = fc
         return df
 
     def pairedttest(self) -> pd.DataFrame:
@@ -171,7 +171,7 @@ class DifferentialExpressionAnalysis:
         ].tolist()
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.dataset.mat.transpose()
-        
+
         p_values = mat_transpose.apply(
             lambda row: scipy.stats.ttest_rel(
                 row[group1_samples].values.flatten(),
@@ -181,8 +181,8 @@ class DifferentialExpressionAnalysis:
         )
 
         fc = self._calculate_foldchange(
-            mat_transpose=mat_transpose, 
-            group1_samples=group1_samples, 
+            mat_transpose=mat_transpose,
+            group1_samples=group1_samples,
             group2_samples=group2_samples
         )
         df = pd.DataFrame()
@@ -198,7 +198,7 @@ class DifferentialExpressionAnalysis:
                 mat_transpose[group1_samples].T.mean().values
                 - mat_transpose[group2_samples].T.mean().values
             )
-        
+
         else:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
@@ -213,26 +213,22 @@ class DifferentialExpressionAnalysis:
 
         if self.method == "wald":
             df = self.wald()
-        
+
         elif self.method == "ttest":
             df = self.ttest()
-        
+
         elif self.method == "welch-ttest":
             df = self.welch_ttest()
-        
+
         elif self.method == "sam":
             df = self.sam()
-        
+
         elif self.method == "paired-ttest":
             df = self.pairedttest()
-        
+
         else:
             raise ValueError(
                 f"{self.method} is invalid choose between 'wald' for Wald-test, 'sam',  and 'ttest', 'welch-ttest' or 'paired-ttest'"
             )
-        
+
         return df
-
-
-
-

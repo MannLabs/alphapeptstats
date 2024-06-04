@@ -3,7 +3,7 @@ message: "If you use this software, please cite both the article from preferred-
 authors:
   - family-names: Krismer
     given-names: Elena
-    orcid: 
+    orcid:
 title: "AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics "
 version: 0.6.5
 doi: "10.1093/bioinformatics/btad461"
@@ -17,7 +17,7 @@ preferred-citation:
     - family-names: Bludau
       given-names: Isabell
     - family-names: Strauss
-      given-names: Maximilian T. 
+      given-names: Maximilian T.
     - family-names: Mann
       given-names: Matthias
   title: "AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics"
@@ -25,5 +25,3 @@ preferred-citation:
   year: 2023
   doi: "10.1093/bioinformatics/btad461"
   journal: "Bioinformatics"
-
-  

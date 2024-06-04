@@ -23,7 +23,7 @@ class Statistics:
                 mat_transpose[group1_samples].T.mean().values
                 - mat_transpose[group2_samples].T.mean().values
             )
-        
+
         else:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
@@ -32,7 +32,7 @@ class Statistics:
             fc = np.log2(fc)
 
         return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
-    
+
     def _add_metadata_column(self, group1_list: list, group2_list: list):
 
         # create new column in metadata with defined groups
@@ -55,7 +55,7 @@ class Statistics:
         self.metadata = metadata
 
         return column, "group1", "group2"
-    
+
     @ignore_warning(RuntimeWarning)
     def diff_expression_analysis(
             self,
@@ -89,11 +89,11 @@ class Statistics:
             * ``'ll'``: the log-likelihood of the estimation
         """
         df = DifferentialExpressionAnalysis(
-            dataset=self, 
-            group1=group1, 
-            group2=group2, 
+            dataset=self,
+            group1=group1,
+            group2=group2,
             column=column, method=method,
-            perm=perm, 
+            perm=perm,
             fdr=fdr
         ).perform()
         return df
@@ -160,7 +160,7 @@ class Statistics:
             * ``'A vs. B Tukey test'``: Tukey-HSD corrected p-values (each combination represents a column)
         """
         return Anova(dataset=self, column=column, protein_ids=protein_ids, tukey=tukey).perform()
-        
+
 
     @lru_cache(maxsize=20)
     def ancova(self, protein_id:str, covar: Union[str, list], between:str) -> pd.DataFrame:
@@ -211,7 +211,7 @@ class Statistics:
         Returns:
             pd.DataFrame: Multicova Analysis results
         """
-        
+
         res, plot_list= MultiCovaAnalysis(
             dataset=self,
             covariates=covariates,
@@ -222,5 +222,3 @@ class Statistics:
             plot=True
         ).calculate()
         return res, plot_list
-
-        

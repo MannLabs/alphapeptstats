@@ -9,7 +9,7 @@ conda create --name alphastats python=3.8
 conda activate alphastats
 ```
 
-AlphaStats can be installed in an existing Python 3.8 environment with a single `bash` command. 
+AlphaStats can be installed in an existing Python 3.8 environment with a single `bash` command.
 ```bash
 pip install alphastats
 ```

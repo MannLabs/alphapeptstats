@@ -26,4 +26,3 @@ class mzTabLoader(BaseLoader):
         self.rawinput = tables.protein_table
         self.mztab_metadata = tables.metadata
         self.software = tables.protein_table.search_engine[0]
-        

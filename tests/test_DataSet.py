@@ -282,8 +282,8 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         # Quantile Normalization
         self.obj.preprocess(log2_transform=False, normalization="quantile")
         expected_mat = pd.DataFrame(
-            {"a": [0.5, 0.5, 0.0], 
-             "b": [1.0, 0.0, 0.0], 
+            {"a": [0.5, 0.5, 0.0],
+             "b": [1.0, 0.0, 0.0],
              "c": [0.0, 1.0, 1.0]}
         )
         pd._testing.assert_frame_equal(self.obj.mat, expected_mat)

@@ -51,28 +51,28 @@ An open-source Python package for downstream mass spectrometry downstream data a
 ## Citation
 Publication: [AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1093/bioinformatics/btad461)
 > **Citation:** <br>
-> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics 
+> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics
 > https://doi.org/10.1093/bioinformatics/btad461
 
 ---
 ## Installation
 
-AlphaPeptStats can be used as 
- * python library (pip-installation), or 
- * Graphical User Interface (either pip-installation or one-click installer). 
- 
+AlphaPeptStats can be used as
+ * python library (pip-installation), or
+ * Graphical User Interface (either pip-installation or one-click installer).
+
 Further we provide a Dockerimage for the GUI.
 
 ### Pip Installation
 
-AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command. 
+AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command.
 
 ```bash
 pip install alphastats
 ```
 
 In case you want to use the Graphical User Interface, use following command in the command line:
- 
+
 ```bash
 alphastats gui
 ```
