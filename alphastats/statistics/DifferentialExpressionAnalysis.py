@@ -4,18 +4,18 @@ import numpy as np
 import scipy
 from typing import Union
 
+
 class DifferentialExpressionAnalysis:
     def __init__(
-            self,
-            dataset,
-            group1: Union[str, list],
-            group2: Union[str, list],
-            column: str = None,
-            method: str = "ttest",
-            perm: int = 10,
-            fdr: float = 0.05,
-        ):
-
+        self,
+        dataset,
+        group1: Union[str, list],
+        group2: Union[str, list],
+        column: str = None,
+        method: str = "ttest",
+        perm: int = 10,
+        fdr: float = 0.05,
+    ):
         self.dataset = dataset
         self.group1 = group1
         self.group2 = group2
@@ -26,7 +26,9 @@ class DifferentialExpressionAnalysis:
 
     def _check_groups(self):
         if isinstance(self.group1, list) and isinstance(self.group2, list):
-            self.column, self.group1, self.group2 = self._add_metadata_column(self.group1, self.group2)
+            self.column, self.group1, self.group2 = self._add_metadata_column(
+                self.group1, self.group2
+            )
 
         elif self.column is None:
             raise ValueError(
@@ -35,8 +37,10 @@ class DifferentialExpressionAnalysis:
 
     def _prepare_anndata(self):
         import anndata
+
         group_samples = self.dataset.metadata[
-            (self.dataset.metadata[self.column] == self.group1) | (self.dataset.metadata[self.column] == self.group2)
+            (self.dataset.metadata[self.column] == self.group1)
+            | (self.dataset.metadata[self.column] == self.group2)
         ][self.dataset.sample].tolist()
 
         # reduce matrix
@@ -46,13 +50,17 @@ class DifferentialExpressionAnalysis:
         list_to_sort = reduced_matrix.index.to_list()
         #  reduce metadata
         obs_metadata = (
-            self.dataset.metadata[self.dataset.metadata[self.dataset.sample].isin(group_samples)]
+            self.dataset.metadata[
+                self.dataset.metadata[self.dataset.sample].isin(group_samples)
+            ]
             .set_index(self.dataset.sample)
             .loc[list_to_sort]
         )
 
         # change comparison group to 0/1
-        obs_metadata[self.column] = np.where(obs_metadata[self.column] == self.group1, 1, 0)
+        obs_metadata[self.column] = np.where(
+            obs_metadata[self.column] == self.group1, 1, 0
+        )
 
         # create a annotated dataset
         anndata_data = anndata.AnnData(
@@ -63,7 +71,7 @@ class DifferentialExpressionAnalysis:
         )
         return anndata_data
 
-    def _add_metadata_column(self, group1_list:list, group2_list:list):
+    def _add_metadata_column(self, group1_list: list, group2_list: list):
         # create new column in metadata with defined groups
         metadata = self.dataset.metadata
 
@@ -88,6 +96,7 @@ class DifferentialExpressionAnalysis:
 
     def sam(self) -> pd.DataFrame:
         from alphastats.multicova import multicova
+
         transposed = self.dataset.mat.transpose()
 
         if self.dataset.preprocessing_info["Normalization"] is None:
@@ -99,17 +108,35 @@ class DifferentialExpressionAnalysis:
 
         res, _ = multicova.perform_ttest_analysis(
             transposed,
-            c1 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group1][self.dataset.sample]),
-            c2 =list(self.dataset.metadata[self.dataset.metadata[self.column]==self.group2][self.dataset.sample]),
+            c1=list(
+                self.dataset.metadata[
+                    self.dataset.metadata[self.column] == self.group1
+                ][self.dataset.sample]
+            ),
+            c2=list(
+                self.dataset.metadata[
+                    self.dataset.metadata[self.column] == self.group2
+                ][self.dataset.sample]
+            ),
             s0=0.05,
             n_perm=self.perm,
             fdr=self.fdr,
             id_col=self.dataset.index_column,
-            parallelize=True
+            parallelize=True,
         )
 
-        fdr_column = "FDR"  + str(int(self.fdr*100)) + "%"
-        df = res[[self.dataset.index_column, 'fc', 'tval', 'pval', 'tval_s0', 'pval_s0', 'qval']]
+        fdr_column = "FDR" + str(int(self.fdr * 100)) + "%"
+        df = res[
+            [
+                self.dataset.index_column,
+                "fc",
+                "tval",
+                "pval",
+                "tval_s0",
+                "pval_s0",
+                "qval",
+            ]
+        ]
         df["log2fc"] = res["fc"]
         df["FDR"] = res[fdr_column]
 
@@ -117,6 +144,7 @@ class DifferentialExpressionAnalysis:
 
     def wald(self) -> pd.DataFrame:
         import diffxpy.api as de
+
         d = self._prepare_anndata()
         formula_loc = "~ 1 +" + self.column
 
@@ -128,6 +156,7 @@ class DifferentialExpressionAnalysis:
 
     def welch_ttest(self) -> pd.DataFrame:
         import diffxpy.api as de
+
         d = self._prepare_anndata()
 
         test = de.test.t_test(data=d, grouping=self.column)
@@ -135,12 +164,12 @@ class DifferentialExpressionAnalysis:
         return df
 
     def ttest(self) -> pd.DataFrame:
-        group1_samples = self.dataset.metadata[self.dataset.metadata[self.column] == self.group1][
-            self.dataset.sample
-        ].tolist()
-        group2_samples = self.dataset.metadata[self.dataset.metadata[self.column] == self.group2][
-            self.dataset.sample
-        ].tolist()
+        group1_samples = self.dataset.metadata[
+            self.dataset.metadata[self.column] == self.group1
+        ][self.dataset.sample].tolist()
+        group2_samples = self.dataset.metadata[
+            self.dataset.metadata[self.column] == self.group2
+        ][self.dataset.sample].tolist()
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.dataset.mat.transpose()
 
@@ -155,20 +184,23 @@ class DifferentialExpressionAnalysis:
         fc = self._calculate_foldchange(
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
-            group2_samples=group2_samples
+            group2_samples=group2_samples,
         )
         df = pd.DataFrame()
-        df[self.dataset.index_column], df["pval"] = p_values.index.tolist(), p_values.values
+        df[self.dataset.index_column], df["pval"] = (
+            p_values.index.tolist(),
+            p_values.values,
+        )
         df["log2fc"] = fc
         return df
 
     def pairedttest(self) -> pd.DataFrame:
-        group1_samples = self.dataset.metadata[self.dataset.metadata[self.column] == self.group1][
-            self.dataset.sample
-        ].tolist()
-        group2_samples = self.dataset.metadata[self.dataset.metadata[self.column] == self.group2][
-            self.dataset.sample
-        ].tolist()
+        group1_samples = self.dataset.metadata[
+            self.dataset.metadata[self.column] == self.group1
+        ][self.dataset.sample].tolist()
+        group2_samples = self.dataset.metadata[
+            self.dataset.metadata[self.column] == self.group2
+        ][self.dataset.sample].tolist()
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.dataset.mat.transpose()
 
@@ -183,14 +215,19 @@ class DifferentialExpressionAnalysis:
         fc = self._calculate_foldchange(
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
-            group2_samples=group2_samples
+            group2_samples=group2_samples,
         )
         df = pd.DataFrame()
-        df[self.dataset.index_column], df["pval"] = p_values.index.tolist(), p_values.values
+        df[self.dataset.index_column], df["pval"] = (
+            p_values.index.tolist(),
+            p_values.values,
+        )
         df["log2fc"] = fc
         return df
 
-    def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list):
+    def _calculate_foldchange(
+        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
+    ):
         mat_transpose += 0.00001
 
         if self.dataset.preprocessing_info["Log2-transformed"]:

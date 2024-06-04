@@ -73,7 +73,6 @@ class DimensionalityReduction(PlotUtils):
         return fig
 
     def _prepare_df(self):
-
         if self.group:
             mat = self.dataset._subset()
             self.dataset.metadata[self.group] = self.dataset.metadata[self.group].apply(
@@ -109,7 +108,6 @@ class DimensionalityReduction(PlotUtils):
         }
 
     def _umap(self):
-
         # TODO umap import is reallly buggy
         try:
             import umap.umap_ as umap
@@ -134,7 +132,7 @@ class DimensionalityReduction(PlotUtils):
             labels=self.labels,
             color=group_color,
             hover_data=[components[self.dataset.sample]],
-            template="simple_white+alphastats_colors"
+            template="simple_white+alphastats_colors",
         )
 
         # rename hover_data_0 to sample

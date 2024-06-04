@@ -81,9 +81,9 @@ class SpectronautLoader(BaseLoader):
 
     def _check_if_long(self, df):
         for colname in df.columns.to_list():
-            if colname.startswith('PG.Quantity'):
+            if colname.startswith("PG.Quantity"):
                 return True
-            elif 'PG.Quantity' in colname:
+            elif "PG.Quantity" in colname:
                 return False
 
     def _filter_qvalue(self, qvalue_cutoff):
@@ -110,7 +110,7 @@ class SpectronautLoader(BaseLoader):
                 try:
                     if df[column].dtype == np.float64:
                         continue
-                    df[column] = df[column].str.replace(',', '.').astype(float)
+                    df[column] = df[column].str.replace(",", ".").astype(float)
                     print("converted", column, df[column].dtype)
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)
@@ -120,7 +120,7 @@ class SpectronautLoader(BaseLoader):
                 try:
                     if df[column].dtype == np.float64:
                         continue
-                    df[column] = df[column].str.replace(',', '.').astype(float)
+                    df[column] = df[column].str.replace(",", ".").astype(float)
                     print("converted", column, df[column].dtype)
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)

@@ -122,22 +122,21 @@ class Plot:
         )
         return dimensionality_reduction.plot
 
-
     @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
         group1: Union[str, list],
         group2: Union[str, list],
-        column:str=None,
-        method:str="ttest",
-        labels:bool=False,
-        min_fc:float=1.0,
-        alpha:float=0.05,
-        draw_line:bool=True,
-        perm:int=100,
-        fdr:float=0.05,
-        compare_preprocessing_modes:bool=False,
-        color_list:list=[]
+        column: str = None,
+        method: str = "ttest",
+        labels: bool = False,
+        min_fc: float = 1.0,
+        alpha: float = 0.05,
+        draw_line: bool = True,
+        perm: int = 100,
+        fdr: float = 0.05,
+        compare_preprocessing_modes: bool = False,
+        color_list: list = [],
     ):
         """Plot Volcano Plot
 
@@ -180,7 +179,7 @@ class Plot:
                 draw_line=draw_line,
                 perm=perm,
                 fdr=fdr,
-                color_list=color_list
+                color_list=color_list,
             )
 
             return volcano_plot.plot
@@ -221,14 +220,22 @@ class Plot:
             df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if method == "violin":
-            fig = px.violin(df, x=self.sample, y="Intensity", color=color,
-                            template="simple_white+alphastats_colors"
-                            )
+            fig = px.violin(
+                df,
+                x=self.sample,
+                y="Intensity",
+                color=color,
+                template="simple_white+alphastats_colors",
+            )
 
         elif method == "box":
-            fig = px.box(df, x=self.sample, y="Intensity", color=color,
-                         template="simple_white+alphastats_colors"
-                         )
+            fig = px.box(
+                df,
+                x=self.sample,
+                y="Intensity",
+                color=color,
+                template="simple_white+alphastats_colors",
+            )
 
         else:
             raise ValueError(
@@ -390,7 +397,7 @@ class Plot:
             color="Imputation",
             opacity=0.8,
             hover_data=plot_df.columns,
-            template="simple_white+alphastats_colors"
+            template="simple_white+alphastats_colors",
         )
 
         pass
