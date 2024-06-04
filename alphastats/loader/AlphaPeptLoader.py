@@ -15,7 +15,7 @@ class AlphaPeptLoader(BaseLoader):
         intensity_column="[sample]_LFQ",
         index_column="Unnamed: 0",  # column name to be changed
         sep=",",
-        **kwargs
+        **kwargs,
     ):
         """Loads Alphapept output: results_proteins.csv. Will add contamination column for further analysis.
 

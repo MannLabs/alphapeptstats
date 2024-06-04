@@ -348,9 +348,9 @@ if (
     st.session_state["thread_id"] = thread.id
     artefacts = send_message_save_thread(client, st.session_state["user_prompt"])
     if artefacts:
-        st.session_state["artefact_enum_dict"][
-            len(st.session_state.messages) - 1
-        ] = artefacts
+        st.session_state["artefact_enum_dict"][len(st.session_state.messages) - 1] = (
+            artefacts
+        )
 
 if st.session_state["gpt_submitted_clicked"] > 0:
     if prompt := st.chat_input("Say something"):

@@ -199,10 +199,10 @@ class TestmzTabLoader(BaseTestLoader.BaseTest):
         cls.obj = mzTabLoader(file="testfiles/mzTab/test.mztab")
         cls.df_dim = (283, 265)
 
+
 class TestSpectronautLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
-
         if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
             shutil.unpack_archive(
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"

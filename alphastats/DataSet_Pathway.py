@@ -94,7 +94,6 @@ class Enrichment:
         return protein_id_concentate
 
     def _get_ptm_proteins(self, sample=None):
-
         if self.evidence_df is None:
             raise ValueError(
                 "No informations about PTMs."

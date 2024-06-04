@@ -29,7 +29,7 @@ __urls__ = {
     "Mann Labs at MPIB": "https://www.biochem.mpg.de/mann",
     "GitHub": __github__,
     "ReadTheDocs": "https://mannlabs.github.io/alphapeptstats/",
-    "PyPi": "https://pypi.org/project/alphastats/"
+    "PyPi": "https://pypi.org/project/alphastats/",
     # "Scientific paper": None,
 }
 __console_scripts__ = [
