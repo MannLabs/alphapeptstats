@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.6.7
+* FIX allowing to save multiple plots of the same type
+* FIX uninitialized functions
+
 # 0.6.6
 * FIX preprocessing with 0 / NA discrepancy
 

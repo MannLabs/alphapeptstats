@@ -1,7 +1,6 @@
-import io
-import os
-
 import streamlit as st
+import os
+import io
 
 try:
     from alphastats.DataSet import DataSet
@@ -167,9 +166,7 @@ def select_sample_column_metadata(df, software):
         submitted = st.form_submit_button("Create DataSet")
 
     if submitted:
-        if len(df[st.session_state.sample_column].to_list()) != len(
-            df[st.session_state.sample_column].unique()
-        ):
+        if len(df[st.session_state.sample_column].to_list()) != len(df[st.session_state.sample_column].unique()):
             st.error("Sample names have to be unique.")
             st.stop()
         return True
@@ -420,6 +417,8 @@ if st.button("Load sample DataSet - PXD011839"):
     )
 
     load_sample_data()
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
 
 
 st.markdown("### To start a new session:")
