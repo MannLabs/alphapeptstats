@@ -1,11 +1,17 @@
-
 from alphastats.loader.BaseLoader import BaseLoader
 
 import pandas as pd
 from typing import Union
 
+
 class GenericLoader(BaseLoader):
-    def __init__(self, file:Union[str, pd.DataFrame], intensity_column:list, index_column:str, sep:str=None):
+    def __init__(
+        self,
+        file: Union[str, pd.DataFrame],
+        intensity_column: list,
+        index_column: str,
+        sep: str = None,
+    ):
         """Generic Loader for you proteomics data
 
         Args:
@@ -32,14 +38,14 @@ class GenericLoader(BaseLoader):
         self._check_if_columns_are_present()
         self._read_all_columns_as_string()
 
-    def _extract_sample_names(self, metadata:pd.DataFrame, sample_column:str):
+    def _extract_sample_names(self, metadata: pd.DataFrame, sample_column: str):
         sample_names = metadata[sample_column].to_list()
-        
+
         for intensity_column in self.intensity_column_list:
             for sample in sample_names:
                 if sample in intensity_column:
                     sample_structure = intensity_column.replace(sample, "[sample]")
-        
+
         self.intensity_column = sample_structure
         return sample_structure
 
@@ -56,4 +62,3 @@ class GenericLoader(BaseLoader):
         elif file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
         return df
-

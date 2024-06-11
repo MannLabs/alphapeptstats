@@ -5,14 +5,12 @@ import datetime
 
 
 def preprocessing():
-
     c1, c2 = st.columns(2)
 
     with c1:
-
         st.markdown(
             "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
-            + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats " 
+            + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats "
             + "[documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
         )
 
@@ -30,8 +28,10 @@ def preprocessing():
             )
 
             remove_samples = st.multiselect(
-                "Remove samples from analysis", 
-                options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list()
+                "Remove samples from analysis",
+                options=st.session_state.dataset.metadata[
+                    st.session_state.dataset.sample
+                ].to_list(),
             )
 
             data_completeness = st.number_input(
@@ -43,7 +43,8 @@ def preprocessing():
             )
 
             log2_transform = st.selectbox(
-                "Log2-transform dataset", options=[True, False],
+                "Log2-transform dataset",
+                options=[True, False],
             )
 
             normalization = st.selectbox(
@@ -59,11 +60,11 @@ def preprocessing():
         if submitted:
             if len(remove_samples) == 0:
                 remove_samples = None
-            
+
             st.session_state.dataset.preprocess(
                 remove_contaminations=remove_contaminations,
                 log2_transform=log2_transform,
-                remove_samples = remove_samples,
+                remove_samples=remove_samples,
                 data_completeness=data_completeness,
                 subset=subset,
                 normalization=normalization,
@@ -78,38 +79,38 @@ def preprocessing():
                 pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
                 use_container_width=True,
             )
-        
+
         st.markdown("#### Batch correction: correct for technical bias")
 
         with st.form("Batch correction: correct for technical bias"):
             batch = st.selectbox(
-                "Batch", 
-                options= st.session_state.dataset.metadata.columns.to_list()
+                "Batch", options=st.session_state.dataset.metadata.columns.to_list()
             )
             submit_batch_correction = st.form_submit_button("Submit")
-        
+
         if submit_batch_correction:
-            st.session_state.dataset.batch_correction(
-                batch=batch
-            )
+            st.session_state.dataset.batch_correction(batch=batch)
             st.info(
                 "Data has been processed. "
                 + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             )
 
-    
     with c2:
-
         if submitted:
             st.markdown("**Intensity Distribution after preprocessing per sample**")
             fig_processed = st.session_state.dataset.plot_sampledistribution()
-            st.plotly_chart(fig_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
-        
+            st.plotly_chart(
+                fig_processed.update_layout(plot_bgcolor="white"),
+                use_container_width=True,
+            )
+
         else:
             st.markdown("**Intensity Distribution per sample**")
             fig_none_processed = st.session_state.dataset.plot_sampledistribution()
-            st.plotly_chart(fig_none_processed.update_layout(plot_bgcolor="white"), use_container_width=True)
-        
+            st.plotly_chart(
+                fig_none_processed.update_layout(plot_bgcolor="white"),
+                use_container_width=True,
+            )
 
     reset_steps = st.button("Reset all Preprocessing steps")
 
@@ -130,9 +131,7 @@ def reset_preprocessing():
 
 
 def main_preprocessing():
-
     if "dataset" in st.session_state:
-
         preprocessing()
 
     else:

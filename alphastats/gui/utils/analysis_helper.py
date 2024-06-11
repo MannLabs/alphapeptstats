@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import streamlit as st
+import io
 from datetime import datetime
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
@@ -16,17 +17,80 @@ def check_if_options_are_loaded(f):
     return inner
 
 
-def read_uploaded_file_into_df(file):
+def display_figure(plot):
+    """
+    display plotly or seaborn figure
+    """
+    try:
+        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
+    except:
+        st.pyplot(plot)
+
+
+def save_plot_to_session_state(plot, method):
+    """
+    save plot with method to session state to retrieve old results
+    """
+    st.session_state["plot_list"] += [(method, plot)]
+
+
+def display_df(df):
+    mask = df.applymap(type) != bool
+    d = {True: "TRUE", False: "FALSE"}
+    df = df.where(mask, df.replace(d))
+    st.dataframe(df)
+
+
+def download_figure(obj, format, plotting_library="plotly"):
+    """
+    download plotly figure
+    """
+
+    plot = obj[1]
+    filename = obj[0] + "." + format
+
+    buffer = io.BytesIO()
+
+    if plotting_library == "plotly":
+        # Save the figure as a pdf to the buffer
+        plot.write_image(file=buffer, format=format)
+
+    else:
+        plot.savefig(buffer, format=format)
+
+    st.download_button(label="Download as " + format, data=buffer, file_name=filename)
+
+
+@st.cache_data
+def convert_df(df, user_session_id=st.session_state.user_session_id):
+    return df.to_csv().encode("utf-8")
+
+
+def download_preprocessing_info(plot):
+    preprocesing_dict = plot[1].preprocessing
+    df = pd.DataFrame(preprocesing_dict.items())
+    filename = "plot" + plot[0] + "preprocessing_info.csv"
+    csv = convert_df(df)
+    st.download_button(
+        "Download DataSet Info as .csv",
+        csv,
+        filename,
+        "text/csv",
+        key="preprocessing",
+    )
+
+
+def read_uploaded_file_into_df(file, decimal="."):
     filename = file.name
 
     if filename.endswith(".xlsx"):
         df = pd.read_excel(file)
 
     elif filename.endswith(".txt") or filename.endswith(".tsv"):
-        df = pd.read_csv(file, delimiter="\t")
+        df = pd.read_csv(file, delimiter="\t", decimal=decimal)
 
     elif filename.endswith(".csv"):
-        df = pd.read_csv(file)
+        df = pd.read_csv(file, decimal=decimal)
 
     else:
         df = None
@@ -44,15 +108,12 @@ def get_unique_values_from_column(column):
 
 
 def st_general(method_dict):
-
     chosen_parameter_dict = {}
 
     if "settings" in list(method_dict.keys()):
-
         settings_dict = method_dict.get("settings")
 
         for parameter in settings_dict:
-
             parameter_dict = settings_dict[parameter]
 
             if "options" in parameter_dict.keys():
@@ -73,8 +134,8 @@ def st_general(method_dict):
 
 @st.cache_data
 def gui_volcano_plot_differential_expression_analysis(
-        chosen_parameter_dict, user_session_id = st.session_state.user_session_id
-    ):
+    chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+):
     """
     initalize volcano plot object with differential expression analysis results
     """
@@ -129,7 +190,7 @@ def gui_volcano_plot():
 
     if submitted:
         volcano_plot = gui_volcano_plot_differential_expression_analysis(
-            chosen_parameter_dict, user_session_id = st.session_state.user_session_id
+            chosen_parameter_dict, user_session_id=st.session_state.user_session_id
         )
         volcano_plot._update(plotting_parameter_dict)
         volcano_plot._annotate_result_df()
@@ -139,7 +200,7 @@ def gui_volcano_plot():
 
 def get_analysis_options_from_dict(method, options_dict):
     """
-    extract plotting options from dict amd display as selectbox or 
+    extract plotting options from dict amd display as selectbox or
     give selceted options to plotting function
     """
 
@@ -164,7 +225,6 @@ def get_analysis_options_from_dict(method, options_dict):
         return st_plot_umap(method_dict)
 
     elif "settings" not in method_dict.keys():
-
         if st.session_state.dataset.mat.isna().values.any() == True:
             st.error(
                 "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
@@ -236,7 +296,6 @@ def helper_plot_dimensionality_reduction(method_dict):
     circle = False
 
     if group is not None:
-
         circle = st.checkbox("circle")
 
     chosen_parameter_dict = {
@@ -260,9 +319,7 @@ def helper_compare_two_groups():
     )
 
     if group != "< None >":
-
-
-        unique_values = get_unique_values_from_column(group)
+        unique_values = get_unique_values_from_column(column=group)
 
         group1 = st.selectbox("Group 1", options=unique_values)
 
@@ -278,19 +335,23 @@ def helper_compare_two_groups():
             )
 
     else:
-
         group1 = st.multiselect(
-                "Group 1 samples:",
-                options=st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list(),
-            )
+            "Group 1 samples:",
+            options=st.session_state.dataset.metadata[
+                st.session_state.dataset.sample
+            ].to_list(),
+        )
 
         group2 = st.multiselect(
-                "Group 2 samples:",
-                options=list(
-                    reversed(st.session_state.dataset.metadata[st.session_state.dataset.sample].to_list())
-                ),
-            )
-
+            "Group 2 samples:",
+            options=list(
+                reversed(
+                    st.session_state.dataset.metadata[
+                        st.session_state.dataset.sample
+                    ].to_list()
+                )
+            ),
+        )
 
         intersection_list = list(set(group1).intersection(set(group2)))
 
@@ -319,15 +380,14 @@ def get_sample_names_from_software_file():
         substring_to_remove = regex_find_intensity_columns.replace(".*", "")
         df.columns = df.columns.str.replace(substring_to_remove, "")
         sample_names = df.columns.to_list()
-    
+
     else:
         sample_names = st.session_state.loader.intensity_column
-    
+
     return sample_names
 
 
 def get_analysis(method, options_dict):
-
     if method in options_dict.keys():
         obj = get_analysis_options_from_dict(method, options_dict=options_dict)
         return obj
@@ -347,7 +407,10 @@ def st_tsne_options(method_dict):
 
     submitted = st.button("Submit")
     chosen_parameter_dict.update(
-        {"n_iter": n_iter, "perplexity": perplexity,}
+        {
+            "n_iter": n_iter,
+            "perplexity": perplexity,
+        }
     )
 
     if submitted:
@@ -356,11 +419,15 @@ def st_tsne_options(method_dict):
 
 
 def load_options():
-
-    from alphastats.gui.utils.options import plotting_options, statistic_options
+    from alphastats.gui.utils.options import (
+        plotting_options,
+        statistic_options,
+        interpretation_options,
+    )
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
+    st.session_state["interpretation_options"] = interpretation_options
 
 
 def gui_multicova_analysis():

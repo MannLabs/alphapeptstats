@@ -72,7 +72,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         self.create_matrix()
         self._check_matrix_values()
         self.metadata = None
-        
+
         if metadata_path is not None:
             self.sample = sample_column
             self.load_metadata(file_path=metadata_path)
@@ -80,9 +80,11 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         else:
             self._create_metadata()
-        
+
         if self.loader == "Generic":
-            intensity_column = loader._extract_sample_names(metadata=self.metadata, sample_column=self.sample)
+            intensity_column = loader._extract_sample_names(
+                metadata=self.metadata, sample_column=self.sample
+            )
             self.intensity_column = intensity_column
 
         # save preprocessing settings
@@ -104,7 +106,6 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             loader : loader
         """
         if not isinstance(
-
             loader,
             (
                 AlphaPeptLoader,
@@ -113,9 +114,8 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
                 FragPipeLoader,
                 SpectronautLoader,
                 GenericLoader,
-                mzTabLoader
+                mzTabLoader,
             ),
-
         ):
             raise LoaderError(
                 "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
@@ -158,12 +158,14 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         df = df.set_index(self.index_column)
 
         if isinstance(self.intensity_column, str):
-            regex_find_intensity_columns = self.intensity_column.replace("[sample]", ".*")
+            regex_find_intensity_columns = self.intensity_column.replace(
+                "[sample]", ".*"
+            )
             df = df.filter(regex=(regex_find_intensity_columns), axis=1)
             # remove Intensity so only sample names remain
             substring_to_remove = regex_find_intensity_columns.replace(".*", "")
             df.columns = df.columns.str.replace(substring_to_remove, "")
-        
+
         else:
             df = df[self.intensity_column]
         # transpose dataframe

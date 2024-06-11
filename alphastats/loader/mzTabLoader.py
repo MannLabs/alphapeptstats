@@ -1,8 +1,14 @@
 from pyteomics import mztab
 from alphastats.loader.BaseLoader import BaseLoader
 
+
 class mzTabLoader(BaseLoader):
-    def __init__(self, file, intensity_column: str="protein_abundance_[sample]", index_column:str="accession"):
+    def __init__(
+        self,
+        file,
+        intensity_column: str = "protein_abundance_[sample]",
+        index_column: str = "accession",
+    ):
         """Load mzTab file. Will add contamination column for further analysis.
 
         Args:
@@ -20,10 +26,8 @@ class mzTabLoader(BaseLoader):
         self._load_protein_table(file=file)
         self._add_contamination_column()
 
-
     def _load_protein_table(self, file):
         tables = mztab.MzTab(file)
         self.rawinput = tables.protein_table
         self.mztab_metadata = tables.metadata
         self.software = tables.protein_table.search_engine[0]
-        

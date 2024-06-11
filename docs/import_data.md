@@ -6,15 +6,15 @@ Currently, AlphaStats allows the analysis of five quantitative proteomics softwa
 Imported proteomics data and metadata can be combined in a DataSet, which will be used for the downstream analysis.
 
 ```python
-import alphastats 
+import alphastats
 
 maxquant_data = alphastats.MaxQuantLoader(
     file="testfiles/maxquant_proteinGroups.txt"
 )
 
 dataset = alphastats.DataSet(
-    loader = maxquant_data, 
-    metadata_path="../testfiles/maxquant/metadata.xlsx", 
+    loader = maxquant_data,
+    metadata_path="../testfiles/maxquant/metadata.xlsx",
     sample_column="sample"
 )
 ```
@@ -33,7 +33,7 @@ When importing the data, AlphaStats will identify potential contaminations based
 
 
 ### AlphaPept
-[Alphapept](https://github.com/MannLabs/alphapept) output can either be imported as `results_proteins.csv` or `results.hdf`. 
+[Alphapept](https://github.com/MannLabs/alphapept) output can either be imported as `results_proteins.csv` or `results.hdf`.
 
 **Intensity types**
 AlphaPept either described the raw intensity or the free quantification (LFQ) intensity. By default AlphaStats uses the LFQ-Intensity for the downstream analysis.
@@ -48,15 +48,15 @@ alphapept_data = alphastats.AlphaPeptLoader(file="testfiles/alphapept_results_pr
 ```
 
 ### MaxQuant
-[MaxQuant](https://www.maxquant.org/) generates multiple files as output. For the downstream analysis the `proteinGroups.txt` file, containing the aggregated protein intensities is sufficient. 
+[MaxQuant](https://www.maxquant.org/) generates multiple files as output. For the downstream analysis the `proteinGroups.txt` file, containing the aggregated protein intensities is sufficient.
 
-**Intensity types** 
+**Intensity types**
 MaxQuant annotates different intensity types: raw intensity, label - free quantification (LFQ) intensity and intensity-based absolute quantification (iBAQ) intensity. The default settings are "LFQ intensity [sample]".
 
 Find more details about the file format [here](http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable)
 
 ```python
-import alphastats 
+import alphastats
 maxquant_data = alphastats.MaxQuantLoader(file="testfiles/maxquant_proteinGroups.txt")
 ```
 
@@ -67,7 +67,7 @@ For the analysis of [DIA-NN](https://github.com/vdemichev/DiaNN) output use `rep
 Find more details about the file format [here](https://github.com/vdemichev/DiaNN#output).
 
 ```python
-import alphastats 
+import alphastats
 diann_data = alphastats.DIANNLoader(file="testfiles/diann_report_final.pg_matrix.tsv")
 ```
 
@@ -76,7 +76,7 @@ diann_data = alphastats.DIANNLoader(file="testfiles/diann_report_final.pg_matrix
 Find more details about the file format [here](https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv).
 
 ```python
-import alphastats 
+import alphastats
 fragpipe_data = alphastats.FragPipeLoader(file="testfiles/fragpipe_combined_proteins.tsv")
 ```
 
@@ -96,7 +96,7 @@ spectronaut_data = alphastats.SpectronautLoader(
     )
 ```
 
-### mzTab 
+### mzTab
 
 Find more details about the file format [here](https://www.psidev.info/mztab).
 
@@ -118,15 +118,15 @@ To compare samples across various conditions in the downstream analysis, a metad
 The whole downstream analysis can be perforemd on the alphastats.DataSet. To create the DataSet you need to provide the loader object as well as the metadata.
 
 ```python
-import alphastats 
+import alphastats
 
 maxquant_data = alphastats.MaxQuantLoader(
     file="testfiles/maxquant_proteinGroups.txt"
 )
 
 dataset = alphastats.DataSet(
-    loader = maxquant_data, 
-    metadata_path="../testfiles/maxquant/metadata.xlsx", 
+    loader = maxquant_data,
+    metadata_path="../testfiles/maxquant/metadata.xlsx",
     sample_column="sample"
 )
 ```

@@ -37,10 +37,14 @@ def create_pip_wheel():
             "Mann Labs at MPIB": "https://www.biochem.mpg.de/mann",
             "GitHub": "https://github.com/MannLabs/alphapeptstats",
             "ReadTheDocs": "https://mannlabs.github.io/alphapeptstats/",
-            "PyPi": "https://pypi.org/project/alphastats/"
+            "PyPi": "https://pypi.org/project/alphastats/",
             # "Scientific paper": None,
         },
-        keywords=["bioinformatics", "software", "mass spectometry",],
+        keywords=[
+            "bioinformatics",
+            "software",
+            "mass spectometry",
+        ],
         classifiers=[
             "Development Status :: 1 - Planning",
             # "Development Status :: 2 - Pre-Alpha",
@@ -68,7 +72,9 @@ def create_pip_wheel():
             "alphastats.loader",
         ],
         include_package_data=True,
-        entry_points={"console_scripts": "alphastats=alphastats.gui.gui:run",},
+        entry_points={
+            "console_scripts": "alphastats=alphastats.gui.gui:run",
+        },
         install_requires=requirements,
         python_requires=">=3.8,<4",
     )

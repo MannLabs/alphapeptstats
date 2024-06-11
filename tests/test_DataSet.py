@@ -282,9 +282,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         # Quantile Normalization
         self.obj.preprocess(log2_transform=False, normalization="quantile")
         expected_mat = pd.DataFrame(
-            {"a": [0.5, 0.5, 0.0], 
-             "b": [1.0, 0.0, 0.0], 
-             "c": [0.0, 1.0, 1.0]}
+            {"a": [0.5, 0.5, 0.0], "b": [1.0, 0.0, 0.0], "c": [0.0, 1.0, 1.0]}
         )
         pd._testing.assert_frame_equal(self.obj.mat, expected_mat)
 
@@ -309,7 +307,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         expected_mat = pd.DataFrame(
             {
                 "a": [-0.009526, -0.236399, -0.707107],
-                "b": [	1.229480, -1.089313, -0.707107],
+                "b": [1.229480, -1.089313, -0.707107],
                 "c": [-1.219954, 1.325712, 1.414214],
             }
         )
@@ -509,7 +507,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 5)
-        self.assertEqual(mock.call_count, 2)
+        self.assertEqual(mock.call_count, 1)
 
     def test_anova_with_tukey(self):
         # with first 100 protein ids
@@ -902,7 +900,6 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
 class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
-
         if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
             shutil.unpack_archive(
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
@@ -933,6 +930,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
 
         os.remove("testfiles/spectronaut/results.tsv")
 
+
 class TestGenericDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
@@ -944,12 +942,17 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
         cls.cls_loader = GenericLoader(
             file="testfiles/fragpipe/combined_proteins.tsv",
             intensity_column=[
-                "S1 Razor Intensity",	"S2 Razor Intensity", "S3 Razor Intensity",
-                "S4 Razor Intensity",	"S5 Razor Intensity",	"S6 Razor Intensity",
-                "S7 Razor Intensity", "S8 Razor Intensity"
+                "S1 Razor Intensity",
+                "S2 Razor Intensity",
+                "S3 Razor Intensity",
+                "S4 Razor Intensity",
+                "S5 Razor Intensity",
+                "S6 Razor Intensity",
+                "S7 Razor Intensity",
+                "S8 Razor Intensity",
             ],
             index_column="Protein",
-            sep="\t"
+            sep="\t",
         )
         cls.cls_metadata_path = "testfiles/fragpipe/metadata2.xlsx"
         cls.cls_obj = DataSet(

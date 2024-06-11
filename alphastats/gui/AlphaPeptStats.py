@@ -23,16 +23,16 @@ user_session_id = session_id
 st.session_state["user_session_id"] = user_session_id
 
 img_center = """
-<head>  
-<title> CSS object-position property </title>  
-<style> 
+<head>
+<title> CSS object-position property </title>
+<style>
 img {
   display: block;
   margin-left: auto;
   margin-right: auto;
   width: 65%;
-</style>  
-</head>  
+</style>
+</head>
 """
 
 _this_file = os.path.abspath(__file__)
@@ -44,21 +44,22 @@ header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
 )
 
 st.markdown(
-    header_html, unsafe_allow_html=True,
+    header_html,
+    unsafe_allow_html=True,
 )
 
 ##
 st.markdown(
     """\n\n
-An open-source Python package for the analysis of mass spectrometry based proteomics data 
+An open-source Python package for the analysis of mass spectrometry based proteomics data
 from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
 
 ### How to contribute
 
-If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost 
-our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues) 
-or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more 
-interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the 
+If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost
+our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues)
+or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more
+interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the
 [the Contributors License Agreement](misc/CLA.md).
 """
 )

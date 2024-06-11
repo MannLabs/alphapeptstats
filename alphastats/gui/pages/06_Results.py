@@ -32,6 +32,7 @@ def download_preprocessing_info(plot, name, count):
     df = pd.DataFrame(preprocesing_dict.items())
     filename = "plot" + name + "preprocessing_info.csv"
     csv = convert_df(df)
+    print("preprocessing" + count)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
@@ -47,6 +48,7 @@ sidebar_info()
 
 if "plot_list" in st.session_state:
     for count, plot in enumerate(st.session_state.plot_list):
+        print("plot", type(plot), count)
         count = str(count)
 
         st.markdown("\n\n")
@@ -68,6 +70,5 @@ if "plot_list" in st.session_state:
 
         with col3:
             download_preprocessing_info(plot, name, count)
-
 else:
     st.info("No analysis performed yet.")

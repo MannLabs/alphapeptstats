@@ -51,28 +51,28 @@ An open-source Python package for downstream mass spectrometry downstream data a
 ## Citation
 Publication: [AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1093/bioinformatics/btad461)
 > **Citation:** <br>
-> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics 
+> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics
 > https://doi.org/10.1093/bioinformatics/btad461
 
 ---
 ## Installation
 
-AlphaPeptStats can be used as 
- * python library (pip-installation), or 
- * Graphical User Interface (either pip-installation or one-click installer). 
- 
+AlphaPeptStats can be used as
+ * python library (pip-installation), or
+ * Graphical User Interface (either pip-installation or one-click installer).
+
 Further we provide a Dockerimage for the GUI.
 
 ### Pip Installation
 
-AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command. 
+AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command.
 
 ```bash
 pip install alphastats
 ```
 
 In case you want to use the Graphical User Interface, use following command in the command line:
- 
+
 ```bash
 alphastats gui
 ```
@@ -115,6 +115,24 @@ AlphaStats was developed by the [Mann Group at the University of Copenhagen](htt
 ## How to contribute
 
 If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues) or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the [the Contributors License Agreement](misc/CLA.md).
+
+
+### Notes for developers
+#### pre-commit hooks
+It is highly recommended to use the provided pre-commit hooks, as the CI pipeline enforces all checks therein to
+pass in order to merge a branch.
+
+The hooks need to be installed once by
+```bash
+pip install -r requirements_dev.txt
+pre-commit install
+```
+You can run the checks yourself using:
+```bash
+pre-commit run --all-files
+```
+
+
 
 ---
 ## Changelog

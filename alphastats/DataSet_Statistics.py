@@ -10,12 +10,16 @@ from functools import lru_cache
 from typing import Union
 
 from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
-from alphastats.statistics.DifferentialExpressionAnalysis import DifferentialExpressionAnalysis
+from alphastats.statistics.DifferentialExpressionAnalysis import (
+    DifferentialExpressionAnalysis,
+)
 from alphastats.statistics.Anova import Anova
 
 
 class Statistics:
-    def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list) -> pd.DataFrame:
+    def _calculate_foldchange(
+        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
+    ) -> pd.DataFrame:
         mat_transpose += 0.00001
 
         if self.preprocessing_info["Log2-transformed"]:
@@ -23,7 +27,7 @@ class Statistics:
                 mat_transpose[group1_samples].T.mean().values
                 - mat_transpose[group2_samples].T.mean().values
             )
-        
+
         else:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
@@ -32,9 +36,8 @@ class Statistics:
             fc = np.log2(fc)
 
         return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
-    
-    def _add_metadata_column(self, group1_list: list, group2_list: list):
 
+    def _add_metadata_column(self, group1_list: list, group2_list: list):
         # create new column in metadata with defined groups
         metadata = self.metadata
 
@@ -55,17 +58,17 @@ class Statistics:
         self.metadata = metadata
 
         return column, "group1", "group2"
-    
+
     @ignore_warning(RuntimeWarning)
     def diff_expression_analysis(
-            self,
-            group1: Union[str, list],
-            group2: Union[str, list],
-            column: str = None,
-            method: str = "ttest",
-            perm: int = 10,
-            fdr: float = 0.05,
-        ) -> pd.DataFrame:
+        self,
+        group1: Union[str, list],
+        group2: Union[str, list],
+        column: str = None,
+        method: str = "ttest",
+        perm: int = 10,
+        fdr: float = 0.05,
+    ) -> pd.DataFrame:
         """Perform differential expression analysis doing a a t-test or Wald test. A wald test will fit a generalized linear model.
 
         Args:
@@ -89,17 +92,20 @@ class Statistics:
             * ``'ll'``: the log-likelihood of the estimation
         """
         df = DifferentialExpressionAnalysis(
-            dataset=self, 
-            group1=group1, 
-            group2=group2, 
-            column=column, method=method,
-            perm=perm, 
-            fdr=fdr
+            dataset=self,
+            group1=group1,
+            group2=group2,
+            column=column,
+            method=method,
+            perm=perm,
+            fdr=fdr,
         ).perform()
         return df
 
     @ignore_warning(RuntimeWarning)
-    def tukey_test(self, protein_id:str, group:str, df: pd.DataFrame=None) -> pd.DataFrame:
+    def tukey_test(
+        self, protein_id: str, group: str, df: pd.DataFrame = None
+    ) -> pd.DataFrame:
         """Calculate Pairwise Tukey-HSD post-hoc test
         Wrapper around:
         https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
@@ -145,7 +151,7 @@ class Statistics:
         return tukey_df
 
     @ignore_warning(RuntimeWarning)
-    def anova(self, column:str, protein_ids="all", tukey: bool=True) -> pd.DataFrame:
+    def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
         """One-way Analysis of Variance (ANOVA)
 
         Args:
@@ -159,11 +165,14 @@ class Statistics:
             * ``'ANOVA_pvalue'``: p-value of ANOVA
             * ``'A vs. B Tukey test'``: Tukey-HSD corrected p-values (each combination represents a column)
         """
-        return Anova(dataset=self, column=column, protein_ids=protein_ids, tukey=tukey).perform()
-        
+        return Anova(
+            dataset=self, column=column, protein_ids=protein_ids, tukey=tukey
+        ).perform()
 
     @lru_cache(maxsize=20)
-    def ancova(self, protein_id:str, covar: Union[str, list], between:str) -> pd.DataFrame:
+    def ancova(
+        self, protein_id: str, covar: Union[str, list], between: str
+    ) -> pd.DataFrame:
         """Analysis of covariance (ANCOVA) with on or more covariate(s).
         Wrapper around = https://pingouin-stats.org/generated/pingouin.ancova.html
 
@@ -211,16 +220,14 @@ class Statistics:
         Returns:
             pd.DataFrame: Multicova Analysis results
         """
-        
-        res, plot_list= MultiCovaAnalysis(
+
+        res, plot_list = MultiCovaAnalysis(
             dataset=self,
             covariates=covariates,
             n_permutations=n_permutations,
             fdr=fdr,
             s0=s0,
             subset=subset,
-            plot=True
+            plot=True,
         ).calculate()
         return res, plot_list
-
-        

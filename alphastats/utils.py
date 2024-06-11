@@ -74,7 +74,7 @@ def check_if_df_empty(f):
 
 def list_to_tuple(function):
     """
-    list are not hashable not suitable for caching 
+    list are not hashable not suitable for caching
     convert to tuple
     """
 
@@ -86,7 +86,8 @@ def list_to_tuple(function):
 
     return wrapper
 
-def find_duplicates_in_list(l:list) -> list:
+
+def find_duplicates_in_list(l: list) -> list:
     """Find duplicates in a list
 
     Args:
@@ -99,7 +100,6 @@ def find_duplicates_in_list(l:list) -> list:
     ys = sorted(l)
 
     for n in range(1, len(l)):
-        if ys[n] == ys[n-1]:
+        if ys[n] == ys[n - 1]:
             duplicates.append(ys[n])
     return duplicates
-    

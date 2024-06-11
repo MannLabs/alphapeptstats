@@ -19,7 +19,6 @@ def check_if_options_are_loaded(f):
     """
 
     def inner(*args, **kwargs):
-
         if hasattr(st.session_state, "plotting_options") is False:
             alphastats.gui.utils.analysis_helper.load_options()
 
@@ -83,7 +82,11 @@ def download_preprocessing_info(plot):
     filename = "plot" + plot[0] + "preprocessing_info.csv"
     csv = convert_df(df)
     st.download_button(
-        "Download DataSet Info as .csv", csv, filename, "text/csv", key="preprocessing",
+        "Download DataSet Info as .csv",
+        csv,
+        filename,
+        "text/csv",
+        key="preprocessing",
     )
 
 
@@ -126,7 +129,6 @@ if "plot_list" not in st.session_state:
 
 
 if "dataset" in st.session_state:
-
     c1, c2 = st.columns((1, 2))
 
     plot_to_display = False
@@ -134,18 +136,15 @@ if "dataset" in st.session_state:
     method_plot = None
 
     with c1:
-
         method = select_analysis()
 
         if method in st.session_state.plotting_options.keys():
-
             analysis_result = get_analysis(
                 method=method, options_dict=st.session_state.plotting_options
             )
             plot_to_display = True
 
         elif method in st.session_state.statistic_options.keys():
-
             analysis_result = get_analysis(
                 method=method, options_dict=st.session_state.statistic_options
             )
@@ -157,11 +156,9 @@ if "dataset" in st.session_state:
         st.markdown("")
 
     with c2:
-
         # --- Plot -------------------------------------------------------
 
         if analysis_result is not None and method != "Clustermap" and plot_to_display:
-
             display_figure(analysis_result)
 
             save_plot_to_session_state(analysis_result, method)
@@ -169,7 +166,6 @@ if "dataset" in st.session_state:
             method_plot = [method, analysis_result]
 
         elif method == "Clustermap":
-
             st.write("Download Figure to see full size.")
 
             display_figure(analysis_result)
@@ -179,7 +175,6 @@ if "dataset" in st.session_state:
         # --- STATISTICAL ANALYSIS -------------------------------------------------------
 
         elif analysis_result is not None and df_to_display:
-
             display_df(analysis_result)
 
             filename = method + ".csv"
