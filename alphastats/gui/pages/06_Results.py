@@ -53,13 +53,11 @@ if "plot_list" in st.session_state:
 
         st.markdown("\n\n")
         name = plot[0]
-        print("name", name)
         plot = plot[1]
         if name == "ttest":
             plot = plot.plot
         st.write(name)
 
-        print(plot)
         display_plotly_figure(plot)
 
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -72,7 +70,5 @@ if "plot_list" in st.session_state:
 
         with col3:
             download_preprocessing_info(plot, name, count)
-
-
 else:
     st.info("No analysis performed yet.")

@@ -1,5 +1,5 @@
 __project__ = "alphastats"
-__version__ = "0.6.6"
+__version__ = "0.6.7"
 __license__ = "Apache"
 __description__ = "An open-source Python package for Mass Spectrometry Analysis"
 __author__ = "Mann Labs"

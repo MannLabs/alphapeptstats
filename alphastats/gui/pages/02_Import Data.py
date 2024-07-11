@@ -1,7 +1,6 @@
-import io
-import os
-
 import streamlit as st
+import os
+import io
 
 try:
     from alphastats.DataSet import DataSet
@@ -420,6 +419,8 @@ if st.button("Load sample DataSet - PXD011839"):
     )
 
     load_sample_data()
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
 
 
 st.markdown("### To start a new session:")
