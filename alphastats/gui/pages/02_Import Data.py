@@ -216,7 +216,8 @@ def create_metadata_file():
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         # Write each dataframe to a different worksheet.
         metadata.to_excel(writer, sheet_name="Sheet1", index=False)
-
+        # Close the Pandas Excel writer and output the Excel file to the buffer
+        writer.close()
         st.download_button(
             label="Download metadata template as Excel",
             data=buffer,
