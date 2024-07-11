@@ -166,7 +166,9 @@ def select_sample_column_metadata(df, software):
         submitted = st.form_submit_button("Create DataSet")
 
     if submitted:
-        if len(df[st.session_state.sample_column].to_list()) != len(df[st.session_state.sample_column].unique()):
+        if len(df[st.session_state.sample_column].to_list()) != len(
+            df[st.session_state.sample_column].unique()
+        ):
             st.error("Sample names have to be unique.")
             st.stop()
         return True
