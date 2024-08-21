@@ -12,6 +12,7 @@ class DIANNLoader(BaseLoader):
         file,
         intensity_column="[sample]",
         index_column="Protein.Group",
+        gene_names_column="Genes",
         sep="\t",
         **kwargs,
     ):
@@ -25,6 +26,7 @@ class DIANNLoader(BaseLoader):
         """
 
         super().__init__(file, intensity_column, index_column, sep)
+        self.gene_names = gene_names_column
         self.software = "DIANN"
         self.no_sample_column = [
             "PG.Q.value",
