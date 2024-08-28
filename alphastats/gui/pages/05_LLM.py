@@ -1,18 +1,12 @@
 import os
 import streamlit as st
 import pandas as pd
-from openai import OpenAI, OpenAIError, AuthenticationError
+from openai import AuthenticationError
 
 try:
     from alphastats.gui.utils.analysis_helper import (
         check_if_options_are_loaded,
-        convert_df,
-        display_df,
         display_figure,
-        download_figure,
-        download_preprocessing_info,
-        get_analysis,
-        load_options,
         save_plot_to_session_state,
         gui_volcano_plot_differential_expression_analysis,
         helper_compare_two_groups,
@@ -21,18 +15,9 @@ try:
         get_assistant_functions,
         display_proteins,
         get_subgroups_for_each_group,
-        turn_args_to_float,
-        perform_dimensionality_reduction,
         get_general_assistant_functions,
     )
-    from alphastats.gui.utils.uniprot_utils import (
-        get_gene_function,
-        get_info,
-    )
-    from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
     from alphastats.gui.utils.openai_utils import (
-        wait_for_run_completion,
-        send_message_save_thread,
         try_to_set_api_key,
     )
     from alphastats.gui.utils.ollama_utils import LLMIntegration
@@ -41,13 +26,7 @@ try:
 except ModuleNotFoundError:
     from utils.analysis_helper import (
         check_if_options_are_loaded,
-        convert_df,
-        display_df,
         display_figure,
-        download_figure,
-        download_preprocessing_info,
-        get_analysis,
-        load_options,
         save_plot_to_session_state,
         gui_volcano_plot_differential_expression_analysis,
         helper_compare_two_groups,
@@ -56,18 +35,9 @@ except ModuleNotFoundError:
         get_assistant_functions,
         display_proteins,
         get_subgroups_for_each_group,
-        turn_args_to_float,
-        perform_dimensionality_reduction,
         get_general_assistant_functions,
     )
-    from utils.uniprot_utils import (
-        get_gene_function,
-        get_info,
-    )
-    from utils.enrichment_analysis import get_enrichment_data
     from utils.openai_utils import (
-        wait_for_run_completion,
-        send_message_save_thread,
         try_to_set_api_key,
     )
     from utils.ollama_utils import LLMIntegration
@@ -101,15 +71,15 @@ sidebar_info()
 
 
 # set background to white so downloaded pngs dont have grey background
-styl = f"""
+styl = """
     <style>
-        .css-jc5rf5 {{
+        .css-jc5rf5 {
             position: absolute;
             background: rgb(255, 255, 255);
             color: rgb(48, 46, 48);
             inset: 0px;
             overflow: hidden;
-        }}
+        }
     </style>
     """
 st.markdown(styl, unsafe_allow_html=True)
@@ -144,11 +114,11 @@ c1, c2 = st.columns((1, 2))
 with c1:
     method = select_analysis()
     chosen_parameter_dict = helper_compare_two_groups()
-    
+
     st.session_state["api_type"] = st.selectbox(
-    "Select LLM",
-    ["gpt4o", "llama3.1 70b"],
-    index=0 if st.session_state["api_type"] == "gpt4o" else 1
+        "Select LLM",
+        ["gpt4o", "llama3.1 70b"],
+        index=0 if st.session_state["api_type"] == "gpt4o" else 1,
     )
     base_url = "http://localhost:11434/v1"
     if st.session_state["api_type"] == "gpt4o":
@@ -333,19 +303,21 @@ if (
     try:
         if st.session_state["api_type"] == "gpt4o":
             st.session_state["llm_integration"] = LLMIntegration(
-                api_type='gpt',
+                api_type="gpt",
                 api_key=st.secrets["openai_api_key"],
                 dataset=st.session_state["dataset"],
-                metadata=st.session_state["dataset"].metadata
+                metadata=st.session_state["dataset"].metadata,
             )
         else:
             st.session_state["llm_integration"] = LLMIntegration(
-                api_type='ollama',
+                api_type="ollama",
                 base_url=base_url,
                 dataset=st.session_state["dataset"],
-                metadata=st.session_state["dataset"].metadata
+                metadata=st.session_state["dataset"].metadata,
             )
-        st.success(f"{st.session_state['api_type'].upper()} integration initialized successfully!")
+        st.success(
+            f"{st.session_state['api_type'].upper()} integration initialized successfully!"
+        )
     except AuthenticationError:
         st.warning(
             "Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX"
@@ -367,15 +339,12 @@ llm.tools = [
         subgroups_for_each_group=get_subgroups_for_each_group(
             st.session_state["dataset"].metadata
         ),
-    )
+    ),
 ]
 
 if "artifacts" not in st.session_state:
     st.session_state["artifacts"] = {}
-import time
-start = time.time()
-# 4o 23.52
-# llama 239.94
+
 if (
     st.session_state["gpt_submitted_counter"]
     < st.session_state["gpt_submitted_clicked"]
@@ -384,10 +353,7 @@ if (
         "gpt_submitted_clicked"
     ]
     st.session_state["artifacts"] = {}
-    llm.messages = [{
-                "role": "system",
-                "content": st.session_state["instructions"]
-            }]
+    llm.messages = [{"role": "system", "content": st.session_state["instructions"]}]
     response = llm.chat_completion(st.session_state["user_prompt"])
 
 if st.session_state["gpt_submitted_clicked"] > 0:
@@ -404,7 +370,5 @@ if st.session_state["gpt_submitted_clicked"] > 0:
                 for artefact in st.session_state["artifacts"][num]:
                     if isinstance(artefact, pd.DataFrame):
                         st.dataframe(artefact)
-                    elif  "plotly" in str(type(artefact)):
+                    elif "plotly" in str(type(artefact)):
                         st.plotly_chart(artefact)
-    stop = time.time()
-    print("time", stop-start, "\n\n\n\n")

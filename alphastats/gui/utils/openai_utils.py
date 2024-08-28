@@ -11,27 +11,14 @@ import streamlit as st
 try:
     from alphastats.gui.utils.gpt_helper import (
         turn_args_to_float,
-        get_assistant_functions,
-        display_proteins,
-        get_subgroups_for_each_group,
-        turn_args_to_float,
-        perform_dimensionality_reduction,
-        get_general_assistant_functions,
     )
     from alphastats.gui.utils.uniprot_utils import (
         get_gene_function,
     )
-    from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 
 except ModuleNotFoundError:
     from utils.gpt_helper import (
         turn_args_to_float,
-        get_assistant_functions,
-        display_proteins,
-        get_subgroups_for_each_group,
-        turn_args_to_float,
-        perform_dimensionality_reduction,
-        get_general_assistant_functions,
     )
     from utils.uniprot_utils import (
         get_gene_function,
@@ -39,9 +26,8 @@ except ModuleNotFoundError:
     from utils.openai_utils import (
         wait_for_run_completion,
     )
-    from utils.enrichment_analysis import get_enrichment_data
 
-    
+
 def wait_for_run_completion(
     client: openai.OpenAI, thread_id: int, run_id: int, check_interval: int = 2
 ) -> Optional[List]:
@@ -199,7 +185,7 @@ def try_to_set_api_key(api_key: str = None) -> None:
         return
     try:
         openai.OpenAI.api_key = st.secrets["openai_api_key"]
-    except:
+    except KeyError:
         st.write(
             "OpenAI API key not found in environment variables. Please enter your API key to continue."
         )

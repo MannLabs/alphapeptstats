@@ -134,4 +134,5 @@ interpretation_options = {
     "Differential Expression Analysis - Wald-test": {
         "between_two_groups": True,
         "function": st.session_state.dataset.diff_expression_analysis,
-    },}
+    },
+}

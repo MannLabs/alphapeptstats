@@ -319,7 +319,7 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
     """
     if "organism" in st.session_state:
         organism_id = st.session_state["organism"]
-    if type(gene_name) == dict:
+    if isinstance(gene_name, dict):
         gene_name = gene_name["gene_name"]
     result = get_uniprot_data(gene_name, organism_id)
     if result and extract_data(result)["functionComments"]:
