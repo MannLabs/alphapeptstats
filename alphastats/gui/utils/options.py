@@ -64,7 +64,7 @@ plotting_options = {
         "function": st.session_state.dataset.plot_volcano,
     },
     "Clustermap": {"function": st.session_state.dataset.plot_clustermap},
-    "Dendrogram": {"function": st.session_state.dataset.plot_dendrogram},
+    # "Dendrogram": {"function": st.session_state.dataset.plot_dendrogram},
 }
 
 statistic_options = {
@@ -121,3 +121,17 @@ statistic_options = {
         "function": st.session_state.dataset.ancova,
     },
 }
+
+interpretation_options = {
+    "Volcano Plot": {
+        "between_two_groups": True,
+        "function": st.session_state.dataset.plot_volcano,
+    },
+    "Differential Expression Analysis - T-test": {
+        "between_two_groups": True,
+        "function": st.session_state.dataset.diff_expression_analysis,
+    },
+    "Differential Expression Analysis - Wald-test": {
+        "between_two_groups": True,
+        "function": st.session_state.dataset.diff_expression_analysis,
+    },}

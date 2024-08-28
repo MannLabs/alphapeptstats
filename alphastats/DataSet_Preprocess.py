@@ -179,22 +179,26 @@ class Preprocess:
     def _normalization(self, method: str):
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
-            normalized_array = scaler.fit_transform(
-                self.mat.values.transpose()
-            ).transpose()
+            # normalized_array = scaler.fit_transform(
+            #     self.mat.values.transpose()
+            # ).transpose()
+            normalized_array = scaler.fit_transform(self.mat.values)
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
-            normalized_array = qt.fit_transform(self.mat.values.transpose()).transpose()
+            # normalized_array = qt.fit_transform(self.mat.values.transpose()).transpose()
+            normalized_array = qt.fit_transform(self.mat.values)
 
         elif method == "linear":
-            normalized_array = self._linear_normalization(self.mat)
+            normalized_array = self._linear_normalization(self.mat.transpose()).transpose()
 
         elif method == "vst":
             minmax = sklearn.preprocessing.MinMaxScaler()
             scaler = sklearn.preprocessing.PowerTransformer()
-            minmaxed_array = minmax.fit_transform(self.mat.values.transpose())
-            normalized_array = scaler.fit_transform(minmaxed_array).transpose()
+            # minmaxed_array = minmax.fit_transform(self.mat.values.transpose())
+            # normalized_array = scaler.fit_transform(minmaxed_array).transpose()
+            minmaxed_array = minmax.fit_transform(self.mat.values)
+            normalized_array = scaler.fit_transform(minmaxed_array)
 
         else:
             raise ValueError(
@@ -271,7 +275,7 @@ class Preprocess:
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
-        log2_transform: bool = True,
+        log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
         data_completeness: float = 0,

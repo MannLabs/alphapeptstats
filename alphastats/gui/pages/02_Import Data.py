@@ -45,10 +45,11 @@ if "organism" not in st.session_state:
 
 
 def load_options():
-    from alphastats.gui.utils.options import plotting_options, statistic_options
+    from alphastats.gui.utils.options import plotting_options, statistic_options, interpretation_options
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
+    st.session_state["interpretation_options"] = interpretation_options
 
 
 def check_software_file(df, software):
