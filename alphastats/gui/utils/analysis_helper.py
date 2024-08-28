@@ -69,7 +69,7 @@ def download_preprocessing_info(plot):
     preprocesing_dict = plot[1].preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
     filename = "plot" + plot[0] + "preprocessing_info.csv"
-    csv = convert_df(df)
+    csv = convert_df(df, st.session_state.user_session_id)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
