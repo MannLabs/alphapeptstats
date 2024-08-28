@@ -62,7 +62,7 @@ def download_figure(obj, format, plotting_library="plotly"):
 
 
 @st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
+def convert_df(df, user_session_id):
     return df.to_csv().encode("utf-8")
 
 
@@ -70,7 +70,7 @@ def download_preprocessing_info(plot):
     preprocesing_dict = plot[1].preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
     filename = "plot" + plot[0] + "preprocessing_info.csv"
-    csv = convert_df(df)
+    csv = convert_df(df, st.session_state.user_session_id)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
@@ -134,7 +134,7 @@ def st_general(method_dict):
 
 @st.cache_data
 def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+    chosen_parameter_dict, user_session_id
 ):
     """
     initalize volcano plot object with differential expression analysis results
