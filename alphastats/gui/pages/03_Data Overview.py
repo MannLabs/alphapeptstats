@@ -4,12 +4,12 @@ import plotly.express as px
 
 
 @st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
+def convert_df(df, user_session_id):
     return df.to_csv().encode("utf-8")
 
 
 @st.cache_data
-def get_display_matrix(user_session_id=st.session_state.user_session_id):
+def get_display_matrix(user_session_id):
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
@@ -31,8 +31,8 @@ def display_matrix():
     st.markdown("**DataFrame used for analysis** *preview*")
     st.markdown(text)
 
-    df = get_display_matrix()
-    csv = convert_df(st.session_state.dataset.mat)
+    df = get_display_matrix(st.session_state.user_session_id)
+    csv = convert_df(st.session_state.dataset.mat, st.session_state.user_session_id)
 
     st.dataframe(df)
 
@@ -42,14 +42,12 @@ def display_matrix():
 
 
 @st.cache_data
-def get_sample_histogram_matrix(user_session_id=st.session_state.user_session_id):
+def get_sample_histogram_matrix(user_session_id):
     return st.session_state.dataset.plot_samplehistograms()
 
 
 @st.cache_data
-def get_intensity_distribution_processed(
-    user_session_id=st.session_state.user_session_id,
-):
+def get_intensity_distribution_processed(user_session_id):
     return st.session_state.dataset.plot_sampledistribution()
 
 
@@ -68,16 +66,12 @@ if "dataset" in st.session_state:
     with c2:
         st.markdown("**Intensity distribution data per sample used for analysis**")
         st.plotly_chart(
-            get_intensity_distribution_processed(
-                user_session_id=st.session_state.user_session_id
-            ).update_layout(plot_bgcolor="white"),
+            get_intensity_distribution_processed(st.session_state.user_session_id).update_layout(plot_bgcolor="white"),
             use_container_width=True,
         )
 
     st.plotly_chart(
-        get_sample_histogram_matrix(
-            user_session_id=st.session_state.user_session_id
-        ).update_layout(plot_bgcolor="white"),
+        get_sample_histogram_matrix(st.session_state.user_session_id).update_layout(plot_bgcolor="white"),
         use_container_width=True,
     )
 
