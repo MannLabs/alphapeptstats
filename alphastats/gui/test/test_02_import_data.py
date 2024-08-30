@@ -41,7 +41,7 @@ def test_page_02_loads_sample_data():
     at.run()
 
     # User clicks Load Sample Data button
-    at.button[0].click().run()
+    at.button("load_sample_data").click().run()
 
     assert at.session_state.metadata_columns == ['sample', 'disease', 'Drug therapy (procedure) (416608005)', 'Lipid-lowering therapy (134350008)']
     assert str(type(at.session_state.dataset)) == "<class 'alphastats.DataSet.DataSet'>"

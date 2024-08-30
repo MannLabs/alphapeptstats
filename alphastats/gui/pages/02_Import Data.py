@@ -392,7 +392,7 @@ if "dataset" in st.session_state:
 
 st.markdown("### Or Load sample Dataset")
 
-if st.button("Load sample DataSet - PXD011839"):
+if st.button("Load sample DataSet - PXD011839", key="load_sample_data"):
     st.write(
         """
 
