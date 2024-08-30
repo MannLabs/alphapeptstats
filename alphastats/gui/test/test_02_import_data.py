@@ -23,7 +23,7 @@ def test_loadpage():
     assert at.session_state.loader == None
 
 @patch("streamlit.file_uploader")
-def test_loadmockedpage(mock_file: MagicMock):
+def test_loadmockedpage(mock_file_uploader: MagicMock):
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
@@ -48,7 +48,7 @@ def test_sampledata():
     assert "statistic_options" in at.session_state
 
 @patch("streamlit.file_uploader")
-def test_mqupload(mock_file: MagicMock):
+def test_mqupload(mock_file_uploader: MagicMock):
     def data_buf():
         with open(f"{TEST_FILES}/maxquant/proteinGroups.txt", "rb") as f:
             buf = BytesIO(f.read())
@@ -65,14 +65,14 @@ def test_mqupload(mock_file: MagicMock):
     at.run()
     
     at.selectbox(key='software').select('MaxQuant')
-    mock_file.side_effect = [None]
+    mock_file_uploader.side_effect = [None]
     at.run()
 
-    mock_file.side_effect = [data_buf(),None]
+    mock_file_uploader.side_effect = [data_buf(),None]
     at.run()
 
-    mock_file.side_effect = [data_buf(),metadata_buf()]
-    at.run()
+    mock_file_uploader.side_effect = [data_buf(),metadata_buf()]
+    at.run()    
     assert str(type(at.session_state.loader)) == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     assert at.session_state.intensity_column == 'LFQ intensity [sample]'
     assert str(type(at.session_state.metadatafile)) == "<class '_io.BytesIO'>"
@@ -81,7 +81,7 @@ def test_mqupload(mock_file: MagicMock):
     assert at.session_state.metadata_columns == ['sample']
     assert at.session_state.sample_column == 'sample'
 
-    mock_file.side_effect = [data_buf(),metadata_buf()]
+    mock_file_uploader.side_effect = [data_buf(),metadata_buf()]
     at.button[0].click()
     at.run()
     assert at.session_state.dataset.gene_names == "Gene names"
