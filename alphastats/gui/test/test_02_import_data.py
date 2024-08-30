@@ -13,7 +13,7 @@ APP_FILE = f"{APP_FOLDER}/pages/02_Import Data.py"
 TEST_FILES = f"{APP_FOLDER}/../../testfiles"
 
 def test_page_02_loads_without_input():
-    """Test if the page loads without any input and inititalizes the session state with the correct values"""
+    """Test if the page loads without any input and inititalizes the session state with the correct values."""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
@@ -25,7 +25,7 @@ def test_page_02_loads_without_input():
 
 @patch("streamlit.file_uploader")
 def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
-    """Test if the page loads without any input and inititalizes the session state with the correct value when the file_uploader is patched"""
+    """Test if the page loads without any input and inititalizes the session state with the correct value when the file_uploader is patched."""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
@@ -36,7 +36,7 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     assert at.session_state.loader == None
 
 def test_page_02_loads_sample_data():
-    """Test if the page loads the sample data and has the correct session state afterwards"""
+    """Test if the page loads the sample data and has the correct session state afterwards."""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
@@ -52,7 +52,13 @@ def test_page_02_loads_sample_data():
     assert "statistic_options" in at.session_state
 
 @patch("streamlit.file_uploader")
-def test_mqupload(mock_file_uploader: MagicMock):
+def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
+    """Test if the page loads the MaxQuant testfiles and has the correct session state afterwards.
+    
+    No input to the dropdown menus is simulated, hence the default detected values are used.
+    Two states are tested:
+    1. Files are uploaded but not processed yet
+    2. Files are uploaded and processed"""
     def data_buf():
         with open(f"{TEST_FILES}/maxquant/proteinGroups.txt", "rb") as f:
             buf = BytesIO(f.read())
@@ -68,13 +74,16 @@ def test_mqupload(mock_file_uploader: MagicMock):
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
     
+    # User selects MaxQuant from the dropdown menu
     at.selectbox(key='software').select('MaxQuant')
     mock_file_uploader.side_effect = [None]
     at.run()
 
+    # User uploads the data file
     mock_file_uploader.side_effect = [data_buf(),None]
     at.run()
 
+    # User uploads the metadata file
     mock_file_uploader.side_effect = [data_buf(),metadata_buf()]
     at.run()    
     assert str(type(at.session_state.loader)) == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
@@ -85,6 +94,7 @@ def test_mqupload(mock_file_uploader: MagicMock):
     assert at.session_state.metadata_columns == ['sample']
     assert at.session_state.sample_column == 'sample'
 
+    # User clicks the Load Data button
     mock_file_uploader.side_effect = [data_buf(),metadata_buf()]
     at.button[0].click()
     at.run()
@@ -98,7 +108,3 @@ def test_mqupload(mock_file_uploader: MagicMock):
     assert str(type(at.session_state.loader)) == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     assert "plotting_options" in at.session_state
     assert "statistic_options" in at.session_state
-
-if __name__ == "__main__":
-    test_mqupload()
-
