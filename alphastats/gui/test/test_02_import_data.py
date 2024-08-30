@@ -17,6 +17,8 @@ def test_page_02_loads_without_input():
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
+    assert not at.exception
+
     assert at.session_state.organism == 9606
     assert at.session_state.user_session_id == 'test session id'
     assert at.session_state.software == '<select>'
@@ -28,6 +30,8 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     """Test if the page loads without any input and inititalizes the session state with the correct value when the file_uploader is patched."""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
+
+    assert not at.exception
 
     assert at.session_state.organism == 9606
     assert at.session_state.user_session_id == 'test session id'
@@ -42,6 +46,8 @@ def test_page_02_loads_sample_data():
 
     # User clicks Load Sample Data button
     at.button("load_sample_data").click().run()
+
+    assert not at.exception
 
     assert at.session_state.metadata_columns == ['sample', 'disease', 'Drug therapy (procedure) (416608005)', 'Lipid-lowering therapy (134350008)']
     assert str(type(at.session_state.dataset)) == "<class 'alphastats.DataSet.DataSet'>"
@@ -98,7 +104,10 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
 
     # User uploads the metadata file
     mock_file_uploader.side_effect = [_data_buf(DATA_FILE),_metadata_buf(METADATA_FILE, at)]
-    at.run()    
+    at.run()
+
+    assert not at.exception
+
     assert str(type(at.session_state.loader)) == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     assert at.session_state.intensity_column == 'LFQ intensity [sample]'
     assert str(type(at.session_state.metadatafile)) == "<class '_io.BytesIO'>"
@@ -111,6 +120,9 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     mock_file_uploader.side_effect = [_data_buf(DATA_FILE),_metadata_buf(METADATA_FILE, at)]
     at.button('FormSubmitter:sample_column-Create DataSet').click()
     at.run()
+
+    assert not at.exception
+    
     assert at.session_state.dataset.gene_names == "Gene names"
     assert at.session_state.dataset.index_column == "Protein IDs"
     assert at.session_state.dataset.intensity_column == 'LFQ intensity [sample]'
