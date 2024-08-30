@@ -30,6 +30,7 @@ from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 runtime = get_instance()
 session_id = get_script_run_ctx().session_id
 # session_info = runtime._session_mgr.get_session_info(session_id)
+# TODO: remove this line at some point if we really don't need it
 
 user_session_id = session_id
 st.session_state["user_session_id"] = user_session_id
@@ -45,12 +46,14 @@ if "organism" not in st.session_state:
 
 
 def load_options():
+# TODO: Change this to a global variable in all pages that need it, or put it in cache instead to declutter the state
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options
     st.session_state["statistic_options"] = statistic_options
 
 
+# TODO: Move this to new data_helper.py in utils
 def check_software_file(df, software):
     """
     check if software files are in right format
@@ -93,7 +96,7 @@ def check_software_file(df, software):
                 "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
             )
 
-
+# TODO: Move this to new data_helper.py in utils
 def select_columns_for_loaders(software, software_df: None):
     """
     select intensity and index column depending on software
@@ -141,7 +144,7 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column, software
     )
     return loader
 
-
+# TODO: Move this to new data_helper.py in utils
 def select_sample_column_metadata(df, software):
     samples_proteomics_data = get_sample_names_from_software_file()
     valid_sample_columns = []
@@ -173,7 +176,7 @@ def select_sample_column_metadata(df, software):
             st.stop()
         return True
 
-
+# TODO: Change the behaviour to show full interface already after software selection and only update options after file upload
 def upload_softwarefile(software):
     softwarefile = st.file_uploader(
         software_options.get(software).get("import_file"),
@@ -207,6 +210,8 @@ def upload_softwarefile(software):
             st.session_state["loader"] = loader
 
 
+# TODO: Move this to new data_helper.py in utils
+# TODO: Make this more powerful by making suggestions based on the sample names
 def create_metadata_file():
     dataset = DataSet(loader=st.session_state.loader)
     st.session_state["metadata_columns"] = ["sample"]
@@ -225,7 +230,7 @@ def create_metadata_file():
             mime="application/vnd.ms-excel",
         )
 
-
+# TODO: Serve this interface already upon software selection and only update options after file upload
 def upload_metadatafile(software):
     st.write("\n\n")
     st.markdown("### 3. Prepare Metadata.")
@@ -322,7 +327,7 @@ def import_data():
     if st.session_state.loader is not None:
         upload_metadatafile(st.session_state.software)
 
-
+# TODO: Move this to new data_helper.py in utils
 def display_loaded_dataset():
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
@@ -342,7 +347,7 @@ def display_loaded_dataset():
 
     st.dataframe(df)
 
-
+# TODO: Move this to new data_helper.py in utils
 def save_plot_sampledistribution_rawdata():
     df = st.session_state.dataset.rawmat
     df = df.unstack().reset_index()
@@ -354,7 +359,7 @@ def save_plot_sampledistribution_rawdata():
         df, x=st.session_state.dataset.sample, y="Intensity"
     )
 
-
+# TODO: Move this to new data_helper.py in utils
 def empty_session_state():
     """
     remove all variables to avoid conflicts
