@@ -109,7 +109,7 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
 
     # User clicks the Load Data button
     mock_file_uploader.side_effect = [_data_buf(DATA_FILE),_metadata_buf(METADATA_FILE, at)]
-    at.button[0].click()
+    at.button('FormSubmitter:sample_column-Create DataSet').click()
     at.run()
     assert at.session_state.dataset.gene_names == "Gene names"
     assert at.session_state.dataset.index_column == "Protein IDs"
