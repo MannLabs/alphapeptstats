@@ -59,7 +59,7 @@ def img_to_bytes(img_path):
     # encoded = base64.b64encode(img_bytes).decode()
     return encoded_string.decode()
 
-class SessionStateKeys:
+class StateKeys:
     ## 02_Data Import
     # on 1st run
     ORGANISM = 'organism'
