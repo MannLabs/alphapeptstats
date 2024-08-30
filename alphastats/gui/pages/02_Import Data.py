@@ -62,7 +62,7 @@ if "dataset" in st.session_state:
 
 st.markdown("### Or Load sample Dataset")
 
-if st.button("Load sample DataSet - PXD011839"):
+if st.button("Load sample DataSet - PXD011839", key="load_sample_data"):
     load_sample_data()
     if "distribution_plot" not in st.session_state:
         save_plot_sampledistribution_rawdata()
