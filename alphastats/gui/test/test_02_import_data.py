@@ -12,7 +12,8 @@ APP_FOLDER = Path(__file__).parent / Path("../")
 APP_FILE = f"{APP_FOLDER}/pages/02_Import Data.py"
 TEST_FILES = f"{APP_FOLDER}/../../testfiles"
 
-def test_loadpage():
+def test_page_02_loads_without_input():
+    """Test if the page loads without any input and inititalizes the session state with the correct values"""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
@@ -23,7 +24,8 @@ def test_loadpage():
     assert at.session_state.loader == None
 
 @patch("streamlit.file_uploader")
-def test_loadmockedpage(mock_file_uploader: MagicMock):
+def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
+    """Test if the page loads without any input and inititalizes the session state with the correct value when the file_uploader is patched"""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
@@ -33,10 +35,12 @@ def test_loadmockedpage(mock_file_uploader: MagicMock):
     assert at.session_state.gene_to_prot_id == {}
     assert at.session_state.loader == None
 
-def test_sampledata():
+def test_page_02_loads_sample_data():
+    """Test if the page loads the sample data and has the correct session state afterwards"""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
+    # User clicks Load Sample Data button
     at.button[0].click().run()
 
     assert at.session_state.metadata_columns == ['sample', 'disease', 'Drug therapy (procedure) (416608005)', 'Lipid-lowering therapy (134350008)']
