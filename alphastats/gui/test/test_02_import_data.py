@@ -10,7 +10,7 @@ def print_session_state(apptest: AppTest):
 
 APP_FOLDER = Path(__file__).parent / Path("../")
 APP_FILE = f"{APP_FOLDER}/pages/02_Import Data.py"
-TEST_FILES = f"{APP_FOLDER}/../../testfiles"
+TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
 
 def test_page_02_loads_without_input():
     """Test if the page loads without any input and inititalizes the session state with the correct values."""
@@ -56,7 +56,7 @@ def _data_buf(path_from_testfiles: str):
     """Helper function to open a data file from the testfiles folder and return a BytesIO object.
     
     Additionally add filename as attribute."""
-    with open(f"{TEST_FILES}{path_from_testfiles}", "rb") as f:
+    with open(f"{TEST_INPUT_FILES}{path_from_testfiles}", "rb") as f:
         buf = BytesIO(f.read())
         buf.name = path_from_testfiles.split('/')[-1]
         return buf
@@ -66,7 +66,7 @@ def _metadata_buf(path_from_testfiles: str, at: AppTest):
     """Helper function to open a metadata file from the testfiles folder and return a BytesIO object.
     
     Additionally add filename as attribute and set the metadatafile in the session state."""
-    with open(f"{TEST_FILES}{path_from_testfiles}", "rb") as f:
+    with open(f"{TEST_INPUT_FILES}{path_from_testfiles}", "rb") as f:
         buf = BytesIO(f.read())
         buf.name = path_from_testfiles.split('/')[-1]
         at.session_state.metadatafile = buf
