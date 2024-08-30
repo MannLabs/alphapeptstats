@@ -209,7 +209,7 @@ def upload_softwarefile(software):
 
 def create_metadata_file():
     dataset = DataSet(loader=st.session_state[StateKeys.LOADER])
-    st.session_state[[StateKeys.METADATA_COLUMNS]] = ["sample"]
+    st.session_state[StateKeys.METADATA_COLUMNS] = ["sample"]
     metadata = dataset.metadata
     buffer = io.BytesIO()
 
