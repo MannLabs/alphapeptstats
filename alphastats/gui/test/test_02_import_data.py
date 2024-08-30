@@ -52,14 +52,20 @@ def test_page_02_loads_sample_data():
     assert "statistic_options" in at.session_state
 
 
-def data_buf(path_from_testfiles: str):
+def _data_buf(path_from_testfiles: str):
+    """Helper function to open a data file from the testfiles folder and return a BytesIO object.
+    
+    Additionally add filename as attribute."""
     with open(f"{TEST_FILES}{path_from_testfiles}", "rb") as f:
         buf = BytesIO(f.read())
         buf.name = path_from_testfiles.split('/')[-1]
         return buf
 
 
-def metadata_buf(path_from_testfiles: str, at: AppTest):
+def _metadata_buf(path_from_testfiles: str, at: AppTest):
+    """Helper function to open a metadata file from the testfiles folder and return a BytesIO object.
+    
+    Additionally add filename as attribute and set the metadatafile in the session state."""
     with open(f"{TEST_FILES}{path_from_testfiles}", "rb") as f:
         buf = BytesIO(f.read())
         buf.name = path_from_testfiles.split('/')[-1]
@@ -87,11 +93,11 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     at.run()
 
     # User uploads the data file
-    mock_file_uploader.side_effect = [data_buf(DATA_FILE),None]
+    mock_file_uploader.side_effect = [_data_buf(DATA_FILE),None]
     at.run()
 
     # User uploads the metadata file
-    mock_file_uploader.side_effect = [data_buf(DATA_FILE),metadata_buf(METADATA_FILE, at)]
+    mock_file_uploader.side_effect = [_data_buf(DATA_FILE),_metadata_buf(METADATA_FILE, at)]
     at.run()    
     assert str(type(at.session_state.loader)) == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     assert at.session_state.intensity_column == 'LFQ intensity [sample]'
@@ -102,7 +108,7 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     assert at.session_state.sample_column == 'sample'
 
     # User clicks the Load Data button
-    mock_file_uploader.side_effect = [data_buf(DATA_FILE),metadata_buf(METADATA_FILE, at)]
+    mock_file_uploader.side_effect = [_data_buf(DATA_FILE),_metadata_buf(METADATA_FILE, at)]
     at.button[0].click()
     at.run()
     assert at.session_state.dataset.gene_names == "Gene names"
