@@ -51,6 +51,22 @@ def test_page_02_loads_sample_data():
     assert "plotting_options" in at.session_state
     assert "statistic_options" in at.session_state
 
+
+def data_buf(path_from_testfiles: str):
+    with open(f"{TEST_FILES}{path_from_testfiles}", "rb") as f:
+        buf = BytesIO(f.read())
+        buf.name = path_from_testfiles.split('/')[-1]
+        return buf
+
+
+def metadata_buf(path_from_testfiles: str, at: AppTest):
+    with open(f"{TEST_FILES}{path_from_testfiles}", "rb") as f:
+        buf = BytesIO(f.read())
+        buf.name = path_from_testfiles.split('/')[-1]
+        at.session_state.metadatafile = buf
+        return buf
+
+
 @patch("streamlit.file_uploader")
 def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     """Test if the page loads the MaxQuant testfiles and has the correct session state afterwards.
@@ -59,17 +75,8 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     Two states are tested:
     1. Files are uploaded but not processed yet
     2. Files are uploaded and processed"""
-    def data_buf():
-        with open(f"{TEST_FILES}/maxquant/proteinGroups.txt", "rb") as f:
-            buf = BytesIO(f.read())
-            buf.name = "proteinGroups.txt"
-            return buf
-    def metadata_buf():
-        with open(f"{TEST_FILES}/maxquant/metadata.xlsx", "rb") as f:
-            buf = BytesIO(f.read())
-            buf.name = "metadata.xlsx"
-            at.session_state.metadatafile = buf
-            return buf
+    DATA_FILE = "/maxquant/proteinGroups.txt"
+    METADATA_FILE = "/maxquant/metadata.xlsx"
 
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
@@ -80,11 +87,11 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     at.run()
 
     # User uploads the data file
-    mock_file_uploader.side_effect = [data_buf(),None]
+    mock_file_uploader.side_effect = [data_buf(DATA_FILE),None]
     at.run()
 
     # User uploads the metadata file
-    mock_file_uploader.side_effect = [data_buf(),metadata_buf()]
+    mock_file_uploader.side_effect = [data_buf(DATA_FILE),metadata_buf(METADATA_FILE, at)]
     at.run()    
     assert str(type(at.session_state.loader)) == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     assert at.session_state.intensity_column == 'LFQ intensity [sample]'
@@ -95,7 +102,7 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     assert at.session_state.sample_column == 'sample'
 
     # User clicks the Load Data button
-    mock_file_uploader.side_effect = [data_buf(),metadata_buf()]
+    mock_file_uploader.side_effect = [data_buf(DATA_FILE),metadata_buf(METADATA_FILE, at)]
     at.button[0].click()
     at.run()
     assert at.session_state.dataset.gene_names == "Gene names"
