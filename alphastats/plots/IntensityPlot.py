@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly
 
 from alphastats.plots.PlotUtils import plotly_object, PlotUtils
-from alphastats.gui.utils.gpt_helper import get_gene_to_prot_id_mapping
+from alphastats.gui.utils.llm_helper import get_gene_to_prot_id_mapping
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
