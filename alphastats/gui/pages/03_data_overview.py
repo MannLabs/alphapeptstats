@@ -9,6 +9,7 @@ except ModuleNotFoundError:
     from utils.overview_helper import display_matrix, get_intensity_distribution_processed, get_sample_histogram_matrix
     from utils.ui_helper import sidebar_info
 
+sidebar_info()
 
 if "dataset" in st.session_state:
     st.markdown("## DataSet overview")
