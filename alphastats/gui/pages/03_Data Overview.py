@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
+#TODO: Cache the whole interface, not each individual plot.
 @st.cache_data
 def convert_df(df, user_session_id):
     return df.to_csv().encode("utf-8")
