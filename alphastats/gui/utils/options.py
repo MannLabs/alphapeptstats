@@ -1,126 +1,129 @@
 import streamlit as st
 
+def plotting_options(state):
+    plotting_options = {
+        "Sampledistribution Plot": {
+            "settings": {
+                "method": {"options": ["violin", "box"], "label": "Plot layout"},
+                "color": {
+                    "options": [None] + state.metadata_columns,
+                    "label": "Color according to",
+                },
+            },
+            "function": state.dataset.plot_sampledistribution,
+        },
+        "Intensity Plot": {
+            "settings": {
+                "protein_id": {
+                    "options": state.dataset.mat.columns.to_list(),
+                    "label": "ProteinID/ProteinGroup",
+                },
+                "method": {
+                    "options": ["violin", "box", "scatter"],
+                    "label": "Plot layout",
+                },
+                "group": {
+                    "options": [None] + state.metadata_columns,
+                    "label": "Color according to",
+                },
+            },
+            "function": state.dataset.plot_intensity,
+        },
+        "PCA Plot": {
+            "settings": {
+                "group": {
+                    "options": [None] + state.metadata_columns,
+                    "label": "Color according to",
+                },
+                "circle": {"label": "Circle"},
+            },
+            "function": state.dataset.plot_pca,
+        },
+        "UMAP Plot": {
+            "settings": {
+                "group": {
+                    "options": [None] + state.metadata_columns,
+                    "label": "Color according to",
+                },
+                "circle": {"label": "Circle"},
+            },
+            "function": state.dataset.plot_umap,
+        },
+        "t-SNE Plot": {
+            "settings": {
+                "group": {
+                    "options": [None] + state.metadata_columns,
+                    "label": "Color according to",
+                },
+                "circle": {"label": "Circle"},
+            },
+            "function": state.dataset.plot_tsne,
+        },
+        "Volcano Plot": {
+            "between_two_groups": True,
+            "function": state.dataset.plot_volcano,
+        },
+        "Clustermap": {"function": state.dataset.plot_clustermap},
+        "Dendrogram": {"function": state.dataset.plot_dendrogram},
+    }
+    return plotting_options
 
-plotting_options = {
-    "Sampledistribution Plot": {
-        "settings": {
-            "method": {"options": ["violin", "box"], "label": "Plot layout"},
-            "color": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
+def statistic_options(state):
+    statistic_options = {
+        "Differential Expression Analysis - T-test": {
+            "between_two_groups": True,
+            "function": state.dataset.diff_expression_analysis,
         },
-        "function": st.session_state.dataset.plot_sampledistribution,
-    },
-    "Intensity Plot": {
-        "settings": {
-            "protein_id": {
-                "options": st.session_state.dataset.mat.columns.to_list(),
-                "label": "ProteinID/ProteinGroup",
-            },
-            "method": {
-                "options": ["violin", "box", "scatter"],
-                "label": "Plot layout",
-            },
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
+        "Differential Expression Analysis - Wald-test": {
+            "between_two_groups": True,
+            "function": state.dataset.diff_expression_analysis,
         },
-        "function": st.session_state.dataset.plot_intensity,
-    },
-    "PCA Plot": {
-        "settings": {
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
+        "Tukey - Test": {
+            "settings": {
+                "protein_id": {
+                    "options": state.dataset.mat.columns.to_list(),
+                    "label": "ProteinID/ProteinGroup",
+                },
+                "group": {
+                    "options": state.metadata_columns,
+                    "label": "A metadata variable to calculate pairwise tukey",
+                },
             },
-            "circle": {"label": "Circle"},
+            "function": state.dataset.tukey_test,
         },
-        "function": st.session_state.dataset.plot_pca,
-    },
-    "UMAP Plot": {
-        "settings": {
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
+        "ANOVA": {
+            "settings": {
+                "column": {
+                    "options": state.metadata_columns,
+                    "label": "A variable from the metadata to calculate ANOVA",
+                },
+                "protein_ids": {
+                    "options": ["all"] + state.dataset.mat.columns.to_list(),
+                    "label": "All ProteinIDs/or specific ProteinID to perform ANOVA",
+                },
+                "tukey": {"label": "Follow-up Tukey"},
             },
-            "circle": {"label": "Circle"},
+            "function": state.dataset.anova,
         },
-        "function": st.session_state.dataset.plot_umap,
-    },
-    "t-SNE Plot": {
-        "settings": {
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
+        "ANCOVA": {
+            "settings": {
+                "protein_id": {
+                    "options": [None] + state.dataset.mat.columns.to_list(),
+                    "label": "Color according to",
+                },
+                "covar": {
+                    "options": state.metadata_columns,
+                    "label": "Name(s) of column(s) in metadata with the covariate.",
+                },
+                "between": {
+                    "options": state.metadata_columns,
+                    "label": "Name of the column in the metadata with the between factor.",
+                },
             },
-            "circle": {"label": "Circle"},
+            "function": state.dataset.ancova,
         },
-        "function": st.session_state.dataset.plot_tsne,
-    },
-    "Volcano Plot": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.plot_volcano,
-    },
-    "Clustermap": {"function": st.session_state.dataset.plot_clustermap},
-    "Dendrogram": {"function": st.session_state.dataset.plot_dendrogram},
-}
-
-statistic_options = {
-    "Differential Expression Analysis - T-test": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.diff_expression_analysis,
-    },
-    "Differential Expression Analysis - Wald-test": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.diff_expression_analysis,
-    },
-    "Tukey - Test": {
-        "settings": {
-            "protein_id": {
-                "options": st.session_state.dataset.mat.columns.to_list(),
-                "label": "ProteinID/ProteinGroup",
-            },
-            "group": {
-                "options": st.session_state.metadata_columns,
-                "label": "A metadata variable to calculate pairwise tukey",
-            },
-        },
-        "function": st.session_state.dataset.tukey_test,
-    },
-    "ANOVA": {
-        "settings": {
-            "column": {
-                "options": st.session_state.metadata_columns,
-                "label": "A variable from the metadata to calculate ANOVA",
-            },
-            "protein_ids": {
-                "options": ["all"] + st.session_state.dataset.mat.columns.to_list(),
-                "label": "All ProteinIDs/or specific ProteinID to perform ANOVA",
-            },
-            "tukey": {"label": "Follow-up Tukey"},
-        },
-        "function": st.session_state.dataset.anova,
-    },
-    "ANCOVA": {
-        "settings": {
-            "protein_id": {
-                "options": [None] + st.session_state.dataset.mat.columns.to_list(),
-                "label": "Color according to",
-            },
-            "covar": {
-                "options": st.session_state.metadata_columns,
-                "label": "Name(s) of column(s) in metadata with the covariate.",
-            },
-            "between": {
-                "options": st.session_state.metadata_columns,
-                "label": "Name of the column in the metadata with the between factor.",
-            },
-        },
-        "function": st.session_state.dataset.ancova,
-    },
-}
+    }
+    return statistic_options
 
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
