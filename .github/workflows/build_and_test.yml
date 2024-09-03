@@ -14,8 +14,8 @@ jobs:
     name: Run all pre-commit hooks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
       - uses: pre-commit/action@v3.0.1
   build-and-test:
     runs-on: ubuntu-latest
@@ -24,22 +24,27 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Pip installation
+      run: |
+        pip install .
+    - name: Install additional dependencies for tests
       run: |
         python -m pip install --upgrade pip
+        pip install nbmake pytest
+        pip install -r docs/requirements_docs.txt
         pip install coverage
-        pip install wheel
-        pip install dictdiffer
-    - name: Test installation
+    - name: Run notebooks
       run: |
-        pip install -e .
+        # TODO add the excluded notebook
+        TEST_NBS=$(find ../nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
+        python -m pytest --nbmake $(echo $TEST_NBS)
     - name: Run tests
       run: |
         coverage run -m unittest
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
