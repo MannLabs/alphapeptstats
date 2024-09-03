@@ -23,8 +23,7 @@ plumbum==1.8.0
 ply==3.11
 pympler==1.0.1
 pyrsistent==0.18.1
-python-dateutil==2.8.2
-pyyaml==6.0
+pyyaml==6.0.2
 pyzmq==24.0.1
 semver==2.13.0
 sphinx-argparse==0.3.2
