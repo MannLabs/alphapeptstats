@@ -179,7 +179,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
                 "ignore",
                 category=UserWarning,
                 module="openpyxl",
-                message=r"/extension is not supported and will be removed/",
+                # message=r"/extension is not supported and will be removed/",  # this somehow does not work here?
             )
             df = pd.read_excel(file_path)
             # find robust way to detect file format
