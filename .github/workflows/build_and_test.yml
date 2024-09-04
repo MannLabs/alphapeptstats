@@ -35,9 +35,7 @@ jobs:
         pip install .
     - name: Install additional dependencies for tests
       run: |
-        pip install nbmake pytest
-        pip install -r docs/requirements_docs.txt
-        pip install typing_extensions
+        pip install -r requirements_dev.txt
         pip install coverage
     - name: Print pip freeze
       run: |
