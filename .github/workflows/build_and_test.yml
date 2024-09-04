@@ -37,6 +37,7 @@ jobs:
       run: |
         pip install nbmake pytest
         pip install -r docs/requirements_docs.txt
+        pip install typing_extensions
         pip install coverage
     - name: Print pip freeze
       run: |
@@ -47,7 +48,10 @@ jobs:
         # TODO add the excluded notebook
         TEST_NBS=$(find ./nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
         python -m pytest --nbmake $(echo $TEST_NBS)
-    - name: Run tests
+    - name: Run tests (exluding slow)
+      run: |
+        SKIP_SLOW_TESTS=1 coverage run -m unittest
+    - name: Run tests (including slow)
       run: |
         coverage run -m unittest
     - name: Upload Coverage to Codecov
