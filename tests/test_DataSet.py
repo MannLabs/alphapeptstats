@@ -1,12 +1,4 @@
-from calendar import c
-from http.cookiejar import LoadError
-from math import remainder
-
-# from multiprocessing.sharedctypes import Value
-from random import sample
 import unittest
-import pandas as pd
-import logging
 from unittest.mock import patch
 import logging
 import numpy as np
@@ -17,9 +9,6 @@ import shutil
 import os
 import copy
 
-# from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
-
-from alphastats.loader.BaseLoader import BaseLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
@@ -29,7 +18,6 @@ from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
-from alphastats.DataSet_Plot import Plot
 from alphastats.utils import LoaderError
 
 
@@ -47,6 +35,16 @@ class BaseTestDataSet:
                 yield None
             except exc_type:
                 raise self.failureException("{} raised".format(exc_type.__name__))
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self.loader = None
+            self.obj = None
+            self.metadata_path = None
+            self.matrix_dim = None
+            self.matrix_dim_filtered = None
+            self.comparison_column = None
 
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
@@ -463,6 +461,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group2=["1_71_F10", "1_73_F12"],
             )
 
+    # TODO speed up this test
+    @unittest.skipIf(int(os.getenv("SKIP_SLOW_TESTS", "0")), "slow")
     def test_plot_volcano_compare_preprocessing_modes(self):
         result_list = self.obj.plot_volcano(
             method="ttest",
@@ -562,6 +562,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
         self.assertTrue(column_added)
 
+    # TODO speed up this test
+    @unittest.skipIf(int(os.getenv("SKIP_SLOW_TESTS", "0")), "slow")
     def test_plot_volcano_sam(self):
         self.obj.preprocess(
             log2_transform=False, imputation="knn", normalization="zscore"
@@ -743,6 +745,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         first_value = self.obj.mat.values[0, 0]
         self.assertAlmostEqual(-0.00555, first_value, places=3)
 
+    # TODO this opens a plot in a browser window
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(
