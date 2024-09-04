@@ -1,17 +1,10 @@
-from random import sample
 import pandas as pd
 import numpy as np
 import logging
 import warnings
 import plotly
 
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
-from alphastats.loader.GenericLoader import GenericLoader
-from alphastats.loader.mzTabLoader import mzTabLoader
+from alphastats import BaseLoader
 
 
 from alphastats.DataSet_Plot import Plot
@@ -107,18 +100,11 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         """
         if not isinstance(
             loader,
-            (
-                AlphaPeptLoader,
-                MaxQuantLoader,
-                DIANNLoader,
-                FragPipeLoader,
-                SpectronautLoader,
-                GenericLoader,
-                mzTabLoader,
-            ),
+            (BaseLoader),
         ):
             raise LoaderError(
-                "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
+                "loader must be a subclass of BaseLoader, "
+                f"got {loader.__class__.__name__}"
             )
 
         if not isinstance(loader.rawinput, pd.DataFrame) or loader.rawinput.empty:
