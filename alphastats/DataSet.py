@@ -13,10 +13,6 @@ from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
 
-# remove warning from openpyxl
-# only appears on mac
-warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
-
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
         paper_bgcolor="rgba(0,0,0,0)",
@@ -98,10 +94,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         Args:
             loader : loader
         """
-        if not isinstance(
-            loader,
-            (BaseLoader),
-        ):
+        if not isinstance(loader, BaseLoader):
             raise LoaderError(
                 "loader must be a subclass of BaseLoader, "
                 f"got {loader.__class__.__name__}"

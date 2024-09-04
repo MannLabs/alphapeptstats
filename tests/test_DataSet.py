@@ -461,16 +461,18 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group2=["1_71_F10", "1_73_F12"],
             )
 
-    # TODO speed up this test
-    @unittest.skipIf(int(os.getenv("SKIP_SLOW_TESTS", "0")), "slow")
     def test_plot_volcano_compare_preprocessing_modes(self):
+        # 'randomforest' makes this test very costly
+        self.obj.imputation_methods.remove(
+            "randomforest"
+        ) if "randomforest" in self.obj.imputation_methods else None
         result_list = self.obj.plot_volcano(
             method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True,
         )
-        self.assertEqual(len(result_list), 12)
+        self.assertEqual(len(result_list), 3 * 3)
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)
