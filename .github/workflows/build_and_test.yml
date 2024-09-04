@@ -41,10 +41,10 @@ jobs:
     - name: Run notebooks
       run: |
         # TODO add the excluded notebook
-        TEST_NBS=$(find ../nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
+        TEST_NBS=$(find ./nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
         python -m pytest --nbmake $(echo $TEST_NBS)
     - name: Run tests
       run: |
         coverage run -m unittest
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
