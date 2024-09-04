@@ -84,7 +84,7 @@ class BaseLoader:
     def _add_contamination_column(self):
         #  load df with potential contamination from fasta file
         contaminations_path = (
-            importlib_resources.files(__name__) / "../data/contaminations.txt"
+            importlib_resources.files(__package__) / "../data/contaminations.txt"
         )
         contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
