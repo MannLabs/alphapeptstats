@@ -1,3 +1,5 @@
+import warnings
+
 from alphastats.loader.BaseLoader import BaseLoader
 
 import pandas as pd
@@ -54,6 +56,12 @@ class GenericLoader(BaseLoader):
             df = file_path
         #  loading file needs to be more beautiful
         elif file_path.endswith(".xlsx"):
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,
+                module="openpyxl",
+                message=r"/extension is not supported and will be removed/",
+            )
             df = pd.read_excel(file_path)
             # find robust way to detect file format
             # else give file separation as variable

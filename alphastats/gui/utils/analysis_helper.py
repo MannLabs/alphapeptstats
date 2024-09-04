@@ -1,8 +1,9 @@
+import warnings
+
 import pandas as pd
 import logging
 import streamlit as st
 import io
-from datetime import datetime
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -84,6 +85,12 @@ def read_uploaded_file_into_df(file, decimal="."):
     filename = file.name
 
     if filename.endswith(".xlsx"):
+        warnings.filterwarnings(
+            "ignore",
+            category=UserWarning,
+            module="openpyxl",
+            message=r"/extension is not supported and will be removed/",
+        )
         df = pd.read_excel(file)
 
     elif filename.endswith(".txt") or filename.endswith(".tsv"):
