@@ -46,13 +46,8 @@ jobs:
         # TODO add the excluded notebook
         TEST_NBS=$(find ./nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
         python -m pytest --nbmake $(echo $TEST_NBS)
-    - name: Run tests (excluding slow)
+    - name: Run tests
       run: |
-        SKIP_SLOW_TESTS=1 coverage run -m unittest
-    - name: Run tests (only slow)
-      run: |
-        coverage run --append -m unittest \
-          tests.test_DataSet.TestMaxQuantDataSet.test_plot_volcano_compare_preprocessing_modes \
-          tests.test_DataSet.TestMaxQuantDataSet.test_plot_volcano_sam
+        coverage run -m unittest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v4

@@ -1,4 +1,5 @@
 import unittest
+from unittest import skip
 from unittest.mock import patch
 import logging
 import numpy as np
@@ -461,18 +462,41 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group2=["1_71_F10", "1_73_F12"],
             )
 
-    def test_plot_volcano_compare_preprocessing_modes(self):
+    def test_plot_volcano_compare_preprocessing_modes_no_randomforest(self):
+        obj_ut = DataSet(
+            loader=self.loader,
+            metadata_path=self.metadata_path,
+            sample_column="sample",
+        )
+
         # 'randomforest' makes this test very costly
-        self.obj.imputation_methods.remove(
-            "randomforest"
-        ) if "randomforest" in self.obj.imputation_methods else None
-        result_list = self.obj.plot_volcano(
+        obj_ut.imputation_methods.remove("randomforest")
+
+        result_list = obj_ut.plot_volcano(
             method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True,
         )
         self.assertEqual(len(result_list), 3 * 3)
+
+    @skip  # TODO speed up this test (e.g. by reducing the number of samples)
+    def test_plot_volcano_compare_preprocessing_modes_randomforest(self):
+        obj_ut = DataSet(
+            loader=self.loader,
+            metadata_path=self.metadata_path,
+            sample_column="sample",
+        )
+
+        obj_ut.imputation_methods = ["randomforest"]
+
+        result_list = obj_ut.plot_volcano(
+            method="ttest",
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"],
+            group2=["1_71_F10", "1_73_F12"],
+            compare_preprocessing_modes=True,
+        )
+        self.assertEqual(len(result_list), 3)
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)
@@ -564,8 +588,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
         self.assertTrue(column_added)
 
-    # TODO speed up this test
-    @unittest.skipIf(int(os.getenv("SKIP_SLOW_TESTS", "0")), "slow")
+    # # TODO speed up this test
+    # @unittest.skipIf(int(os.getenv("SKIP_SLOW_TESTS", "0")), "slow")
     def test_plot_volcano_sam(self):
         self.obj.preprocess(
             log2_transform=False, imputation="knn", normalization="zscore"
