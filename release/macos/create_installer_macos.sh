@@ -34,7 +34,7 @@ conda deactivate
 # Wrapping the pyinstaller folder in a .pkg package
 mkdir -p dist/alphastats/Contents/Resources
 cp ../logos/alphapeptstats_logo.icns dist/alphastats/Contents/Resources
-mv dist/alphapeptstats_gui dist/alphastats/Contents/MacOS
+mv dist/alphastats_gui dist/alphastats/Contents/MacOS
 cp Info.plist dist/alphastats/Contents
 cp alphastats_terminal dist/alphastats/Contents/MacOS
 cp ../../LICENSE.txt Resources/LICENSE.txt
@@ -42,4 +42,4 @@ cp ../logos/alphapeptstats_logo.png Resources/alphapeptstats_logo.png
 chmod 777 scripts/*
 
 pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.6.7--install-location /Applications/alphapeptstats.app --scripts scripts alphapeptstats.pkg
-productbuild --distribution distribution.xml --resources Resources --package-path alphapeptstats.pkg dist/alphapeptstats_gui_installer_macos.pkg
+productbuild --distribution distribution.xml --resources Resources --package-path alphapeptstats.pkg dist/alphastats_gui_installer_macos.pkg
