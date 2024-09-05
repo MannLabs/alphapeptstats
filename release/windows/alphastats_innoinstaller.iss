@@ -4,7 +4,7 @@
 ; Note: apparently, ISCC uses the directory of the .iss input file as the working directory,
 ; so all paths are given relative to the location of this .iss file.
 
-#define MyAppName "AlphaPeptStats"
+#define MyAppName "alphapeptstats"
 #define MyAppVersion "0.6.7"
 #define MyAppPublisher "MannLabs"
 #define MyAppURL "https://github.com/MannLabs/alphapeptstats"

@@ -8,10 +8,10 @@
     <options customize="never" allow-external-scripts="no"/>
     <domains enable_localSystem="true" />
     <choices-outline>
-        <line choice="AlphaPeptStats"/>
+        <line choice="alphapeptstats"/>
     </choices-outline>
-    <choice id="AlphaPeptStats" title="AlphaPeptStats">
-        <pkg-ref id="AlphaPeptStats.pkg"/>
+    <choice id="alphapeptstats" title="alphapeptstats">
+        <pkg-ref id="alphapeptstats.pkg"/>
     </choice>
-    <pkg-ref id="AlphaPeptStats.pkg" auth="Root">AlphaPeptStats.pkg</pkg-ref>
+    <pkg-ref id="alphapeptstats.pkg" auth="Root">alphapeptstats.pkg</pkg-ref>
 </installer-script>

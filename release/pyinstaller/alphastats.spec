@@ -23,7 +23,7 @@ block_cipher = None
 location = os.getcwd()
 project = "alphastats"
 remove_tests = True
-bundle_name = "AlphaPeptStats"
+bundle_name = "alphapeptstats"
 #####################
 block_cipher = None
 

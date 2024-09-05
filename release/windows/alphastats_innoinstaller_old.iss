@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 ; # TODO remove with old release workflow
 
-#define MyAppName "AlphaPeptStats"
+#define MyAppName "alphapeptstats"
 #define MyAppVersion "0.6.7"
 #define MyAppPublisher "MannLabs"
 #define MyAppURL "https://github.com/MannLabs/alphapeptstats"
