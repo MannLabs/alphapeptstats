@@ -15,7 +15,7 @@ conda activate alphapeptstats_installer
 python setup.py sdist bdist_wheel
 
 # Setting up the local package
-cd release/one_click_linux_gui
+cd release/linux
 # Make sure you include the required extra packages and always use the stable or very-stable options!
 pip install "../../dist/alphastats-0.6.7-py3-none-any.whl"
 
