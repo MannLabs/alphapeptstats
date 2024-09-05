@@ -72,6 +72,8 @@ jobs:
   Create_MacOS_Release:
     runs-on: macos-latest
     needs: Create_Draft_On_GitHub
+    env:
+      BUILD_NAME: alphastats_gui_installer_macos
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -86,12 +88,12 @@ jobs:
       - name: Creating installer for MacOS
         shell: bash -l {0}
         run: |
-          cd release/one_click_macos_gui
+          cd release/macos
           . ./create_installer_macos.sh
       - name: Test installer for MacOS
         shell: bash -l {0}
         run: |
-          sudo installer -pkg release/one_click_macos_gui/dist/alphastats_gui_installer_macos.pkg -target /
+          sudo installer -pkg release/macos/dist/alphastats_gui_installer_macos.pkg -target /
       - name: Upload MacOS Installer
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
@@ -99,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
-          asset_path: release/one_click_macos_gui/dist/alphastats_gui_installer_macos.pkg
+          asset_path: release/macos/dist/alphastats_gui_installer_macos.pkg
           asset_name: alphastats_gui_installer_macos.pkg
           asset_content_type: application/octet-stream
   Create_Windows_Release:

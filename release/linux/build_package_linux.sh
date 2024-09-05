@@ -18,3 +18,5 @@ dpkg-deb --build --root-owner-group dist_pyinstaller/${BUILD_NAME}
 
 # release workflow expects artifact at root of repository
 mv dist_pyinstaller/${BUILD_NAME}.deb .
+
+# TODO AlphaPeptStats -> ${PACKAGE_NAME}
