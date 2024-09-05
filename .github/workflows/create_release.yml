@@ -16,8 +16,9 @@ jobs:
     permissions:
       contents: write
     with:
-      package_name: alphapeptstats
+      package_name: alphastats
       commitish_to_release: ${{ inputs.commitish_to_release }}
       build_nodejs_ui: false
       test_app: false
-      python_version: 3.9
+      skip_macos_arm64_build: true
+      python_version: 3.10
