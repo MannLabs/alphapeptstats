@@ -11,12 +11,22 @@ class BaseTestDataSet:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self.loader = None
+            self.obj = None
+            self.fg_sample = None
+            self.bg_sample = None
+
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_abundance_corretion(self):
             df = self.obj.go_abundance_correction(
                 fg_sample=self.fg_sample, bg_sample=self.bg_sample
             )
             self.assertFalse(df.empty)
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_plot_scatter(self):
             df = self.obj.go_abundance_correction(
                 fg_sample=self.fg_sample, bg_sample=self.bg_sample
@@ -25,24 +35,28 @@ class BaseTestDataSet:
             # colored in 4 different categories but could change when DB are updated
             self.assertTrue(len(plot_dict.get("data")) > 4)
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_plot_bar(self):
             df = self.obj.go_abundance_correction(
                 fg_sample=self.fg_sample, bg_sample=self.bg_sample
             )
             plot = df.plot_scatter()
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_characterize_foreground(self):
             df = self.obj.go_characterize_foreground(
                 tax_id=9606, protein_list=self.obj.mat.columns.to_list()[600:700]
             )
             self.assertFalse(df.empty)
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_compare_samples(self):
             df = self.obj.go_compare_samples(
                 fg_sample=self.fg_sample, bg_sample=self.bg_sample
             )
             self.assertTrue(df.empty)
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_raise_error_no_evidence(self):
             with self.assertRaises(ValueError):
                 self.obj.evidence_df = None
@@ -50,6 +64,7 @@ class BaseTestDataSet:
                     fg_sample=self.fg_sample, bg_sample=self.bg_sample
                 )
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_abundance_correction_with_list(self):
             df = self.obj.go_abundance_correction(
                 bg_sample=self.bg_sample,
@@ -57,12 +72,14 @@ class BaseTestDataSet:
             )
             self.assertTrue(df.empty)
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_genome_list(self):
             df = self.obj.go_genome(
                 protein_list=self.obj.mat.columns.to_list()[600:700]
             )
             self.assertFalse(df.empty)
 
+        @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_genome_sample(self):
             df = self.obj.go_genome(fg_sample=self.fg_sample)
             self.assertFalse(df.empty)
