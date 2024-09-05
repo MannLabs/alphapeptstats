@@ -13,7 +13,7 @@ import sys
 sys.setrecursionlimit(5000)
 
 ##################### User definitions
-exe_name = 'alphastats_gui'
+exe_name = 'alphapeptstats_gui'
 script_name = 'alphastats_pyinstaller.py'
 if sys.platform[:6] == "darwin":
 	icon = '../logos/alphapeptstats_logo.icns'

@@ -13,7 +13,7 @@ CONTENTS_FOLDER=dist_pyinstaller/${PACKAGE_NAME}/Contents
 
 mkdir -p ${CONTENTS_FOLDER}/Resources
 cp release/logos/alphapeptstats_logo.icns ${CONTENTS_FOLDER}/Resources
-mv dist_pyinstaller/alphastats_gui ${CONTENTS_FOLDER}/MacOS
+mv dist_pyinstaller/alphapeptstats_gui ${CONTENTS_FOLDER}/MacOS
 cp release/macos/Info.plist ${CONTENTS_FOLDER}
 cp release/macos/alphastats_terminal ${CONTENTS_FOLDER}/MacOS
 cp LICENSE.txt ${CONTENTS_FOLDER}/Resources

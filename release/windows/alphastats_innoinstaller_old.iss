@@ -6,7 +6,7 @@
 #define MyAppVersion "0.6.7"
 #define MyAppPublisher "MannLabs"
 #define MyAppURL "https://github.com/MannLabs/alphapeptstats"
-#define MyAppExeName "alphastats_gui.exe"
+#define MyAppExeName "alphapeptstats_gui.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -39,8 +39,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\alphastats_gui\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\alphastats_gui\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\alphapeptstats_gui\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\alphapeptstats_gui\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
