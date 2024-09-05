@@ -4,9 +4,9 @@
 # Initial cleanup
 rm -rf dist
 rm -rf build
-FILE=alphapeptstats.pkg
+FILE=AlphaPeptStats.pkg
 if test -f "$FILE"; then
-  rm alphapeptstats.pkg
+  rm AlphaPeptStats.pkg
 fi
 cd ../..
 rm -rf dist
@@ -41,5 +41,5 @@ cp ../../LICENSE.txt Resources/LICENSE.txt
 cp ../logos/alphapeptstats_logo.png Resources/alphapeptstats_logo.png
 chmod 777 scripts/*
 
-pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.6.7--install-location /Applications/alphapeptstats.app --scripts scripts alphapeptstats.pkg
-productbuild --distribution distribution.xml --resources Resources --package-path alphapeptstats.pkg dist/alphastats_gui_installer_macos.pkg
+pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.6.7--install-location /Applications/AlphaPeptStats.app --scripts scripts AlphaPeptStats.pkg
+productbuild --distribution distribution.xml --resources Resources --package-path AlphaPeptStats.pkg dist/alphastats_gui_installer_macos.pkg
