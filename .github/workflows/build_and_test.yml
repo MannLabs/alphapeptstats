@@ -36,7 +36,6 @@ jobs:
     - name: Install additional dependencies for tests
       run: |
         pip install -r requirements_dev.txt
-        pip install coverage
     - name: Print pip freeze
       run: |
           pip freeze

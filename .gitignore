@@ -10,3 +10,5 @@ dist
 # editors
 .idea
 .vscode
+
+**/.ipynb_checkpoints

@@ -233,12 +233,10 @@ class TestSpectronautLoader(BaseTestLoader.BaseTest):
         )
         self.assertEqual(obj.rawinput.shape, (2071, 10))
 
-    # TODO figure out what this is about or delete
-    @skip
     def test_qvalue_filtering_warning(self):
-        with self.assertWarns(Warning):
+        with self.assertRaises(Warning):
             df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
-            df.drop(columns=["EG.Qvalue"], axis=1)
+            df.drop(columns=["EG.Qvalue"], axis=1, inplace=True)
             SpectronautLoader(file=df)
 
     def test_gene_name_column(self):

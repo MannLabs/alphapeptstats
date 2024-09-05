@@ -227,7 +227,6 @@ class Preprocess:
         preprocessing_modes = list(
             itertools.product(self.normalization_methods, self.imputation_methods)
         )
-        print(f"Combination of preprocessing methods: {preprocessing_modes}")
 
         results_list = []
 
