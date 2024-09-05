@@ -21,7 +21,7 @@ else:
 	icon = '../logos/alphapeptstats_logo.ico'
 block_cipher = None
 location = os.getcwd()
-project = "alphastats"
+project = "alphapeptstats"
 remove_tests = True
 bundle_name = "alphapeptstats"
 #####################
