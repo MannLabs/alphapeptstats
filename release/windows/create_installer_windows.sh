@@ -1,5 +1,7 @@
 #!bash
 
+# TODO remove with old release workflow
+
 # Initial cleanup
 rm -rf dist
 rm -rf build
@@ -15,7 +17,7 @@ conda activate alphapeptstats_installer
 python setup.py sdist bdist_wheel
 
 # Setting up the local package
-cd release/one_click_windows_gui
+cd release/windows
 # Make sure you include the required extra packages and always use the stable or very-stable options!
 pip install "../../dist/alphastats-0.6.7-py3-none-any.whl"
 
@@ -28,5 +30,5 @@ conda deactivate
 # cp ../../omiclearn/data/*.fasta dist/omiclearn/data
 
 # Wrapping the pyinstaller folder in a .exe package
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" alphastats_innoinstaller.iss
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" alphastats_innoinstaller_old.iss
 # WARNING: this assumes a static location for innosetup
