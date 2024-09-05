@@ -36,7 +36,7 @@ mkdir -p dist/alphastats/Contents/Resources
 cp ../logos/alphapeptstats_logo.icns dist/alphastats/Contents/Resources
 mv dist/alphapeptstats_gui dist/alphastats/Contents/MacOS
 cp Info.plist dist/alphastats/Contents
-cp alphapeptstats_terminal dist/alphastats/Contents/MacOS
+cp alphastats_terminal dist/alphastats/Contents/MacOS
 cp ../../LICENSE.txt Resources/LICENSE.txt
 cp ../logos/alphapeptstats_logo.png Resources/alphapeptstats_logo.png
 chmod 777 scripts/*

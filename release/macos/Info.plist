@@ -5,11 +5,11 @@
 	<key>CFBundleDisplayName</key>
 	<string>alphapeptstats</string>
 	<key>CFBundleExecutable</key>
-	<string>MacOS/alphapeptstats_terminal</string>
+	<string>MacOS/alphastats_terminal</string>
 	<key>CFBundleIconFile</key>
 	<string>alphapeptstats_logo.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>alphapeptstats.0.6.7</string>
+	<string>alphastats.0.6.7</string>
 	<key>CFBundleShortVersionString</key>
 	<string>0.6.0</string>
 	<key>CFBundleInfoDictionaryVersion</key>

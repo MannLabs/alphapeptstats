@@ -4,8 +4,8 @@ set -e -u
 # Build the install package for MacOS.
 # This script must be run from the root of the repository after running build_installer_macos.sh
 
-PACKAGE_NAME=alphapeptstats
-# BUILD_NAME is taken from environment variables, e.g. alphapeptstats-1.2.3-macos-darwin-arm64 or alphapeptstats-1.2.3-macos-darwin-x64
+PACKAGE_NAME=alphastats
+# BUILD_NAME is taken from environment variables, e.g. alphastats-1.2.3-macos-darwin-arm64 or alphastats-1.2.3-macos-darwin-x64
 rm -rf ${BUILD_NAME}.pkg
 
 # Wrapping the pyinstaller folder in a .pkg package
@@ -15,7 +15,7 @@ mkdir -p ${CONTENTS_FOLDER}/Resources
 cp release/logos/alphapeptstats_logo.icns ${CONTENTS_FOLDER}/Resources
 mv dist_pyinstaller/alphapeptstats_gui ${CONTENTS_FOLDER}/MacOS
 cp release/macos/Info.plist ${CONTENTS_FOLDER}
-cp release/macos/alphapeptstats_terminal ${CONTENTS_FOLDER}/MacOS
+cp release/macos/alphastats_terminal ${CONTENTS_FOLDER}/MacOS
 cp LICENSE.txt ${CONTENTS_FOLDER}/Resources
 cp release/logos/alphapeptstats_logo.png ${CONTENTS_FOLDER}/Resources
 
