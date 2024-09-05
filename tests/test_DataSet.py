@@ -588,8 +588,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
         self.assertTrue(column_added)
 
-    # # TODO speed up this test
-    # @unittest.skipIf(int(os.getenv("SKIP_SLOW_TESTS", "0")), "slow")
     def test_plot_volcano_sam(self):
         self.obj.preprocess(
             log2_transform=False, imputation="knn", normalization="zscore"
