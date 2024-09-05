@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 def plotting_options(state):
     plotting_options = {
         "Sampledistribution Plot": {
@@ -68,6 +69,7 @@ def plotting_options(state):
     }
     return plotting_options
 
+
 def statistic_options(state):
     statistic_options = {
         "Differential Expression Analysis - T-test": {
@@ -124,6 +126,7 @@ def statistic_options(state):
         },
     }
     return statistic_options
+
 
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader

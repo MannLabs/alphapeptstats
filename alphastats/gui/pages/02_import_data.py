@@ -3,12 +3,24 @@ import os
 import io
 
 try:
-    from alphastats.gui.utils.import_helper import import_data, save_plot_sampledistribution_rawdata, display_loaded_dataset, load_sample_data, empty_session_state
+    from alphastats.gui.utils.import_helper import (
+        import_data,
+        save_plot_sampledistribution_rawdata,
+        display_loaded_dataset,
+        load_sample_data,
+        empty_session_state,
+    )
     from alphastats.gui.utils.ui_helper import sidebar_info
 
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
-    from utils.import_helper import import_data, save_plot_sampledistribution_rawdata, display_loaded_dataset, load_sample_data, empty_session_state
+    from utils.import_helper import (
+        import_data,
+        save_plot_sampledistribution_rawdata,
+        display_loaded_dataset,
+        load_sample_data,
+        empty_session_state,
+    )
 
 from streamlit.runtime import get_instance
 from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
@@ -51,7 +63,6 @@ if "dataset" in st.session_state:
 st.markdown("### Or Load sample Dataset")
 
 if st.button("Load sample DataSet - PXD011839"):
-
     load_sample_data()
     if "distribution_plot" not in st.session_state:
         save_plot_sampledistribution_rawdata()

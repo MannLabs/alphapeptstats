@@ -6,11 +6,29 @@ import io
 
 try:
     from alphastats.gui.utils.ui_helper import sidebar_info
-    from alphastats.gui.utils.analysis_helper import get_analysis, load_options, display_figure, save_plot_to_session_state, download_figure, display_df, convert_df, download_preprocessing_info
+    from alphastats.gui.utils.analysis_helper import (
+        get_analysis,
+        load_options,
+        display_figure,
+        save_plot_to_session_state,
+        download_figure,
+        display_df,
+        convert_df,
+        download_preprocessing_info,
+    )
 
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
-    from utils.analysis_helper import get_analysis, load_options, display_figure, save_plot_to_session_state, download_figure, display_df, convert_df, download_preprocessing_info
+    from utils.analysis_helper import (
+        get_analysis,
+        load_options,
+        display_figure,
+        save_plot_to_session_state,
+        download_figure,
+        display_df,
+        convert_df,
+        download_preprocessing_info,
+    )
 
 
 def select_analysis():

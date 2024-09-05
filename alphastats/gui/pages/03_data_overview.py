@@ -1,12 +1,21 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+
 try:
-    from alphastats.gui.utils.overview_helper import display_matrix, get_intensity_distribution_processed, get_sample_histogram_matrix
+    from alphastats.gui.utils.overview_helper import (
+        display_matrix,
+        get_intensity_distribution_processed,
+        get_sample_histogram_matrix,
+    )
     from alphastats.gui.utils.ui_helper import sidebar_info
 
 except ModuleNotFoundError:
-    from utils.overview_helper import display_matrix, get_intensity_distribution_processed, get_sample_histogram_matrix
+    from utils.overview_helper import (
+        display_matrix,
+        get_intensity_distribution_processed,
+        get_sample_histogram_matrix,
+    )
     from utils.ui_helper import sidebar_info
 
 sidebar_info()

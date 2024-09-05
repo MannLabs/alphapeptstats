@@ -118,7 +118,7 @@ def upload_metadatafile(software):
 
 def load_sample_data():
     st.write(
-    """
+        """
 
     ### Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease
 

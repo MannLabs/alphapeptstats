@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
 
+
 @st.cache_data
 def convert_df(df, user_session_id=st.session_state.user_session_id):
     return df.to_csv().encode("utf-8")
+
 
 @st.cache_data
 def get_sample_histogram_matrix(user_session_id=st.session_state.user_session_id):
@@ -25,6 +27,7 @@ def get_display_matrix(user_session_id=st.session_state.user_session_id):
     ).head(10)
 
     return processed_df
+
 
 def display_matrix():
     text = (
