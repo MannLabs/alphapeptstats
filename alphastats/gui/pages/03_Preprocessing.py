@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_react_flow import react_flow
 import pandas as pd
 
 import datetime
@@ -137,11 +138,24 @@ def main_preprocessing():
     else:
         st.info("Import Data first")
 
-
 st.markdown("### Preprocessing")
+st.markdown('Select either the predefined workflow where you can only enable/disable steps or create a custom workflow, that allows switching steps around.')
 
 
-main_preprocessing()
+tab1, tab2  = st.tabs(["Predefined workflow", "Custom workflow"])
+
+with tab1:
+    if "workflow" not in st.session_state:
+        st.session_state.workflow = None
+    elements = [
+        {'id': f'{i}', 'data': {'label': label}, 'position': {'x': 160*i, 'y': 0}, "draggable": False} for i, label in enumerate(["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"])
+    ]
+    flowStyles = {"height": 60, "width": 1300}
+    react_flow('predefined_workflow', elements, flowStyles, key="workflow")
+    main_preprocessing()
+
+with tab2:
+    "Custom workflows coming soon"
 
 
 def plot_intensity_distribution():
