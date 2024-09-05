@@ -233,7 +233,7 @@ class Preprocess:
         del params_for_func["compare_preprocessing_modes"]
         params_for_func["dataset"] = params_for_func.pop("self")
 
-        #TODO: make this progress transparent in GUI
+        # TODO: make this progress transparent in GUI
         for preprocessing_mode in tqdm(preprocessing_modes):
             # reset preprocessing
             dataset.reset_preprocessing()
