@@ -27,7 +27,7 @@ cd -
 
 chmod 777 release/macos/scripts/*
 
-pkgbuild --root dist_pyinstaller/${PACKAGE_NAME} --identifier de.mpg.biochem.${PACKAGE_NAME}.app --version 0.4.1 --install-location /Applications/AlphaPeptStats.app --scripts release/macos/scripts AlphaPeptStats.pkg
+pkgbuild --root dist_pyinstaller/${PACKAGE_NAME} --identifier de.mpg.biochem.${PACKAGE_NAME}.app --version 0.6.7 --install-location /Applications/AlphaPeptStats.app --scripts release/macos/scripts AlphaPeptStats.pkg
 productbuild --distribution release/macos/distribution.xml --resources release/macos/Resources --package-path AlphaPeptStats.pkg ${BUILD_NAME}.pkg
 
 # TODO AlphaPeptStats.app -> ${PACKAGE_NAME}.app
