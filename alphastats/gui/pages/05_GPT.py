@@ -17,7 +17,7 @@ try:
         gui_volcano_plot_differential_expression_analysis,
         helper_compare_two_groups,
     )
-    from alphastats.gui.utils.llm_helper import (
+    from alphastats.gui.utils.gpt_helper import (
         get_assistant_functions,
         display_proteins,
         get_gene_function,
@@ -45,7 +45,7 @@ except ModuleNotFoundError:
         gui_volcano_plot_differential_expression_analysis,
         helper_compare_two_groups,
     )
-    from alphastats.gui.utils.llm_helper import (
+    from alphastats.gui.utils.GPT_helper import (
         get_assistant_functions,
         display_proteins,
         get_gene_function,

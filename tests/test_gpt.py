@@ -23,7 +23,7 @@ from alphastats.DataSet import DataSet
 if "gene_to_prot_id" not in st.session_state:
     st.session_state["gene_to_prot_id"] = {}
 
-from alphastats.gui.utils.llm_helper import (
+from alphastats.gui.utils.gpt_helper import (
     get_assistant_functions,
     display_proteins,
     get_gene_function,
