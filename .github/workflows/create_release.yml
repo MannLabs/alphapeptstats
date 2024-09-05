@@ -21,4 +21,4 @@ jobs:
       build_nodejs_ui: false
       test_app: false
       skip_macos_arm64_build: true
-      python_version: 3.10
+      python_version: "3.10"
