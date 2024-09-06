@@ -7,7 +7,7 @@ from alphastats import __version__
 # https://github.com/streamlit/streamlit/issues/4984
 
 
-def sidebar_info(show_logo=True):
+def sidebar_info():
     display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
     st.sidebar.markdown("AlphaPeptStats Version " + str(__version__))

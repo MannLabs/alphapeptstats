@@ -56,6 +56,7 @@ if c2.button("Start new Session with example DataSet"):
     load_options()
     # TODO why are we doing this so early?
     save_plot_sampledistribution_rawdata(dataset)
+    sidebar_info()
     st.stop()
 
 
@@ -150,3 +151,4 @@ if dataset is not None:
 
     # TODO why are we doing this so early?
     save_plot_sampledistribution_rawdata(dataset)
+    sidebar_info()
