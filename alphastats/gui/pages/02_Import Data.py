@@ -128,19 +128,18 @@ if c2.button("Create DataSet without metadata"):
     dataset = DataSet(loader=loader)
     metadata_columns = ["sample"]
 
-if sample_column:
-    if c1.button("Create DataSet with metadata"):
-        if len(metadatafile_df[sample_column].to_list()) != len(
-            metadatafile_df[sample_column].unique()
-        ):
-            raise ValueError("Sample names have to be unique.")
+if c1.button("Create DataSet with metadata", disabled=metadatafile_df is None):
+    if len(metadatafile_df[sample_column].to_list()) != len(
+        metadatafile_df[sample_column].unique()
+    ):
+        raise ValueError("Sample names have to be unique.")
 
-        dataset = DataSet(
-            loader=loader,
-            metadata_path=metadatafile_df,
-            sample_column=sample_column,
-        )
-        metadata_columns = metadatafile_df.columns.to_list()
+    dataset = DataSet(
+        loader=loader,
+        metadata_path=metadatafile_df,
+        sample_column=sample_column,
+    )
+    metadata_columns = metadatafile_df.columns.to_list()
 
 if dataset is not None:
     st.info("DataSet has been created.")

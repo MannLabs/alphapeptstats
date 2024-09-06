@@ -67,27 +67,27 @@ def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFr
 
 def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
     """Show the 'upload metadata file' component and return the data."""
-    show_button_download_metadata_template_file(loader)
     st.write(
-        "Download the template file and add additional information as "
-        + "columns to your samples such as disease group. "
-        + "Upload the updated metadata file."
+        "Download the template file and add additional information "
+        + "to your samples as columns (e.g. 'disease group'). "
+        + "Then upload the updated metadata file."
     )
+    show_button_download_metadata_template_file(loader)
 
     metadatafile_upload = st.file_uploader(
         "Upload metadata file with information about your samples",
     )
 
-    metadatafile_df = None
-    if metadatafile_upload is not None:
-        metadatafile_df = _read_file_to_df(metadatafile_upload)
-        # display metadata
-        st.write(
-            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
-            f", Number of columns: {metadatafile_df.shape[1]}. \nPreview:"
-        )
-        st.dataframe(metadatafile_df.head(5))
-        # pick sample column
+    if metadatafile_upload is None:
+        return None
+
+    metadatafile_df = _read_file_to_df(metadatafile_upload)
+    st.write(
+        f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
+        f", Number of columns: {metadatafile_df.shape[1]}."
+    )
+    st.write("Preview:")
+    st.dataframe(metadatafile_df.head(5))
 
     return metadatafile_df
 

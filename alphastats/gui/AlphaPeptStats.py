@@ -30,7 +30,7 @@ img {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  width: 65%;
+  width: 33%;
 </style>
 </head>
 """
