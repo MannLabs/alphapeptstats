@@ -55,85 +55,88 @@ if "dataset" in st.session_state:
     st.info(f"DataSet already present: {st.session_state['dataset']}")
     st.stop()
 
-if "dataset" not in st.session_state:
 
-    st.markdown(
-        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
-    )
+st.markdown(
+    "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+)
 
-    # ########## Select Software
-    st.markdown("##### 1. Select software and upload data")
+# ########## Select Software
+st.markdown("##### 1. Select software and upload data")
 
-    default_select_option = "<select>"
-    options = [default_select_option] + list(SOFTWARE_OPTIONS.keys())
+default_select_option = "<select>"
+options = [default_select_option] + list(SOFTWARE_OPTIONS.keys())
 
-    st.selectbox(
-        "Select your Proteomics Software",
-        options=options,
-        key="software",
-    )
+software = st.selectbox(
+    "Select your Proteomics Software",
+    options=options,
+)
+if software == default_select_option:
+    st.stop()
 
-    software = st.session_state["software"]
 
-    # ########## Load Software File
-    if software != default_select_option:
-        softwarefile = st.file_uploader(
-            SOFTWARE_OPTIONS.get(software).get("import_file"),
-            type=["csv", "tsv", "txt", "hdf"],
+# ########## Load Software File
+
+softwarefile = st.file_uploader(
+    SOFTWARE_OPTIONS.get(software).get("import_file"),
+    type=["csv", "tsv", "txt", "hdf"],
+)
+
+if softwarefile is None:
+    st.stop()
+
+softwarefile_df = load_softwarefile_df(software, softwarefile)
+
+intensity_column, index_column = show_loader_columns_selection(software=software, softwarefile_df=softwarefile_df)
+
+loader = load_proteomics_data(
+    softwarefile_df,
+    intensity_column=intensity_column,
+    index_column=index_column,
+    software=software,
+)
+# TODO pass loader around here and put it to session state only at the end
+st.session_state["loader"] = loader
+
+
+
+# ##########  Load Metadata File
+st.markdown("##### 3. Prepare Metadata (optional)")
+sample_column = None
+metadatafile_df = show_upload_metadatafile()
+if metadatafile_df is not None:
+    sample_column = show_select_sample_column_for_metadata(metadatafile_df, software)
+
+
+# ##########  Create dataset
+st.markdown("##### 4. Create DataSet")
+
+dataset = None
+metadata_columns = []
+c1, c2 = st.columns(2)
+
+if c2.button("Create DataSet without metadata"):
+    dataset = DataSet(loader=loader)
+    metadata_columns = ["sample"]
+
+if sample_column:
+    if c1.button("Create DataSet with metadata"):
+        if len(metadatafile_df[sample_column].to_list()) != len(
+                metadatafile_df[sample_column].unique()
+        ):
+            raise ValueError("Sample names have to be unique.")
+
+        dataset = DataSet(
+            loader=loader,
+            metadata_path=metadatafile_df,
+            sample_column=sample_column,
         )
-
-        if softwarefile is not None:
-            softwarefile_df = load_softwarefile_df(software, softwarefile)
-
-            intensity_column, index_column = show_loader_columns_selection(software=software, softwarefile_df=softwarefile_df)
-
-            loader = load_proteomics_data(
-                softwarefile_df,
-                intensity_column=intensity_column,
-                index_column=index_column,
-                software=software,
-            )
-
-            st.session_state["loader"] = loader
+        metadata_columns = metadatafile_df.columns.to_list()
 
 
-    if st.session_state["loader"] is not None:
-        dataset = None
-        metadata_columns = []
-
-        # ##########  Load Metadata File
-        st.markdown("##### 3. Prepare Metadata (optional)")
-
-        sample_column = None
-        metadatafile_df = show_upload_metadatafile()
-        if metadatafile_df is not None:
-            sample_column = show_select_sample_column_for_metadata(metadatafile_df, software)
-
-        # ##########  Create dataset
-        st.markdown("##### 4. Create DataSet")
-
-        if sample_column:
-            if st.button("Create DataSet with metadata"):
-                if len(metadatafile_df[sample_column].to_list()) != len(
-                        metadatafile_df[sample_column].unique()
-                ):
-                    raise ValueError("Sample names have to be unique.")
-
-                dataset = DataSet(
-                    loader=st.session_state.loader,
-                    metadata_path=metadatafile_df,
-                    sample_column=sample_column,
-                )
-                metadata_columns = metadatafile_df.columns.to_list()
-
-        if st.button("Create DataSet without metadata"):
-            dataset = DataSet(loader=st.session_state.loader)
-            metadata_columns = ["sample"]
-
-        if dataset is not None:
-            st.info("DataSet has been created.")
-            st.session_state["dataset"] = dataset
-            st.session_state["metadata_columns"] = metadata_columns
-            load_options()
+if dataset is not None:
+    st.info("DataSet has been created.")
+    st.session_state["dataset"] = dataset
+    st.session_state["metadata_columns"] = metadata_columns
+    load_options()
 
 
