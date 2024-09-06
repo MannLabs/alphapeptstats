@@ -12,7 +12,7 @@ def print_session_state(apptest: AppTest):
         )
 
 
-APP_FOLDER = Path(__file__).parent / Path("../")
+APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
 APP_FILE = f"{APP_FOLDER}/pages/03_Data Overview.py"
 TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
 

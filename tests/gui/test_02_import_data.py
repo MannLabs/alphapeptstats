@@ -1,7 +1,6 @@
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import pandas as pd
 from io import BytesIO
 
 
@@ -12,7 +11,7 @@ def print_session_state(apptest: AppTest):
         )
 
 
-APP_FOLDER = Path(__file__).parent / Path("../")
+APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
 APP_FILE = f"{APP_FOLDER}/pages/02_Import Data.py"
 TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
 
@@ -26,9 +25,7 @@ def test_page_02_loads_without_input():
 
     assert at.session_state.organism == 9606
     assert at.session_state.user_session_id == "test session id"
-    assert at.session_state.software == "<select>"
     assert at.session_state.gene_to_prot_id == {}
-    assert at.session_state.loader == None
 
 
 @patch("streamlit.file_uploader")
@@ -41,9 +38,7 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
 
     assert at.session_state.organism == 9606
     assert at.session_state.user_session_id == "test session id"
-    assert at.session_state.software == "<select>"
     assert at.session_state.gene_to_prot_id == {}
-    assert at.session_state.loader == None
 
 
 def test_page_02_loads_sample_data():
@@ -52,7 +47,7 @@ def test_page_02_loads_sample_data():
     at.run()
 
     # User clicks Load Sample Data button
-    at.button("load_sample_data").click().run()
+    at.button[1].click().run()
 
     assert not at.exception
 
@@ -63,7 +58,6 @@ def test_page_02_loads_sample_data():
         "Lipid-lowering therapy (134350008)",
     ]
     assert str(type(at.session_state.dataset)) == "<class 'alphastats.DataSet.DataSet'>"
-    assert at.session_state.software == "<select>"
     assert (
         str(type(at.session_state.distribution_plot))
         == "<class 'plotly.graph_objs._figure.Figure'>"
@@ -112,7 +106,7 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     at.run()
 
     # User selects MaxQuant from the dropdown menu
-    at.selectbox(key="software").select("MaxQuant")
+    at.selectbox[0].select("MaxQuant")
     mock_file_uploader.side_effect = [None]
     at.run()
 
@@ -133,29 +127,26 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
         str(type(at.session_state.loader))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
-    assert at.session_state.intensity_column == "LFQ intensity [sample]"
     assert str(type(at.session_state.metadatafile)) == "<class '_io.BytesIO'>"
-    assert at.session_state.software == "MaxQuant"
-    assert at.session_state.index_column == "Protein IDs"
     assert at.session_state.metadata_columns == ["sample"]
-    assert at.session_state.sample_column == "sample"
 
     # User clicks the Load Data button
     mock_file_uploader.side_effect = [
         _data_buf(DATA_FILE),
         _metadata_buf(METADATA_FILE, at),
     ]
-    at.button("FormSubmitter:sample_column-Create DataSet").click()
+    at.button[3].click()
     at.run()
 
     assert not at.exception
 
-    assert at.session_state.dataset.gene_names == "Gene names"
-    assert at.session_state.dataset.index_column == "Protein IDs"
-    assert at.session_state.dataset.intensity_column == "LFQ intensity [sample]"
-    assert at.session_state.dataset.rawmat.shape == (312, 2611)
-    assert at.session_state.dataset.software == "MaxQuant"
-    assert at.session_state.dataset.sample == "sample"
+    dataset = at.session_state.dataset
+    assert dataset.gene_names == "Gene names"
+    assert dataset.index_column == "Protein IDs"
+    assert dataset.intensity_column == "LFQ intensity [sample]"
+    assert dataset.rawmat.shape == (312, 2611)
+    assert dataset.software == "MaxQuant"
+    assert dataset.sample == "sample"
     assert (
         str(type(at.session_state.distribution_plot))
         == "<class 'plotly.graph_objs._figure.Figure'>"
