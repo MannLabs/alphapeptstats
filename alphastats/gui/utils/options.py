@@ -1,4 +1,10 @@
-import streamlit as st
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
+from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.DIANNLoader import DIANNLoader
+from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.GenericLoader import GenericLoader
+from alphastats.loader.mzTabLoader import mzTabLoader
 
 
 def plotting_options(state):
@@ -126,15 +132,6 @@ def statistic_options(state):
         },
     }
     return statistic_options
-
-
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
-from alphastats.loader.GenericLoader import GenericLoader
-from alphastats.loader.mzTabLoader import mzTabLoader
 
 SOFTWARE_OPTIONS = {
     "MaxQuant": {
