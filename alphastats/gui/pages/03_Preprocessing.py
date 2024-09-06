@@ -1,4 +1,8 @@
 import streamlit as st
+from st_cytoscape import cytoscape
+import pandas as pd
+
+import datetime
 
 try:
     from alphastats.gui.utils.preprocessing_helper import main_preprocessing
@@ -10,11 +14,6 @@ except ModuleNotFoundError:
 
 
 sidebar_info()
-
-from st_cytoscape import cytoscape
-import pandas as pd
-
-import datetime
 
 
 def preprocessing():
@@ -201,9 +200,3 @@ with tab1:
 
 with tab2:
     "Custom workflows coming soon"
-
-
-def plot_intensity_distribution():
-    st.selectbox(
-        "Sample", options=st.session_state.dataset.metadata["sample"].to_list()
-    )
