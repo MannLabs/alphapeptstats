@@ -3,24 +3,22 @@ import pandas as pd
 
 
 @st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
+def convert_df(df, user_session_id):
     return df.to_csv().encode("utf-8")
 
 
 @st.cache_data
-def get_sample_histogram_matrix(user_session_id=st.session_state.user_session_id):
+def get_sample_histogram_matrix(user_session_id):
     return st.session_state.dataset.plot_samplehistograms()
 
 
 @st.cache_data
-def get_intensity_distribution_processed(
-    user_session_id=st.session_state.user_session_id,
-):
+def get_intensity_distribution_processed(user_session_id):
     return st.session_state.dataset.plot_sampledistribution()
 
 
 @st.cache_data
-def get_display_matrix(user_session_id=st.session_state.user_session_id):
+def get_display_matrix(user_session_id):
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
