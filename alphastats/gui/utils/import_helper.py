@@ -177,22 +177,6 @@ def load_sample_data():
     load_options()
 
 
-def import_data():
-    options = ["<select>"] + list(SOFTWARE_OPTIONS.keys())
-
-    st.selectbox(
-        "Select your Proteomics Software",
-        options=options,
-        key="software",
-    )
-
-    if st.session_state.software != "<select>":
-        upload_softwarefile(software=st.session_state.software)
-    if "loader" not in st.session_state:
-        st.session_state["loader"] = None
-    if st.session_state.loader is not None:
-        upload_metadatafile(st.session_state.software)
-
 
 def display_loaded_dataset():
     st.info("Data was successfully imported")

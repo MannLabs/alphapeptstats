@@ -50,7 +50,19 @@ if "dataset" not in st.session_state:
         "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
     )
 
-import_data()
+# ########## Select your Proteomics Software
+special_select_option = "<select>"
+options = [special_select_option] + list(SOFTWARE_OPTIONS.keys())
+
+st.selectbox(
+    "Select your Proteomics Software",
+    options=options,
+    key="software",
+)
+
+### Load Metadata File
+if st.session_state["loader"] is not None:
+    show_upload_metadatafile(software)
 
 if "dataset" in st.session_state:
     st.info("DataSet has been imported")
