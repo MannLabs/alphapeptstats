@@ -64,6 +64,7 @@ def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFr
 
     return softwarefile_df
 
+
 def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
     """Show the 'upload metadata file' component and return the data."""
     create_metadata_template_file(loader)
@@ -96,7 +97,7 @@ def load_example_data():
     st.markdown("### Using Example Dataset")
     st.info("Example dataset and metadata loaded")
     st.write(
-    """
+        """
     _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_
 
     **Description**
@@ -152,9 +153,7 @@ def load_example_data():
     return loader, metadata_columns, dataset
 
 
-
 def display_loaded_dataset(dataset: DataSet) -> None:
-
     st.markdown(f"*Preview:* Raw data from {dataset.software}")
     st.dataframe(dataset.rawinput.head(5))
 
@@ -172,7 +171,6 @@ def display_loaded_dataset(dataset: DataSet) -> None:
 
 
 def save_plot_sampledistribution_rawdata(dataset: DataSet) -> None:
-
     df = dataset.rawmat
     df = df.unstack().reset_index()
     df.rename(
@@ -191,6 +189,7 @@ def empty_session_state():
     for key in st.session_state.keys():
         del st.session_state[key]
     st.empty()
+
 
 def init_session_state() -> None:
     """Initialize the session state."""
@@ -246,7 +245,9 @@ def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
             )
 
 
-def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.DataFrame] = None) -> Tuple[str, str]:
+def show_loader_columns_selection(
+    software: str, softwarefile_df: Optional[pd.DataFrame] = None
+) -> Tuple[str, str]:
     """
     select intensity and index column depending on software
     will be saved in session state
@@ -284,14 +285,17 @@ def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.Da
     return intensity_column, index_column
 
 
-def show_select_sample_column_for_metadata(df: pd.DataFrame, software: str,
-                                           loader: BaseLoader) -> str:
+def show_select_sample_column_for_metadata(
+    df: pd.DataFrame, software: str, loader: BaseLoader
+) -> str:
     """Show the 'select sample column for metadata' component and return the value."""
     samples_proteomics_data = get_sample_names_from_software_file(loader)
 
-    valid_sample_columns = [col for col in df.columns.to_list()
-                            if bool(set(samples_proteomics_data) & set(df[col].to_list()))
-                            ]
+    valid_sample_columns = [
+        col
+        for col in df.columns.to_list()
+        if bool(set(samples_proteomics_data) & set(df[col].to_list()))
+    ]
 
     if len(valid_sample_columns) == 0:
         raise ValueError(

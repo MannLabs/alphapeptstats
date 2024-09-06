@@ -133,6 +133,7 @@ def statistic_options(state):
     }
     return statistic_options
 
+
 SOFTWARE_OPTIONS = {
     "MaxQuant": {
         "import_file": "Please upload proteinGroups.txt",

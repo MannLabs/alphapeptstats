@@ -1,6 +1,4 @@
 import streamlit as st
-import os
-import io
 
 from alphastats import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
@@ -10,10 +8,15 @@ try:
         save_plot_sampledistribution_rawdata,
         display_loaded_dataset,
         load_example_data,
-        empty_session_state, load_softwarefile_df, show_metadata_file_uploader,
-        show_loader_columns_selection, load_proteomics_data, load_options,
-        show_select_sample_column_for_metadata, init_session_state,
-)
+        empty_session_state,
+        load_softwarefile_df,
+        show_metadata_file_uploader,
+        show_loader_columns_selection,
+        load_proteomics_data,
+        load_options,
+        show_select_sample_column_for_metadata,
+        init_session_state,
+    )
     from alphastats.gui.utils.ui_helper import sidebar_info
 
 except ModuleNotFoundError:
@@ -32,7 +35,9 @@ init_session_state()
 sidebar_info()
 
 st.markdown("### Start a new session")
-st.write("Start a new session will discard the current one (including all analysis!) and enable importing a new dataset.")
+st.write(
+    "Start a new session will discard the current one (including all analysis!) and enable importing a new dataset."
+)
 st.write("To explore AlphaPeptStats you may also load an example dataset.")
 
 c1, c2 = st.columns(2)
@@ -52,7 +57,6 @@ if c2.button("Start new Session with example DataSet"):
     # TODO why are we doing this so early?
     save_plot_sampledistribution_rawdata(dataset)
     st.stop()
-
 
 
 st.markdown("### Import Proteomics Data")
@@ -91,7 +95,9 @@ if softwarefile is None:
 
 softwarefile_df = load_softwarefile_df(software, softwarefile)
 
-intensity_column, index_column = show_loader_columns_selection(software=software, softwarefile_df=softwarefile_df)
+intensity_column, index_column = show_loader_columns_selection(
+    software=software, softwarefile_df=softwarefile_df
+)
 
 loader = load_proteomics_data(
     softwarefile_df,
@@ -103,13 +109,14 @@ loader = load_proteomics_data(
 st.session_state["loader"] = loader
 
 
-
 # ##########  Load Metadata File
 st.markdown("##### 3. Prepare Metadata (optional)")
 sample_column = None
 metadatafile_df = show_metadata_file_uploader(loader)
 if metadatafile_df is not None:
-    sample_column = show_select_sample_column_for_metadata(metadatafile_df, software, loader)
+    sample_column = show_select_sample_column_for_metadata(
+        metadatafile_df, software, loader
+    )
 
 
 # ##########  Create dataset
@@ -126,7 +133,7 @@ if c2.button("Create DataSet without metadata"):
 if sample_column:
     if c1.button("Create DataSet with metadata"):
         if len(metadatafile_df[sample_column].to_list()) != len(
-                metadatafile_df[sample_column].unique()
+            metadatafile_df[sample_column].unique()
         ):
             raise ValueError("Sample names have to be unique.")
 
@@ -147,5 +154,3 @@ if dataset is not None:
 
     # TODO why are we doing this so early?
     save_plot_sampledistribution_rawdata(dataset)
-
-

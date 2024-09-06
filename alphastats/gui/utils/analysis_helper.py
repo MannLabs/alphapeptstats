@@ -85,7 +85,7 @@ def download_preprocessing_info(plot):
     )
 
 
-def _read_file_to_df(file: UploadedFile, decimal: str=".") -> Optional[pd.DataFrame]:
+def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.DataFrame]:
     """Read file to DataFrame based on file extension."""
 
     extension = Path(file.name).suffix
@@ -100,8 +100,8 @@ def _read_file_to_df(file: UploadedFile, decimal: str=".") -> Optional[pd.DataFr
         return pd.read_csv(file, decimal=decimal)
 
     raise ValueError(
-            f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
-        )
+        f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
+    )
 
 
 def get_unique_values_from_column(column):
@@ -372,9 +372,7 @@ def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
     extract sample names from software
     """
     if isinstance(loader.intensity_column, str):
-        regex_find_intensity_columns = loader.intensity_column.replace(
-            "[sample]", ".*"
-        )
+        regex_find_intensity_columns = loader.intensity_column.replace("[sample]", ".*")
         df = loader.rawinput
         df = df.set_index(loader.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
