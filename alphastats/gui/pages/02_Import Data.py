@@ -45,7 +45,7 @@ if c1.button("Start new Session"):
     empty_session_state()
     st.rerun()
 
-if c2.button("Start new Session with example DataSet"):
+if c2.button("Start new Session with example DataSet"):  # , key="load_sample_data" TODO: needed?
     empty_session_state()
     init_session_state()
     loader, metadata_columns, dataset = load_example_data()
@@ -143,7 +143,6 @@ if sample_column:
             sample_column=sample_column,
         )
         metadata_columns = metadatafile_df.columns.to_list()
-
 
 if dataset is not None:
     st.info("DataSet has been created.")
