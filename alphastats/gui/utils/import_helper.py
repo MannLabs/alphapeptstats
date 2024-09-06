@@ -1,15 +1,18 @@
+from typing import Optional, Tuple
+
 import streamlit as st
 import pandas as pd
 import os
 import io
 
 import plotly.express as px
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 try:
     from alphastats.DataSet import DataSet
     from alphastats.gui.utils.analysis_helper import (
         get_sample_names_from_software_file,
-        read_uploaded_file_into_df,
+        _read_file_to_df,
     )
     from alphastats.gui.utils.options import SOFTWARE_OPTIONS
     from alphastats.loader.MaxQuantLoader import MaxQuantLoader
@@ -25,6 +28,7 @@ except ModuleNotFoundError:
 
 
 def load_options():
+    # TODO move import to top
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options(st.session_state)
@@ -32,40 +36,31 @@ def load_options():
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
-    """load software file into loader object from alphastats"""
+    """Load software file into loader object."""
     loader = SOFTWARE_OPTIONS.get(software)["loader_function"](
         uploaded_file, intensity_column, index_column
     )
     return loader
 
 
-def load_softwarefile_df(software, softwarefile):
+def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFrame:
+    """Load software file into pandas DataFrame.
 
+    TODO rename: softwarefile -> data_file
+    """
+    softwarefile_df = _read_file_to_df(softwarefile)
 
-    softwarefile_df = read_uploaded_file_into_df(softwarefile)
-    # display head a protein data
-
-    check_software_file(softwarefile_df, software)
+    _check_softwarefile_df(softwarefile_df, software)
 
     st.write(
         f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
-        f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
+        f", Number of columns: {softwarefile_df.shape[1]}."
     )
+
+    st.write("Preview:")
     st.dataframe(softwarefile_df.head(5))
 
     return softwarefile_df
-
-def show_select_columns_for_loaders(software, softwarefile_df):
-    intensity_column, index_column = select_columns_for_loaders(software=software, software_df=softwarefile_df)
-
-    loader = load_proteomics_data(
-        softwarefile_df,
-        intensity_column=intensity_column,
-        index_column=index_column,
-        software=software,
-    )
-    return loader
-
 
 def show_upload_metadatafile(software):
     st.write("\n\n")
@@ -76,7 +71,7 @@ def show_upload_metadatafile(software):
     )
 
     if metadatafile_upload is not None and st.session_state.loader is not None:
-        metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
+        metadatafile_df = _read_file_to_df(st.session_state.metadatafile)
         # display metadata
         st.write(
             f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
@@ -220,23 +215,23 @@ def empty_session_state():
     st.session_state["user_session_id"] = user_session_id
 
 
-def check_software_file(df, software):
-    """
-    check if software files are in right format
-    can be fragile when different settings are used or software is updated
+def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
+    """Check if the dataframe containing the software file is in right format.
+
+    Can be fragile when different settings are used or software is updated.
     """
 
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error(
-                "This is not a valid MaxQuant file. Please check:"
+            raise ValueError(
+                "This is not a valid MaxQuant file. Please check: "
                 "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
 
     elif software == "AlphaPept":
         if "object" in df.iloc[:, 1:].dtypes.to_list():
-            st.error("This is not a valid AlphaPept file.")
+            raise ValueError("This is not a valid AlphaPept file.")
 
     elif software == "DIANN":
         expected_columns = [
@@ -244,7 +239,7 @@ def check_software_file(df, software):
         ]
 
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error("This is not a valid DIA-NN file.")
+            raise ValueError("This is not a valid DIA-NN file.")
 
     elif software == "Spectronaut":
         expected_columns = [
@@ -252,18 +247,18 @@ def check_software_file(df, software):
         ]
 
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error("This is not a valid Spectronaut file.")
+            raise ValueError("This is not a valid Spectronaut file.")
 
     elif software == "FragPipe":
         expected_columns = ["Protein"]
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error(
+            raise ValueError(
                 "This is not a valid FragPipe file. Please check:"
                 "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
             )
 
 
-def select_columns_for_loaders(software, software_df: None):
+def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.DataFrame] = None) -> Tuple[str, str]:
     """
     select intensity and index column depending on software
     will be saved in session state
@@ -273,34 +268,32 @@ def select_columns_for_loaders(software, software_df: None):
     st.markdown("Select intensity columns for further analysis")
 
     if software != "Other":
-        st.selectbox(
+        intensity_column = st.selectbox(
             "Intensity Column",
             options=SOFTWARE_OPTIONS.get(software).get("intensity_column"),
-            key="intensity_column",
         )
 
         st.markdown("Select index column (with ProteinGroups) for further analysis")
 
-        st.selectbox(
+        index_column = st.selectbox(
             "Index Column",
             options=SOFTWARE_OPTIONS.get(software).get("index_column"),
-            key="index_column",
         )
 
     else:
-        st.multiselect(
+        intensity_column = st.multiselect(
             "Intensity Columns",
-            options=software_df.columns.to_list(),
-            key="intensity_column",
-        )
+            options=softwarefile_df.columns.to_list(),
+        )  # TODO why is this a multiselect?
 
         st.markdown("Select index column (with ProteinGroups) for further analysis")
 
-        st.selectbox(
+        index_column = st.selectbox(
             "Index Column",
-            options=software_df.columns.to_list(),
-            key="index_column",
+            options=softwarefile_df.columns.to_list(),
         )
+
+    return intensity_column, index_column
 
 
 def select_sample_column_metadata(df, software):

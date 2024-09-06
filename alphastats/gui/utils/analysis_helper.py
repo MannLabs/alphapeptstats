@@ -1,8 +1,12 @@
+from pathlib import Path
+from typing import Optional
+
 import pandas as pd
-import logging
 import streamlit as st
 import io
-from datetime import datetime
+
+from streamlit.runtime.uploaded_file_manager import UploadedFile
+
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -80,26 +84,23 @@ def download_preprocessing_info(plot):
     )
 
 
-def read_uploaded_file_into_df(file, decimal="."):
-    filename = file.name
+def _read_file_to_df(file: UploadedFile, decimal: str=".") -> Optional[pd.DataFrame]:
+    """Read file to DataFrame based on file extension."""
 
-    if filename.endswith(".xlsx"):
-        df = pd.read_excel(file)
+    extension = Path(file.name).suffix
 
-    elif filename.endswith(".txt") or filename.endswith(".tsv"):
-        df = pd.read_csv(file, delimiter="\t", decimal=decimal)
+    if extension == ".xlsx":
+        return pd.read_excel(file)
 
-    elif filename.endswith(".csv"):
-        df = pd.read_csv(file, decimal=decimal)
+    elif extension in [".txt", ".tsv"]:
+        return pd.read_csv(file, delimiter="\t", decimal=decimal)
 
-    else:
-        df = None
-        logging.warning(
-            "WARNING: File could not be read. \nFile has to be a .xslx, .tsv, .csv or .txt file"
+    elif extension == ".csv":
+        return pd.read_csv(file, decimal=decimal)
+
+    raise ValueError(
+            f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
         )
-        return
-
-    return df
 
 
 def get_unique_values_from_column(column):

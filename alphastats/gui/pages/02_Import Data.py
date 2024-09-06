@@ -2,14 +2,16 @@ import streamlit as st
 import os
 import io
 
+from alphastats.gui.utils.options import SOFTWARE_OPTIONS
+
 try:
     from alphastats.gui.utils.import_helper import (
-        import_data,
         save_plot_sampledistribution_rawdata,
         display_loaded_dataset,
         load_sample_data,
-        empty_session_state,
-    )
+        empty_session_state, load_softwarefile_df, show_upload_metadatafile, show_select_columns_for_loaders,
+        show_loader_columns_selection, load_proteomics_data,
+)
     from alphastats.gui.utils.ui_helper import sidebar_info
 
 except ModuleNotFoundError:
@@ -50,9 +52,9 @@ if "dataset" not in st.session_state:
         "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
     )
 
-# ########## Select your Proteomics Software
-special_select_option = "<select>"
-options = [special_select_option] + list(SOFTWARE_OPTIONS.keys())
+# ########## Select Software
+default_select_option = "<select>"
+options = [default_select_option] + list(SOFTWARE_OPTIONS.keys())
 
 st.selectbox(
     "Select your Proteomics Software",
@@ -62,8 +64,8 @@ st.selectbox(
 
 software = st.session_state["software"]
 
-### Load Software File
-if software != special_select_option:
+# ########## Load Software File
+if software != default_select_option:
     softwarefile = st.file_uploader(
         SOFTWARE_OPTIONS.get(software).get("import_file"),
         type=["csv", "tsv", "txt", "hdf"],
@@ -72,7 +74,14 @@ if software != special_select_option:
     if softwarefile is not None:
         softwarefile_df = load_softwarefile_df(software, softwarefile)
 
-        loader = show_select_columns_for_loaders(software, softwarefile_df)
+        intensity_column, index_column = show_loader_columns_selection(software=software, softwarefile_df=softwarefile_df)
+
+        loader = load_proteomics_data(
+            softwarefile_df,
+            intensity_column=intensity_column,
+            index_column=index_column,
+            software=software,
+        )
 
         st.session_state["loader"] = loader
 
