@@ -9,8 +9,8 @@ try:
     from alphastats.gui.utils.import_helper import (
         save_plot_sampledistribution_rawdata,
         display_loaded_dataset,
-        load_sample_data,
-        empty_session_state, load_softwarefile_df, show_upload_metadatafile,
+        load_example_data,
+        empty_session_state, load_softwarefile_df, show_metadata_file_uploader,
         show_loader_columns_selection, load_proteomics_data, load_options,
         show_select_sample_column_for_metadata, init_session_state,
 )
@@ -25,8 +25,6 @@ except ModuleNotFoundError:
         load_sample_data,
         empty_session_state,
     )
-
-from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 
 init_session_state()
@@ -45,9 +43,16 @@ if c1.button("Start new Session"):
 if c2.button("Start new Session with example DataSet"):
     empty_session_state()
     init_session_state()
-    load_sample_data()
-    if "distribution_plot" not in st.session_state:
-         save_plot_sampledistribution_rawdata()
+    loader, metadata_columns, dataset = load_example_data()
+
+    st.session_state["dataset"] = dataset
+    st.session_state["metadata_columns"] = metadata_columns
+    st.session_state["loader"] = loader
+    load_options()
+    # TODO why are we doing this so early?
+    save_plot_sampledistribution_rawdata()
+    st.stop()
+
 
 
 st.markdown("### Import Proteomics Data")
@@ -102,9 +107,9 @@ st.session_state["loader"] = loader
 # ##########  Load Metadata File
 st.markdown("##### 3. Prepare Metadata (optional)")
 sample_column = None
-metadatafile_df = show_upload_metadatafile()
+metadatafile_df = show_metadata_file_uploader(loader)
 if metadatafile_df is not None:
-    sample_column = show_select_sample_column_for_metadata(metadatafile_df, software)
+    sample_column = show_select_sample_column_for_metadata(metadatafile_df, software, loader)
 
 
 # ##########  Create dataset
@@ -137,6 +142,10 @@ if dataset is not None:
     st.info("DataSet has been created.")
     st.session_state["dataset"] = dataset
     st.session_state["metadata_columns"] = metadata_columns
+    st.session_state["loader"] = loader
     load_options()
+
+    # TODO why are we doing this so early?
+    save_plot_sampledistribution_rawdata()
 
 

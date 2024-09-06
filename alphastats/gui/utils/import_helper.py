@@ -15,7 +15,7 @@ try:
         _read_file_to_df,
     )
     from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-    from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+    from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
     from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 except ModuleNotFoundError:
@@ -24,7 +24,7 @@ except ModuleNotFoundError:
         read_uploaded_file_into_df,
     )
     from utils.options import SOFTWARE_OPTIONS
-    from alphastats import MaxQuantLoader
+    from alphastats import MaxQuantLoader, BaseLoader
     from alphastats import DataSet
     from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
@@ -64,9 +64,9 @@ def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFr
 
     return softwarefile_df
 
-def show_upload_metadatafile() -> Optional[pd.DataFrame]:
+def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
     """Show the 'upload metadata file' component and return the data."""
-    create_metadata_file()
+    create_metadata_template_file(loader)
     st.write(
         "Download the template file and add additional information as "
         + "columns to your samples such as disease group. "
@@ -79,7 +79,7 @@ def show_upload_metadatafile() -> Optional[pd.DataFrame]:
     )
 
     metadatafile_df = None
-    if metadatafile_upload is not None and st.session_state.loader is not None:
+    if metadatafile_upload is not None:
         metadatafile_df = _read_file_to_df(st.session_state.metadatafile)
         # display metadata
         st.write(
@@ -92,7 +92,7 @@ def show_upload_metadatafile() -> Optional[pd.DataFrame]:
     return metadatafile_df
 
 
-def load_sample_data():
+def load_example_data():
     st.markdown("### Using Example Dataset")
     st.info("Example dataset and metadata loaded")
     st.write(
@@ -128,7 +128,8 @@ def load_sample_data():
     metadatapath = os.path.join(folder_to_load, "metadata.xlsx")
 
     loader = MaxQuantLoader(file=filepath)
-    ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+    # TODO why is this done twice?
+    dataset = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
     metadatapath = (
         os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
         .replace("pages/", "")
@@ -136,9 +137,9 @@ def load_sample_data():
     )
 
     loader = MaxQuantLoader(file=filepath)
-    ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+    dataset = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
 
-    ds.metadata = ds.metadata[
+    dataset.metadata = dataset.metadata[
         [
             "sample",
             "disease",
@@ -146,17 +147,13 @@ def load_sample_data():
             "Lipid-lowering therapy (134350008)",
         ]
     ]
-    ds.preprocess(subset=True)
-    st.session_state["loader"] = loader
-    st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
-    st.session_state["dataset"] = ds
-
-    load_options()
+    dataset.preprocess(subset=True)
+    metadata_columns = dataset.metadata.columns.to_list()
+    return loader, metadata_columns, dataset
 
 
 
-def display_loaded_dataset():
-
+def display_loaded_dataset() -> None:
 
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
     st.dataframe(st.session_state.dataset.rawinput.head(5))
@@ -174,8 +171,8 @@ def display_loaded_dataset():
     st.dataframe(df)
 
 
-def save_plot_sampledistribution_rawdata():
-    # TODO why are we doing this so early?
+def save_plot_sampledistribution_rawdata() -> None:
+
     df = st.session_state.dataset.rawmat
     df = df.unstack().reset_index()
     df.rename(
@@ -195,14 +192,9 @@ def empty_session_state():
         del st.session_state[key]
     st.empty()
 
-def init_session_state():
+def init_session_state() -> None:
     """Initialize the session state."""
     st.session_state["user_session_id"] = get_script_run_ctx().session_id
-
-    st.session_state["software"] = "<select>"
-
-    if "loader" not in st.session_state:
-        st.session_state["loader"] = None
 
     if "gene_to_prot_id" not in st.session_state:
         st.session_state["gene_to_prot_id"] = {}
@@ -292,9 +284,10 @@ def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.Da
     return intensity_column, index_column
 
 
-def show_select_sample_column_for_metadata(df: pd.DataFrame, software: str) -> str:
+def show_select_sample_column_for_metadata(df: pd.DataFrame, software: str,
+                                           loader: BaseLoader) -> str:
     """Show the 'select sample column for metadata' component and return the value."""
-    samples_proteomics_data = get_sample_names_from_software_file()
+    samples_proteomics_data = get_sample_names_from_software_file(loader)
 
     valid_sample_columns = [col for col in df.columns.to_list()
                             if bool(set(samples_proteomics_data) & set(df[col].to_list()))
@@ -315,8 +308,8 @@ def show_select_sample_column_for_metadata(df: pd.DataFrame, software: str) -> s
     return st.selectbox("Sample Column", options=valid_sample_columns)
 
 
-def create_metadata_file():
-    dataset = DataSet(loader=st.session_state.loader)
+def create_metadata_template_file(loader: BaseLoader):
+    dataset = DataSet(loader=loader)
     st.session_state["metadata_columns"] = ["sample"]
     metadata = dataset.metadata
     buffer = io.BytesIO()

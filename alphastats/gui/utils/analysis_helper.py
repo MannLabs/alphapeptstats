@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import pandas as pd
 import streamlit as st
@@ -7,6 +7,7 @@ import io
 
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
+from alphastats import BaseLoader
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -366,16 +367,16 @@ def helper_compare_two_groups():
     return chosen_parameter_dict
 
 
-def get_sample_names_from_software_file():
+def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
     """
     extract sample names from software
     """
-    if isinstance(st.session_state.loader.intensity_column, str):
-        regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
+    if isinstance(loader.intensity_column, str):
+        regex_find_intensity_columns = loader.intensity_column.replace(
             "[sample]", ".*"
         )
-        df = st.session_state.loader.rawinput
-        df = df.set_index(st.session_state.loader.index_column)
+        df = loader.rawinput
+        df = df.set_index(loader.index_column)
         df = df.filter(regex=(regex_find_intensity_columns), axis=1)
         # remove Intensity so only sample names remain
         substring_to_remove = regex_find_intensity_columns.replace(".*", "")
@@ -383,7 +384,7 @@ def get_sample_names_from_software_file():
         sample_names = df.columns.to_list()
 
     else:
-        sample_names = st.session_state.loader.intensity_column
+        sample_names = loader.intensity_column
 
     return sample_names
 
