@@ -8,7 +8,7 @@ try:
         get_intensity_distribution_processed,
         get_sample_histogram_matrix,
     )
-    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.gui.utils.ui_helper import sidebar_info, StateKeys
 
 except ModuleNotFoundError:
     from utils.overview_helper import (
@@ -16,11 +16,11 @@ except ModuleNotFoundError:
         get_intensity_distribution_processed,
         get_sample_histogram_matrix,
     )
-    from utils.ui_helper import sidebar_info
+    from utils.ui_helper import sidebar_info, StateKeys
 
 sidebar_info()
 
-if "dataset" in st.session_state:
+if StateKeys.DATASET in st.session_state:
     st.markdown("## DataSet overview")
 
     c1, c2 = st.columns(2)
@@ -28,7 +28,7 @@ if "dataset" in st.session_state:
     with c1:
         st.markdown("**Intensity distribution raw data per sample**")
         st.plotly_chart(
-            st.session_state.distribution_plot.update_layout(plot_bgcolor="white"),
+            st.session_state[StateKeys.DISTRIBUTION_PLOT].update_layout(plot_bgcolor="white"),
             use_container_width=True,
         )
 
@@ -36,14 +36,14 @@ if "dataset" in st.session_state:
         st.markdown("**Intensity distribution data per sample used for analysis**")
         st.plotly_chart(
             get_intensity_distribution_processed(
-                user_session_id=st.session_state.user_session_id
+                user_session_id=st.session_state[StateKeys.USER_SESSION_ID]
             ).update_layout(plot_bgcolor="white"),
             use_container_width=True,
         )
 
     st.plotly_chart(
         get_sample_histogram_matrix(
-            user_session_id=st.session_state.user_session_id
+            user_session_id=st.session_state[StateKeys.USER_SESSION_ID]
         ).update_layout(plot_bgcolor="white"),
         use_container_width=True,
     )
