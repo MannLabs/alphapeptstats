@@ -9,3 +9,9 @@ dist_pyinstaller
 build_pyinstaller
 
 .coverage
+
+# editors
+.idea
+.vscode
+
+**/.ipynb_checkpoints

@@ -21,6 +21,7 @@ def ignore_warning(warning: Type[Warning]):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             with warnings.catch_warnings():
+                # TODO: make this more specific on the warning package & message!
                 warnings.filterwarnings("ignore", category=warning)
                 return func(*args, **kwargs)
 

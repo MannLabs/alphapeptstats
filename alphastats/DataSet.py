@@ -1,17 +1,10 @@
-from random import sample
 import pandas as pd
 import numpy as np
 import logging
 import warnings
 import plotly
 
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
-from alphastats.loader.GenericLoader import GenericLoader
-from alphastats.loader.mzTabLoader import mzTabLoader
+from alphastats import BaseLoader
 
 
 from alphastats.DataSet_Plot import Plot
@@ -19,10 +12,6 @@ from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-
-# remove warning from openpyxl
-# only appears on mac
-warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
@@ -105,20 +94,10 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         Args:
             loader : loader
         """
-        if not isinstance(
-            loader,
-            (
-                AlphaPeptLoader,
-                MaxQuantLoader,
-                DIANNLoader,
-                FragPipeLoader,
-                SpectronautLoader,
-                GenericLoader,
-                mzTabLoader,
-            ),
-        ):
+        if not isinstance(loader, BaseLoader):
             raise LoaderError(
-                "loader must be from class: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader or SpectronautLoader"
+                "loader must be a subclass of BaseLoader, "
+                f"got {loader.__class__.__name__}"
             )
 
         if not isinstance(loader.rawinput, pd.DataFrame) or loader.rawinput.empty:
@@ -189,6 +168,12 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
             df = file_path
         #  loading file needs to be more beautiful
         elif file_path.endswith(".xlsx"):
+            warnings.filterwarnings(
+                "ignore",
+                category=UserWarning,
+                module="openpyxl",
+                # message=r"/extension is not supported and will be removed/",  # this somehow does not work here?
+            )
             df = pd.read_excel(file_path)
             # find robust way to detect file format
             # else give file separation as variable
