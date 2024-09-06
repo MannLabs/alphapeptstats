@@ -62,23 +62,21 @@ def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFr
 
     return softwarefile_df
 
-def show_upload_metadatafile(software):
-    st.write("\n\n")
-    st.markdown("##### 3. Prepare Metadata (optional)")
-
-    if st.session_state.loader is not None:
-        create_metadata_file()
-        st.write(
-            "Download the template file and add additional information as "
-            + "columns to your samples such as disease group. "
-            + "Upload the updated metadata file."
-        )
+def show_upload_metadatafile() -> Optional[pd.DataFrame]:
+    """Show the 'upload metadata file' component and return the data."""
+    create_metadata_file()
+    st.write(
+        "Download the template file and add additional information as "
+        + "columns to your samples such as disease group. "
+        + "Upload the updated metadata file."
+    )
 
     metadatafile_upload = st.file_uploader(
         "Upload metadata file with information about your samples",
         key="metadatafile",
     )
 
+    metadatafile_df = None
     if metadatafile_upload is not None and st.session_state.loader is not None:
         metadatafile_df = _read_file_to_df(st.session_state.metadatafile)
         # display metadata
@@ -89,25 +87,19 @@ def show_upload_metadatafile(software):
         st.dataframe(metadatafile_df.head(5))
         # pick sample column
 
-        if select_sample_column_metadata(metadatafile_df, software):
-            # create dataset
-            st.session_state["dataset"] = DataSet(
-                loader=st.session_state.loader,
-                metadata_path=metadatafile_df,
-                sample_column=st.session_state.sample_column,
-            )
-            st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
-            load_options()
+    return metadatafile_df
 
-    st.markdown("##### 3b. Continue without metadata")
-    # TODO make this "4. Create dataset", displaying 1 or 2 buttons depending on if metadata is available
-    if st.session_state.loader is not None:
-        if st.button("--> Create DataSet without metadata"):
-            # TODO idempotency of buttons / or disable
-            st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
-            st.session_state["metadata_columns"] = ["sample"]
-
-            load_options()
+def show_create_dataset_button(metadatafile_df: pd.DataFrame, software: str) -> None:
+    """Show the 'create dataset' button if metadata is available."""
+    if show_select_sample_column_form_for_metadata(metadatafile_df, software):
+        # create dataset
+        st.session_state["dataset"] = DataSet(
+            loader=st.session_state.loader,
+            metadata_path=metadatafile_df,
+            sample_column=st.session_state.sample_column,
+        )
+        st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
+        load_options()
 
 
 def load_sample_data():
@@ -302,7 +294,7 @@ def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.Da
     return intensity_column, index_column
 
 
-def select_sample_column_metadata(df, software):
+def show_select_sample_column_form_for_metadata(df: pd.DataFrame, software: str) -> bool:
     samples_proteomics_data = get_sample_names_from_software_file()
     valid_sample_columns = []
 
@@ -311,7 +303,7 @@ def select_sample_column_metadata(df, software):
             valid_sample_columns.append(col)
 
     if len(valid_sample_columns) == 0:
-        st.error(
+        raise ValueError(
             f"Metadata does not match Proteomics data."
             f"Information for the samples: {samples_proteomics_data} is required."
         )
@@ -334,6 +326,7 @@ def select_sample_column_metadata(df, software):
             st.stop()
         return True
 
+    return False
 
 def create_metadata_file():
     dataset = DataSet(loader=st.session_state.loader)

@@ -16,7 +16,7 @@ from contextlib import contextmanager
 import shutil
 import os
 import copy
-import dictdiffer
+#import dictdiffer
 
 # from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 

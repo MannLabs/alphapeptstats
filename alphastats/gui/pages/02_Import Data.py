@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import io
 
+from alphastats import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
 try:
@@ -106,8 +107,18 @@ if "dataset" not in st.session_state:
 
     # ##########  Load Metadata File
     if st.session_state["loader"] is not None:
-        show_upload_metadatafile(software)
+        st.markdown("##### 3. Prepare Metadata (optional)")
+        metadatafile_df = show_upload_metadatafile()
+        show_create_dataset_button(metadatafile_df, software)
 
+        st.markdown("##### 3b. Continue without metadata")
+        # TODO make this "4. Create dataset", displaying 1 or 2 buttons depending on if metadata is available
+        if st.button("--> Create DataSet without metadata"):
+            # TODO idempotency of buttons / or disable
+            st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
+            st.session_state["metadata_columns"] = ["sample"]
+
+            load_options()
 
 if "dataset" in st.session_state:
     st.markdown("### DataSet Info")
