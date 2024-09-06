@@ -16,6 +16,7 @@ try:
     )
     from alphastats.gui.utils.options import SOFTWARE_OPTIONS
     from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 except ModuleNotFoundError:
     from utils.analysis_helper import (
@@ -25,6 +26,7 @@ except ModuleNotFoundError:
     from utils.options import SOFTWARE_OPTIONS
     from alphastats import MaxQuantLoader
     from alphastats import DataSet
+    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 
 def load_options():
@@ -89,22 +91,10 @@ def show_upload_metadatafile() -> Optional[pd.DataFrame]:
 
     return metadatafile_df
 
-def show_create_dataset_button(metadatafile_df: pd.DataFrame, software: str) -> None:
-    """Show the 'create dataset' button if metadata is available."""
-    if show_select_sample_column_form_for_metadata(metadatafile_df, software):
-        # create dataset
-        st.session_state["dataset"] = DataSet(
-            loader=st.session_state.loader,
-            metadata_path=metadatafile_df,
-            sample_column=st.session_state.sample_column,
-        )
-        st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
-        load_options()
-
 
 def load_sample_data():
     st.markdown("### Using Example Dataset")
-    st.write("Example dataset and metadata loaded:")
+    st.info("Example dataset and metadata loaded")
     st.write(
     """
     _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_
@@ -166,8 +156,7 @@ def load_sample_data():
 
 
 def display_loaded_dataset():
-    st.info("Data was successfully imported")
-    st.info("DataSet has been created")
+
 
     st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
     st.dataframe(st.session_state.dataset.rawinput.head(5))
@@ -205,12 +194,21 @@ def empty_session_state():
     for key in st.session_state.keys():
         del st.session_state[key]
     st.empty()
+
+def init_session_state():
+    """Initialize the session state."""
+    st.session_state["user_session_id"] = get_script_run_ctx().session_id
+
     st.session_state["software"] = "<select>"
 
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+    if "loader" not in st.session_state:
+        st.session_state["loader"] = None
 
-    user_session_id = get_script_run_ctx().session_id
-    st.session_state["user_session_id"] = user_session_id
+    if "gene_to_prot_id" not in st.session_state:
+        st.session_state["gene_to_prot_id"] = {}
+
+    if "organism" not in st.session_state:
+        st.session_state["organism"] = 9606  # human
 
 
 def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
@@ -294,13 +292,13 @@ def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.Da
     return intensity_column, index_column
 
 
-def show_select_sample_column_form_for_metadata(df: pd.DataFrame, software: str) -> bool:
+def show_select_sample_column_for_metadata(df: pd.DataFrame, software: str) -> str:
+    """Show the 'select sample column for metadata' component and return the value."""
     samples_proteomics_data = get_sample_names_from_software_file()
-    valid_sample_columns = []
 
-    for col in df.columns.to_list():
-        if bool(set(samples_proteomics_data) & set(df[col].to_list())):
-            valid_sample_columns.append(col)
+    valid_sample_columns = [col for col in df.columns.to_list()
+                            if bool(set(samples_proteomics_data) & set(df[col].to_list()))
+                            ]
 
     if len(valid_sample_columns) == 0:
         raise ValueError(
@@ -314,19 +312,8 @@ def show_select_sample_column_form_for_metadata(df: pd.DataFrame, software: str)
         + f"in {SOFTWARE_OPTIONS.get(software).get('import_file')}"
     )
 
-    with st.form("sample_column"):
-        st.selectbox("Sample Column", options=valid_sample_columns, key="sample_column")
-        submitted = st.form_submit_button("--> Create DataSet with metadata")
+    return st.selectbox("Sample Column", options=valid_sample_columns)
 
-    if submitted:
-        if len(df[st.session_state.sample_column].to_list()) != len(
-            df[st.session_state.sample_column].unique()
-        ):
-            st.error("Sample names have to be unique.")
-            st.stop()
-        return True
-
-    return False
 
 def create_metadata_file():
     dataset = DataSet(loader=st.session_state.loader)

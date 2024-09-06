@@ -11,7 +11,8 @@ try:
         display_loaded_dataset,
         load_sample_data,
         empty_session_state, load_softwarefile_df, show_upload_metadatafile,
-        show_loader_columns_selection, load_proteomics_data,
+        show_loader_columns_selection, load_proteomics_data, load_options,
+        show_select_sample_column_for_metadata, init_session_state,
 )
     from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -27,20 +28,6 @@ except ModuleNotFoundError:
 
 from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
-def init_session_state():
-    session_id = get_script_run_ctx().session_id
-
-    user_session_id = session_id
-    st.session_state["user_session_id"] = user_session_id
-
-    if "loader" not in st.session_state:
-        st.session_state["loader"] = None
-
-    if "gene_to_prot_id" not in st.session_state:
-        st.session_state["gene_to_prot_id"] = {}
-
-    if "organism" not in st.session_state:
-        st.session_state["organism"] = 9606  # human
 
 init_session_state()
 
@@ -53,7 +40,6 @@ st.write("To explore AlphaPeptStats you may also load an example dataset.")
 c1, c2 = st.columns(2)
 if c1.button("Start new Session"):
     empty_session_state()
-
     st.rerun()
 
 if c2.button("Start new Session with example DataSet"):
@@ -63,8 +49,13 @@ if c2.button("Start new Session with example DataSet"):
     if "distribution_plot" not in st.session_state:
          save_plot_sampledistribution_rawdata()
 
+
+st.markdown("### Import Proteomics Data")
+if "dataset" in st.session_state:
+    st.info(f"DataSet already present: {st.session_state['dataset']}")
+    st.stop()
+
 if "dataset" not in st.session_state:
-    st.markdown("### Import Proteomics Data")
 
     st.markdown(
         "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
@@ -105,26 +96,44 @@ if "dataset" not in st.session_state:
 
             st.session_state["loader"] = loader
 
-    # ##########  Load Metadata File
+
     if st.session_state["loader"] is not None:
+        dataset = None
+        metadata_columns = []
+
+        # ##########  Load Metadata File
         st.markdown("##### 3. Prepare Metadata (optional)")
+
+        sample_column = None
         metadatafile_df = show_upload_metadatafile()
-        show_create_dataset_button(metadatafile_df, software)
+        if metadatafile_df is not None:
+            sample_column = show_select_sample_column_for_metadata(metadatafile_df, software)
 
-        st.markdown("##### 3b. Continue without metadata")
-        # TODO make this "4. Create dataset", displaying 1 or 2 buttons depending on if metadata is available
-        if st.button("--> Create DataSet without metadata"):
-            # TODO idempotency of buttons / or disable
-            st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
-            st.session_state["metadata_columns"] = ["sample"]
+        # ##########  Create dataset
+        st.markdown("##### 4. Create DataSet")
 
+        if sample_column:
+            if st.button("Create DataSet with metadata"):
+                if len(metadatafile_df[sample_column].to_list()) != len(
+                        metadatafile_df[sample_column].unique()
+                ):
+                    raise ValueError("Sample names have to be unique.")
+
+                dataset = DataSet(
+                    loader=st.session_state.loader,
+                    metadata_path=metadatafile_df,
+                    sample_column=sample_column,
+                )
+                metadata_columns = metadatafile_df.columns.to_list()
+
+        if st.button("Create DataSet without metadata"):
+            dataset = DataSet(loader=st.session_state.loader)
+            metadata_columns = ["sample"]
+
+        if dataset is not None:
+            st.info("DataSet has been created.")
+            st.session_state["dataset"] = dataset
+            st.session_state["metadata_columns"] = metadata_columns
             load_options()
 
-if "dataset" in st.session_state:
-    st.markdown("### DataSet Info")
-    st.info("DataSet has been imported")
 
-    if "distribution_plot" not in st.session_state:
-        save_plot_sampledistribution_rawdata()
-
-    display_loaded_dataset()

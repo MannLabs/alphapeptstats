@@ -1,6 +1,6 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
+
+from alphastats.gui.utils.import_helper import save_plot_sampledistribution_rawdata, display_loaded_dataset
 
 try:
     from alphastats.gui.utils.overview_helper import (
@@ -21,6 +21,13 @@ except ModuleNotFoundError:
 sidebar_info()
 
 if "dataset" in st.session_state:
+    st.markdown("### DataSet Info")
+
+    if "distribution_plot" not in st.session_state:
+        save_plot_sampledistribution_rawdata()
+
+    display_loaded_dataset()
+
     st.markdown("## DataSet overview")
 
     c1, c2 = st.columns(2)
