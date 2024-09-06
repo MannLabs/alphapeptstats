@@ -64,9 +64,18 @@ def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFr
 
 def show_upload_metadatafile(software):
     st.write("\n\n")
-    st.markdown("### 3. Prepare Metadata.")
+    st.markdown("##### 3. Prepare Metadata (optional)")
+
+    if st.session_state.loader is not None:
+        create_metadata_file()
+        st.write(
+            "Download the template file and add additional information as "
+            + "columns to your samples such as disease group. "
+            + "Upload the updated metadata file."
+        )
+
     metadatafile_upload = st.file_uploader(
-        "Upload metadata file. with information about your samples",
+        "Upload metadata file with information about your samples",
         key="metadatafile",
     )
 
@@ -90,16 +99,11 @@ def show_upload_metadatafile(software):
             st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
             load_options()
 
+    st.markdown("##### 3b. Continue without metadata")
+    # TODO make this "4. Create dataset", displaying 1 or 2 buttons depending on if metadata is available
     if st.session_state.loader is not None:
-        create_metadata_file()
-        st.write(
-            "Download the template file and add additional information as "
-            + "columns to your samples such as disease group. "
-            + "Upload the updated metadata file."
-        )
-
-    if st.session_state.loader is not None:
-        if st.button("Create a DataSet without metadata"):
+        if st.button("--> Create DataSet without metadata"):
+            # TODO idempotency of buttons / or disable
             st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
             st.session_state["metadata_columns"] = ["sample"]
 
@@ -107,10 +111,11 @@ def show_upload_metadatafile(software):
 
 
 def load_sample_data():
+    st.markdown("### Using Example Dataset")
+    st.write("Example dataset and metadata loaded:")
     st.write(
-        """
-
-    ### Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease
+    """
+    _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_
 
     **Description**
 
@@ -189,6 +194,7 @@ def display_loaded_dataset():
 
 
 def save_plot_sampledistribution_rawdata():
+    # TODO why are we doing this so early?
     df = st.session_state.dataset.rawmat
     df = df.unstack().reset_index()
     df.rename(
@@ -264,8 +270,8 @@ def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.Da
     will be saved in session state
     """
     st.write("\n\n")
-    st.markdown("### 2. Select columns used for further analysis.")
-    st.markdown("Select intensity columns for further analysis")
+    st.markdown("##### 2. Select columns used for analysis")
+    st.markdown("Select intensity columns for analysis")
 
     if software != "Other":
         intensity_column = st.selectbox(
@@ -273,7 +279,7 @@ def show_loader_columns_selection(software: str, softwarefile_df: Optional[pd.Da
             options=SOFTWARE_OPTIONS.get(software).get("intensity_column"),
         )
 
-        st.markdown("Select index column (with ProteinGroups) for further analysis")
+        st.markdown("Select index column (with ProteinGroups) for analysis")
 
         index_column = st.selectbox(
             "Index Column",
@@ -310,6 +316,7 @@ def select_sample_column_metadata(df, software):
             f"Information for the samples: {samples_proteomics_data} is required."
         )
 
+    # TODO I get an ERROR: "described in Please upload proteinGroups.txt"
     st.write(
         "Select column that contains sample IDs matching the sample names described "
         + f"in {SOFTWARE_OPTIONS.get(software).get('import_file')}"
@@ -317,7 +324,7 @@ def select_sample_column_metadata(df, software):
 
     with st.form("sample_column"):
         st.selectbox("Sample Column", options=valid_sample_columns, key="sample_column")
-        submitted = st.form_submit_button("Create DataSet")
+        submitted = st.form_submit_button("--> Create DataSet with metadata")
 
     if submitted:
         if len(df[st.session_state.sample_column].to_list()) != len(
