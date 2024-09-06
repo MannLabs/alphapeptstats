@@ -5,7 +5,6 @@ import os
 import sys
 from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT, BUNDLE, TOC
 import PyInstaller.utils.hooks
-import pkg_resources
 import importlib.metadata
 import alphastats
 from PyInstaller.utils.hooks import collect_submodules

@@ -154,7 +154,7 @@ class VolcanoPlot(PlotUtils):
     def _sam(self):
         from alphastats.multicova import multicova
 
-        print("Calculating t-test and permuation based FDR (SAM)... ")
+        print("Calculating t-test and permutation based FDR (SAM)... ")
 
         transposed = self.dataset.mat.transpose()
 

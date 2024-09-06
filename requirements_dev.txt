@@ -1,2 +1,6 @@
-# only needed for local development
+# only needed for local development and testing
+coverage==7.2.2
+jupyter==1.1.1
+nbmake==1.5.4
 pre-commit==3.5.0
+pytest==8.3.2
