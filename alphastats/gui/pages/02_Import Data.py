@@ -27,7 +27,8 @@ from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 runtime = get_instance()
 session_id = get_script_run_ctx().session_id
-session_info = runtime._session_mgr.get_session_info(session_id)
+# session_info = runtime._session_mgr.get_session_info(session_id)
+# TODO: remove this line at some point if we really don't need it
 
 user_session_id = session_id
 st.session_state["user_session_id"] = user_session_id
@@ -62,7 +63,7 @@ if "dataset" in st.session_state:
 
 st.markdown("### Or Load sample Dataset")
 
-if st.button("Load sample DataSet - PXD011839"):
+if st.button("Load sample DataSet - PXD011839", key="load_sample_data"):
     load_sample_data()
     if "distribution_plot" not in st.session_state:
         save_plot_sampledistribution_rawdata()

@@ -18,6 +18,8 @@ except ModuleNotFoundError:
     )
     from utils.ui_helper import sidebar_info
 
+# TODO: Reduce cache usage
+
 sidebar_info()
 
 if "dataset" in st.session_state:
@@ -36,15 +38,15 @@ if "dataset" in st.session_state:
         st.markdown("**Intensity distribution data per sample used for analysis**")
         st.plotly_chart(
             get_intensity_distribution_processed(
-                user_session_id=st.session_state.user_session_id
+                st.session_state.user_session_id
             ).update_layout(plot_bgcolor="white"),
             use_container_width=True,
         )
 
     st.plotly_chart(
-        get_sample_histogram_matrix(
-            user_session_id=st.session_state.user_session_id
-        ).update_layout(plot_bgcolor="white"),
+        get_sample_histogram_matrix(st.session_state.user_session_id).update_layout(
+            plot_bgcolor="white"
+        ),
         use_container_width=True,
     )
 
