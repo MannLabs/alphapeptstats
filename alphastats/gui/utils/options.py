@@ -136,7 +136,7 @@ from alphastats.loader.SpectronautLoader import SpectronautLoader
 from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
 
-software_options = {
+SOFTWARE_OPTIONS = {
     "MaxQuant": {
         "import_file": "Please upload proteinGroups.txt",
         "intensity_column": ["LFQ intensity [sample]", "Intensity [sample]"],

@@ -11,7 +11,7 @@ try:
         get_sample_names_from_software_file,
         read_uploaded_file_into_df,
     )
-    from alphastats.gui.utils.options import software_options
+    from alphastats.gui.utils.options import SOFTWARE_OPTIONS
     from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
 except ModuleNotFoundError:
@@ -19,7 +19,7 @@ except ModuleNotFoundError:
         get_sample_names_from_software_file,
         read_uploaded_file_into_df,
     )
-    from utils.options import software_options
+    from utils.options import SOFTWARE_OPTIONS
     from alphastats import MaxQuantLoader
     from alphastats import DataSet
 
@@ -33,7 +33,7 @@ def load_options():
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
     """load software file into loader object from alphastats"""
-    loader = software_options.get(software)["loader_function"](
+    loader = SOFTWARE_OPTIONS.get(software)["loader_function"](
         uploaded_file, intensity_column, index_column
     )
     return loader
@@ -41,7 +41,7 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column, software
 
 def upload_softwarefile(software):
     softwarefile = st.file_uploader(
-        software_options.get(software).get("import_file"),
+        SOFTWARE_OPTIONS.get(software).get("import_file"),
         type=["csv", "tsv", "txt", "hdf"],
     )
 
@@ -178,7 +178,7 @@ def load_sample_data():
 
 
 def import_data():
-    options = ["<select>"] + list(software_options.keys())
+    options = ["<select>"] + list(SOFTWARE_OPTIONS.keys())
 
     st.selectbox(
         "Select your Proteomics Software",
@@ -296,7 +296,7 @@ def select_columns_for_loaders(software, software_df: None):
     if software != "Other":
         st.selectbox(
             "Intensity Column",
-            options=software_options.get(software).get("intensity_column"),
+            options=SOFTWARE_OPTIONS.get(software).get("intensity_column"),
             key="intensity_column",
         )
 
@@ -304,7 +304,7 @@ def select_columns_for_loaders(software, software_df: None):
 
         st.selectbox(
             "Index Column",
-            options=software_options.get(software).get("index_column"),
+            options=SOFTWARE_OPTIONS.get(software).get("index_column"),
             key="index_column",
         )
 
@@ -340,7 +340,7 @@ def select_sample_column_metadata(df, software):
 
     st.write(
         "Select column that contains sample IDs matching the sample names described "
-        + f"in {software_options.get(software).get('import_file')}"
+        + f"in {SOFTWARE_OPTIONS.get(software).get('import_file')}"
     )
 
     with st.form("sample_column"):
