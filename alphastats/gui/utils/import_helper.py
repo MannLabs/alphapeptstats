@@ -82,8 +82,13 @@ def upload_metadatafile(software):
         key="metadatafile",
     )
 
-    if metadatafile_upload is not None and st.session_state[StateKeys.LOADER] is not None:
-        metadatafile_df = read_uploaded_file_into_df(st.session_state[StateKeys.METADATAFILE])
+    if (
+        metadatafile_upload is not None
+        and st.session_state[StateKeys.LOADER] is not None
+    ):
+        metadatafile_df = read_uploaded_file_into_df(
+            st.session_state[StateKeys.METADATAFILE]
+        )
         # display metadata
         st.write(
             f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
@@ -99,7 +104,9 @@ def upload_metadatafile(software):
                 metadata_path=metadatafile_df,
                 sample_column=st.session_state[StateKeys.SAMPLE_COLUMN],
             )
-            st.session_state[StateKeys.METADATA_COLUMNS] = metadatafile_df.columns.to_list()
+            st.session_state[StateKeys.METADATA_COLUMNS] = (
+                metadatafile_df.columns.to_list()
+            )
             load_options()
 
     if st.session_state[StateKeys.LOADER] is not None:
@@ -112,7 +119,9 @@ def upload_metadatafile(software):
 
     if st.session_state[StateKeys.LOADER] is not None:
         if st.button("Create a DataSet without metadata"):
-            st.session_state[StateKeys.DATASET] = DataSet(loader=st.session_state[StateKeys.LOADER])
+            st.session_state[StateKeys.DATASET] = DataSet(
+                loader=st.session_state[StateKeys.LOADER]
+            )
             st.session_state[StateKeys.METADATA_COLUMNS] = ["sample"]
 
             load_options()
@@ -200,7 +209,9 @@ def display_loaded_dataset():
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
 
-    st.markdown(f"*Preview:* Raw data from {st.session_state[StateKeys.DATASET].software}")
+    st.markdown(
+        f"*Preview:* Raw data from {st.session_state[StateKeys.DATASET].software}"
+    )
     st.dataframe(st.session_state[StateKeys.DATASET].rawinput.head(5))
 
     st.markdown("*Preview:* Metadata")

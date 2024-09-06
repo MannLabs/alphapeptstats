@@ -59,23 +59,28 @@ def img_to_bytes(img_path):
     # encoded = base64.b64encode(img_bytes).decode()
     return encoded_string.decode()
 
+
 class StateKeys:
     ## 02_Data Import
     # on 1st run
-    ORGANISM = 'organism'
-    GENE_TO_PROT_ID = 'gene_to_prot_id'
-    USER_SESSION_ID = 'user_session_id'
-    LOADER = 'loader'
-    SOFTWARE = 'software'
+    ORGANISM = "organism"
+    GENE_TO_PROT_ID = "gene_to_prot_id"
+    USER_SESSION_ID = "user_session_id"
+    LOADER = "loader"
+    SOFTWARE = "software"
     # on sample run (function load_sample_data), removed on new session click
-    DATASET = 'dataset' # functions upload_metadatafile
-    PLOTTING_OPTIONS = 'plotting_options' # function load_options
-    STATISTIC_OPTIONS = 'statistic_options' #function load_options
-    DISTRIBUTION_PLOT = 'distribution_plot' #function save_plot_sampledistribution_rawdata
-    METADATA_COLUMNS = 'metadata_columns' # function create_metadata_file, upload_metadatafile
+    DATASET = "dataset"  # functions upload_metadatafile
+    PLOTTING_OPTIONS = "plotting_options"  # function load_options
+    STATISTIC_OPTIONS = "statistic_options"  # function load_options
+    DISTRIBUTION_PLOT = (
+        "distribution_plot"  # function save_plot_sampledistribution_rawdata
+    )
+    METADATA_COLUMNS = (
+        "metadata_columns"  # function create_metadata_file, upload_metadatafile
+    )
     # on data upload
-    INTENSITY_COLUMN = 'intensity_column'
-    INDEX_COLUMN = 'index_column'
+    INTENSITY_COLUMN = "intensity_column"
+    INDEX_COLUMN = "index_column"
     # on metadata upload
-    METADATAFILE = 'metadatafile'
-    SAMPLE_COLUMN = 'sample_column'
+    METADATAFILE = "metadatafile"
+    SAMPLE_COLUMN = "sample_column"
