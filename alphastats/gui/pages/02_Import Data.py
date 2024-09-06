@@ -45,7 +45,7 @@ if c1.button("Start new Session"):
     empty_session_state()
     st.rerun()
 
-if c2.button("Start new Session with example DataSet"):  # , key="load_sample_data" TODO: needed?
+if c2.button("Start new Session with example DataSet"):
     empty_session_state()
     init_session_state()
     loader, metadata_columns, dataset = load_example_data()
