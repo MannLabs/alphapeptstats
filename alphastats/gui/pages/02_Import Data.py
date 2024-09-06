@@ -50,7 +50,7 @@ if c2.button("Start new Session with example DataSet"):
     st.session_state["loader"] = loader
     load_options()
     # TODO why are we doing this so early?
-    save_plot_sampledistribution_rawdata()
+    save_plot_sampledistribution_rawdata(dataset)
     st.stop()
 
 
@@ -146,6 +146,6 @@ if dataset is not None:
     load_options()
 
     # TODO why are we doing this so early?
-    save_plot_sampledistribution_rawdata()
+    save_plot_sampledistribution_rawdata(dataset)
 
 

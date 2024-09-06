@@ -23,7 +23,7 @@ sidebar_info()
 if "dataset" in st.session_state:
     st.markdown("### DataSet Info")
 
-    display_loaded_dataset()
+    display_loaded_dataset(st.session_state["dataset"])
 
     st.markdown("## DataSet overview")
 
@@ -32,7 +32,7 @@ if "dataset" in st.session_state:
     with c1:
         st.markdown("**Intensity distribution raw data per sample**")
         st.plotly_chart(
-            st.session_state.distribution_plot.update_layout(plot_bgcolor="white"),
+            st.session_state["distribution_plot"].update_layout(plot_bgcolor="white"),
             use_container_width=True,
         )
 

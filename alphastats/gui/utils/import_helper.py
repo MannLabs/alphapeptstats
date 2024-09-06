@@ -153,34 +153,34 @@ def load_example_data():
 
 
 
-def display_loaded_dataset() -> None:
+def display_loaded_dataset(dataset: DataSet) -> None:
 
-    st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    st.dataframe(st.session_state.dataset.rawinput.head(5))
+    st.markdown(f"*Preview:* Raw data from {dataset.software}")
+    st.dataframe(dataset.rawinput.head(5))
 
     st.markdown("*Preview:* Metadata")
-    st.dataframe(st.session_state.dataset.metadata.head(5))
+    st.dataframe(dataset.metadata.head(5))
 
     st.markdown("*Preview:* Matrix")
 
     df = pd.DataFrame(
-        st.session_state.dataset.mat.values,
-        index=st.session_state.dataset.mat.index.to_list(),
+        dataset.mat.values,
+        index=dataset.mat.index.to_list(),
     ).head(5)
 
     st.dataframe(df)
 
 
-def save_plot_sampledistribution_rawdata() -> None:
+def save_plot_sampledistribution_rawdata(dataset: DataSet) -> None:
 
-    df = st.session_state.dataset.rawmat
+    df = dataset.rawmat
     df = df.unstack().reset_index()
     df.rename(
-        columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"},
+        columns={"level_1": dataset.sample, 0: "Intensity"},
         inplace=True,
     )
     st.session_state["distribution_plot"] = px.violin(
-        df, x=st.session_state.dataset.sample, y="Intensity"
+        df, x=dataset.sample, y="Intensity"
     )
 
 
