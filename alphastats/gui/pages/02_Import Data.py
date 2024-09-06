@@ -60,9 +60,26 @@ st.selectbox(
     key="software",
 )
 
+software = st.session_state["software"]
+
+### Load Software File
+if software != special_select_option:
+    softwarefile = st.file_uploader(
+        SOFTWARE_OPTIONS.get(software).get("import_file"),
+        type=["csv", "tsv", "txt", "hdf"],
+    )
+
+    if softwarefile is not None:
+        softwarefile_df = load_softwarefile_df(software, softwarefile)
+
+        loader = show_select_columns_for_loaders(software, softwarefile_df)
+
+        st.session_state["loader"] = loader
+
 ### Load Metadata File
 if st.session_state["loader"] is not None:
     show_upload_metadatafile(software)
+
 
 if "dataset" in st.session_state:
     st.info("DataSet has been imported")

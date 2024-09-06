@@ -39,40 +39,35 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column, software
     return loader
 
 
-def upload_softwarefile(software):
-    softwarefile = st.file_uploader(
-        SOFTWARE_OPTIONS.get(software).get("import_file"),
-        type=["csv", "tsv", "txt", "hdf"],
+def load_softwarefile_df(software, softwarefile):
+
+
+    softwarefile_df = read_uploaded_file_into_df(softwarefile)
+    # display head a protein data
+
+    check_software_file(softwarefile_df, software)
+
+    st.write(
+        f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
+        f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
     )
+    st.dataframe(softwarefile_df.head(5))
 
-    if softwarefile is not None:
-        softwarefile_df = read_uploaded_file_into_df(softwarefile)
-        # display head a protein data
+    return softwarefile_df
 
-        check_software_file(softwarefile_df, software)
+def show_select_columns_for_loaders(software, softwarefile_df):
+    intensity_column, index_column = select_columns_for_loaders(software=software, software_df=softwarefile_df)
 
-        st.write(
-            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
-            f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
-        )
-        st.dataframe(softwarefile_df.head(5))
-
-        select_columns_for_loaders(software=software, software_df=softwarefile_df)
-
-        if (
-            "intensity_column" in st.session_state
-            and "index_column" in st.session_state
-        ):
-            loader = load_proteomics_data(
-                softwarefile_df,
-                intensity_column=st.session_state.intensity_column,
-                index_column=st.session_state.index_column,
-                software=software,
-            )
-            st.session_state["loader"] = loader
+    loader = load_proteomics_data(
+        softwarefile_df,
+        intensity_column=intensity_column,
+        index_column=index_column,
+        software=software,
+    )
+    return loader
 
 
-def upload_metadatafile(software):
+def show_upload_metadatafile(software):
     st.write("\n\n")
     st.markdown("### 3. Prepare Metadata.")
     metadatafile_upload = st.file_uploader(
