@@ -87,7 +87,6 @@ def _metadata_buf(path_from_testfiles: str, at: AppTest):
     with open(f"{TEST_INPUT_FILES}{path_from_testfiles}", "rb") as f:
         buf = BytesIO(f.read())
         buf.name = path_from_testfiles.split("/")[-1]
-        at.session_state.metadatafile = buf
         return buf
 
 
@@ -122,13 +121,6 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     at.run()
 
     assert not at.exception
-
-    assert (
-        str(type(at.session_state.loader))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
-    )
-    assert str(type(at.session_state.metadatafile)) == "<class '_io.BytesIO'>"
-    assert at.session_state.metadata_columns == ["sample"]
 
     # User clicks the Load Data button
     mock_file_uploader.side_effect = [

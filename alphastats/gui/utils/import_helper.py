@@ -67,7 +67,7 @@ def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFr
 
 def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
     """Show the 'upload metadata file' component and return the data."""
-    create_metadata_template_file(loader)
+    show_button_download_metadata_template_file(loader)
     st.write(
         "Download the template file and add additional information as "
         + "columns to your samples such as disease group. "
@@ -76,12 +76,11 @@ def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
 
     metadatafile_upload = st.file_uploader(
         "Upload metadata file with information about your samples",
-        key="metadatafile",
     )
 
     metadatafile_df = None
     if metadatafile_upload is not None:
-        metadatafile_df = _read_file_to_df(st.session_state.metadatafile)
+        metadatafile_df = _read_file_to_df(metadatafile_upload)
         # display metadata
         st.write(
             f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
@@ -312,20 +311,18 @@ def show_select_sample_column_for_metadata(
     return st.selectbox("Sample Column", options=valid_sample_columns)
 
 
-def create_metadata_template_file(loader: BaseLoader):
+def show_button_download_metadata_template_file(loader: BaseLoader) -> None:
+    """Show the 'download metadata template' button."""
     dataset = DataSet(loader=loader)
-    st.session_state["metadata_columns"] = ["sample"]
-    metadata = dataset.metadata
     buffer = io.BytesIO()
 
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         # Write each dataframe to a different worksheet.
-        metadata.to_excel(writer, sheet_name="Sheet1", index=False)
-        # Close the Pandas Excel writer and output the Excel file to the buffer
-        writer.close()
-        st.download_button(
-            label="Download metadata template as Excel",
-            data=buffer,
-            file_name="metadata.xlsx",
-            mime="application/vnd.ms-excel",
-        )
+        dataset.metadata.to_excel(writer, sheet_name="Sheet1", index=False)
+
+    st.download_button(
+        label="Download Excel template for metadata",
+        data=buffer,
+        file_name="metadata.xlsx",
+        mime="application/vnd.ms-excel",
+    )

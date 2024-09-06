@@ -105,8 +105,6 @@ loader = load_proteomics_data(
     index_column=index_column,
     software=software,
 )
-# TODO pass loader around here and put it to session state only at the end
-st.session_state["loader"] = loader
 
 
 # ##########  Load Metadata File
