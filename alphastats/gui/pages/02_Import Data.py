@@ -16,7 +16,6 @@ try:
         get_sample_names_from_software_file,
         read_uploaded_file_into_df,
     )
-    from alphastats.gui.utils.software_options import software_options
     from alphastats.gui.utils.ui_helper import sidebar_info, StateKeys
     from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
@@ -35,7 +34,6 @@ except ModuleNotFoundError:
         get_sample_names_from_software_file,
         read_uploaded_file_into_df,
     )
-    from utils.software_options import software_options
     from alphastats import MaxQuantLoader
     from alphastats import DataSet
 
