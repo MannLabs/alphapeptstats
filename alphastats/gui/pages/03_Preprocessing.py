@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_react_flow import react_flow
+from st_cytoscape import cytoscape
 import pandas as pd
 
 import datetime
@@ -146,12 +146,45 @@ tab1, tab2  = st.tabs(["Predefined workflow", "Custom workflow"])
 
 with tab1:
     if "workflow" not in st.session_state:
-        st.session_state.workflow = None
+        st.session_state.workflow = ["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"]
+
     elements = [
-        {'id': f'{i}', 'data': {'label': label}, 'position': {'x': 160*i, 'y': 0}, "draggable": False} for i, label in enumerate(["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"])
+        {
+            'data': {'id': i, 'label': label},
+            "selectable": True
+        } for i, label in enumerate(st.session_state.workflow)
     ]
-    flowStyles = {"height": 60, "width": 1300}
-    react_flow('predefined_workflow', elements, flowStyles, key="workflow")
+
+    for i in range(len(st.session_state.workflow)-1):
+        elements.append({'data': {'id': f'{i}_{i+1}', 'source': i, 'target': i+1}, 'selectable': False})
+
+    stylesheet = [
+    {"selector": "node", "style": {
+        "label": "data(label)",
+        'shape':'roundrectangle',
+        "width": 200,
+        "height": 60,
+        "text-valign": "center",
+        "text-halign": "center"
+        }},
+    {
+        "selector": "edge",
+        "style": {
+            "width": 3,
+            "curve-style": "bezier",
+            "target-arrow-shape": "triangle",
+        },
+    },
+    ]
+
+    selected = cytoscape(
+        elements,
+        stylesheet,
+        layout='grid',
+        selection_type='single',
+        width=f'{len(st.session_state.workflow)*230}px',
+        key="graph")
+
     main_preprocessing()
 
 with tab2:
