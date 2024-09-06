@@ -7,6 +7,7 @@ import plotly.express as px
 
 try:
     from alphastats.DataSet import DataSet
+    from alphastats.gui.utils.ui_helper import StateKeys
     from alphastats.gui.utils.analysis_helper import (
         get_sample_names_from_software_file,
         read_uploaded_file_into_df,
@@ -15,6 +16,7 @@ try:
     from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
 except ModuleNotFoundError:
+    from utils.ui_helper import StateKeys
     from utils.analysis_helper import (
         get_sample_names_from_software_file,
         read_uploaded_file_into_df,
@@ -27,8 +29,8 @@ except ModuleNotFoundError:
 def load_options():
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
-    st.session_state["plotting_options"] = plotting_options(st.session_state)
-    st.session_state["statistic_options"] = statistic_options(st.session_state)
+    st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
+    st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
@@ -60,16 +62,16 @@ def upload_softwarefile(software):
         select_columns_for_loaders(software=software, software_df=softwarefile_df)
 
         if (
-            "intensity_column" in st.session_state
-            and "index_column" in st.session_state
+            StateKeys.INTENSITY_COLUMN in st.session_state
+            and StateKeys.INDEX_COLUMN in st.session_state
         ):
             loader = load_proteomics_data(
                 softwarefile_df,
-                intensity_column=st.session_state.intensity_column,
-                index_column=st.session_state.index_column,
+                intensity_column=st.session_state[StateKeys.INTENSITY_COLUMN],
+                index_column=st.session_state[StateKeys.INDEX_COLUMN],
                 software=software,
             )
-            st.session_state["loader"] = loader
+            st.session_state[StateKeys.LOADER] = loader
 
 
 def upload_metadatafile(software):
@@ -80,8 +82,8 @@ def upload_metadatafile(software):
         key="metadatafile",
     )
 
-    if metadatafile_upload is not None and st.session_state.loader is not None:
-        metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
+    if metadatafile_upload is not None and st.session_state[StateKeys.LOADER] is not None:
+        metadatafile_df = read_uploaded_file_into_df(st.session_state[StateKeys.METADATAFILE])
         # display metadata
         st.write(
             f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
@@ -92,15 +94,15 @@ def upload_metadatafile(software):
 
         if select_sample_column_metadata(metadatafile_df, software):
             # create dataset
-            st.session_state["dataset"] = DataSet(
-                loader=st.session_state.loader,
+            st.session_state[StateKeys.DATASET] = DataSet(
+                loader=st.session_state[StateKeys.LOADER],
                 metadata_path=metadatafile_df,
-                sample_column=st.session_state.sample_column,
+                sample_column=st.session_state[StateKeys.SAMPLE_COLUMN],
             )
-            st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
+            st.session_state[StateKeys.METADATA_COLUMNS] = metadatafile_df.columns.to_list()
             load_options()
 
-    if st.session_state.loader is not None:
+    if st.session_state[StateKeys.LOADER] is not None:
         create_metadata_file()
         st.write(
             "Download the template file and add additional information as "
@@ -108,10 +110,10 @@ def upload_metadatafile(software):
             + "Upload the updated metadata file."
         )
 
-    if st.session_state.loader is not None:
+    if st.session_state[StateKeys.LOADER] is not None:
         if st.button("Create a DataSet without metadata"):
-            st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
-            st.session_state["metadata_columns"] = ["sample"]
+            st.session_state[StateKeys.DATASET] = DataSet(loader=st.session_state[StateKeys.LOADER])
+            st.session_state[StateKeys.METADATA_COLUMNS] = ["sample"]
 
             load_options()
 
@@ -170,9 +172,9 @@ def load_sample_data():
         ]
     ]
     ds.preprocess(subset=True)
-    st.session_state["loader"] = loader
-    st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
-    st.session_state["dataset"] = ds
+    st.session_state[StateKeys.LOADER] = loader
+    st.session_state[StateKeys.METADATA_COLUMNS] = ds.metadata.columns.to_list()
+    st.session_state[StateKeys.DATASET] = ds
 
     load_options()
 
@@ -186,43 +188,43 @@ def import_data():
         key="software",
     )
 
-    if st.session_state.software != "<select>":
-        upload_softwarefile(software=st.session_state.software)
+    if st.session_state[StateKeys.SOFTWARE] != "<select>":
+        upload_softwarefile(software=st.session_state[StateKeys.SOFTWARE])
     if "loader" not in st.session_state:
-        st.session_state["loader"] = None
-    if st.session_state.loader is not None:
-        upload_metadatafile(st.session_state.software)
+        st.session_state[StateKeys.LOADER] = None
+    if st.session_state[StateKeys.LOADER] is not None:
+        upload_metadatafile(st.session_state[StateKeys.SOFTWARE])
 
 
 def display_loaded_dataset():
     st.info("Data was successfully imported")
     st.info("DataSet has been created")
 
-    st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    st.dataframe(st.session_state.dataset.rawinput.head(5))
+    st.markdown(f"*Preview:* Raw data from {st.session_state[StateKeys.DATASET].software}")
+    st.dataframe(st.session_state[StateKeys.DATASET].rawinput.head(5))
 
     st.markdown("*Preview:* Metadata")
-    st.dataframe(st.session_state.dataset.metadata.head(5))
+    st.dataframe(st.session_state[StateKeys.DATASET].metadata.head(5))
 
     st.markdown("*Preview:* Matrix")
 
     df = pd.DataFrame(
-        st.session_state.dataset.mat.values,
-        index=st.session_state.dataset.mat.index.to_list(),
+        st.session_state[StateKeys.DATASET].mat.values,
+        index=st.session_state[StateKeys.DATASET].mat.index.to_list(),
     ).head(5)
 
     st.dataframe(df)
 
 
 def save_plot_sampledistribution_rawdata():
-    df = st.session_state.dataset.rawmat
+    df = st.session_state[StateKeys.DATASET].rawmat
     df = df.unstack().reset_index()
     df.rename(
-        columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"},
+        columns={"level_1": st.session_state[StateKeys.DATASET].sample, 0: "Intensity"},
         inplace=True,
     )
-    st.session_state["distribution_plot"] = px.violin(
-        df, x=st.session_state.dataset.sample, y="Intensity"
+    st.session_state[StateKeys.DISTRIBUTION_PLOT] = px.violin(
+        df, x=st.session_state[StateKeys.DATASET].sample, y="Intensity"
     )
 
 
@@ -233,12 +235,12 @@ def empty_session_state():
     for key in st.session_state.keys():
         del st.session_state[key]
     st.empty()
-    st.session_state["software"] = "<select>"
+    st.session_state[StateKeys.SOFTWARE] = "<select>"
 
     from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
     user_session_id = get_script_run_ctx().session_id
-    st.session_state["user_session_id"] = user_session_id
+    st.session_state[StateKeys.USER_SESSION_ID] = user_session_id
 
 
 def check_software_file(df, software):
@@ -348,8 +350,8 @@ def select_sample_column_metadata(df, software):
         submitted = st.form_submit_button("Create DataSet")
 
     if submitted:
-        if len(df[st.session_state.sample_column].to_list()) != len(
-            df[st.session_state.sample_column].unique()
+        if len(df[st.session_state[StateKeys.SAMPLE_COLUMN]].to_list()) != len(
+            df[st.session_state[StateKeys.SAMPLE_COLUMN]].unique()
         ):
             st.error("Sample names have to be unique.")
             st.stop()
@@ -357,8 +359,8 @@ def select_sample_column_metadata(df, software):
 
 
 def create_metadata_file():
-    dataset = DataSet(loader=st.session_state.loader)
-    st.session_state["metadata_columns"] = ["sample"]
+    dataset = DataSet(loader=st.session_state[StateKeys.LOADER])
+    st.session_state[StateKeys.METADATA_COLUMNS] = ["sample"]
     metadata = dataset.metadata
     buffer = io.BytesIO()
 
