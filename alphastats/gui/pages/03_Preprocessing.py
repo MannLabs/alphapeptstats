@@ -39,7 +39,7 @@ def preprocessing():
                 value=0.0,
                 min_value=0.0,
                 max_value=1.0,
-                step=0.01,
+                step=0.1,
             )
 
             log2_transform = st.selectbox(
@@ -140,11 +140,4 @@ def main_preprocessing():
 
 st.markdown("### Preprocessing")
 
-
 main_preprocessing()
-
-
-def plot_intensity_distribution():
-    st.selectbox(
-        "Sample", options=st.session_state.dataset.metadata["sample"].to_list()
-    )

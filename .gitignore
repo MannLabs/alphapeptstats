@@ -6,3 +6,9 @@ _build
 build
 dist
 .coverage
+
+# editors
+.idea
+.vscode
+
+**/.ipynb_checkpoints

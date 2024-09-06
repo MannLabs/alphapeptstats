@@ -2,7 +2,6 @@ import pandas as pd
 import logging
 import streamlit as st
 import io
-from datetime import datetime
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -62,7 +61,7 @@ def download_figure(obj, format, plotting_library="plotly"):
 
 
 @st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
+def convert_df(df, user_session_id):
     return df.to_csv().encode("utf-8")
 
 
@@ -134,7 +133,7 @@ def st_general(method_dict):
 
 @st.cache_data
 def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+    chosen_parameter_dict, user_session_id
 ):
     """
     initalize volcano plot object with differential expression analysis results
@@ -422,12 +421,12 @@ def load_options():
     from alphastats.gui.utils.options import (
         plotting_options,
         statistic_options,
-        interpretation_options,
+        # interpretation_options,
     )
 
-    st.session_state["plotting_options"] = plotting_options
-    st.session_state["statistic_options"] = statistic_options
-    st.session_state["interpretation_options"] = interpretation_options
+    st.session_state["plotting_options"] = plotting_options(st.session_state)
+    st.session_state["statistic_options"] = statistic_options(st.session_state)
+    # st.session_state["interpretation_options"] = interpretation_options
 
 
 def gui_multicova_analysis():
