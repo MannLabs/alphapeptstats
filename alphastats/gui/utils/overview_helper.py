@@ -26,7 +26,8 @@ def get_intensity_distribution_processed(user_session_id):
 
 
 @st.cache_data
-def get_display_matrix():
+def get_display_matrix(user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
