@@ -6,8 +6,16 @@ from streamlit.web import cli as stcli
 def run():
     file_path = os.path.realpath(__file__)
     os.chdir(os.path.dirname(file_path))
+    # this is to avoid 'AxiosError: Request failed with status code 403' locally, cf. https://github.com/streamlit/streamlit/issues/8983
+    # Do not use this in production!
+    extra_args = (
+        "--server.enableXsrfProtection false"
+        if os.environ.get("DISABLE_XSRF", False)
+        else ""
+    )
+
     os.system(
-        "python -m streamlit run AlphaPeptStats.py --global.developmentMode=false"
+        f"python -m streamlit run AlphaPeptStats.py --global.developmentMode=false {extra_args}"
     )
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
