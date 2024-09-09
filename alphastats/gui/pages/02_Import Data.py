@@ -59,14 +59,14 @@ if c2.button("Start new Session with example DataSet", key="_load_example_data")
     loader, metadata_columns, dataset = load_example_data()
 
     _finalize_data_loading(loader, metadata_columns, dataset)
-    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")  # TODO: needs newer streamlit
+    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")
     st.stop()
 
 
 st.markdown("### Import Proteomics Data")
 if "dataset" in st.session_state:
     st.info(f"DataSet already present.")
-    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit
+    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")
     st.stop()
 
 
@@ -167,4 +167,4 @@ if dataset is not None:
     st.info("DataSet has been created.")
     _finalize_data_loading(loader, metadata_columns, dataset)
 
-    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit
+    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")
