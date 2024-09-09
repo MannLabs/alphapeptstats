@@ -22,28 +22,59 @@ st.markdown('Select either the predefined workflow where you can only enable/dis
 tab1, tab2  = st.tabs(["Predefined workflow", "Custom workflow"])
 
 with tab1:
+    available_steps = ["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"]
     if "workflow" not in st.session_state:
-        st.session_state.workflow = ["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"]
+        st.session_state.workflow = ["remove contaminations", "subset data", "log2 transform"]
 
     elements = [
         {
-            'data': {'id': i, 'label': label},
-            "selectable": True
-        } for i, label in enumerate(st.session_state.workflow)
+            'group': 'nodes',
+            'data': {
+                'id': i,
+                'label': label,
+            },
+            "selectable": True,
+            "classes": ['active'] if label in st.session_state.workflow else ['inactive']
+        } for i, label in enumerate(available_steps)
     ]
 
-    for i in range(len(st.session_state.workflow)-1):
-        elements.append({'data': {'id': f'{i}_{i+1}', 'source': i, 'target': i+1}, 'selectable': False})
+    for label1, label2 in zip(st.session_state.workflow[:-1], st.session_state.workflow[1:]):
+        i = available_steps.index(label1)
+        j = available_steps.index(label2)
+        elements.append({'group':'edges', 'data': {'id': f'{i}_{j}', 'source': i, 'target': j}, 'selectable': False})
 
     stylesheet = [
-    {"selector": "node", "style": {
-        "label": "data(label)",
-        'shape':'roundrectangle',
-        "width": 200,
-        "height": 60,
-        "text-valign": "center",
-        "text-halign": "center"
-        }},
+    {
+        "selector": "node",
+        "style": {
+            "label": "data(label)",
+            'shape':'roundrectangle',
+            "width": 200,
+            "height": 60,
+            "text-valign": "center",
+            "text-halign": "center"
+        },
+    },
+    {
+        "selector": "node.active",
+        "style": {
+            "background-color": 'lightgreen',
+            "opacity": '1',
+        },
+    },
+    {
+        "selector": "node.inactive",
+        "style": {
+            "background-color": 'grey',
+            "opacity": '0.3',
+        },
+    },
+    {
+        "selector": ":selected",
+        "style": {
+            "background-color": 'red'
+        },
+    },
     {
         "selector": "edge",
         "style": {
@@ -57,9 +88,9 @@ with tab1:
     selected = cytoscape(
         elements,
         stylesheet,
-        layout='grid',
+        layout={'name': 'grid', 'rows': 1},
         selection_type='single',
-        width=f'{len(st.session_state.workflow)*230}px',
+        width=f'{len(available_steps)*230}px',
         key="graph")
 
     main_preprocessing()
