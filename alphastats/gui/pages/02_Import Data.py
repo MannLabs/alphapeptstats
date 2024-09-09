@@ -7,16 +7,18 @@ from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
 from alphastats.gui.utils.import_helper import (
     load_example_data,
-    empty_session_state,
     uploaded_file_to_df,
     show_loader_columns_selection,
     load_proteomics_data,
     load_options,
     show_select_sample_column_for_metadata,
-    init_session_state,
     show_button_download_metadata_template_file,
 )
-from alphastats.gui.utils.ui_helper import sidebar_info
+from alphastats.gui.utils.ui_helper import (
+    sidebar_info,
+    empty_session_state,
+    init_session_state,
+)
 
 
 def _finalize_data_loading(
