@@ -3,7 +3,8 @@ import pandas as pd
 
 
 @st.cache_data
-def convert_df(df, user_session_id):
+def convert_df(df, user_session_id=None):
+    # TODO remove unused argument
     return df.to_csv().encode("utf-8")
 
 
