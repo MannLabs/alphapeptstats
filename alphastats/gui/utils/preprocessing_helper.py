@@ -1,7 +1,80 @@
 import streamlit as st
 import pandas as pd
+from st_cytoscape import cytoscape
 
 import datetime
+
+def draw_predefined_workflow(workflow = ["remove contaminations", "subset data", "log2 transform"]):
+    available_steps = ["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"]
+
+    elements = [
+        {
+            'group': 'nodes',
+            'data': {
+                'id': i,
+                'label': label,
+            },
+            "selectable": True,
+            "classes": ['active'] if label in st.session_state.workflow else ['inactive']
+        } for i, label in enumerate(available_steps)
+    ]
+
+    for label1, label2 in zip(st.session_state.workflow[:-1], st.session_state.workflow[1:]):
+        i = available_steps.index(label1)
+        j = available_steps.index(label2)
+        elements.append({'group':'edges', 'data': {'id': f'{i}_{j}', 'source': i, 'target': j}, 'selectable': False})
+
+    stylesheet = [
+    {
+        "selector": "node",
+        "style": {
+            "label": "data(label)",
+            'shape':'roundrectangle',
+            "width": 200,
+            "height": 60,
+            "text-valign": "center",
+            "text-halign": "center"
+        },
+    },
+    {
+        "selector": "node.active",
+        "style": {
+            "background-color": 'lightgreen',
+        },
+    },
+    {
+        "selector": "node.inactive",
+        "style": {
+            "background-color": 'lightgrey',
+        },
+    },
+    {
+        "selector": "node.selected",
+        "style": {
+            "background-color": 'red'
+        },
+    },
+    {
+        "selector": "edge",
+        "style": {
+            "width": 3,
+            "curve-style": "bezier",
+            "target-arrow-shape": "triangle",
+        },
+    },
+    ]
+
+    selected = cytoscape(
+        elements,
+        stylesheet,
+        layout={'name': 'grid', 'columns': 1},
+        selection_type='single',
+        user_panning_enabled=False,
+        user_zooming_enabled=False,
+        height=f'{len(available_steps)*80}px',
+        key="predefined_workflow")
+
+    return selected
 
 
 def preprocessing():
