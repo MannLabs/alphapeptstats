@@ -70,7 +70,7 @@ with tab1:
         },
     },
     {
-        "selector": ":selected",
+        "selector": "node.selected",
         "style": {
             "background-color": 'red'
         },
@@ -94,6 +94,8 @@ with tab1:
         key="graph")
 
     main_preprocessing()
+
+    # TODO: Add comparison plot of indensity distribution before and after preprocessing
 
 with tab2:
     "Custom workflows coming soon"
