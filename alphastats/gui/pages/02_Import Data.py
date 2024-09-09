@@ -41,14 +41,14 @@ if c2.button("Start new Session with example DataSet"):
     st.session_state["loader"] = loader
     load_options()
     sidebar_info()
-    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")
+    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")  # TODO: needs newer streamlit
     st.stop()
 
 
 st.markdown("### Import Proteomics Data")
 if "dataset" in st.session_state:
     st.info(f"DataSet already present.")
-    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")
+    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit
     st.stop()
 
 
@@ -148,5 +148,5 @@ if dataset is not None:
     st.session_state["metadata_columns"] = metadata_columns
     st.session_state["loader"] = loader
     load_options()
-    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")
+    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit
     sidebar_info()
