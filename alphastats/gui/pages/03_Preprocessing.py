@@ -85,15 +85,21 @@ with tab1:
     },
     ]
 
-    selected = cytoscape(
-        elements,
-        stylesheet,
-        layout={'name': 'grid', 'rows': 1},
-        selection_type='single',
-        width=f'{len(available_steps)*230}px',
-        key="graph")
+    c1, c2 = st.columns([1, 1])
 
-    main_preprocessing()
+    with c1:
+        st.write("### Flowchart of currenlty selected workflow:")
+
+        selected = cytoscape(
+            elements,
+            stylesheet,
+            layout={'name': 'grid', 'columns': 1},
+            selection_type='single',
+            height=f'{len(available_steps)*80}px',
+            key="graph")
+
+    with c2:
+        main_preprocessing()
 
     # TODO: Add comparison plot of indensity distribution before and after preprocessing
 
