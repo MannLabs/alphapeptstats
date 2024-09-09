@@ -8,24 +8,10 @@ import io
 
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-try:
-    from alphastats.DataSet import DataSet
-    from alphastats.gui.utils.analysis_helper import (
-        get_sample_names_from_software_file,
-    )
-    from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-    from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
-
-except ModuleNotFoundError:
-    from utils.analysis_helper import (
-        get_sample_names_from_software_file,
-        read_uploaded_file_into_df,
-    )
-    from utils.options import SOFTWARE_OPTIONS
-    from alphastats import MaxQuantLoader, BaseLoader
-    from alphastats import DataSet
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+from alphastats.DataSet import DataSet
+from alphastats.gui.utils.options import SOFTWARE_OPTIONS
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
+from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 
 def load_options():
