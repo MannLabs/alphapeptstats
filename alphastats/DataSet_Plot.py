@@ -199,7 +199,11 @@ class Plot:
         return plot
 
     def plot_sampledistribution(
-        self, method: str = "violin", color: str = None, log_scale: bool = False
+        self,
+        method: str = "violin",
+        color: str = None,
+        log_scale: bool = False,
+        use_raw: bool = False,
     ):
         """Plot Intensity Distribution for each sample. Either Violin or Boxplot
 
@@ -207,13 +211,15 @@ class Plot:
             method (str, optional): Violinplot = "violin", Boxplot = "box". Defaults to "violin".
             color (str, optional): A metadata column used to color the boxes. Defaults to None.
             log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
+            use_raw (bool, optional): use raw data instead of processed data. Defaults to False.
 
         Returns:
              plotly.graph_objects._figure.Figure: Plotly Sample Distribution Plot
         """
 
         # create long df
-        df = self.mat.unstack().reset_index()
+        matrix = self.mat if not use_raw else self.rawmat
+        df = matrix.unstack().reset_index()
         df.rename(columns={"level_1": self.sample, 0: "Intensity"}, inplace=True)
 
         if color is not None:
