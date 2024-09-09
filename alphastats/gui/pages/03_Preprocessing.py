@@ -1,15 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-import datetime
 
-try:
-    from alphastats.gui.utils.preprocessing_helper import main_preprocessing, draw_predefined_workflow
-    from alphastats.gui.utils.ui_helper import sidebar_info
-
-except ModuleNotFoundError:
-    from utils.preprocessing_helper import main_preprocessing, draw_predefined_workflow
-    from utils.ui_helper import sidebar_info
+from alphastats.gui.utils.preprocessing_helper import draw_predefined_workflow, configure_preprocessing, update_workflow, run_preprocessing, reset_preprocessing
+from alphastats.gui.utils.ui_helper import sidebar_info
 
 
 sidebar_info()
@@ -28,12 +22,28 @@ with tab1:
     c1, c2 = st.columns([1, 1])
 
     with c2:
-        main_preprocessing()
+    
+        remove_contaminations, remove_samples, subset, data_completeness, log2_transform, normalization, imputation, batch = configure_preprocessing()
+
+        update_workflow(remove_contaminations, remove_samples, subset, data_completeness, log2_transform, normalization, imputation, batch)
 
     with c1:
         st.write("### Flowchart of currenlty selected workflow:")
 
         selected_nodes = draw_predefined_workflow(st.session_state.workflow)
+
+        if 'dataset' in st.session_state:
+            c11, c12 = st.columns([1, 1])
+
+            with c11:
+                if st.button("Run preprocessing"):
+                    run_preprocessing(remove_contaminations, remove_samples, subset, data_completeness, log2_transform, normalization, imputation, batch)
+
+            with c12:
+                reset_preprocessing()
+        
+        else:
+            st.info("Import Data first")
 
     # TODO: Add comparison plot of indensity distribution before and after preprocessing
 
