@@ -64,7 +64,7 @@ interactive participation, check out the [discussions](https://github.com/MannLa
 """
 )
 
-sidebar_info(show_logo=False)
+sidebar_info()
 
 # TODO The emojis on the sidebar menu look ugly but currently there are no other options to add icon in streamlit multipage apps
 # https://discuss.streamlit.io/t/icons-for-the-multi-app-page-menu-in-the-sidebar-other-than-emojis/27222
