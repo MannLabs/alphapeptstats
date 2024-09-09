@@ -150,7 +150,7 @@ SOFTWARE_OPTIONS = {
         "import_file": "Please upload results_proteins.csv or results.hdf",
         "intensity_column": ["[sample]_LFQ"],
         "index_column": ["Unnamed: 0"],
-        "loader_function": AlphaPeptLoader,  # TODO loader_function -> loader_class
+        "loader_function": AlphaPeptLoader,  # TODO loader_function -> loader_class or loader
     },
     "DIANN": {
         "import_file": "Please upload report.pg_matrix.tsv",

@@ -1,6 +1,8 @@
+from typing import List
+
 import streamlit as st
 
-from alphastats import DataSet
+from alphastats import DataSet, BaseLoader
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
 from alphastats.gui.utils.import_helper import (
@@ -15,6 +17,23 @@ from alphastats.gui.utils.import_helper import (
     show_button_download_metadata_template_file,
 )
 from alphastats.gui.utils.ui_helper import sidebar_info
+
+
+def _finalize_data_loading(
+    loader: BaseLoader,
+    metadata_columns: List[str],
+    dataset: DataSet,
+) -> None:
+    """Finalize the data loading process."""
+    st.session_state["loader"] = (
+        loader  # TODO: Figure out if we even need the loader here, as the dataset has the loader as an attribute.
+    )
+    st.session_state["metadata_columns"] = metadata_columns
+    st.session_state["dataset"] = dataset
+
+    load_options()
+    sidebar_info()
+
 
 init_session_state()
 
@@ -31,16 +50,13 @@ if c1.button("Start new Session"):
     empty_session_state()
     st.rerun()
 
+
 if c2.button("Start new Session with example DataSet"):
     empty_session_state()
     init_session_state()
     loader, metadata_columns, dataset = load_example_data()
 
-    st.session_state["dataset"] = dataset
-    st.session_state["metadata_columns"] = metadata_columns
-    st.session_state["loader"] = loader
-    load_options()
-    sidebar_info()
+    _finalize_data_loading(loader, metadata_columns, dataset)
     # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")  # TODO: needs newer streamlit
     st.stop()
 
@@ -144,9 +160,6 @@ if c1.button("Create DataSet with metadata", disabled=metadatafile_df is None):
 
 if dataset is not None:
     st.info("DataSet has been created.")
-    st.session_state["dataset"] = dataset
-    st.session_state["metadata_columns"] = metadata_columns
-    st.session_state["loader"] = loader
-    load_options()
+    _finalize_data_loading(loader, metadata_columns, dataset)
+
     # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit
-    sidebar_info()
