@@ -128,15 +128,12 @@ def preprocessing():
         submitted = st.form_submit_button("Submit")
 
     if submitted:
-        if len(remove_samples) == 0:
-            remove_samples = None
-
         st.session_state.workflow = [el for el, form in zip(["remove contaminations", "remove samples", "subset data", "filter data completeness", "log2 transform", "normalization", "imputation"], [remove_contaminations, remove_samples, subset, data_completeness, log2_transform, normalization, imputation]) if form not in [None, False, [], 0.0]]
 
         st.session_state.dataset.preprocess(
             remove_contaminations=remove_contaminations,
             log2_transform=log2_transform,
-            remove_samples=remove_samples,
+            remove_samples=remove_samples if len(remove_samples) != 0 else None,
             data_completeness=data_completeness,
             subset=subset,
             normalization=normalization,
