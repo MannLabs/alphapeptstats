@@ -3,32 +3,19 @@ import streamlit as st
 from alphastats import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
-try:
-    from alphastats.gui.utils.import_helper import (
-        save_plot_sampledistribution_rawdata,
-        display_loaded_dataset,
-        load_example_data,
-        empty_session_state,
-        load_softwarefile_df,
-        show_metadata_file_uploader,
-        show_loader_columns_selection,
-        load_proteomics_data,
-        load_options,
-        show_select_sample_column_for_metadata,
-        init_session_state,
-    )
-    from alphastats.gui.utils.ui_helper import sidebar_info
-
-except ModuleNotFoundError:
-    from utils.ui_helper import sidebar_info
-    from utils.import_helper import (
-        import_data,
-        save_plot_sampledistribution_rawdata,
-        display_loaded_dataset,
-        load_sample_data,
-        empty_session_state,
-    )
-
+from alphastats.gui.utils.import_helper import (
+    save_plot_sampledistribution_rawdata,
+    load_example_data,
+    empty_session_state,
+    load_softwarefile_df,
+    show_metadata_file_uploader,
+    show_loader_columns_selection,
+    load_proteomics_data,
+    load_options,
+    show_select_sample_column_for_metadata,
+    init_session_state,
+)
+from alphastats.gui.utils.ui_helper import sidebar_info
 
 init_session_state()
 
