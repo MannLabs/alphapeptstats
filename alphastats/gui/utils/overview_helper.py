@@ -5,23 +5,26 @@ from alphastats import DataSet
 
 
 @st.cache_data
-def convert_df(df, user_session_id=None):
-    # TODO remove unused argument
+def convert_df(df, user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return df.to_csv().encode("utf-8")
 
 
 @st.cache_data
 def get_sample_histogram_matrix(user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return st.session_state.dataset.plot_samplehistograms()
 
 
 @st.cache_data
 def get_intensity_distribution_unprocessed(user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return st.session_state.dataset.plot_sampledistribution(use_raw=True)
 
 
 @st.cache_data
 def get_intensity_distribution_processed(user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return st.session_state.dataset.plot_sampledistribution()
 
 
