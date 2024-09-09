@@ -45,51 +45,25 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column, software
     return loader
 
 
-def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFrame:
-    """Load software file into pandas DataFrame.
+def uploaded_file_to_df(
+    uploaded_file: UploadedFile, software: str = None
+) -> pd.DataFrame:
+    """Load uploaded file into pandas DataFrame. If `software` is given, do some additional checks."""
+    df = _read_file_to_df(uploaded_file)
 
-    TODO rename: softwarefile -> data_file
-    """
-    softwarefile_df = _read_file_to_df(softwarefile)
-
-    _check_softwarefile_df(softwarefile_df, software)
+    if software is not None:
+        # assuming it's a softwarefile
+        _check_softwarefile_df(df, software)
 
     st.write(
-        f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
-        f", Number of columns: {softwarefile_df.shape[1]}."
+        f"File successfully uploaded. Number of rows: {df.shape[0]}"
+        f", Number of columns: {df.shape[1]}."
     )
 
     st.write("Preview:")
-    st.dataframe(softwarefile_df.head(5))
+    st.dataframe(df.head(5))
 
-    return softwarefile_df
-
-
-def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
-    """Show the 'upload metadata file' component and return the data."""
-    st.write(
-        "Download the template file and add additional information "
-        + "to your samples as columns (e.g. 'disease group'). "
-        + "Then upload the updated metadata file."
-    )
-    show_button_download_metadata_template_file(loader)
-
-    metadatafile_upload = st.file_uploader(
-        "Upload metadata file with information about your samples",
-    )
-
-    if metadatafile_upload is None:
-        return None
-
-    metadatafile_df = _read_file_to_df(metadatafile_upload)
-    st.write(
-        f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
-        f", Number of columns: {metadatafile_df.shape[1]}."
-    )
-    st.write("Preview:")
-    st.dataframe(metadatafile_df.head(5))
-
-    return metadatafile_df
+    return df
 
 
 def load_example_data():

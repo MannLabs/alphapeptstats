@@ -86,7 +86,10 @@ def download_preprocessing_info(plot):
 
 
 def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.DataFrame]:
-    """Read file to DataFrame based on file extension."""
+    """Read file to DataFrame based on file extension.
+
+    TODO rename: softwarefile -> data_file
+    """
 
     extension = Path(file.name).suffix
 

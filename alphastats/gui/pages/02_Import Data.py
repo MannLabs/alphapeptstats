@@ -6,13 +6,13 @@ from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 from alphastats.gui.utils.import_helper import (
     load_example_data,
     empty_session_state,
-    load_softwarefile_df,
-    show_metadata_file_uploader,
+    uploaded_file_to_df,
     show_loader_columns_selection,
     load_proteomics_data,
     load_options,
     show_select_sample_column_for_metadata,
     init_session_state,
+    show_button_download_metadata_template_file,
 )
 from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -80,7 +80,7 @@ softwarefile = st.file_uploader(
 if softwarefile is None:
     st.stop()
 
-softwarefile_df = load_softwarefile_df(software, softwarefile)
+softwarefile_df = uploaded_file_to_df(softwarefile, software)
 
 intensity_column, index_column = show_loader_columns_selection(
     software=software, softwarefile_df=softwarefile_df
@@ -96,12 +96,26 @@ loader = load_proteomics_data(
 
 # ##########  Load Metadata File
 st.markdown("##### 3. Prepare Metadata (optional)")
-sample_column = None
-metadatafile_df = show_metadata_file_uploader(loader)
-if metadatafile_df is not None:
-    sample_column = show_select_sample_column_for_metadata(
-        metadatafile_df, software, loader
-    )
+
+st.write(
+    "Download the template file and add additional information "
+    + "to your samples as columns (e.g. 'disease group'). "
+    + "Then upload the updated metadata file."
+)
+show_button_download_metadata_template_file(loader)
+
+metadatafile_upload = st.file_uploader(
+    "Upload metadata file with information about your samples",
+)
+
+if metadatafile_upload is None:
+    st.stop()
+
+metadatafile_df = uploaded_file_to_df(metadatafile_upload)
+
+sample_column = show_select_sample_column_for_metadata(
+    metadatafile_df, software, loader
+)
 
 
 # ##########  Create dataset
