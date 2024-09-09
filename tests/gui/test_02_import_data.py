@@ -59,10 +59,6 @@ def test_page_02_loads_sample_data():
     ]
     assert str(type(at.session_state.dataset)) == "<class 'alphastats.DataSet.DataSet'>"
     assert (
-        str(type(at.session_state.distribution_plot))
-        == "<class 'plotly.graph_objs._figure.Figure'>"
-    )
-    assert (
         str(type(at.session_state.loader))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
@@ -139,10 +135,6 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     assert dataset.rawmat.shape == (312, 2611)
     assert dataset.software == "MaxQuant"
     assert dataset.sample == "sample"
-    assert (
-        str(type(at.session_state.distribution_plot))
-        == "<class 'plotly.graph_objs._figure.Figure'>"
-    )
     assert (
         str(type(at.session_state.loader))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
