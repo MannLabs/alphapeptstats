@@ -3,22 +3,13 @@ import streamlit as st
 from alphastats.gui.utils.import_helper import (
     display_loaded_dataset,
 )
-
-try:
-    from alphastats.gui.utils.overview_helper import (
-        display_matrix,
-        get_intensity_distribution_processed,
-        get_sample_histogram_matrix,
-    )
-    from alphastats.gui.utils.ui_helper import sidebar_info
-
-except ModuleNotFoundError:
-    from utils.overview_helper import (
-        display_matrix,
-        get_intensity_distribution_processed,
-        get_sample_histogram_matrix,
-    )
-    from utils.ui_helper import sidebar_info
+from alphastats.gui.utils.overview_helper import (
+    display_matrix,
+    get_intensity_distribution_processed,
+    get_sample_histogram_matrix,
+    get_intensity_distribution_unprocessed,
+)
+from alphastats.gui.utils.ui_helper import sidebar_info
 
 # TODO: Reduce cache usage
 
