@@ -4,7 +4,6 @@ from alphastats import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
 from alphastats.gui.utils.import_helper import (
-    save_plot_sampledistribution_rawdata,
     load_example_data,
     empty_session_state,
     load_softwarefile_df,
@@ -41,8 +40,6 @@ if c2.button("Start new Session with example DataSet"):
     st.session_state["metadata_columns"] = metadata_columns
     st.session_state["loader"] = loader
     load_options()
-    # TODO why are we doing this so early?
-    save_plot_sampledistribution_rawdata(dataset)
     sidebar_info()
     st.stop()
 
@@ -135,7 +132,4 @@ if dataset is not None:
     st.session_state["metadata_columns"] = metadata_columns
     st.session_state["loader"] = loader
     load_options()
-
-    # TODO why are we doing this so early?
-    save_plot_sampledistribution_rawdata(dataset)
     sidebar_info()

@@ -169,18 +169,6 @@ def display_loaded_dataset(dataset: DataSet) -> None:
     st.dataframe(df)
 
 
-def save_plot_sampledistribution_rawdata(dataset: DataSet) -> None:
-    df = dataset.rawmat
-    df = df.unstack().reset_index()
-    df.rename(
-        columns={"level_1": dataset.sample, 0: "Intensity"},
-        inplace=True,
-    )
-    st.session_state["distribution_plot"] = px.violin(
-        df, x=dataset.sample, y="Intensity"
-    )
-
-
 def empty_session_state():
     """
     remove all variables to avoid conflicts

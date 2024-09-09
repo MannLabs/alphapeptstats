@@ -13,6 +13,11 @@ def get_sample_histogram_matrix(user_session_id):
 
 
 @st.cache_data
+def get_intensity_distribution_unprocessed(user_session_id):
+    return st.session_state.dataset.plot_sampledistribution(use_raw=True)
+
+
+@st.cache_data
 def get_intensity_distribution_processed(user_session_id):
     return st.session_state.dataset.plot_sampledistribution()
 
