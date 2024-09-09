@@ -1,18 +1,17 @@
-from typing import Optional, Tuple
+from pathlib import Path
+from typing import Optional, Tuple, List
 
 import streamlit as st
 import pandas as pd
 import os
 import io
 
-import plotly.express as px
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 try:
     from alphastats.DataSet import DataSet
     from alphastats.gui.utils.analysis_helper import (
         get_sample_names_from_software_file,
-        _read_file_to_df,
     )
     from alphastats.gui.utils.options import SOFTWARE_OPTIONS
     from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
@@ -64,6 +63,28 @@ def uploaded_file_to_df(
     st.dataframe(df.head(5))
 
     return df
+
+
+def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.DataFrame]:
+    """Read file to DataFrame based on file extension.
+
+    TODO rename: softwarefile -> data_file
+    """
+
+    extension = Path(file.name).suffix
+
+    if extension == ".xlsx":
+        return pd.read_excel(file)
+
+    elif extension in [".txt", ".tsv"]:
+        return pd.read_csv(file, delimiter="\t", decimal=decimal)
+
+    elif extension == ".csv":
+        return pd.read_csv(file, decimal=decimal)
+
+    raise ValueError(
+        f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
+    )
 
 
 def load_example_data():
@@ -124,23 +145,6 @@ def load_example_data():
     dataset.preprocess(subset=True)
     metadata_columns = dataset.metadata.columns.to_list()
     return loader, metadata_columns, dataset
-
-
-def display_loaded_dataset(dataset: DataSet) -> None:
-    st.markdown(f"*Preview:* Raw data from {dataset.software}")
-    st.dataframe(dataset.rawinput.head(5))
-
-    st.markdown("*Preview:* Metadata")
-    st.dataframe(dataset.metadata.head(5))
-
-    st.markdown("*Preview:* Matrix")
-
-    df = pd.DataFrame(
-        dataset.mat.values,
-        index=dataset.mat.index.to_list(),
-    ).head(5)
-
-    st.dataframe(df)
 
 
 def empty_session_state():
@@ -271,6 +275,26 @@ def show_select_sample_column_for_metadata(
     )
 
     return st.selectbox("Sample Column", options=valid_sample_columns)
+
+
+def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
+    """
+    extract sample names from software
+    """
+    if isinstance(loader.intensity_column, str):
+        regex_find_intensity_columns = loader.intensity_column.replace("[sample]", ".*")
+        df = loader.rawinput
+        df = df.set_index(loader.index_column)
+        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+        # remove Intensity so only sample names remain
+        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+        df.columns = df.columns.str.replace(substring_to_remove, "")
+        sample_names = df.columns.to_list()
+
+    else:
+        sample_names = loader.intensity_column
+
+    return sample_names
 
 
 def show_button_download_metadata_template_file(loader: BaseLoader) -> None:

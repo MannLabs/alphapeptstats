@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+from alphastats import DataSet
+
 
 @st.cache_data
 def convert_df(df, user_session_id=None):
@@ -54,3 +56,20 @@ def display_matrix():
     st.download_button(
         "Download as .csv", csv, "analysis_matrix.csv", "text/csv", key="download-csv"
     )
+
+
+def display_loaded_dataset(dataset: DataSet) -> None:
+    st.markdown(f"*Preview:* Raw data from {dataset.software}")
+    st.dataframe(dataset.rawinput.head(5))
+
+    st.markdown("*Preview:* Metadata")
+    st.dataframe(dataset.metadata.head(5))
+
+    st.markdown("*Preview:* Matrix")
+
+    df = pd.DataFrame(
+        dataset.mat.values,
+        index=dataset.mat.index.to_list(),
+    ).head(5)
+
+    st.dataframe(df)
