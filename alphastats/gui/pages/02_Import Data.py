@@ -51,7 +51,7 @@ if c1.button("Start new Session"):
     st.rerun()
 
 
-if c2.button("Start new Session with example DataSet"):
+if c2.button("Start new Session with example DataSet", key="_load_example_data"):
     empty_session_state()
     init_session_state()
     loader, metadata_columns, dataset = load_example_data()
@@ -79,8 +79,7 @@ default_select_option = "<select>"
 options = [default_select_option] + list(SOFTWARE_OPTIONS.keys())
 
 software = st.selectbox(
-    "Select your Proteomics Software",
-    options=options,
+    "Select your Proteomics Software", options=options, key="_software"
 )
 if software == default_select_option:
     st.stop()
@@ -145,7 +144,11 @@ if c2.button("Create DataSet without metadata"):
     dataset = DataSet(loader=loader)
     metadata_columns = ["sample"]
 
-if c1.button("Create DataSet with metadata", disabled=metadatafile_df is None):
+if c1.button(
+    "Create DataSet with metadata",
+    disabled=metadatafile_df is None,
+    key="_create_dataset",
+):
     if len(metadatafile_df[sample_column].to_list()) != len(
         metadatafile_df[sample_column].unique()
     ):

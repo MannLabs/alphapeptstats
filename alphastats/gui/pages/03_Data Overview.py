@@ -1,13 +1,11 @@
 import streamlit as st
 
-from alphastats.gui.utils.import_helper import (
-    display_loaded_dataset,
-)
 from alphastats.gui.utils.overview_helper import (
     display_matrix,
     get_intensity_distribution_processed,
     get_sample_histogram_matrix,
     get_intensity_distribution_unprocessed,
+    display_loaded_dataset,
 )
 from alphastats.gui.utils.ui_helper import sidebar_info
 
