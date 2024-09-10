@@ -8,7 +8,7 @@ from alphastats.gui.utils.preprocessing_helper import (
     update_workflow,
     run_preprocessing,
     reset_preprocessing,
-    PREDEFINED_ORDER
+    PREDEFINED_ORDER,
 )
 from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -16,7 +16,7 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 sidebar_info()
 
 if "workflow" not in st.session_state:
-    st.session_state['workflow'] = [
+    st.session_state["workflow"] = [
         "remove_contaminations",
         "subset",
         "log2_transform",
@@ -29,7 +29,7 @@ with c2:
     if "dataset" not in st.session_state:
         settings = {k: True for k in st.session_state.workflow}
     else:
-        settings = configure_preprocessing(dataset=st.session_state['dataset'])
+        settings = configure_preprocessing(dataset=st.session_state["dataset"])
 
     new_workflow = update_workflow(settings)
 

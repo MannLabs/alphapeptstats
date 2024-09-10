@@ -29,7 +29,7 @@ CYTOSCAPE_STYLESHEET = [
         },
     },
     {
-        "selector": "node.selected", # TODO: This currently does not work, figure out why
+        "selector": "node.selected",  # TODO: This currently does not work, figure out why
         "style": {"background-color": "red"},
     },
     {
@@ -45,44 +45,47 @@ CYTOSCAPE_STYLESHEET = [
 # TODO: Make help texts meaningful
 # TODO: Show help texts on the widgets
 WORKFLOW_STEPS = {
-    'remove_contaminations': {
-        'repr': 'Remove contaminations',
-        'help': 'Remove contaminations annotated in the contaminations library and filter columns included in the dataset.'
+    "remove_contaminations": {
+        "repr": "Remove contaminations",
+        "help": "Remove contaminations annotated in the contaminations library and filter columns included in the dataset.",
     },
-    'remove_samples': {
-        'repr': 'Remove samples',
-        'help': 'Remove samples from analysis, e.g. useful when failed or blank runs are included.'
+    "remove_samples": {
+        "repr": "Remove samples",
+        "help": "Remove samples from analysis, e.g. useful when failed or blank runs are included.",
     },
-    'subset': {
-        'repr': 'Subset data',
-        'help': 'Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.'
+    "subset": {
+        "repr": "Subset data",
+        "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
     },
-    'data_completeness': {
-        'repr': 'Filter data completeness',
-        'help': 'Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.'
+    "data_completeness": {
+        "repr": "Filter data completeness",
+        "help": "Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.",
     },
-    'log2_transform': {
-        'repr': 'Log2 transform',
-        'help': 'Log2-transform dataset.'
+    "log2_transform": {"repr": "Log2 transform", "help": "Log2-transform dataset."},
+    "normalization": {
+        "repr": "Normalization",
+        "help": 'Normalize data using one of the available methods ("zscore", "quantile", "vst", "linear").',
     },
-    'normalization': {
-        'repr': 'Normalization',
-        'help': 'Normalize data using one of the available methods ("zscore", "quantile", "vst", "linear").'
+    "imputation": {
+        "repr": "Imputation",
+        "help": 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").',
     },
-    'imputation': {
-        'repr': 'Imputation',
-        'help': 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").'
-    },
-    'batch': {
-        'repr': 'Batch correction',
-        'help': 'Batch correction.'
-    },
+    "batch": {"repr": "Batch correction", "help": "Batch correction."},
 }
 
-PREDEFINED_ORDER = ["remove_contaminations", "remove_samples", "subset", "data_completeness", "log2_transform", "normalization", "imputation", "batch"]
+PREDEFINED_ORDER = [
+    "remove_contaminations",
+    "remove_samples",
+    "subset",
+    "data_completeness",
+    "log2_transform",
+    "normalization",
+    "imputation",
+    "batch",
+]
+
 
 def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
-
     elements = [
         {
             "group": "nodes",
@@ -92,16 +95,12 @@ def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
                 "key": key,
             },
             "selectable": True,
-            "classes": ["active"]
-            if key in workflow
-            else ["inactive"],
+            "classes": ["active"] if key in workflow else ["inactive"],
         }
         for i, key in enumerate(order)
     ]
 
-    for key1, key2 in zip(
-        workflow[:-1], workflow[1:]
-    ):
+    for key1, key2 in zip(workflow[:-1], workflow[1:]):
         i = order.index(key1)
         j = order.index(key2)
         elements.append(
@@ -176,14 +175,14 @@ def configure_preprocessing(dataset):
     )
 
     return {
-        'remove_contaminations': remove_contaminations,
-        'remove_samples': remove_samples,
-        'subset': subset,
-        'data_completeness': data_completeness,
-        'log2_transform': log2_transform,
-        'normalization': normalization,
-        'imputation': imputation,
-        'batch': batch,
+        "remove_contaminations": remove_contaminations,
+        "remove_samples": remove_samples,
+        "subset": subset,
+        "data_completeness": data_completeness,
+        "log2_transform": log2_transform,
+        "normalization": normalization,
+        "imputation": imputation,
+        "batch": batch,
     }
 
 
@@ -193,7 +192,7 @@ def update_workflow(
     new_workflow = [
         key
         for key, setting in settings.items()
-        if bool(setting) # use of falsiness
+        if bool(setting)  # use of falsiness
     ]
     return new_workflow
 
@@ -201,7 +200,9 @@ def update_workflow(
 def run_preprocessing(
     settings,
 ):
-    settings['remove_samples'] = settings['remove_samples'] if len(settings['remove_samples']) != 0 else None
+    settings["remove_samples"] = (
+        settings["remove_samples"] if len(settings["remove_samples"]) != 0 else None
+    )
     st.session_state.dataset.preprocess(**settings)
 
     preprocessing = st.session_state.dataset.preprocessing_info
@@ -213,8 +214,8 @@ def run_preprocessing(
         pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
         use_container_width=True,
     )
-    if settings['batch']:
-        st.session_state.dataset.batch_correction(batch=settings['batch'])
+    if settings["batch"]:
+        st.session_state.dataset.batch_correction(batch=settings["batch"])
 
 
 def reset_preprocessing():
@@ -222,8 +223,7 @@ def reset_preprocessing():
     st.session_state.dataset.create_matrix()
     preprocessing = st.session_state.dataset.preprocessing_info
     st.info(
-        "Data has been reset. "
-        + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        "Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     )
     st.dataframe(
         pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
