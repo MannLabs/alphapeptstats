@@ -41,13 +41,13 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     assert at.session_state.gene_to_prot_id == {}
 
 
-def test_page_02_loads_sample_data():
-    """Test if the page loads the sample data and has the correct session state afterwards."""
+def test_page_02_loads_example_data():
+    """Test if the page loads the example data and has the correct session state afterwards."""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 
     # User clicks Load Sample Data button
-    at.button[1].click().run()
+    at.button(key="_load_example_data").click().run()
 
     assert not at.exception
 
@@ -58,10 +58,6 @@ def test_page_02_loads_sample_data():
         "Lipid-lowering therapy (134350008)",
     ]
     assert str(type(at.session_state.dataset)) == "<class 'alphastats.DataSet.DataSet'>"
-    assert (
-        str(type(at.session_state.distribution_plot))
-        == "<class 'plotly.graph_objs._figure.Figure'>"
-    )
     assert (
         str(type(at.session_state.loader))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
@@ -105,7 +101,7 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     at.run()
 
     # User selects MaxQuant from the dropdown menu
-    at.selectbox[0].select("MaxQuant")
+    at.selectbox(key="_software").select("MaxQuant")
     mock_file_uploader.side_effect = [None]
     at.run()
 
@@ -127,7 +123,7 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
         _data_buf(DATA_FILE),
         _metadata_buf(METADATA_FILE, at),
     ]
-    at.button[3].click()
+    at.button(key="_create_dataset").click()
     at.run()
 
     assert not at.exception
@@ -139,10 +135,6 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     assert dataset.rawmat.shape == (312, 2611)
     assert dataset.software == "MaxQuant"
     assert dataset.sample == "sample"
-    assert (
-        str(type(at.session_state.distribution_plot))
-        == "<class 'plotly.graph_objs._figure.Figure'>"
-    )
     assert (
         str(type(at.session_state.loader))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"

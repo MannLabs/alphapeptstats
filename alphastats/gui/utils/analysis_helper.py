@@ -85,25 +85,6 @@ def download_preprocessing_info(plot):
     )
 
 
-def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.DataFrame]:
-    """Read file to DataFrame based on file extension."""
-
-    extension = Path(file.name).suffix
-
-    if extension == ".xlsx":
-        return pd.read_excel(file)
-
-    elif extension in [".txt", ".tsv"]:
-        return pd.read_csv(file, delimiter="\t", decimal=decimal)
-
-    elif extension == ".csv":
-        return pd.read_csv(file, decimal=decimal)
-
-    raise ValueError(
-        f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
-    )
-
-
 def get_unique_values_from_column(column):
     unique_values = st.session_state.dataset.metadata[column].unique().tolist()
     return unique_values
@@ -365,26 +346,6 @@ def helper_compare_two_groups():
         chosen_parameter_dict.update({"group1": group1, "group2": group2})
 
     return chosen_parameter_dict
-
-
-def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
-    """
-    extract sample names from software
-    """
-    if isinstance(loader.intensity_column, str):
-        regex_find_intensity_columns = loader.intensity_column.replace("[sample]", ".*")
-        df = loader.rawinput
-        df = df.set_index(loader.index_column)
-        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
-        # remove Intensity so only sample names remain
-        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
-        df.columns = df.columns.str.replace(substring_to_remove, "")
-        sample_names = df.columns.to_list()
-
-    else:
-        sample_names = loader.intensity_column
-
-    return sample_names
 
 
 def get_analysis(method, options_dict):

@@ -1,32 +1,17 @@
-from typing import Optional, Tuple
+from pathlib import Path
+from typing import Optional, Tuple, List
 
 import streamlit as st
 import pandas as pd
 import os
 import io
 
-import plotly.express as px
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-try:
-    from alphastats.DataSet import DataSet
-    from alphastats.gui.utils.analysis_helper import (
-        get_sample_names_from_software_file,
-        _read_file_to_df,
-    )
-    from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-    from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
-
-except ModuleNotFoundError:
-    from utils.analysis_helper import (
-        get_sample_names_from_software_file,
-        read_uploaded_file_into_df,
-    )
-    from utils.options import SOFTWARE_OPTIONS
-    from alphastats import MaxQuantLoader, BaseLoader
-    from alphastats import DataSet
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
+from alphastats.DataSet import DataSet
+from alphastats.gui.utils.options import SOFTWARE_OPTIONS
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
+from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 
 def load_options():
@@ -45,51 +30,47 @@ def load_proteomics_data(uploaded_file, intensity_column, index_column, software
     return loader
 
 
-def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFrame:
-    """Load software file into pandas DataFrame.
+def uploaded_file_to_df(
+    uploaded_file: UploadedFile, software: str = None
+) -> pd.DataFrame:
+    """Load uploaded file into pandas DataFrame. If `software` is given, do some additional checks."""
+    df = _read_file_to_df(uploaded_file)
+
+    if software is not None:
+        # assuming it's a softwarefile
+        _check_softwarefile_df(df, software)
+
+    st.write(
+        f"File successfully uploaded. Number of rows: {df.shape[0]}"
+        f", Number of columns: {df.shape[1]}."
+    )
+
+    st.write("Preview:")
+    st.dataframe(df.head(5))
+
+    return df
+
+
+def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.DataFrame]:
+    """Read file to DataFrame based on file extension.
 
     TODO rename: softwarefile -> data_file
     """
-    softwarefile_df = _read_file_to_df(softwarefile)
 
-    _check_softwarefile_df(softwarefile_df, software)
+    extension = Path(file.name).suffix
 
-    st.write(
-        f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
-        f", Number of columns: {softwarefile_df.shape[1]}."
+    if extension == ".xlsx":
+        return pd.read_excel(file)
+
+    elif extension in [".txt", ".tsv"]:
+        return pd.read_csv(file, delimiter="\t", decimal=decimal)
+
+    elif extension == ".csv":
+        return pd.read_csv(file, decimal=decimal)
+
+    raise ValueError(
+        f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
     )
-
-    st.write("Preview:")
-    st.dataframe(softwarefile_df.head(5))
-
-    return softwarefile_df
-
-
-def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
-    """Show the 'upload metadata file' component and return the data."""
-    st.write(
-        "Download the template file and add additional information "
-        + "to your samples as columns (e.g. 'disease group'). "
-        + "Then upload the updated metadata file."
-    )
-    show_button_download_metadata_template_file(loader)
-
-    metadatafile_upload = st.file_uploader(
-        "Upload metadata file with information about your samples",
-    )
-
-    if metadatafile_upload is None:
-        return None
-
-    metadatafile_df = _read_file_to_df(metadatafile_upload)
-    st.write(
-        f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
-        f", Number of columns: {metadatafile_df.shape[1]}."
-    )
-    st.write("Preview:")
-    st.dataframe(metadatafile_df.head(5))
-
-    return metadatafile_df
 
 
 def load_example_data():
@@ -150,35 +131,6 @@ def load_example_data():
     dataset.preprocess(subset=True)
     metadata_columns = dataset.metadata.columns.to_list()
     return loader, metadata_columns, dataset
-
-
-def display_loaded_dataset(dataset: DataSet) -> None:
-    st.markdown(f"*Preview:* Raw data from {dataset.software}")
-    st.dataframe(dataset.rawinput.head(5))
-
-    st.markdown("*Preview:* Metadata")
-    st.dataframe(dataset.metadata.head(5))
-
-    st.markdown("*Preview:* Matrix")
-
-    df = pd.DataFrame(
-        dataset.mat.values,
-        index=dataset.mat.index.to_list(),
-    ).head(5)
-
-    st.dataframe(df)
-
-
-def save_plot_sampledistribution_rawdata(dataset: DataSet) -> None:
-    df = dataset.rawmat
-    df = df.unstack().reset_index()
-    df.rename(
-        columns={"level_1": dataset.sample, 0: "Intensity"},
-        inplace=True,
-    )
-    st.session_state["distribution_plot"] = px.violin(
-        df, x=dataset.sample, y="Intensity"
-    )
 
 
 def empty_session_state():
@@ -309,6 +261,26 @@ def show_select_sample_column_for_metadata(
     )
 
     return st.selectbox("Sample Column", options=valid_sample_columns)
+
+
+def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
+    """
+    extract sample names from software
+    """
+    if isinstance(loader.intensity_column, str):
+        regex_find_intensity_columns = loader.intensity_column.replace("[sample]", ".*")
+        df = loader.rawinput
+        df = df.set_index(loader.index_column)
+        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+        # remove Intensity so only sample names remain
+        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
+        df.columns = df.columns.str.replace(substring_to_remove, "")
+        sample_names = df.columns.to_list()
+
+    else:
+        sample_names = loader.intensity_column
+
+    return sample_names
 
 
 def show_button_download_metadata_template_file(loader: BaseLoader) -> None:
