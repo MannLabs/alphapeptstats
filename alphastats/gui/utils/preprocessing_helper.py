@@ -239,17 +239,16 @@ def run_preprocessing(
 
 
 def reset_preprocessing():
-    if st.button("Reset all Preprocessing steps"):
-        st.session_state.dataset.create_matrix()
-        preprocessing = st.session_state.dataset.preprocessing_info
-        st.info(
-            "Data has been reset. "
-            + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        )
-        st.dataframe(
-            pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
-            use_container_width=True,
-        )
+    st.session_state.dataset.create_matrix()
+    preprocessing = st.session_state.dataset.preprocessing_info
+    st.info(
+        "Data has been reset. "
+        + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    )
+    st.dataframe(
+        pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
+        use_container_width=True,
+    )
 
 
 def plot_intensity_distribution():

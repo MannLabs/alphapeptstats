@@ -72,6 +72,7 @@ with c1:
                 )
 
         with c12:
-            reset_preprocessing()
+            if st.button("Reset all Preprocessing steps"):
+                reset_preprocessing()
 
 # TODO: Add comparison plot of indensity distribution before and after preprocessing
