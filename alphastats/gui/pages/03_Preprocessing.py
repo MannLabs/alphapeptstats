@@ -15,7 +15,7 @@ from alphastats.gui.utils.ui_helper import sidebar_info
 sidebar_info()
 
 if "workflow" not in st.session_state:
-    st.session_state.workflow = [
+    st.session_state['workflow'] = [
         "remove contaminations",
         "subset data",
         "log2 transform",
