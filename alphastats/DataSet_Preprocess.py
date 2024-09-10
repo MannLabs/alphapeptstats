@@ -328,6 +328,12 @@ class Preprocess:
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
             subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
         """
+        for k in kwargs.keys():
+            if k not in [
+                "batch",
+            ]:
+                raise ValueError(f"Invalid keyword argument: {k}")
+
         if remove_contaminations:
             self._filter()
 
