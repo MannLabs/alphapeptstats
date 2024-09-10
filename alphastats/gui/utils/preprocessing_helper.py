@@ -42,9 +42,7 @@ CYTOSCAPE_STYLESHEET = [
     },
 ]
 
-def draw_predefined_workflow(
-    workflow=["remove contaminations", "subset data", "log2 transform"],
-):
+def draw_predefined_workflow(workflow: list[str]):
     available_steps = [
         "remove contaminations",
         "remove samples",
@@ -65,14 +63,14 @@ def draw_predefined_workflow(
             },
             "selectable": True,
             "classes": ["active"]
-            if label in st.session_state.workflow
+            if label in workflow
             else ["inactive"],
         }
         for i, label in enumerate(available_steps)
     ]
 
     for label1, label2 in zip(
-        st.session_state.workflow[:-1], st.session_state.workflow[1:]
+        workflow[:-1], workflow[1:]
     ):
         i = available_steps.index(label1)
         j = available_steps.index(label2)
