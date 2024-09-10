@@ -126,7 +126,7 @@ def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
     return selected
 
 
-def configure_preprocessing(dataset=None):
+def configure_preprocessing(dataset):
     st.markdown(
         "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
         + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats "
@@ -134,7 +134,7 @@ def configure_preprocessing(dataset=None):
     )
 
     remove_contaminations = st.selectbox(
-        f"Remove contaminations annotated in {'contaminations library' if dataset is None else dataset.filter_columns}",
+        f"Remove contaminations annotated in {dataset.filter_columns}",
         options=[True, False],
     )
 
@@ -143,13 +143,10 @@ def configure_preprocessing(dataset=None):
         options=[True, False],
     )
 
+    # TODO: value of this widget does not persist across dataset reset (likely because the metadata is reset)
     remove_samples = st.multiselect(
         "Remove samples from analysis",
-        options=[]
-        if dataset is None
-        else dataset.metadata[
-            dataset.sample
-        ].to_list(),
+        options=dataset.metadata[dataset.sample].to_list(),
     )
 
     data_completeness = st.number_input(
@@ -175,9 +172,7 @@ def configure_preprocessing(dataset=None):
 
     batch = st.selectbox(
         "Batch",
-        options=[False]
-        if dataset is None
-        else [False] + dataset.metadata.columns.to_list(),
+        options=[False] + dataset.metadata.columns.to_list(),
     )
 
     return {
