@@ -284,6 +284,7 @@ class Preprocess:
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        **kwargs,
     ):
         """Preprocess Protein data
 

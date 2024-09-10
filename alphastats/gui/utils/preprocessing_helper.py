@@ -53,11 +53,11 @@ WORKFLOW_STEPS = {
         'repr': 'Remove samples',
         'help': 'Remove samples from analysis, e.g. useful when failed or blank runs are included.'
     },
-    'subset_data': {
+    'subset': {
         'repr': 'Subset data',
         'help': 'Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.'
     },
-    'filter_data_completeness': {
+    'data_completeness': {
         'repr': 'Filter data completeness',
         'help': 'Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.'
     },
@@ -73,13 +73,13 @@ WORKFLOW_STEPS = {
         'repr': 'Imputation',
         'help': 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").'
     },
-    'batch_correction': {
+    'batch': {
         'repr': 'Batch correction',
         'help': 'Batch correction.'
     },
 }
 
-PREDEFINED_ORDER = ["remove_contaminations", "remove_samples", "subset_data", "filter_data_completeness", "log2_transform", "normalization", "imputation", "batch_correction"]
+PREDEFINED_ORDER = ["remove_contaminations", "remove_samples", "subset", "data_completeness", "log2_transform", "normalization", "imputation", "batch"]
 
 def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
 
@@ -126,7 +126,7 @@ def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
     return selected
 
 
-def configure_preprocessing():
+def configure_preprocessing(dataset=None):
     st.markdown(
         "Before analyzing your data, consider normalizing and imputing your data as well as the removal of contaminants. "
         + "A more detailed description about the preprocessing methods can be found in the AlphaPeptStats "
@@ -134,7 +134,7 @@ def configure_preprocessing():
     )
 
     remove_contaminations = st.selectbox(
-        f"Remove contaminations annotated in {'contaminations library' if 'dataset' not in st.session_state else st.session_state.dataset.filter_columns}",
+        f"Remove contaminations annotated in {'contaminations library' if dataset is None else dataset.filter_columns}",
         options=[True, False],
     )
 
@@ -146,9 +146,9 @@ def configure_preprocessing():
     remove_samples = st.multiselect(
         "Remove samples from analysis",
         options=[]
-        if "dataset" not in st.session_state
-        else st.session_state.dataset.metadata[
-            st.session_state.dataset.sample
+        if dataset is None
+        else dataset.metadata[
+            dataset.sample
         ].to_list(),
     )
 
@@ -173,11 +173,11 @@ def configure_preprocessing():
         "Imputation", options=[None, "mean", "median", "knn", "randomforest"]
     )
 
-    batch_correction = st.selectbox(
+    batch = st.selectbox(
         "Batch",
         options=[False]
-        if "dataset" not in st.session_state
-        else [False] + st.session_state.dataset.metadata.columns.to_list(),
+        if dataset is None
+        else [False] + dataset.metadata.columns.to_list(),
     )
 
     return {
@@ -188,71 +188,27 @@ def configure_preprocessing():
         'log2_transform': log2_transform,
         'normalization': normalization,
         'imputation': imputation,
-        'batch_correction': batch_correction,
+        'batch': batch,
     }
 
 
 def update_workflow(
-    remove_contaminations,
-    remove_samples,
-    subset,
-    data_completeness,
-    log2_transform,
-    normalization,
-    imputation,
-    batch_correction,
-    **kwargs
+    settings: dict,
 ):
-    old_workflow = st.session_state.workflow
-    st.session_state.workflow = [
-        el
-        for el, setting in zip(
-            [
-                "remove_contaminations",
-                "remove_samples",
-                "subset_data",
-                "filter_data_completeness",
-                "log2_transform",
-                "normalization",
-                "imputation",
-                "batch_correction",
-            ],
-            [
-                remove_contaminations,
-                remove_samples,
-                subset,
-                data_completeness,
-                log2_transform,
-                normalization,
-                imputation,
-                batch_correction,
-            ],
-        )
+    new_workflow = [
+        key
+        for key, setting in settings.items()
         if setting not in [None, False, [], 0.0]
     ]
-    if old_workflow != st.session_state.workflow:
-        st.rerun()
+    return new_workflow
 
 
 def run_preprocessing(
-    remove_contaminations,
-    remove_samples,
-    subset,
-    data_completeness,
-    log2_transform,
-    normalization,
-    imputation,
-    batch_correction,
+    settings,
 ):
-    st.session_state.dataset.preprocess(
-        remove_contaminations=remove_contaminations,
-        log2_transform=log2_transform,
-        remove_samples=remove_samples if len(remove_samples) != 0 else None,
-        data_completeness=data_completeness,
-        subset=subset,
-        normalization=normalization,
-        imputation=imputation,
-    )
+    settings['remove_samples'] = settings['remove_samples'] if len(settings['remove_samples']) != 0 else None
+    st.session_state.dataset.preprocess(**settings)
+
     preprocessing = st.session_state.dataset.preprocessing_info
     st.info(
         "Data has been processed. "
@@ -262,11 +218,12 @@ def run_preprocessing(
         pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
         use_container_width=True,
     )
-    if batch_correction:
-        st.session_state.dataset.batch_correction(batch=batch_correction)
+    if settings['batch']:
+        st.session_state.dataset.batch_correction(batch=settings['batch'])
 
 
 def reset_preprocessing():
+    # TODO: check if the method names make sense
     st.session_state.dataset.create_matrix()
     preprocessing = st.session_state.dataset.preprocessing_info
     st.info(

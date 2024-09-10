@@ -25,9 +25,13 @@ st.markdown("### Preprocessing")
 c1, c2 = st.columns([1, 1])
 
 with c2:
-    settings = configure_preprocessing()
+    settings = configure_preprocessing(dataset=st.session_state['dataset'])
 
-    update_workflow(**settings)
+    new_workflow = update_workflow(settings)
+
+    if new_workflow != st.session_state.workflow:
+        st.session_state.workflow = new_workflow
+        st.rerun()
 
 with c1:
     st.write("#### Flowchart of currently selected workflow:")
@@ -42,7 +46,7 @@ with c1:
 
         with c11:
             if st.button("Run preprocessing"):
-                run_preprocessing(**settings)
+                run_preprocessing(settings)
 
         with c12:
             if st.button("Reset all Preprocessing steps"):
