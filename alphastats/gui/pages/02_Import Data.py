@@ -1,76 +1,141 @@
 import streamlit as st
-import os
-import io
 
-try:
-    from alphastats.gui.utils.import_helper import (
-        import_data,
-        save_plot_sampledistribution_rawdata,
-        display_loaded_dataset,
-        load_sample_data,
-        empty_session_state,
-    )
-    from alphastats.gui.utils.ui_helper import sidebar_info
+from alphastats import DataSet
+from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
-except ModuleNotFoundError:
-    from utils.ui_helper import sidebar_info
-    from utils.import_helper import (
-        import_data,
-        save_plot_sampledistribution_rawdata,
-        display_loaded_dataset,
-        load_sample_data,
-        empty_session_state,
-    )
+from alphastats.gui.utils.import_helper import (
+    save_plot_sampledistribution_rawdata,
+    load_example_data,
+    empty_session_state,
+    load_softwarefile_df,
+    show_metadata_file_uploader,
+    show_loader_columns_selection,
+    load_proteomics_data,
+    load_options,
+    show_select_sample_column_for_metadata,
+    init_session_state,
+)
+from alphastats.gui.utils.ui_helper import sidebar_info
 
-from streamlit.runtime import get_instance
-from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
-
-runtime = get_instance()
-session_id = get_script_run_ctx().session_id
-# session_info = runtime._session_mgr.get_session_info(session_id)
-# TODO: remove this line at some point if we really don't need it
-
-user_session_id = session_id
-st.session_state["user_session_id"] = user_session_id
-
-if "loader" not in st.session_state:
-    st.session_state["loader"] = None
-
-if "gene_to_prot_id" not in st.session_state:
-    st.session_state["gene_to_prot_id"] = {}
-
-if "organism" not in st.session_state:
-    st.session_state["organism"] = 9606  # human
+init_session_state()
 
 sidebar_info()
 
-if "dataset" not in st.session_state:
-    st.markdown("### Import Proteomics Data")
+st.markdown("### Start a new session")
+st.write(
+    "Start a new session will discard the current one (including all analysis!) and enable importing a new dataset."
+)
+st.write("To explore AlphaPeptStats you may also load an example dataset.")
 
-    st.markdown(
-        "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
-    )
-
-import_data()
-
-if "dataset" in st.session_state:
-    st.info("DataSet has been imported")
-
-    if "distribution_plot" not in st.session_state:
-        save_plot_sampledistribution_rawdata()
-
-    display_loaded_dataset()
-
-st.markdown("### Or Load sample Dataset")
-
-if st.button("Load sample DataSet - PXD011839", key="load_sample_data"):
-    load_sample_data()
-    if "distribution_plot" not in st.session_state:
-        save_plot_sampledistribution_rawdata()
-
-
-st.markdown("### To start a new session:")
-
-if st.button("New Session: Import new dataset"):
+c1, c2 = st.columns(2)
+if c1.button("Start new Session"):
     empty_session_state()
     st.rerun()
+
+if c2.button("Start new Session with example DataSet"):
+    empty_session_state()
+    init_session_state()
+    loader, metadata_columns, dataset = load_example_data()
+
+    st.session_state["dataset"] = dataset
+    st.session_state["metadata_columns"] = metadata_columns
+    st.session_state["loader"] = loader
+    load_options()
+    # TODO why are we doing this so early?
+    save_plot_sampledistribution_rawdata(dataset)
+    sidebar_info()
+    st.stop()
+
+
+st.markdown("### Import Proteomics Data")
+if "dataset" in st.session_state:
+    st.info(f"DataSet already present: {st.session_state['dataset']}")
+    st.stop()
+
+
+st.markdown(
+    "Create a DataSet with the output of your proteomics software package and the corresponding metadata (optional). "
+)
+
+# ########## Select Software
+st.markdown("##### 1. Select software and upload data")
+
+default_select_option = "<select>"
+options = [default_select_option] + list(SOFTWARE_OPTIONS.keys())
+
+software = st.selectbox(
+    "Select your Proteomics Software",
+    options=options,
+)
+if software == default_select_option:
+    st.stop()
+
+
+# ########## Load Software File
+
+softwarefile = st.file_uploader(
+    SOFTWARE_OPTIONS.get(software).get("import_file"),
+    type=["csv", "tsv", "txt", "hdf"],
+)
+
+if softwarefile is None:
+    st.stop()
+
+softwarefile_df = load_softwarefile_df(software, softwarefile)
+
+intensity_column, index_column = show_loader_columns_selection(
+    software=software, softwarefile_df=softwarefile_df
+)
+
+loader = load_proteomics_data(
+    softwarefile_df,
+    intensity_column=intensity_column,
+    index_column=index_column,
+    software=software,
+)
+
+
+# ##########  Load Metadata File
+st.markdown("##### 3. Prepare Metadata (optional)")
+sample_column = None
+metadatafile_df = show_metadata_file_uploader(loader)
+if metadatafile_df is not None:
+    sample_column = show_select_sample_column_for_metadata(
+        metadatafile_df, software, loader
+    )
+
+
+# ##########  Create dataset
+st.markdown("##### 4. Create DataSet")
+
+dataset = None
+metadata_columns = []
+c1, c2 = st.columns(2)
+
+if c2.button("Create DataSet without metadata"):
+    dataset = DataSet(loader=loader)
+    metadata_columns = ["sample"]
+
+if c1.button("Create DataSet with metadata", disabled=metadatafile_df is None):
+    if len(metadatafile_df[sample_column].to_list()) != len(
+        metadatafile_df[sample_column].unique()
+    ):
+        raise ValueError("Sample names have to be unique.")
+
+    dataset = DataSet(
+        loader=loader,
+        metadata_path=metadatafile_df,
+        sample_column=sample_column,
+    )
+    metadata_columns = metadatafile_df.columns.to_list()
+
+if dataset is not None:
+    st.info("DataSet has been created.")
+    st.session_state["dataset"] = dataset
+    st.session_state["metadata_columns"] = metadata_columns
+    st.session_state["loader"] = loader
+    load_options()
+
+    # TODO why are we doing this so early?
+    save_plot_sampledistribution_rawdata(dataset)
+    sidebar_info()

@@ -1,18 +1,22 @@
+from typing import Optional, Tuple
+
 import streamlit as st
 import pandas as pd
 import os
 import io
 
 import plotly.express as px
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 try:
     from alphastats.DataSet import DataSet
     from alphastats.gui.utils.analysis_helper import (
         get_sample_names_from_software_file,
-        read_uploaded_file_into_df,
+        _read_file_to_df,
     )
     from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-    from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+    from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
+    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 except ModuleNotFoundError:
     from utils.analysis_helper import (
@@ -20,11 +24,13 @@ except ModuleNotFoundError:
         read_uploaded_file_into_df,
     )
     from utils.options import SOFTWARE_OPTIONS
-    from alphastats import MaxQuantLoader
+    from alphastats import MaxQuantLoader, BaseLoader
     from alphastats import DataSet
+    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 
 def load_options():
+    # TODO move import to top
     from alphastats.gui.utils.options import plotting_options, statistic_options
 
     st.session_state["plotting_options"] = plotting_options(st.session_state)
@@ -32,95 +38,66 @@ def load_options():
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
-    """load software file into loader object from alphastats"""
+    """Load software file into loader object."""
     loader = SOFTWARE_OPTIONS.get(software)["loader_function"](
         uploaded_file, intensity_column, index_column
     )
     return loader
 
 
-def upload_softwarefile(software):
-    softwarefile = st.file_uploader(
-        SOFTWARE_OPTIONS.get(software).get("import_file"),
-        type=["csv", "tsv", "txt", "hdf"],
+def load_softwarefile_df(software: str, softwarefile: UploadedFile) -> pd.DataFrame:
+    """Load software file into pandas DataFrame.
+
+    TODO rename: softwarefile -> data_file
+    """
+    softwarefile_df = _read_file_to_df(softwarefile)
+
+    _check_softwarefile_df(softwarefile_df, software)
+
+    st.write(
+        f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
+        f", Number of columns: {softwarefile_df.shape[1]}."
     )
 
-    if softwarefile is not None:
-        softwarefile_df = read_uploaded_file_into_df(softwarefile)
-        # display head a protein data
+    st.write("Preview:")
+    st.dataframe(softwarefile_df.head(5))
 
-        check_software_file(softwarefile_df, software)
-
-        st.write(
-            f"File successfully uploaded. Number of rows: {softwarefile_df.shape[0]}"
-            f", Number of columns: {softwarefile_df.shape[1]}.\nPreview:"
-        )
-        st.dataframe(softwarefile_df.head(5))
-
-        select_columns_for_loaders(software=software, software_df=softwarefile_df)
-
-        if (
-            "intensity_column" in st.session_state
-            and "index_column" in st.session_state
-        ):
-            loader = load_proteomics_data(
-                softwarefile_df,
-                intensity_column=st.session_state.intensity_column,
-                index_column=st.session_state.index_column,
-                software=software,
-            )
-            st.session_state["loader"] = loader
+    return softwarefile_df
 
 
-def upload_metadatafile(software):
-    st.write("\n\n")
-    st.markdown("### 3. Prepare Metadata.")
+def show_metadata_file_uploader(loader: BaseLoader) -> Optional[pd.DataFrame]:
+    """Show the 'upload metadata file' component and return the data."""
+    st.write(
+        "Download the template file and add additional information "
+        + "to your samples as columns (e.g. 'disease group'). "
+        + "Then upload the updated metadata file."
+    )
+    show_button_download_metadata_template_file(loader)
+
     metadatafile_upload = st.file_uploader(
-        "Upload metadata file. with information about your samples",
-        key="metadatafile",
+        "Upload metadata file with information about your samples",
     )
 
-    if metadatafile_upload is not None and st.session_state.loader is not None:
-        metadatafile_df = read_uploaded_file_into_df(st.session_state.metadatafile)
-        # display metadata
-        st.write(
-            f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
-            f", Number of columns: {metadatafile_df.shape[1]}. \nPreview:"
-        )
-        st.dataframe(metadatafile_df.head(5))
-        # pick sample column
+    if metadatafile_upload is None:
+        return None
 
-        if select_sample_column_metadata(metadatafile_df, software):
-            # create dataset
-            st.session_state["dataset"] = DataSet(
-                loader=st.session_state.loader,
-                metadata_path=metadatafile_df,
-                sample_column=st.session_state.sample_column,
-            )
-            st.session_state["metadata_columns"] = metadatafile_df.columns.to_list()
-            load_options()
+    metadatafile_df = _read_file_to_df(metadatafile_upload)
+    st.write(
+        f"File successfully uploaded. Number of rows: {metadatafile_df.shape[0]}"
+        f", Number of columns: {metadatafile_df.shape[1]}."
+    )
+    st.write("Preview:")
+    st.dataframe(metadatafile_df.head(5))
 
-    if st.session_state.loader is not None:
-        create_metadata_file()
-        st.write(
-            "Download the template file and add additional information as "
-            + "columns to your samples such as disease group. "
-            + "Upload the updated metadata file."
-        )
-
-    if st.session_state.loader is not None:
-        if st.button("Create a DataSet without metadata"):
-            st.session_state["dataset"] = DataSet(loader=st.session_state.loader)
-            st.session_state["metadata_columns"] = ["sample"]
-
-            load_options()
+    return metadatafile_df
 
 
-def load_sample_data():
+def load_example_data():
+    st.markdown("### Using Example Dataset")
+    st.info("Example dataset and metadata loaded")
     st.write(
         """
-
-    ### Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease
+    _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_
 
     **Description**
 
@@ -151,7 +128,8 @@ def load_sample_data():
     metadatapath = os.path.join(folder_to_load, "metadata.xlsx")
 
     loader = MaxQuantLoader(file=filepath)
-    ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+    # TODO why is this done twice?
+    dataset = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
     metadatapath = (
         os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
         .replace("pages/", "")
@@ -159,9 +137,9 @@ def load_sample_data():
     )
 
     loader = MaxQuantLoader(file=filepath)
-    ds = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+    dataset = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
 
-    ds.metadata = ds.metadata[
+    dataset.metadata = dataset.metadata[
         [
             "sample",
             "disease",
@@ -169,60 +147,37 @@ def load_sample_data():
             "Lipid-lowering therapy (134350008)",
         ]
     ]
-    ds.preprocess(subset=True)
-    st.session_state["loader"] = loader
-    st.session_state["metadata_columns"] = ds.metadata.columns.to_list()
-    st.session_state["dataset"] = ds
-
-    load_options()
+    dataset.preprocess(subset=True)
+    metadata_columns = dataset.metadata.columns.to_list()
+    return loader, metadata_columns, dataset
 
 
-def import_data():
-    options = ["<select>"] + list(SOFTWARE_OPTIONS.keys())
-
-    st.selectbox(
-        "Select your Proteomics Software",
-        options=options,
-        key="software",
-    )
-
-    if st.session_state.software != "<select>":
-        upload_softwarefile(software=st.session_state.software)
-    if "loader" not in st.session_state:
-        st.session_state["loader"] = None
-    if st.session_state.loader is not None:
-        upload_metadatafile(st.session_state.software)
-
-
-def display_loaded_dataset():
-    st.info("Data was successfully imported")
-    st.info("DataSet has been created")
-
-    st.markdown(f"*Preview:* Raw data from {st.session_state.dataset.software}")
-    st.dataframe(st.session_state.dataset.rawinput.head(5))
+def display_loaded_dataset(dataset: DataSet) -> None:
+    st.markdown(f"*Preview:* Raw data from {dataset.software}")
+    st.dataframe(dataset.rawinput.head(5))
 
     st.markdown("*Preview:* Metadata")
-    st.dataframe(st.session_state.dataset.metadata.head(5))
+    st.dataframe(dataset.metadata.head(5))
 
     st.markdown("*Preview:* Matrix")
 
     df = pd.DataFrame(
-        st.session_state.dataset.mat.values,
-        index=st.session_state.dataset.mat.index.to_list(),
+        dataset.mat.values,
+        index=dataset.mat.index.to_list(),
     ).head(5)
 
     st.dataframe(df)
 
 
-def save_plot_sampledistribution_rawdata():
-    df = st.session_state.dataset.rawmat
+def save_plot_sampledistribution_rawdata(dataset: DataSet) -> None:
+    df = dataset.rawmat
     df = df.unstack().reset_index()
     df.rename(
-        columns={"level_1": st.session_state.dataset.sample, 0: "Intensity"},
+        columns={"level_1": dataset.sample, 0: "Intensity"},
         inplace=True,
     )
     st.session_state["distribution_plot"] = px.violin(
-        df, x=st.session_state.dataset.sample, y="Intensity"
+        df, x=dataset.sample, y="Intensity"
     )
 
 
@@ -233,31 +188,36 @@ def empty_session_state():
     for key in st.session_state.keys():
         del st.session_state[key]
     st.empty()
-    st.session_state["software"] = "<select>"
-
-    from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
-
-    user_session_id = get_script_run_ctx().session_id
-    st.session_state["user_session_id"] = user_session_id
 
 
-def check_software_file(df, software):
-    """
-    check if software files are in right format
-    can be fragile when different settings are used or software is updated
+def init_session_state() -> None:
+    """Initialize the session state."""
+    st.session_state["user_session_id"] = get_script_run_ctx().session_id
+
+    if "gene_to_prot_id" not in st.session_state:
+        st.session_state["gene_to_prot_id"] = {}
+
+    if "organism" not in st.session_state:
+        st.session_state["organism"] = 9606  # human
+
+
+def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
+    """Check if the dataframe containing the software file is in right format.
+
+    Can be fragile when different settings are used or software is updated.
     """
 
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error(
-                "This is not a valid MaxQuant file. Please check:"
+            raise ValueError(
+                "This is not a valid MaxQuant file. Please check: "
                 "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
 
     elif software == "AlphaPept":
         if "object" in df.iloc[:, 1:].dtypes.to_list():
-            st.error("This is not a valid AlphaPept file.")
+            raise ValueError("This is not a valid AlphaPept file.")
 
     elif software == "DIANN":
         expected_columns = [
@@ -265,7 +225,7 @@ def check_software_file(df, software):
         ]
 
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error("This is not a valid DIA-NN file.")
+            raise ValueError("This is not a valid DIA-NN file.")
 
     elif software == "Spectronaut":
         expected_columns = [
@@ -273,103 +233,96 @@ def check_software_file(df, software):
         ]
 
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error("This is not a valid Spectronaut file.")
+            raise ValueError("This is not a valid Spectronaut file.")
 
     elif software == "FragPipe":
         expected_columns = ["Protein"]
         if not set(expected_columns).issubset(set(df.columns.to_list())):
-            st.error(
+            raise ValueError(
                 "This is not a valid FragPipe file. Please check:"
                 "https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv"
             )
 
 
-def select_columns_for_loaders(software, software_df: None):
+def show_loader_columns_selection(
+    software: str, softwarefile_df: Optional[pd.DataFrame] = None
+) -> Tuple[str, str]:
     """
     select intensity and index column depending on software
     will be saved in session state
     """
     st.write("\n\n")
-    st.markdown("### 2. Select columns used for further analysis.")
-    st.markdown("Select intensity columns for further analysis")
+    st.markdown("##### 2. Select columns used for analysis")
+    st.markdown("Select intensity columns for analysis")
 
     if software != "Other":
-        st.selectbox(
+        intensity_column = st.selectbox(
             "Intensity Column",
             options=SOFTWARE_OPTIONS.get(software).get("intensity_column"),
-            key="intensity_column",
         )
 
-        st.markdown("Select index column (with ProteinGroups) for further analysis")
+        st.markdown("Select index column (with ProteinGroups) for analysis")
 
-        st.selectbox(
+        index_column = st.selectbox(
             "Index Column",
             options=SOFTWARE_OPTIONS.get(software).get("index_column"),
-            key="index_column",
         )
 
     else:
-        st.multiselect(
+        intensity_column = st.multiselect(
             "Intensity Columns",
-            options=software_df.columns.to_list(),
-            key="intensity_column",
-        )
+            options=softwarefile_df.columns.to_list(),
+        )  # TODO why is this a multiselect?
 
         st.markdown("Select index column (with ProteinGroups) for further analysis")
 
-        st.selectbox(
+        index_column = st.selectbox(
             "Index Column",
-            options=software_df.columns.to_list(),
-            key="index_column",
+            options=softwarefile_df.columns.to_list(),
         )
 
+    return intensity_column, index_column
 
-def select_sample_column_metadata(df, software):
-    samples_proteomics_data = get_sample_names_from_software_file()
-    valid_sample_columns = []
 
-    for col in df.columns.to_list():
-        if bool(set(samples_proteomics_data) & set(df[col].to_list())):
-            valid_sample_columns.append(col)
+def show_select_sample_column_for_metadata(
+    df: pd.DataFrame, software: str, loader: BaseLoader
+) -> str:
+    """Show the 'select sample column for metadata' component and return the value."""
+    samples_proteomics_data = get_sample_names_from_software_file(loader)
+
+    valid_sample_columns = [
+        col
+        for col in df.columns.to_list()
+        if bool(set(samples_proteomics_data) & set(df[col].to_list()))
+    ]
 
     if len(valid_sample_columns) == 0:
-        st.error(
+        raise ValueError(
             f"Metadata does not match Proteomics data."
             f"Information for the samples: {samples_proteomics_data} is required."
         )
 
+    # TODO I get an ERROR: "described in Please upload proteinGroups.txt"
     st.write(
         "Select column that contains sample IDs matching the sample names described "
         + f"in {SOFTWARE_OPTIONS.get(software).get('import_file')}"
     )
 
-    with st.form("sample_column"):
-        st.selectbox("Sample Column", options=valid_sample_columns, key="sample_column")
-        submitted = st.form_submit_button("Create DataSet")
-
-    if submitted:
-        if len(df[st.session_state.sample_column].to_list()) != len(
-            df[st.session_state.sample_column].unique()
-        ):
-            st.error("Sample names have to be unique.")
-            st.stop()
-        return True
+    return st.selectbox("Sample Column", options=valid_sample_columns)
 
 
-def create_metadata_file():
-    dataset = DataSet(loader=st.session_state.loader)
-    st.session_state["metadata_columns"] = ["sample"]
-    metadata = dataset.metadata
+def show_button_download_metadata_template_file(loader: BaseLoader) -> None:
+    """Show the 'download metadata template' button."""
+    dataset = DataSet(loader=loader)
     buffer = io.BytesIO()
 
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         # Write each dataframe to a different worksheet.
-        metadata.to_excel(writer, sheet_name="Sheet1", index=False)
-        # Close the Pandas Excel writer and output the Excel file to the buffer
-        writer.close()
-        st.download_button(
-            label="Download metadata template as Excel",
-            data=buffer,
-            file_name="metadata.xlsx",
-            mime="application/vnd.ms-excel",
-        )
+        dataset.metadata.to_excel(writer, sheet_name="Sheet1", index=False)
+
+    st.download_button(
+        label="Download Excel template for metadata",
+        data=buffer,
+        file_name="metadata.xlsx",
+        mime="application/vnd.ms-excel",
+    )

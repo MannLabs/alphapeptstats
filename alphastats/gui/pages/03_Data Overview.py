@@ -1,6 +1,8 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
+
+from alphastats.gui.utils.import_helper import (
+    display_loaded_dataset,
+)
 
 try:
     from alphastats.gui.utils.overview_helper import (
@@ -23,6 +25,10 @@ except ModuleNotFoundError:
 sidebar_info()
 
 if "dataset" in st.session_state:
+    st.markdown("### DataSet Info")
+
+    display_loaded_dataset(st.session_state["dataset"])
+
     st.markdown("## DataSet overview")
 
     c1, c2 = st.columns(2)
@@ -30,7 +36,7 @@ if "dataset" in st.session_state:
     with c1:
         st.markdown("**Intensity distribution raw data per sample**")
         st.plotly_chart(
-            st.session_state.distribution_plot.update_layout(plot_bgcolor="white"),
+            st.session_state["distribution_plot"].update_layout(plot_bgcolor="white"),
             use_container_width=True,
         )
 
