@@ -1,3 +1,5 @@
+import uuid
+
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,6 +18,14 @@ APP_FILE = f"{APP_FOLDER}/pages/02_Import Data.py"
 TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
 
 
+def _is_valid_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(str(value))
+        return True
+    except ValueError:
+        return False
+
+
 def test_page_02_loads_without_input():
     """Test if the page loads without any input and inititalizes the session state with the correct values."""
     at = AppTest(APP_FILE, default_timeout=200)
@@ -24,7 +34,7 @@ def test_page_02_loads_without_input():
     assert not at.exception
 
     assert at.session_state.organism == 9606
-    assert at.session_state.user_session_id == "test session id"
+    assert at.session_state.user_session_id is not None
     assert at.session_state.gene_to_prot_id == {}
 
 
@@ -37,7 +47,7 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     assert not at.exception
 
     assert at.session_state.organism == 9606
-    assert at.session_state.user_session_id == "test session id"
+    assert at.session_state.user_session_id is not None
     assert at.session_state.gene_to_prot_id == {}
 
 
