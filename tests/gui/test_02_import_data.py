@@ -1,5 +1,3 @@
-import uuid
-
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -14,16 +12,14 @@ def print_session_state(apptest: AppTest):
 
 
 APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
-START_PAGE = f"{APP_FOLDER}/AlphaPeptStats.py"
 TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
 TEST_INPUT_FILES_PATH = APP_FOLDER / "../../testfiles"
 
 
 def test_page_02_loads_without_input():
     """Test if the page loads without any input and inititalizes the session state with the correct values."""
-    at = AppTest(START_PAGE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
-    at.switch_page(TESTED_PAGE).run()
 
     assert not at.exception
 
@@ -35,9 +31,8 @@ def test_page_02_loads_without_input():
 @patch("streamlit.file_uploader")
 def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     """Test if the page loads without any input and inititalizes the session state with the correct value when the file_uploader is patched."""
-    at = AppTest(START_PAGE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
-    at.switch_page(TESTED_PAGE).run()
 
     assert not at.exception
 
@@ -46,13 +41,13 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     assert at.session_state.gene_to_prot_id == {}
 
 
-def test_page_02_loads_example_data():
+@patch(
+    "streamlit.page_link"
+)  # page link is mocked to avoid errors with the relative paths
+def test_page_02_loads_example_data(mock_page_link: MagicMock):
     """Test if the page loads the example data and has the correct session state afterwards."""
-    at = AppTest(START_PAGE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
-    at.switch_page(
-        TESTED_PAGE
-    ).run()  # need to switch page to avoid troubles with st.page_link
 
     # User clicks Load Sample Data button
     at.button(key="_load_example_data").click().run()
@@ -95,7 +90,12 @@ def _metadata_buf(file_path: str, at: AppTest):
 
 
 @patch("streamlit.file_uploader")
-def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
+@patch(
+    "streamlit.page_link"
+)  # page link is mocked to avoid errors with the relative paths
+def test_page_02_loads_maxquant_testfiles(
+    mock_page_link: MagicMock, mock_file_uploader: MagicMock
+):
     """Test if the page loads the MaxQuant testfiles and has the correct session state afterwards.
 
     No input to the dropdown menus is simulated, hence the default detected values are used.
@@ -105,9 +105,8 @@ def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
     DATA_FILE = "maxquant/proteinGroups.txt"
     METADATA_FILE = "maxquant/metadata.xlsx"
 
-    at = AppTest(START_PAGE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
-    at.switch_page(TESTED_PAGE).run()
 
     # User selects MaxQuant from the dropdown menu
     at.selectbox(key="_software").select("MaxQuant")
