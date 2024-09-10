@@ -5,6 +5,7 @@ import pandas as pd
 from alphastats.gui.utils.preprocessing_helper import (
     draw_workflow,
     configure_preprocessing,
+    display_preprocessing_info,
     update_workflow,
     run_preprocessing,
     reset_preprocessing,
@@ -49,10 +50,12 @@ with c1:
 
         with c11:
             if st.button("Run preprocessing"):
-                run_preprocessing(settings)
+                st.session_state["dataset"] = run_preprocessing(settings, st.session_state["dataset"])
+                display_preprocessing_info(st.session_state["dataset"].preprocessing_info)
 
         with c12:
             if st.button("Reset all Preprocessing steps"):
-                reset_preprocessing()
+                st.session_state["dataset"] = reset_preprocessing(st.session_state["dataset"])
+                display_preprocessing_info(st.session_state["dataset"].preprocessing_info)
 
 # TODO: Add comparison plot of indensity distribution before and after preprocessing

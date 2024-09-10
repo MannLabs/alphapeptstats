@@ -197,38 +197,45 @@ def update_workflow(
     return new_workflow
 
 
+# TODO: cache this
 def run_preprocessing(
     settings,
+    dataset
 ):
     settings["remove_samples"] = (
         settings["remove_samples"] if len(settings["remove_samples"]) != 0 else None
     )
-    st.session_state.dataset.preprocess(**settings)
-
-    preprocessing = st.session_state.dataset.preprocessing_info
+    dataset.preprocess(**settings)
     st.info(
         "Data has been processed. "
         + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     )
+
+    if settings["batch"]:
+        dataset.batch_correction(batch=settings["batch"])
+        st.info(
+            "Data has been batch corrected. "
+            + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        )
+    
+    return dataset
+
+
+def display_preprocessing_info(preprocessing_info):
     st.dataframe(
-        pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
+        pd.DataFrame.from_dict(preprocessing_info, orient="index").astype(str),
         use_container_width=True,
     )
-    if settings["batch"]:
-        st.session_state.dataset.batch_correction(batch=settings["batch"])
 
 
-def reset_preprocessing():
+# TODO: cache this
+def reset_preprocessing(dataset):
     # TODO: check if the method names make sense
-    st.session_state.dataset.create_matrix()
-    preprocessing = st.session_state.dataset.preprocessing_info
+    dataset.create_matrix()
     st.info(
         "Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     )
-    st.dataframe(
-        pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
-        use_container_width=True,
-    )
+    return dataset
 
 
 def plot_intensity_distribution():
