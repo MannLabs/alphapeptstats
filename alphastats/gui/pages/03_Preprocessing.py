@@ -22,67 +22,56 @@ if "workflow" not in st.session_state:
     ]
 
 st.markdown("### Preprocessing")
-st.markdown(
-    "Select either the predefined workflow where you can only enable/disable steps or create a custom workflow, that allows switching steps around."
-)
+c1, c2 = st.columns([1, 1])
 
+with c2:
+    (
+        remove_contaminations,
+        remove_samples,
+        subset,
+        data_completeness,
+        log2_transform,
+        normalization,
+        imputation,
+        batch,
+    ) = configure_preprocessing()
 
-tab1, tab2 = st.tabs(["Predefined workflow", "Custom workflow"])
+    update_workflow(
+        remove_contaminations,
+        remove_samples,
+        subset,
+        data_completeness,
+        log2_transform,
+        normalization,
+        imputation,
+        batch,
+    )
 
-with tab1:
-    c1, c2 = st.columns([1, 1])
+with c1:
+    st.write("### Flowchart of currenlty selected workflow:")
 
-    with c2:
-        (
-            remove_contaminations,
-            remove_samples,
-            subset,
-            data_completeness,
-            log2_transform,
-            normalization,
-            imputation,
-            batch,
-        ) = configure_preprocessing()
+    selected_nodes = draw_predefined_workflow(st.session_state.workflow)
 
-        update_workflow(
-            remove_contaminations,
-            remove_samples,
-            subset,
-            data_completeness,
-            log2_transform,
-            normalization,
-            imputation,
-            batch,
-        )
+    if "dataset" in st.session_state:
+        c11, c12 = st.columns([1, 1])
 
-    with c1:
-        st.write("### Flowchart of currenlty selected workflow:")
+        with c11:
+            if st.button("Run preprocessing"):
+                run_preprocessing(
+                    remove_contaminations,
+                    remove_samples,
+                    subset,
+                    data_completeness,
+                    log2_transform,
+                    normalization,
+                    imputation,
+                    batch,
+                )
 
-        selected_nodes = draw_predefined_workflow(st.session_state.workflow)
+        with c12:
+            reset_preprocessing()
 
-        if "dataset" in st.session_state:
-            c11, c12 = st.columns([1, 1])
+    else:
+        st.info("Import Data first")
 
-            with c11:
-                if st.button("Run preprocessing"):
-                    run_preprocessing(
-                        remove_contaminations,
-                        remove_samples,
-                        subset,
-                        data_completeness,
-                        log2_transform,
-                        normalization,
-                        imputation,
-                        batch,
-                    )
-
-            with c12:
-                reset_preprocessing()
-
-        else:
-            st.info("Import Data first")
-
-    # TODO: Add comparison plot of indensity distribution before and after preprocessing
-
-with tab2:
-    "Custom workflows coming soon"
+# TODO: Add comparison plot of indensity distribution before and after preprocessing
