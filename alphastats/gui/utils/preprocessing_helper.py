@@ -42,6 +42,7 @@ CYTOSCAPE_STYLESHEET = [
     },
 ]
 
+
 # TODO: Make help texts meaningful
 # TODO: Show help texts on the widgets
 class PREPROCESSING_STEPS:
@@ -68,7 +69,7 @@ class PREPROCESSING_STEPS:
     LOG2_TRANSFORM = {
         "key": "log2_transform",
         "repr": "Log2 transform",
-        "help": "Log2-transform dataset."
+        "help": "Log2-transform dataset.",
     }
     NORMALIZATION = {
         "key": "normalization",
@@ -86,6 +87,7 @@ class PREPROCESSING_STEPS:
         "help": "Batch correction.",
     }
 
+
 PREDEFINED_ORDER = [
     PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"],
     PREPROCESSING_STEPS.REMOVE_SAMPLES["key"],
@@ -99,10 +101,13 @@ PREDEFINED_ORDER = [
 
 
 def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
-
     def find_step_by_key_value(key, target_value):
         for _, attribute_value in PREPROCESSING_STEPS.__dict__.items():
-            if isinstance(attribute_value, dict) and key in attribute_value and attribute_value[key] == target_value:
+            if (
+                isinstance(attribute_value, dict)
+                and key in attribute_value
+                and attribute_value[key] == target_value
+            ):
                 return attribute_value
         return None
 
@@ -111,7 +116,7 @@ def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
             "group": "nodes",
             "data": {
                 "id": i,
-                "label": find_step_by_key_value('key', key)["repr"],
+                "label": find_step_by_key_value("key", key)["repr"],
                 "key": key,
             },
             "selectable": True,
@@ -219,10 +224,7 @@ def update_workflow(
 
 
 # TODO: cache this
-def run_preprocessing(
-    settings,
-    dataset
-):
+def run_preprocessing(settings, dataset):
     dataset.preprocess(**settings)
     st.info(
         "Data has been processed. "
