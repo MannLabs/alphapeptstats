@@ -42,38 +42,68 @@ CYTOSCAPE_STYLESHEET = [
     },
 ]
 
-def draw_predefined_workflow(workflow: list[str]):
-    available_steps = [
-        "remove contaminations",
-        "remove samples",
-        "subset data",
-        "filter data completeness",
-        "log2 transform",
-        "normalization",
-        "imputation",
-        "batch correction",
-    ]
+# TODO: Make help texts meaningful
+# TODO: Show help texts on the widgets
+WORKFLOW_STEPS = {
+    'remove_contaminations': {
+        'repr': 'Remove contaminations',
+        'help': 'Remove contaminations annotated in the contaminations library and filter columns included in the dataset.'
+    },
+    'remove_samples': {
+        'repr': 'Remove samples',
+        'help': 'Remove samples from analysis, e.g. useful when failed or blank runs are included.'
+    },
+    'subset_data': {
+        'repr': 'Subset data',
+        'help': 'Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.'
+    },
+    'filter_data_completeness': {
+        'repr': 'Filter data completeness',
+        'help': 'Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.'
+    },
+    'log2_transform': {
+        'repr': 'Log2 transform',
+        'help': 'Log2-transform dataset.'
+    },
+    'normalization': {
+        'repr': 'Normalization',
+        'help': 'Normalize data using one of the available methods ("zscore", "quantile", "vst", "linear").'
+    },
+    'imputation': {
+        'repr': 'Imputation',
+        'help': 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").'
+    },
+    'batch_correction': {
+        'repr': 'Batch correction',
+        'help': 'Batch correction.'
+    },
+}
+
+PREDEFINED_ORDER = ["remove_contaminations", "remove_samples", "subset_data", "filter_data_completeness", "log2_transform", "normalization", "imputation", "batch_correction"]
+
+def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
 
     elements = [
         {
             "group": "nodes",
             "data": {
                 "id": i,
-                "label": label,
+                "label": WORKFLOW_STEPS[key]["repr"],
+                "key": key,
             },
             "selectable": True,
             "classes": ["active"]
-            if label in workflow
+            if key in workflow
             else ["inactive"],
         }
-        for i, label in enumerate(available_steps)
+        for i, key in enumerate(order)
     ]
 
-    for label1, label2 in zip(
+    for key1, key2 in zip(
         workflow[:-1], workflow[1:]
     ):
-        i = available_steps.index(label1)
-        j = available_steps.index(label2)
+        i = order.index(key1)
+        j = order.index(key2)
         elements.append(
             {
                 "group": "edges",
@@ -89,7 +119,7 @@ def draw_predefined_workflow(workflow: list[str]):
         selection_type="single",
         user_panning_enabled=False,
         user_zooming_enabled=False,
-        height=f"{len(available_steps)*80}px",
+        height=f"{len(order)*80}px",
         key="predefined_workflow",
     )
 
@@ -175,16 +205,16 @@ def update_workflow(
     old_workflow = st.session_state.workflow
     st.session_state.workflow = [
         el
-        for el, form in zip(
+        for el, setting in zip(
             [
-                "remove contaminations",
-                "remove samples",
-                "subset data",
-                "filter data completeness",
-                "log2 transform",
+                "remove_contaminations",
+                "remove_samples",
+                "subset_data",
+                "filter_data_completeness",
+                "log2_transform",
                 "normalization",
                 "imputation",
-                "batch correction",
+                "batch_correction",
             ],
             [
                 remove_contaminations,
@@ -197,7 +227,7 @@ def update_workflow(
                 batch,
             ],
         )
-        if form not in [None, False, [], 0.0]
+        if setting not in [None, False, [], 0.0]
     ]
     if old_workflow != st.session_state.workflow:
         st.rerun()

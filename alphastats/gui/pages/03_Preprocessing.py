@@ -3,7 +3,7 @@ import pandas as pd
 
 
 from alphastats.gui.utils.preprocessing_helper import (
-    draw_predefined_workflow,
+    draw_workflow,
     configure_preprocessing,
     update_workflow,
     run_preprocessing,
@@ -50,7 +50,7 @@ with c2:
 with c1:
     st.write("#### Flowchart of currently selected workflow:")
 
-    selected_nodes = draw_predefined_workflow(st.session_state.workflow)
+    selected_nodes = draw_workflow(st.session_state.workflow)
 
     if "dataset" not in st.session_state:
         st.info("Import data first to run preprocessing")
