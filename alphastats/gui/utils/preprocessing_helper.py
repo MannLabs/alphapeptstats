@@ -104,7 +104,7 @@ def configure_preprocessing():
     )
 
     remove_contaminations = st.selectbox(
-        f"Remove contaminations annotated in {'contaminations lirbary' if 'dataset' not in st.session_state else st.session_state.dataset.filter_columns}",
+        f"Remove contaminations annotated in {'contaminations library' if 'dataset' not in st.session_state else st.session_state.dataset.filter_columns}",
         options=[True, False],
     )
 

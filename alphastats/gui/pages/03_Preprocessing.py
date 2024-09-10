@@ -48,7 +48,7 @@ with c2:
     )
 
 with c1:
-    st.write("### Flowchart of currenlty selected workflow:")
+    st.write("#### Flowchart of currently selected workflow:")
 
     selected_nodes = draw_predefined_workflow(st.session_state.workflow)
 
