@@ -193,7 +193,7 @@ def update_workflow(
     new_workflow = [
         key
         for key, setting in settings.items()
-        if setting not in [None, False, [], 0.0]
+        if bool(setting) # use of falsiness
     ]
     return new_workflow
 
