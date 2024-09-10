@@ -173,23 +173,23 @@ def configure_preprocessing():
         "Imputation", options=[None, "mean", "median", "knn", "randomforest"]
     )
 
-    batch = st.selectbox(
+    batch_correction = st.selectbox(
         "Batch",
         options=[False]
         if "dataset" not in st.session_state
         else [False] + st.session_state.dataset.metadata.columns.to_list(),
     )
 
-    return (
-        remove_contaminations,
-        remove_samples,
-        subset,
-        data_completeness,
-        log2_transform,
-        normalization,
-        imputation,
-        batch,
-    )
+    return {
+        'remove_contaminations': remove_contaminations,
+        'remove_samples': remove_samples,
+        'subset': subset,
+        'data_completeness': data_completeness,
+        'log2_transform': log2_transform,
+        'normalization': normalization,
+        'imputation': imputation,
+        'batch_correction': batch_correction,
+    }
 
 
 def update_workflow(
@@ -200,7 +200,8 @@ def update_workflow(
     log2_transform,
     normalization,
     imputation,
-    batch,
+    batch_correction,
+    **kwargs
 ):
     old_workflow = st.session_state.workflow
     st.session_state.workflow = [
@@ -224,7 +225,7 @@ def update_workflow(
                 log2_transform,
                 normalization,
                 imputation,
-                batch,
+                batch_correction,
             ],
         )
         if setting not in [None, False, [], 0.0]
@@ -241,7 +242,7 @@ def run_preprocessing(
     log2_transform,
     normalization,
     imputation,
-    batch,
+    batch_correction,
 ):
     st.session_state.dataset.preprocess(
         remove_contaminations=remove_contaminations,
@@ -261,8 +262,8 @@ def run_preprocessing(
         pd.DataFrame.from_dict(preprocessing, orient="index").astype(str),
         use_container_width=True,
     )
-    if batch:
-        st.session_state.dataset.batch_correction(batch=batch)
+    if batch_correction:
+        st.session_state.dataset.batch_correction(batch=batch_correction)
 
 
 def reset_preprocessing():

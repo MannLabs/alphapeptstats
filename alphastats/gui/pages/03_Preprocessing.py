@@ -25,27 +25,9 @@ st.markdown("### Preprocessing")
 c1, c2 = st.columns([1, 1])
 
 with c2:
-    (
-        remove_contaminations,
-        remove_samples,
-        subset,
-        data_completeness,
-        log2_transform,
-        normalization,
-        imputation,
-        batch,
-    ) = configure_preprocessing()
+    settings = configure_preprocessing()
 
-    update_workflow(
-        remove_contaminations,
-        remove_samples,
-        subset,
-        data_completeness,
-        log2_transform,
-        normalization,
-        imputation,
-        batch,
-    )
+    update_workflow(**settings)
 
 with c1:
     st.write("#### Flowchart of currently selected workflow:")
@@ -60,16 +42,7 @@ with c1:
 
         with c11:
             if st.button("Run preprocessing"):
-                run_preprocessing(
-                    remove_contaminations,
-                    remove_samples,
-                    subset,
-                    data_completeness,
-                    log2_transform,
-                    normalization,
-                    imputation,
-                    batch,
-                )
+                run_preprocessing(**settings)
 
         with c12:
             if st.button("Reset all Preprocessing steps"):
