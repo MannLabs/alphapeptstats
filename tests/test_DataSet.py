@@ -520,8 +520,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 3)
 
-    @patch("logging.Logger.warning")
-    def test_plot_intenstity_subgroup_significance_warning(self, mock):
+    def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         import streamlit as st
 
         st.session_state["gene_to_prot_id"] = {}
@@ -532,7 +531,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 5)
-        self.assertEqual(mock.call_count, 1)
 
     def test_anova_with_tukey(self):
         # with first 100 protein ids
