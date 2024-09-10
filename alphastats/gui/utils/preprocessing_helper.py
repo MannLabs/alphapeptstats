@@ -4,6 +4,43 @@ from st_cytoscape import cytoscape
 
 import datetime
 
+CYTOSCAPE_STYLESHEET = [
+    {
+        "selector": "node",
+        "style": {
+            "label": "data(label)",
+            "shape": "roundrectangle",
+            "width": 200,
+            "height": 60,
+            "text-valign": "center",
+            "text-halign": "center",
+        },
+    },
+    {
+        "selector": "node.active",
+        "style": {
+            "background-color": "lightgreen",
+        },
+    },
+    {
+        "selector": "node.inactive",
+        "style": {
+            "background-color": "lightgrey",
+        },
+    },
+    {
+        "selector": "node.selected", # TODO: This currently does not work, figure out why
+        "style": {"background-color": "red"},
+    },
+    {
+        "selector": "edge",
+        "style": {
+            "width": 3,
+            "curve-style": "bezier",
+            "target-arrow-shape": "triangle",
+        },
+    },
+]
 
 def draw_predefined_workflow(
     workflow=["remove contaminations", "subset data", "log2 transform"],
@@ -47,47 +84,9 @@ def draw_predefined_workflow(
             }
         )
 
-    stylesheet = [
-        {
-            "selector": "node",
-            "style": {
-                "label": "data(label)",
-                "shape": "roundrectangle",
-                "width": 200,
-                "height": 60,
-                "text-valign": "center",
-                "text-halign": "center",
-            },
-        },
-        {
-            "selector": "node.active",
-            "style": {
-                "background-color": "lightgreen",
-            },
-        },
-        {
-            "selector": "node.inactive",
-            "style": {
-                "background-color": "lightgrey",
-            },
-        },
-        {
-            "selector": "node.selected",
-            "style": {"background-color": "red"},
-        },
-        {
-            "selector": "edge",
-            "style": {
-                "width": 3,
-                "curve-style": "bezier",
-                "target-arrow-shape": "triangle",
-            },
-        },
-    ]
-
     selected = cytoscape(
         elements,
-        stylesheet,
+        CYTOSCAPE_STYLESHEET,
         layout={"name": "grid", "columns": 1},
         selection_type="single",
         user_panning_enabled=False,
