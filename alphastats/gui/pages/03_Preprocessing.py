@@ -9,7 +9,7 @@ from alphastats.gui.utils.preprocessing_helper import (
     update_workflow,
     run_preprocessing,
     reset_preprocessing,
-    PREDEFINED_ORDER,
+    PREPROCESSING_STEPS,
 )
 from alphastats.gui.utils.ui_helper import sidebar_info
 
@@ -18,9 +18,9 @@ sidebar_info()
 
 if "workflow" not in st.session_state:
     st.session_state["workflow"] = [
-        "remove_contaminations",
-        "subset",
-        "log2_transform",
+        PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"],
+        PREPROCESSING_STEPS.SUBSET["key"],
+        PREPROCESSING_STEPS.LOG2_TRANSFORM["key"],
     ]
 
 st.markdown("### Preprocessing")
@@ -50,12 +50,12 @@ with c1:
 
         with c11:
             if st.button("Run preprocessing"):
-                st.session_state["dataset"] = run_preprocessing(settings, st.session_state["dataset"])
+                run_preprocessing(settings, st.session_state["dataset"])
                 display_preprocessing_info(st.session_state["dataset"].preprocessing_info)
 
         with c12:
             if st.button("Reset all Preprocessing steps"):
-                st.session_state["dataset"] = reset_preprocessing(st.session_state["dataset"])
+                reset_preprocessing(st.session_state["dataset"])
                 display_preprocessing_info(st.session_state["dataset"].preprocessing_info)
 
 # TODO: Add comparison plot of indensity distribution before and after preprocessing

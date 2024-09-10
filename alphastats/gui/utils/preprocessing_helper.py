@@ -44,54 +44,74 @@ CYTOSCAPE_STYLESHEET = [
 
 # TODO: Make help texts meaningful
 # TODO: Show help texts on the widgets
-WORKFLOW_STEPS = {
-    "remove_contaminations": {
+class PREPROCESSING_STEPS:
+    REMOVE_CONTAMINATONS = {
+        "key": "remove_contaminations",
         "repr": "Remove contaminations",
         "help": "Remove contaminations annotated in the contaminations library and filter columns included in the dataset.",
-    },
-    "remove_samples": {
+    }
+    REMOVE_SAMPLES = {
+        "key": "remove_samples",
         "repr": "Remove samples",
         "help": "Remove samples from analysis, e.g. useful when failed or blank runs are included.",
-    },
-    "subset": {
+    }
+    SUBSET = {
+        "key": "subset",
         "repr": "Subset data",
         "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
-    },
-    "data_completeness": {
+    }
+    DATA_COMPLETENESS = {
+        "key": "data_completeness",
         "repr": "Filter data completeness",
         "help": "Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.",
-    },
-    "log2_transform": {"repr": "Log2 transform", "help": "Log2-transform dataset."},
-    "normalization": {
+    }
+    LOG2_TRANSFORM = {
+        "key": "log2_transform",
+        "repr": "Log2 transform",
+        "help": "Log2-transform dataset."
+    }
+    NORMALIZATION = {
+        "key": "normalization",
         "repr": "Normalization",
         "help": 'Normalize data using one of the available methods ("zscore", "quantile", "vst", "linear").',
-    },
-    "imputation": {
+    }
+    IMPUTATION = {
+        "key": "imputation",
         "repr": "Imputation",
         "help": 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").',
-    },
-    "batch": {"repr": "Batch correction", "help": "Batch correction."},
-}
+    }
+    BATCH = {
+        "key": "batch",
+        "repr": "Batch correction",
+        "help": "Batch correction.",
+    }
 
 PREDEFINED_ORDER = [
-    "remove_contaminations",
-    "remove_samples",
-    "subset",
-    "data_completeness",
-    "log2_transform",
-    "normalization",
-    "imputation",
-    "batch",
+    PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"],
+    PREPROCESSING_STEPS.REMOVE_SAMPLES["key"],
+    PREPROCESSING_STEPS.SUBSET["key"],
+    PREPROCESSING_STEPS.DATA_COMPLETENESS["key"],
+    PREPROCESSING_STEPS.LOG2_TRANSFORM["key"],
+    PREPROCESSING_STEPS.NORMALIZATION["key"],
+    PREPROCESSING_STEPS.IMPUTATION["key"],
+    PREPROCESSING_STEPS.BATCH["key"],
 ]
 
 
 def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
+
+    def find_step_by_key_value(key, target_value):
+        for _, attribute_value in PREPROCESSING_STEPS.__dict__.items():
+            if isinstance(attribute_value, dict) and key in attribute_value and attribute_value[key] == target_value:
+                return attribute_value
+        return None
+
     elements = [
         {
             "group": "nodes",
             "data": {
                 "id": i,
-                "label": WORKFLOW_STEPS[key]["repr"],
+                "label": find_step_by_key_value('key', key)["repr"],
                 "key": key,
             },
             "selectable": True,
@@ -147,6 +167,7 @@ def configure_preprocessing(dataset):
         "Remove samples from analysis",
         options=dataset.metadata[dataset.sample].to_list(),
     )
+    remove_samples = remove_samples if len(remove_samples) != 0 else None
 
     data_completeness = st.number_input(
         f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
@@ -175,14 +196,14 @@ def configure_preprocessing(dataset):
     )
 
     return {
-        "remove_contaminations": remove_contaminations,
-        "remove_samples": remove_samples,
-        "subset": subset,
-        "data_completeness": data_completeness,
-        "log2_transform": log2_transform,
-        "normalization": normalization,
-        "imputation": imputation,
-        "batch": batch,
+        PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"]: remove_contaminations,
+        PREPROCESSING_STEPS.REMOVE_SAMPLES["key"]: remove_samples,
+        PREPROCESSING_STEPS.SUBSET["key"]: subset,
+        PREPROCESSING_STEPS.DATA_COMPLETENESS["key"]: data_completeness,
+        PREPROCESSING_STEPS.LOG2_TRANSFORM["key"]: log2_transform,
+        PREPROCESSING_STEPS.NORMALIZATION["key"]: normalization,
+        PREPROCESSING_STEPS.IMPUTATION["key"]: imputation,
+        PREPROCESSING_STEPS.BATCH["key"]: batch,
     }
 
 
@@ -202,23 +223,18 @@ def run_preprocessing(
     settings,
     dataset
 ):
-    settings["remove_samples"] = (
-        settings["remove_samples"] if len(settings["remove_samples"]) != 0 else None
-    )
     dataset.preprocess(**settings)
     st.info(
         "Data has been processed. "
         + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     )
 
-    if settings["batch"]:
-        dataset.batch_correction(batch=settings["batch"])
+    if settings[PREPROCESSING_STEPS.BATCH["key"]]:
+        dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH["key"]])
         st.info(
             "Data has been batch corrected. "
             + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         )
-    
-    return dataset
 
 
 def display_preprocessing_info(preprocessing_info):
@@ -234,11 +250,4 @@ def reset_preprocessing(dataset):
     dataset.create_matrix()
     st.info(
         "Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    )
-    return dataset
-
-
-def plot_intensity_distribution():
-    st.selectbox(
-        "Sample", options=st.session_state.dataset.metadata["sample"].to_list()
     )
