@@ -52,7 +52,10 @@ with c1:
 
     selected_nodes = draw_predefined_workflow(st.session_state.workflow)
 
-    if "dataset" in st.session_state:
+    if "dataset" not in st.session_state:
+        st.info("Import data first to run preprocessing")
+
+    else:
         c11, c12 = st.columns([1, 1])
 
         with c11:
@@ -70,8 +73,5 @@ with c1:
 
         with c12:
             reset_preprocessing()
-
-    else:
-        st.info("Import Data first")
 
 # TODO: Add comparison plot of indensity distribution before and after preprocessing
