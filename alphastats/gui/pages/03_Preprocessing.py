@@ -45,14 +45,14 @@ with c1:
         c11, c12 = st.columns([1, 1])
 
         with c11:
-            if st.button("Run preprocessing"):
+            if st.button("Run preprocessing", key="_run_preprocessing"):
                 run_preprocessing(settings, st.session_state["dataset"])
                 display_preprocessing_info(
                     st.session_state["dataset"].preprocessing_info
                 )
 
         with c12:
-            if st.button("Reset all Preprocessing steps"):
+            if st.button("Reset all Preprocessing steps", key="_reset_preprocessing"):
                 reset_preprocessing(st.session_state["dataset"])
                 display_preprocessing_info(
                     st.session_state["dataset"].preprocessing_info
