@@ -43,80 +43,73 @@ CYTOSCAPE_STYLESHEET = [
 ]
 
 
+class PREPROCESSING_STEPS:
+    REMOVE_CONTAMINATIONS = "remove_contaminations"
+    REMOVE_SAMPLES = "remove_samples"
+    SUBSET = "subset"
+    DATA_COMPLETENESS = "data_completeness"
+    LOG2_TRANSFORM = "log2_transform"
+    NORMALIZATION = "normalization"
+    IMPUTATION = "imputation"
+    BATCH = "batch"
+
+
 # TODO: Make help texts meaningful
 # TODO: Show help texts on the widgets
-class PREPROCESSING_STEPS:
-    REMOVE_CONTAMINATONS = {
-        "key": "remove_contaminations",
+UI_ELEMENTS = {
+    PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS: {
         "repr": "Remove contaminations",
         "help": "Remove contaminations annotated in the contaminations library and filter columns included in the dataset.",
-    }
-    REMOVE_SAMPLES = {
-        "key": "remove_samples",
+    },
+    PREPROCESSING_STEPS.REMOVE_SAMPLES: {
         "repr": "Remove samples",
         "help": "Remove samples from analysis, e.g. useful when failed or blank runs are included.",
-    }
-    SUBSET = {
-        "key": "subset",
+    },
+    PREPROCESSING_STEPS.SUBSET: {
         "repr": "Subset data",
         "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
-    }
-    DATA_COMPLETENESS = {
-        "key": "data_completeness",
+    },
+    PREPROCESSING_STEPS.DATA_COMPLETENESS: {
         "repr": "Filter data completeness",
         "help": "Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.",
-    }
-    LOG2_TRANSFORM = {
-        "key": "log2_transform",
+    },
+    PREPROCESSING_STEPS.LOG2_TRANSFORM: {
         "repr": "Log2 transform",
         "help": "Log2-transform dataset.",
-    }
-    NORMALIZATION = {
-        "key": "normalization",
+    },
+    PREPROCESSING_STEPS.NORMALIZATION: {
         "repr": "Normalization",
         "help": 'Normalize data using one of the available methods ("zscore", "quantile", "vst", "linear").',
-    }
-    IMPUTATION = {
-        "key": "imputation",
+    },
+    PREPROCESSING_STEPS.IMPUTATION: {
         "repr": "Imputation",
         "help": 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").',
-    }
-    BATCH = {
-        "key": "batch",
+    },
+    PREPROCESSING_STEPS.BATCH: {
         "repr": "Batch correction",
         "help": "Batch correction.",
-    }
-
+    },
+}
 
 PREDEFINED_ORDER = [
-    PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"],
-    PREPROCESSING_STEPS.REMOVE_SAMPLES["key"],
-    PREPROCESSING_STEPS.SUBSET["key"],
-    PREPROCESSING_STEPS.DATA_COMPLETENESS["key"],
-    PREPROCESSING_STEPS.LOG2_TRANSFORM["key"],
-    PREPROCESSING_STEPS.NORMALIZATION["key"],
-    PREPROCESSING_STEPS.IMPUTATION["key"],
-    PREPROCESSING_STEPS.BATCH["key"],
+    PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
+    PREPROCESSING_STEPS.REMOVE_SAMPLES,
+    PREPROCESSING_STEPS.SUBSET,
+    PREPROCESSING_STEPS.DATA_COMPLETENESS,
+    PREPROCESSING_STEPS.LOG2_TRANSFORM,
+    PREPROCESSING_STEPS.NORMALIZATION,
+    PREPROCESSING_STEPS.IMPUTATION,
+    PREPROCESSING_STEPS.BATCH,
 ]
 
 
 def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
-    def find_step_by_key_value(key, target_value):
-        for _, attribute_value in PREPROCESSING_STEPS.__dict__.items():
-            if (
-                isinstance(attribute_value, dict)
-                and key in attribute_value
-                and attribute_value[key] == target_value
-            ):
-                return attribute_value
-        return None
-
     elements = [
         {
             "group": "nodes",
             "data": {
                 "id": i,
-                "label": find_step_by_key_value("key", key)["repr"],
+                "label": UI_ELEMENTS[key]["repr"],
                 "key": key,
             },
             "selectable": True,
@@ -201,14 +194,14 @@ def configure_preprocessing(dataset):
     )
 
     return {
-        PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"]: remove_contaminations,
-        PREPROCESSING_STEPS.REMOVE_SAMPLES["key"]: remove_samples,
-        PREPROCESSING_STEPS.SUBSET["key"]: subset,
-        PREPROCESSING_STEPS.DATA_COMPLETENESS["key"]: data_completeness,
-        PREPROCESSING_STEPS.LOG2_TRANSFORM["key"]: log2_transform,
-        PREPROCESSING_STEPS.NORMALIZATION["key"]: normalization,
-        PREPROCESSING_STEPS.IMPUTATION["key"]: imputation,
-        PREPROCESSING_STEPS.BATCH["key"]: batch,
+        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS: remove_contaminations,
+        PREPROCESSING_STEPS.REMOVE_SAMPLES: remove_samples,
+        PREPROCESSING_STEPS.SUBSET: subset,
+        PREPROCESSING_STEPS.DATA_COMPLETENESS: data_completeness,
+        PREPROCESSING_STEPS.LOG2_TRANSFORM: log2_transform,
+        PREPROCESSING_STEPS.NORMALIZATION: normalization,
+        PREPROCESSING_STEPS.IMPUTATION: imputation,
+        PREPROCESSING_STEPS.BATCH: batch,
     }
 
 
@@ -231,8 +224,8 @@ def run_preprocessing(settings, dataset):
         + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     )
 
-    if settings[PREPROCESSING_STEPS.BATCH["key"]]:
-        dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH["key"]])
+    if settings[PREPROCESSING_STEPS.BATCH]:
+        dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH])
         st.info(
             "Data has been batch corrected. "
             + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")

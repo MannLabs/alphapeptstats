@@ -18,9 +18,9 @@ sidebar_info()
 
 if "workflow" not in st.session_state:
     st.session_state["workflow"] = [
-        PREPROCESSING_STEPS.REMOVE_CONTAMINATONS["key"],
-        PREPROCESSING_STEPS.SUBSET["key"],
-        PREPROCESSING_STEPS.LOG2_TRANSFORM["key"],
+        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
+        PREPROCESSING_STEPS.SUBSET,
+        PREPROCESSING_STEPS.LOG2_TRANSFORM,
     ]
 
 st.markdown("### Preprocessing")
