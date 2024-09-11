@@ -27,15 +27,11 @@ st.markdown("### Preprocessing")
 c1, c2 = st.columns([1, 1])
 
 with c2:
-    if "dataset" not in st.session_state:
-        settings = {k: True for k in st.session_state.workflow}
-    else:
+    if "dataset" in st.session_state:
         settings = configure_preprocessing(dataset=st.session_state["dataset"])
-
-    new_workflow = update_workflow(settings)
-
-    if new_workflow != st.session_state.workflow:
-        st.session_state.workflow = new_workflow
+        new_workflow = update_workflow(settings)
+        if new_workflow != st.session_state.workflow:
+            st.session_state.workflow = new_workflow
 
 with c1:
     st.write("#### Flowchart of preprocessing workflow:")
