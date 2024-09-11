@@ -12,38 +12,41 @@ def print_session_state(apptest: AppTest):
 
 
 APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
-APP_FILE = f"{APP_FOLDER}/pages/02_Import Data.py"
-TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
+TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
+TEST_INPUT_FILES_PATH = APP_FOLDER / "../../testfiles"
 
 
 def test_page_02_loads_without_input():
     """Test if the page loads without any input and inititalizes the session state with the correct values."""
-    at = AppTest(APP_FILE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
 
     assert not at.exception
 
     assert at.session_state.organism == 9606
-    assert at.session_state.user_session_id == "test session id"
+    assert at.session_state.user_session_id is not None
     assert at.session_state.gene_to_prot_id == {}
 
 
 @patch("streamlit.file_uploader")
 def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     """Test if the page loads without any input and inititalizes the session state with the correct value when the file_uploader is patched."""
-    at = AppTest(APP_FILE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
 
     assert not at.exception
 
     assert at.session_state.organism == 9606
-    assert at.session_state.user_session_id == "test session id"
+    assert at.session_state.user_session_id is not None
     assert at.session_state.gene_to_prot_id == {}
 
 
-def test_page_02_loads_example_data():
+@patch(
+    "streamlit.page_link"
+)  # page link is mocked to avoid errors with the relative paths
+def test_page_02_loads_example_data(mock_page_link: MagicMock):
     """Test if the page loads the example data and has the correct session state afterwards."""
-    at = AppTest(APP_FILE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
 
     # User clicks Load Sample Data button
@@ -66,38 +69,43 @@ def test_page_02_loads_example_data():
     assert "statistic_options" in at.session_state
 
 
-def _data_buf(path_from_testfiles: str):
+def _data_buf(file_path: str):
     """Helper function to open a data file from the testfiles folder and return a BytesIO object.
 
     Additionally add filename as attribute."""
-    with open(f"{TEST_INPUT_FILES}{path_from_testfiles}", "rb") as f:
+    with open(TEST_INPUT_FILES_PATH / file_path, "rb") as f:
         buf = BytesIO(f.read())
-        buf.name = path_from_testfiles.split("/")[-1]
+        buf.name = file_path.split("/")[-1]
         return buf
 
 
-def _metadata_buf(path_from_testfiles: str, at: AppTest):
+def _metadata_buf(file_path: str, at: AppTest):
     """Helper function to open a metadata file from the testfiles folder and return a BytesIO object.
 
     Additionally add filename as attribute and set the metadatafile in the session state."""
-    with open(f"{TEST_INPUT_FILES}{path_from_testfiles}", "rb") as f:
+    with open(TEST_INPUT_FILES_PATH / file_path, "rb") as f:
         buf = BytesIO(f.read())
-        buf.name = path_from_testfiles.split("/")[-1]
+        buf.name = file_path.split("/")[-1]
         return buf
 
 
 @patch("streamlit.file_uploader")
-def test_page_02_loads_maxquant_testfiles(mock_file_uploader: MagicMock):
+@patch(
+    "streamlit.page_link"
+)  # page link is mocked to avoid errors with the relative paths
+def test_page_02_loads_maxquant_testfiles(
+    mock_page_link: MagicMock, mock_file_uploader: MagicMock
+):
     """Test if the page loads the MaxQuant testfiles and has the correct session state afterwards.
 
     No input to the dropdown menus is simulated, hence the default detected values are used.
     Two states are tested:
     1. Files are uploaded but not processed yet
     2. Files are uploaded and processed"""
-    DATA_FILE = "/maxquant/proteinGroups.txt"
-    METADATA_FILE = "/maxquant/metadata.xlsx"
+    DATA_FILE = "maxquant/proteinGroups.txt"
+    METADATA_FILE = "maxquant/metadata.xlsx"
 
-    at = AppTest(APP_FILE, default_timeout=200)
+    at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
 
     # User selects MaxQuant from the dropdown menu

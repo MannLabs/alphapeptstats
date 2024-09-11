@@ -7,16 +7,18 @@ from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
 from alphastats.gui.utils.import_helper import (
     load_example_data,
-    empty_session_state,
     uploaded_file_to_df,
     show_loader_columns_selection,
     load_proteomics_data,
     load_options,
     show_select_sample_column_for_metadata,
-    init_session_state,
     show_button_download_metadata_template_file,
 )
-from alphastats.gui.utils.ui_helper import sidebar_info
+from alphastats.gui.utils.ui_helper import (
+    sidebar_info,
+    empty_session_state,
+    init_session_state,
+)
 
 
 def _finalize_data_loading(
@@ -33,6 +35,8 @@ def _finalize_data_loading(
 
     load_options()
     sidebar_info()
+
+    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
 
 
 init_session_state()
@@ -57,14 +61,13 @@ if c2.button("Start new Session with example DataSet", key="_load_example_data")
     loader, metadata_columns, dataset = load_example_data()
 
     _finalize_data_loading(loader, metadata_columns, dataset)
-    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")  # TODO: needs newer streamlit
     st.stop()
 
 
 st.markdown("### Import Proteomics Data")
 if "dataset" in st.session_state:
     st.info(f"DataSet already present.")
-    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit
+    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
     st.stop()
 
 
@@ -164,5 +167,3 @@ if c1.button(
 if dataset is not None:
     st.info("DataSet has been created.")
     _finalize_data_loading(loader, metadata_columns, dataset)
-
-    # st.page_link("pages/03_Data Overview.py", label="=> Go to data overview..")   # TODO: needs newer streamlit

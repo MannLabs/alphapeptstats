@@ -11,7 +11,6 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
-from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
 
 
 def load_options():
@@ -131,26 +130,6 @@ def load_example_data():
     dataset.preprocess(subset=True)
     metadata_columns = dataset.metadata.columns.to_list()
     return loader, metadata_columns, dataset
-
-
-def empty_session_state():
-    """
-    remove all variables to avoid conflicts
-    """
-    for key in st.session_state.keys():
-        del st.session_state[key]
-    st.empty()
-
-
-def init_session_state() -> None:
-    """Initialize the session state."""
-    st.session_state["user_session_id"] = get_script_run_ctx().session_id
-
-    if "gene_to_prot_id" not in st.session_state:
-        st.session_state["gene_to_prot_id"] = {}
-
-    if "organism" not in st.session_state:
-        st.session_state["organism"] = 9606  # human
 
 
 def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:

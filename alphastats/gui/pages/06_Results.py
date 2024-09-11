@@ -24,6 +24,7 @@ def save_plotly(plot, name, format):
 
 @st.cache_data
 def convert_df(df, user_session_id=st.session_state.user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return df.to_csv().encode("utf-8")
 
 

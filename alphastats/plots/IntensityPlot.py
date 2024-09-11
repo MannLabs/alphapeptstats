@@ -59,7 +59,7 @@ class IntensityPlot(PlotUtils):
 
         if len(data) != 2:
             logging.warning(
-                "Signficane can only be estimated when there are two groups plotted."
+                "Significance can only be estimated when there are two groups plotted."
             )
             return plot
 

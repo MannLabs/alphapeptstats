@@ -68,6 +68,7 @@ def download_figure(obj, format, plotting_library="plotly"):
 
 @st.cache_data
 def convert_df(df, user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return df.to_csv().encode("utf-8")
 
 
@@ -122,6 +123,7 @@ def gui_volcano_plot_differential_expression_analysis(
     """
     initalize volcano plot object with differential expression analysis results
     """
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     volcano_plot = VolcanoPlot(
         dataset=st.session_state.dataset, **chosen_parameter_dict, plot=False
     )
