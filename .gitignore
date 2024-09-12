@@ -15,3 +15,5 @@ build_pyinstaller
 .vscode
 
 **/.ipynb_checkpoints
+
+**/*secrets.toml
