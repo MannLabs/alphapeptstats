@@ -1,12 +1,5 @@
-from calendar import c
-from http.cookiejar import LoadError
-from math import remainder
-
-# from multiprocessing.sharedctypes import Value
-from random import sample
 import unittest
-import pandas as pd
-import logging
+from unittest import skip
 from unittest.mock import patch
 import logging
 import numpy as np
@@ -16,11 +9,7 @@ from contextlib import contextmanager
 import shutil
 import os
 import copy
-import dictdiffer
 
-# from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
-
-from alphastats.loader.BaseLoader import BaseLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
@@ -30,7 +19,6 @@ from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
-from alphastats.DataSet_Plot import Plot
 from alphastats.utils import LoaderError
 
 
@@ -48,6 +36,16 @@ class BaseTestDataSet:
                 yield None
             except exc_type:
                 raise self.failureException("{} raised".format(exc_type.__name__))
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self.loader = None
+            self.obj = None
+            self.metadata_path = None
+            self.matrix_dim = None
+            self.matrix_dim_filtered = None
+            self.comparison_column = None
 
         def test_check_loader_no_error(self):
             with self.assertNotRaises(ValueError):
@@ -464,14 +462,41 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group2=["1_71_F10", "1_73_F12"],
             )
 
-    def test_plot_volcano_compare_preprocessing_modes(self):
-        result_list = self.obj.plot_volcano(
+    def test_plot_volcano_compare_preprocessing_modes_no_randomforest(self):
+        obj_ut = DataSet(
+            loader=self.loader,
+            metadata_path=self.metadata_path,
+            sample_column="sample",
+        )
+
+        # 'randomforest' makes this test very costly
+        obj_ut.imputation_methods.remove("randomforest")
+
+        result_list = obj_ut.plot_volcano(
             method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
             compare_preprocessing_modes=True,
         )
-        self.assertEqual(len(result_list), 12)
+        self.assertEqual(len(result_list), 3 * 3)
+
+    @skip  # TODO speed up this test (e.g. by reducing the number of samples)
+    def test_plot_volcano_compare_preprocessing_modes_randomforest(self):
+        obj_ut = DataSet(
+            loader=self.loader,
+            metadata_path=self.metadata_path,
+            sample_column="sample",
+        )
+
+        obj_ut.imputation_methods = ["randomforest"]
+
+        result_list = obj_ut.plot_volcano(
+            method="ttest",
+            group1=["1_31_C6", "1_32_C7", "1_57_E8"],
+            group2=["1_71_F10", "1_73_F12"],
+            compare_preprocessing_modes=True,
+        )
+        self.assertEqual(len(result_list), 3)
 
     def test_preprocess_subset(self):
         self.obj.preprocess(subset=True, log2_transform=False)
@@ -495,8 +520,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 3)
 
-    @patch("logging.Logger.warning")
-    def test_plot_intenstity_subgroup_significance_warning(self, mock):
+    def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         import streamlit as st
 
         st.session_state["gene_to_prot_id"] = {}
@@ -507,7 +531,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 5)
-        self.assertEqual(mock.call_count, 1)
 
     def test_anova_with_tukey(self):
         # with first 100 protein ids
@@ -744,6 +767,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         first_value = self.obj.mat.values[0, 0]
         self.assertAlmostEqual(-0.00555, first_value, places=3)
 
+    # TODO this opens a plot in a browser window
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(

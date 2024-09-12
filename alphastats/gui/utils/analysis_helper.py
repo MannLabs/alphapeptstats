@@ -1,8 +1,13 @@
+from pathlib import Path
+from typing import Optional, List
+
 import pandas as pd
-import logging
 import streamlit as st
 import io
-from datetime import datetime
+
+from streamlit.runtime.uploaded_file_manager import UploadedFile
+
+from alphastats import BaseLoader
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -62,7 +67,8 @@ def download_figure(obj, format, plotting_library="plotly"):
 
 
 @st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
+def convert_df(df, user_session_id):
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     return df.to_csv().encode("utf-8")
 
 
@@ -70,7 +76,7 @@ def download_preprocessing_info(plot):
     preprocesing_dict = plot[1].preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
     filename = "plot" + plot[0] + "preprocessing_info.csv"
-    csv = convert_df(df)
+    csv = convert_df(df, st.session_state.user_session_id)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
@@ -78,28 +84,6 @@ def download_preprocessing_info(plot):
         "text/csv",
         key="preprocessing",
     )
-
-
-def read_uploaded_file_into_df(file, decimal="."):
-    filename = file.name
-
-    if filename.endswith(".xlsx"):
-        df = pd.read_excel(file)
-
-    elif filename.endswith(".txt") or filename.endswith(".tsv"):
-        df = pd.read_csv(file, delimiter="\t", decimal=decimal)
-
-    elif filename.endswith(".csv"):
-        df = pd.read_csv(file, decimal=decimal)
-
-    else:
-        df = None
-        logging.warning(
-            "WARNING: File could not be read. \nFile has to be a .xslx, .tsv, .csv or .txt file"
-        )
-        return
-
-    return df
 
 
 def get_unique_values_from_column(column):
@@ -134,11 +118,12 @@ def st_general(method_dict):
 
 @st.cache_data
 def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+    chosen_parameter_dict, user_session_id
 ):
     """
     initalize volcano plot object with differential expression analysis results
     """
+    del user_session_id  # needed to invalidate cache for changing user_session_id
     volcano_plot = VolcanoPlot(
         dataset=st.session_state.dataset, **chosen_parameter_dict, plot=False
     )
@@ -365,28 +350,6 @@ def helper_compare_two_groups():
     return chosen_parameter_dict
 
 
-def get_sample_names_from_software_file():
-    """
-    extract sample names from software
-    """
-    if isinstance(st.session_state.loader.intensity_column, str):
-        regex_find_intensity_columns = st.session_state.loader.intensity_column.replace(
-            "[sample]", ".*"
-        )
-        df = st.session_state.loader.rawinput
-        df = df.set_index(st.session_state.loader.index_column)
-        df = df.filter(regex=(regex_find_intensity_columns), axis=1)
-        # remove Intensity so only sample names remain
-        substring_to_remove = regex_find_intensity_columns.replace(".*", "")
-        df.columns = df.columns.str.replace(substring_to_remove, "")
-        sample_names = df.columns.to_list()
-
-    else:
-        sample_names = st.session_state.loader.intensity_column
-
-    return sample_names
-
-
 def get_analysis(method, options_dict):
     if method in options_dict.keys():
         obj = get_analysis_options_from_dict(method, options_dict=options_dict)
@@ -422,12 +385,12 @@ def load_options():
     from alphastats.gui.utils.options import (
         plotting_options,
         statistic_options,
-        interpretation_options,
+        # interpretation_options,
     )
 
-    st.session_state["plotting_options"] = plotting_options
-    st.session_state["statistic_options"] = statistic_options
-    st.session_state["interpretation_options"] = interpretation_options
+    st.session_state["plotting_options"] = plotting_options(st.session_state)
+    st.session_state["statistic_options"] = statistic_options(st.session_state)
+    # st.session_state["interpretation_options"] = interpretation_options
 
 
 def gui_multicova_analysis():

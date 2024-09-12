@@ -9,10 +9,15 @@ import sklearn.impute
 import streamlit as st
 
 from sklearn.experimental import enable_iterative_imputer  # noqa
+from tqdm import tqdm
+
 from alphastats.utils import ignore_warning
 
 
 class Preprocess:
+    imputation_methods = ["mean", "median", "knn", "randomforest"]
+    normalization_methods = ["vst", "zscore", "quantile"]
+
     def _remove_sampels(self, sample_list: list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
@@ -143,7 +148,9 @@ class Preprocess:
             imp = sklearn.ensemble.HistGradientBoostingRegressor(
                 max_depth=10, max_iter=100, random_state=0
             )
-            imp = sklearn.impute.IterativeImputer(random_state=0, estimator=imp)
+            imp = sklearn.impute.IterativeImputer(
+                random_state=0, estimator=imp, verbose=1
+            )
             imputation_array = imp.fit_transform(self.mat.values)
 
         else:
@@ -220,11 +227,9 @@ class Preprocess:
     @ignore_warning(RuntimeWarning)
     def _compare_preprocessing_modes(self, func, params_for_func) -> list:
         dataset = self
-        imputation_methods = ["mean", "median", "knn", "randomforest"]
-        normalization_methods = ["vst", "zscore", "quantile"]
 
         preprocessing_modes = list(
-            itertools.product(normalization_methods, imputation_methods)
+            itertools.product(self.normalization_methods, self.imputation_methods)
         )
 
         results_list = []
@@ -232,7 +237,8 @@ class Preprocess:
         del params_for_func["compare_preprocessing_modes"]
         params_for_func["dataset"] = params_for_func.pop("self")
 
-        for preprocessing_mode in preprocessing_modes:
+        # TODO: make this progress transparent in GUI
+        for preprocessing_mode in tqdm(preprocessing_modes):
             # reset preprocessing
             dataset.reset_preprocessing()
             print(
@@ -282,6 +288,7 @@ class Preprocess:
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        **kwargs,
     ):
         """Preprocess Protein data
 
@@ -325,6 +332,12 @@ class Preprocess:
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
             subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
         """
+        for k in kwargs.keys():
+            if k not in [
+                "batch",
+            ]:
+                raise ValueError(f"Invalid keyword argument: {k}")
+
         if remove_contaminations:
             self._filter()
 

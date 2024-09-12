@@ -6,96 +6,37 @@ import io
 
 try:
     from alphastats.gui.utils.ui_helper import sidebar_info
-    from alphastats.gui.utils.analysis_helper import get_analysis
+    from alphastats.gui.utils.analysis_helper import (
+        get_analysis,
+        load_options,
+        display_figure,
+        save_plot_to_session_state,
+        download_figure,
+        display_df,
+        convert_df,
+        download_preprocessing_info,
+    )
 
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
-    from utils.analysis_helper import get_analysis
-
-
-def check_if_options_are_loaded(f):
-    """
-    decorator to check whether analysis options are loaded
-    """
-
-    def inner(*args, **kwargs):
-        if hasattr(st.session_state, "plotting_options") is False:
-            alphastats.gui.utils.analysis_helper.load_options()
-
-        return f(*args, **kwargs)
-
-    return inner
-
-
-def display_figure(plot):
-    """
-    display plotly or seaborn figure
-    """
-    try:
-        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
-    except:
-        st.pyplot(plot)
-
-
-def save_plot_to_session_state(plot, method):
-    """
-    save plot with method to session state to retrieve old results
-    """
-    st.session_state["plot_list"] += [(method, plot)]
-
-
-def display_df(df):
-    mask = df.applymap(type) != bool
-    d = {True: "TRUE", False: "FALSE"}
-    df = df.where(mask, df.replace(d))
-    st.dataframe(df)
-
-
-def download_figure(obj, format, plotting_library="plotly"):
-    """
-    download plotly figure
-    """
-
-    plot = obj[1]
-    filename = obj[0] + "." + format
-
-    buffer = io.BytesIO()
-
-    if plotting_library == "plotly":
-        # Save the figure as a pdf to the buffer
-        plot.write_image(file=buffer, format=format)
-
-    else:
-        plot.savefig(buffer, format=format)
-
-    st.download_button(label="Download as " + format, data=buffer, file_name=filename)
-
-
-@st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
-    return df.to_csv().encode("utf-8")
-
-
-def download_preprocessing_info(plot):
-    preprocesing_dict = plot[1].preprocessing
-    df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + plot[0] + "preprocessing_info.csv"
-    csv = convert_df(df)
-    st.download_button(
-        "Download DataSet Info as .csv",
-        csv,
-        filename,
-        "text/csv",
-        key="preprocessing",
+    from utils.analysis_helper import (
+        get_analysis,
+        load_options,
+        display_figure,
+        save_plot_to_session_state,
+        download_figure,
+        display_df,
+        convert_df,
+        download_preprocessing_info,
     )
 
 
-@check_if_options_are_loaded
 def select_analysis():
     """
     select box
     loads keys from option dicts
     """
+    load_options()
     method = st.selectbox(
         "Analysis",
         options=list(st.session_state.plotting_options.keys())

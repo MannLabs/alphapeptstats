@@ -76,6 +76,7 @@ In case you want to use the Graphical User Interface, use following command in t
 ```bash
 alphastats gui
 ```
+If you get an `AxiosError: Request failed with status code 403'` when uploading files, try running `DISABLE_XSRF=1 alphastats gui`.
 
 If you want to use local Large Language Models to help interpret the data, you would need to download and install ollama (https://ollama.com/download).
 

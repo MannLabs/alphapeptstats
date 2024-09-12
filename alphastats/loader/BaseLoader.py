@@ -3,8 +3,15 @@ import logging
 import os
 import numpy as np
 from alphastats.utils import find_duplicates_in_list
-import pkg_resources
 from typing import Union
+
+import sys
+
+if sys.version_info >= (3, 9):
+    import importlib.resources as importlib_resources
+else:
+    # TODO drop this together with support for python 3.8
+    import importlib_resources
 
 
 class BaseLoader:
@@ -74,8 +81,8 @@ class BaseLoader:
 
     def _add_contamination_column(self):
         #  load df with potential contamination from fasta file
-        contaminations_path = pkg_resources.resource_filename(
-            __name__, "../data/contaminations.txt"
+        contaminations_path = (
+            importlib_resources.files(__package__) / "../data/contaminations.txt"
         )
         contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
