@@ -159,30 +159,31 @@ class Plot:
             plotly.graph_objects._figure.Figure: Volcano Plot
         """
 
-        if compare_preprocessing_modes:
-            params_for_func = locals()
-            results = self._compare_preprocessing_modes(
-                func=VolcanoPlot, params_for_func=params_for_func
-            )
-            return results
+        # TODO this needs to orchestrated from outside this method
+        # if compare_preprocessing_modes:
+        #     params_for_func = locals()
+        #     results = self._compare_preprocessing_modes(
+        #         func=VolcanoPlot, params_for_func=params_for_func
+        #     )
+        #     return results
+        #
+        # else:
+        volcano_plot = VolcanoPlot(
+            dataset=self,
+            group1=group1,
+            group2=group2,
+            column=column,
+            method=method,
+            labels=labels,
+            min_fc=min_fc,
+            alpha=alpha,
+            draw_line=draw_line,
+            perm=perm,
+            fdr=fdr,
+            color_list=color_list,
+        )
 
-        else:
-            volcano_plot = VolcanoPlot(
-                dataset=self,
-                group1=group1,
-                group2=group2,
-                column=column,
-                method=method,
-                labels=labels,
-                min_fc=min_fc,
-                alpha=alpha,
-                draw_line=draw_line,
-                perm=perm,
-                fdr=fdr,
-                color_list=color_list,
-            )
-
-            return volcano_plot.plot
+        return volcano_plot.plot
 
     def plot_correlation_matrix(self, method: str = "pearson"):
         """Plot Correlation Matrix
