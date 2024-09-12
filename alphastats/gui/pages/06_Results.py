@@ -3,7 +3,11 @@ import pandas as pd
 import io
 
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, convert_df
+    from alphastats.gui.utils.ui_helper import (
+        sidebar_info,
+        init_session_state,
+        convert_df,
+    )
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
 

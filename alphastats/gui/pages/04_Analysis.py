@@ -1,7 +1,11 @@
 import streamlit as st
 
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, convert_df
+    from alphastats.gui.utils.ui_helper import (
+        sidebar_info,
+        init_session_state,
+        convert_df,
+    )
     from alphastats.gui.utils.analysis_helper import (
         get_analysis,
         load_options,
