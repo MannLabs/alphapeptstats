@@ -183,6 +183,7 @@ class LLMIntegration:
         """
         try:
             if function_name == "get_gene_function":
+                # TODO log whats going on
                 return get_gene_function(**function_args)
             elif function_name == "get_enrichment_data":
                 return get_enrichment_data(**function_args)

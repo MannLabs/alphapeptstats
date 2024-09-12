@@ -7,7 +7,7 @@ from gprofiler import GProfiler
 import pandas as pd
 
 
-def get_functional_annotation_STRING(identifier, species_id="9606") -> pd.DataFrame:
+def _get_functional_annotation_string(identifier, species_id="9606") -> pd.DataFrame:
     """
     Get functional annotation from STRING for a gene identifier.
 
@@ -30,7 +30,7 @@ def get_functional_annotation_STRING(identifier, species_id="9606") -> pd.DataFr
         return None
 
 
-def get_functional_annotation_GProfiler(identifiers: List[str]) -> pd.DataFrame:
+def _get_functional_annotation_gprofiler(identifiers: List[str]) -> pd.DataFrame:
     """
     Get functional annotation from g:Profiler for a list of gene identifiers.
 
@@ -62,15 +62,14 @@ def get_enrichment_data(
     Returns:
         pd.DataFrame: The enrichment data.
     """
-    enrichment_data = {}
     assert tool in [
         "gprofiler",
         "string",
     ], "Tool must be either 'gprofiler' or 'string'"
     if tool == "gprofiler":
-        enrichment_data = get_functional_annotation_GProfiler(difexpressed)
+        enrichment_data = _get_functional_annotation_gprofiler(difexpressed)
     else:
-        enrichment_data = get_functional_annotation_STRING(
+        enrichment_data = _get_functional_annotation_string(
             "%0d".join(difexpressed), organism_id
         )
 
