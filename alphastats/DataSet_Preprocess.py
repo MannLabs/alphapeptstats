@@ -183,35 +183,41 @@ class Preprocess:
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
-    def _normalization(self, method: str):
+    def _normalization(self, method: str) -> None:
+        """Normalize across samples."""
+        # TODO make both sample and protein normalization available
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
-            # normalized_array = scaler.fit_transform(
-            #     self.mat.values.transpose()
-            # ).transpose()
-            normalized_array = scaler.fit_transform(self.mat.values)
+            # normalize samples => for preprocessing
+            normalized_array = scaler.fit_transform(
+                self.mat.values.transpose()
+            ).transpose()
+            # normalize proteins => for downstream processing
+            # normalized_array = scaler.fit_transform(self.mat.values)
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
-            # normalized_array = qt.fit_transform(self.mat.values.transpose()).transpose()
-            normalized_array = qt.fit_transform(self.mat.values)
+            normalized_array = qt.fit_transform(self.mat.values.transpose()).transpose()
+            # normalized_array = qt.fit_transform(self.mat.values) # normalize proteins
 
         elif method == "linear":
-            normalized_array = self._linear_normalization(
-                self.mat.transpose()
-            ).transpose()
+            normalized_array = self._linear_normalization(self.mat)
+
+            # normalized_array = self._linear_normalization(
+            #     self.mat.transpose()
+            # ).transpose() # normalize proteins
 
         elif method == "vst":
             minmax = sklearn.preprocessing.MinMaxScaler()
             scaler = sklearn.preprocessing.PowerTransformer()
-            # minmaxed_array = minmax.fit_transform(self.mat.values.transpose())
-            # normalized_array = scaler.fit_transform(minmaxed_array).transpose()
-            minmaxed_array = minmax.fit_transform(self.mat.values)
-            normalized_array = scaler.fit_transform(minmaxed_array)
+            minmaxed_array = minmax.fit_transform(self.mat.values.transpose())
+            normalized_array = scaler.fit_transform(minmaxed_array).transpose()
+            # minmaxed_array = minmax.fit_transform(self.mat.values)  # normalize proteins
+            # normalized_array = scaler.fit_transform(minmaxed_array)  # normalize proteins
 
         else:
             raise ValueError(
-                "Normalization method: {method} is invalid"
+                f"Normalization method: {method} is invalid. "
                 "Choose from 'zscore', 'quantile', 'linear' normalization. or 'vst' for variance stabilization transformation"
             )
 
