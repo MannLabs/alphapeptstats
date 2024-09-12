@@ -197,7 +197,9 @@ class Preprocess:
             normalized_array = qt.fit_transform(self.mat.values)
 
         elif method == "linear":
-            normalized_array = self._linear_normalization(self.mat.transpose()).transpose()
+            normalized_array = self._linear_normalization(
+                self.mat.transpose()
+            ).transpose()
 
         elif method == "vst":
             minmax = sklearn.preprocessing.MinMaxScaler()
