@@ -62,6 +62,11 @@ def img_to_bytes(img_path):
     return encoded_string.decode()
 
 
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def convert_df(df: pd.DataFrame) -> bytes:
+    return df.to_csv().encode("utf-8")
+
+
 def empty_session_state():
     """
     remove all variables to avoid conflicts
@@ -72,9 +77,10 @@ def empty_session_state():
 
 
 def init_session_state() -> None:
-    """Initialize the session state."""
+    """Initialize the session state if not done yet."""
 
-    st.session_state["user_session_id"] = str(uuid.uuid4())
+    if "user_session_id" not in st.session_state:
+        st.session_state["user_session_id"] = str(uuid.uuid4())
 
     if "gene_to_prot_id" not in st.session_state:
         st.session_state["gene_to_prot_id"] = {}

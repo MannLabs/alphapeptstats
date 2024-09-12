@@ -40,7 +40,6 @@ def _finalize_data_loading(
 
 
 init_session_state()
-
 sidebar_info()
 
 st.markdown("### Start a new session")
