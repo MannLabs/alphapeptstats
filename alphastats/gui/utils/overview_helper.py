@@ -52,8 +52,8 @@ def display_matrix():
     st.markdown("**DataFrame used for analysis** *preview*")
     st.markdown(text)
 
-    df = get_display_matrix()
-    csv = convert_df(st.session_state.dataset.mat)
+    df = get_display_matrix(st.session_state.user_session_id)
+    csv = convert_df(st.session_state.dataset.mat, st.session_state.user_session_id)
 
     st.dataframe(df)
 

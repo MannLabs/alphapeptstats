@@ -1,5 +1,7 @@
 #!bash
 
+# TODO remove with old release workflow
+
 # Initial cleanup
 rm -rf dist
 rm -rf build
@@ -8,14 +10,14 @@ rm -rf dist
 rm -rf build
 
 # Creating a conda environment
-conda create -n alphapeptstats_installer python=3.10 -y
+conda create -n alphapeptstats_installer python=3.10 openssl=1.1.1 -y
 conda activate alphapeptstats_installer
 
 # Creating the wheel
 python setup.py sdist bdist_wheel
 
 # Setting up the local package
-cd release/one_click_linux_gui
+cd release/windows
 # Make sure you include the required extra packages and always use the stable or very-stable options!
 pip install "../../dist/alphastats-0.6.7-py3-none-any.whl"
 
@@ -26,11 +28,7 @@ conda deactivate
 
 # If needed, include additional source such as e.g.:
 # cp ../../omiclearn/data/*.fasta dist/omiclearn/data
-# WARNING: this probably does not work!!!!
 
-# Wrapping the pyinstaller folder in a .deb package
-mkdir -p dist/alphastats_gui_installer_linux/usr/local/bin/alphastats
-mv dist/AlphaPeptStats dist/alphastats_gui_installer_linux/usr/local/bin/alphastats
-mkdir dist/alphastats_gui_installer_linux/DEBIAN
-cp control dist/alphastats_gui_installer_linux/DEBIAN
-dpkg-deb --build --root-owner-group dist/alphastats_gui_installer_linux/
+# Wrapping the pyinstaller folder in a .exe package
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" alphastats_innoinstaller_old.iss
+# WARNING: this assumes a static location for innosetup
