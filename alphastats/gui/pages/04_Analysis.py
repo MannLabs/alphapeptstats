@@ -1,10 +1,7 @@
 import streamlit as st
 
-import pandas as pd
-import io
 
-
-from alphastats.gui.utils.ui_helper import sidebar_info
+from alphastats.gui.utils.ui_helper import sidebar_info, convert_df
 from alphastats.gui.utils.analysis_helper import (
     get_analysis,
     load_options,

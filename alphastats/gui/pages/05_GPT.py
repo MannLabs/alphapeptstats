@@ -5,7 +5,12 @@ from openai import OpenAI, OpenAIError, AuthenticationError
 
 from alphastats.gui.utils.analysis_helper import (
     check_if_options_are_loaded,
+    display_df,
     display_figure,
+    download_figure,
+    download_preprocessing_info,
+    get_analysis,
+    load_options,
     save_plot_to_session_state,
     gui_volcano_plot_differential_expression_analysis,
     helper_compare_two_groups,
@@ -13,7 +18,12 @@ from alphastats.gui.utils.analysis_helper import (
 from alphastats.gui.utils.gpt_helper import (
     get_assistant_functions,
     display_proteins,
+    get_gene_function,
+    get_info,
     get_subgroups_for_each_group,
+    turn_args_to_float,
+    perform_dimensionality_reduction,
+    wait_for_run_completion,
     send_message_save_thread,
     try_to_set_api_key,
 )
@@ -152,7 +162,7 @@ if (
         "plot_submitted_clicked"
     ]
     volcano_plot = gui_volcano_plot_differential_expression_analysis(
-        chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+        chosen_parameter_dict
     )
     volcano_plot._update(plotting_parameter_dict)
     volcano_plot._annotate_result_df()
