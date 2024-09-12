@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 from st_cytoscape import cytoscape
 
-import datetime
+from alphastats import DataSet
 
 CYTOSCAPE_STYLESHEET = [
     {
@@ -263,17 +263,11 @@ def run_preprocessing(settings, dataset):
         None
     """
     dataset.preprocess(**settings)
-    st.info(
-        "Data has been processed. "
-        + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    )
+    st.success("Preprocessing finished successfully!")
 
     if settings[PREPROCESSING_STEPS.BATCH]:
         dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH])
-        st.info(
-            "Data has been batch corrected. "
-            + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        )
+        st.success("Batch correction finished successfully!")
 
 
 def display_preprocessing_info(preprocessing_info):
@@ -292,18 +286,15 @@ def display_preprocessing_info(preprocessing_info):
 
 
 # TODO: cache this
-def reset_preprocessing(dataset):
+def reset_preprocessing(dataset: DataSet) -> None:
     """Reset the preprocessing of the dataset.
 
     Args:
-        dataset (alphastat.Dataset): The dataset to be reset. The dataset will be reset in place.
+        dataset (Dataset): The dataset to be reset. The dataset will be reset in place.
 
     Returns:
         None
     """
-    # TODO: check if the method names make sense
+
     dataset.create_matrix()
-    st.info(
-        "Preprocessing has been reset. "
-        + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    )
+    st.info("Preprocessing has been reset.")
