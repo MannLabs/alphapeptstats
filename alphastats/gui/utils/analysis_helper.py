@@ -8,6 +8,7 @@ from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 def check_if_options_are_loaded(f):
     # decorator to check for missing values
+    # TODO remove this
     def inner(*args, **kwargs):
         if hasattr(st.session_state, "plotting_options") is False:
             load_options()
