@@ -163,8 +163,9 @@ def gui_volcano_plot():
     submitted = st.button("Submit")
 
     if submitted:
+        # TODO this seems not be covered by unit test
         volcano_plot = gui_volcano_plot_differential_expression_analysis(
-            chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+            chosen_parameter_dict
         )
         volcano_plot._update(plotting_parameter_dict)
         volcano_plot._annotate_result_df()
