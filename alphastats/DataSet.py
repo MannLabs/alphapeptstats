@@ -34,7 +34,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(Preprocess, Statistics, Plot, Enrichment):
+class DataSet(Statistics, Plot, Enrichment):
     """Analysis Object"""
 
     def __init__(self, loader, metadata_path=None, sample_column=None):
@@ -82,6 +82,25 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         print("DataSet has been created.")
         self.overview()
+
+    def preprocess(self, **kwargs):
+        pp = Preprocess(
+            self.filter_columns,
+            self.rawinput,
+            self.index_column,
+            self.sample,
+            self.metadata,
+            self.preprocessing_info,
+            self.mat,
+        )
+
+        self.mat, self.metadata, self.preprocessing_info = pp.preprocess(**kwargs)
+        self.preprocessed = True
+
+    def reset_preprocessing(self):
+        """Reset all preprocessing steps"""
+        self.create_matrix()
+        print("All preprocessing steps are reset.")
 
     def _create_metadata(self):
         samples = list(self.mat.index)
