@@ -11,9 +11,9 @@ from alphastats.gui.utils.preprocessing_helper import (
     reset_preprocessing,
     PREPROCESSING_STEPS,
 )
-from alphastats.gui.utils.ui_helper import sidebar_info
+from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
 
-
+init_session_state()
 sidebar_info()
 
 if "workflow" not in st.session_state:

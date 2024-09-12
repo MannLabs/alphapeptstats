@@ -3,7 +3,7 @@ import pandas as pd
 import io
 
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
 
@@ -43,9 +43,11 @@ def download_preprocessing_info(plot, name, count):
     )
 
 
+init_session_state()
+sidebar_info()
+
 st.markdown("### Results")
 
-sidebar_info()
 
 if "plot_list" in st.session_state:
     for count, plot in enumerate(st.session_state.plot_list):
