@@ -28,7 +28,7 @@ try:
         send_message_save_thread,
         try_to_set_api_key,
     )
-    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
 
 except ModuleNotFoundError:
     from utils.analysis_helper import (
@@ -58,6 +58,8 @@ except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
 
 
+init_session_state()
+sidebar_info()
 st.session_state.plot_dict = {}
 
 
@@ -81,8 +83,6 @@ if "dataset" not in st.session_state:
 
 
 st.markdown("### GPT4 Analysis")
-
-sidebar_info()
 
 
 # set background to white so downloaded pngs dont have grey background

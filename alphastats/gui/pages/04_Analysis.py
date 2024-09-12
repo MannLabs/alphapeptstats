@@ -1,8 +1,11 @@
 import streamlit as st
 
-
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info, convert_df
+    from alphastats.gui.utils.ui_helper import (
+        sidebar_info,
+        init_session_state,
+        convert_df,
+    )
     from alphastats.gui.utils.analysis_helper import (
         get_analysis,
         load_options,
@@ -40,10 +43,10 @@ def select_analysis():
     return method
 
 
-st.markdown("### Analysis")
-
+init_session_state()
 sidebar_info()
 
+st.markdown("### Analysis")
 
 # set background to white so downloaded pngs dont have grey background
 styl = f"""
