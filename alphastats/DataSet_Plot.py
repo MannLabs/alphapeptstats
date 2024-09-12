@@ -281,12 +281,13 @@ class Plot:
         Returns:
             plotly.graph_objects._figure.Figure: Plotly Plot
         """
-        if compare_preprocessing_modes:
-            params_for_func = locals()
-            results = self._compare_preprocessing_modes(
-                func=IntensityPlot, params_for_func=params_for_func
-            )
-            return results
+        # TODO this needs to orchestrated from outside this method
+        # if compare_preprocessing_modes:
+        #     params_for_func = locals()
+        #     results = self._compare_preprocessing_modes(
+        #         func=IntensityPlot, params_for_func=params_for_func
+        #     )
+        #     return results
 
         intensity_plot = IntensityPlot(
             dataset=self,

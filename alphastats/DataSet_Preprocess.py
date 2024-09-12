@@ -251,9 +251,41 @@ class Preprocess:
             res = func(**params_for_func)
             results_list.append(res)
 
-            print("\t")
-
-        return results_list
+    # TODO this needs to be reimplemented
+    # @ignore_warning(RuntimeWarning)
+    # def _compare_preprocessing_modes(self, func, params_for_func) -> list:
+    #     dataset = self
+    #
+    #     preprocessing_modes = list(
+    #         itertools.product(self.normalization_methods, self.imputation_methods)
+    #     )
+    #
+    #     results_list = []
+    #
+    #     del params_for_func["compare_preprocessing_modes"]
+    #     params_for_func["dataset"] = params_for_func.pop("self")
+    #
+    #     # TODO: make this progress transparent in GUI
+    #     for preprocessing_mode in tqdm(preprocessing_modes):
+    #         # reset preprocessing
+    #         dataset.reset_preprocessing()
+    #         print(
+    #             f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}"
+    #         )
+    #         dataset.mat.replace([np.inf, -np.inf], np.nan, inplace=True)
+    #
+    #         dataset.preprocess(
+    #             subset=True,
+    #             normalization=preprocessing_mode[0],
+    #             imputation=preprocessing_mode[1],
+    #         )
+    #
+    #         res = func(**params_for_func)
+    #         results_list.append(res)
+    #
+    #         print("\t")
+    #
+    #     return results_list
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat + 0.1)
