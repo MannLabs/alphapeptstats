@@ -3,59 +3,31 @@ import streamlit as st
 import pandas as pd
 from openai import OpenAI, OpenAIError, AuthenticationError
 
-try:
-    from alphastats.gui.utils.analysis_helper import (
-        check_if_options_are_loaded,
-        display_df,
-        display_figure,
-        download_figure,
-        download_preprocessing_info,
-        get_analysis,
-        load_options,
-        save_plot_to_session_state,
-        gui_volcano_plot_differential_expression_analysis,
-        helper_compare_two_groups,
-    )
-    from alphastats.gui.utils.gpt_helper import (
-        get_assistant_functions,
-        display_proteins,
-        get_gene_function,
-        get_info,
-        get_subgroups_for_each_group,
-        turn_args_to_float,
-        perform_dimensionality_reduction,
-        wait_for_run_completion,
-        send_message_save_thread,
-        try_to_set_api_key,
-    )
-    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
-
-except ModuleNotFoundError:
-    from utils.analysis_helper import (
-        check_if_options_are_loaded,
-        display_df,
-        display_figure,
-        download_figure,
-        download_preprocessing_info,
-        get_analysis,
-        load_options,
-        save_plot_to_session_state,
-        gui_volcano_plot_differential_expression_analysis,
-        helper_compare_two_groups,
-    )
-    from utils.gpt_helper import (
-        get_assistant_functions,
-        display_proteins,
-        get_gene_function,
-        get_info,
-        get_subgroups_for_each_group,
-        turn_args_to_float,
-        perform_dimensionality_reduction,
-        wait_for_run_completion,
-        send_message_save_thread,
-        try_to_set_api_key,
-    )
-    from utils.ui_helper import sidebar_info
+from alphastats.gui.utils.analysis_helper import (
+    check_if_options_are_loaded,
+    display_df,
+    display_figure,
+    download_figure,
+    download_preprocessing_info,
+    get_analysis,
+    load_options,
+    save_plot_to_session_state,
+    gui_volcano_plot_differential_expression_analysis,
+    helper_compare_two_groups,
+)
+from alphastats.gui.utils.gpt_helper import (
+    get_assistant_functions,
+    display_proteins,
+    get_gene_function,
+    get_info,
+    get_subgroups_for_each_group,
+    turn_args_to_float,
+    perform_dimensionality_reduction,
+    wait_for_run_completion,
+    send_message_save_thread,
+    try_to_set_api_key,
+)
+from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
 
 
 init_session_state()
