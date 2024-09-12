@@ -1,8 +1,10 @@
+from typing import List
+
 import streamlit as st
 import pandas as pd
 from st_cytoscape import cytoscape
 
-import datetime
+from alphastats import DataSet
 
 CYTOSCAPE_STYLESHEET = [
     {
@@ -108,7 +110,7 @@ PREDEFINED_ORDER = [
 ]
 
 
-def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
+def draw_workflow(workflow: List[str], order: List[str] = PREDEFINED_ORDER):
     """Draws a workflow using the given workflow and order of elements.
 
     The order defines which elements are shown and in which order. The workflow defines which elements are visually highlighted and connected by arrows.
@@ -197,7 +199,7 @@ def configure_preprocessing(dataset):
         value=0.0,
         min_value=0.0,
         max_value=1.0,
-        step=0.1,
+        step=0.01,
     )
 
     log2_transform = st.selectbox(
@@ -261,17 +263,11 @@ def run_preprocessing(settings, dataset):
         None
     """
     dataset.preprocess(**settings)
-    st.info(
-        "Data has been processed. "
-        + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    )
+    st.success("Preprocessing finished successfully!")
 
     if settings[PREPROCESSING_STEPS.BATCH]:
         dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH])
-        st.info(
-            "Data has been batch corrected. "
-            + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        )
+        st.success("Batch correction finished successfully!")
 
 
 def display_preprocessing_info(preprocessing_info):
@@ -290,17 +286,15 @@ def display_preprocessing_info(preprocessing_info):
 
 
 # TODO: cache this
-def reset_preprocessing(dataset):
+def reset_preprocessing(dataset: DataSet) -> None:
     """Reset the preprocessing of the dataset.
 
     Args:
-        dataset (alphastat.Dataset): The dataset to be reset. The dataset will be reset in place.
+        dataset (Dataset): The dataset to be reset. The dataset will be reset in place.
 
     Returns:
         None
     """
-    # TODO: check if the method names make sense
+
     dataset.create_matrix()
-    st.info(
-        "Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    )
+    st.info("Preprocessing has been reset.")

@@ -1,11 +1,12 @@
 #!bash
+# TODO remove with old release workflow
 
 # Initial cleanup
 rm -rf dist
 rm -rf build
-FILE=AlphaPeptStats.pkg
+FILE=alphastats.pkg
 if test -f "$FILE"; then
-  rm AlphaPeptStats.pkg
+  rm alphastats.pkg
 fi
 cd ../..
 rm -rf dist
@@ -19,7 +20,7 @@ conda activate alphapeptstatsinstaller
 python setup.py sdist bdist_wheel
 
 # Setting up the local package
-cd release/one_click_macos_gui
+cd release/macos
 pip install "../../dist/alphastats-0.6.7-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
@@ -40,5 +41,5 @@ cp ../../LICENSE.txt Resources/LICENSE.txt
 cp ../logos/alphapeptstats_logo.png Resources/alphapeptstats_logo.png
 chmod 777 scripts/*
 
-pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.4.1 --install-location /Applications/AlphaPeptStats.app --scripts scripts AlphaPeptStats.pkg
-productbuild --distribution distribution.xml --resources Resources --package-path AlphaPeptStats.pkg dist/alphastats_gui_installer_macos.pkg
+pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.6.7--install-location /Applications/alphastats.app --scripts scripts alphastats.pkg
+productbuild --distribution distribution.xml --resources Resources --package-path alphastats.pkg dist/alphastats_gui_installer_macos.pkg

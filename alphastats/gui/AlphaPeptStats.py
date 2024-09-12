@@ -1,26 +1,16 @@
+import os
 import streamlit as st
+
+
+from alphastats.gui.utils.ui_helper import (
+    sidebar_info,
+    img_to_bytes,
+    init_session_state,
+)
 
 st.set_page_config(layout="wide")
 
-try:
-    from alphastats.gui.utils.ui_helper import sidebar_info, img_to_bytes
-except ModuleNotFoundError:
-    from utils.ui_helper import sidebar_info, img_to_bytes
-import os
-
-# from PIL import Image
-
-# centering with streamlit is not really centered
-
-from streamlit.runtime import get_instance
-from streamlit.runtime.scriptrunner.script_run_context import get_script_run_ctx
-
-runtime = get_instance()
-session_id = get_script_run_ctx().session_id
-session_info = runtime._session_mgr.get_session_info(session_id)
-
-user_session_id = session_id
-st.session_state["user_session_id"] = user_session_id
+init_session_state()
 
 img_center = """
 <head>
@@ -30,7 +20,7 @@ img {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  width: 65%;
+  width: 33%;
 </style>
 </head>
 """
@@ -64,7 +54,7 @@ interactive participation, check out the [discussions](https://github.com/MannLa
 """
 )
 
-sidebar_info(show_logo=False)
+sidebar_info()
 
 # TODO The emojis on the sidebar menu look ugly but currently there are no other options to add icon in streamlit multipage apps
 # https://discuss.streamlit.io/t/icons-for-the-multi-app-page-menu-in-the-sidebar-other-than-emojis/27222

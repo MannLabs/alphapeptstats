@@ -1,3 +1,5 @@
+# TODO remove with old release workflow
+
 on:
   workflow_dispatch:
     inputs:
@@ -35,6 +37,8 @@ jobs:
   Create_Linux_Release:
     runs-on: ubuntu-latest
     needs: Create_Draft_On_GitHub
+    env:
+      BUILD_NAME: alphastats_gui_installer_linux
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -49,12 +53,12 @@ jobs:
       - name: Creating installer for Linux
         shell: bash -l {0}
         run: |
-          cd release/one_click_linux_gui
+          cd release/linux
           . ./create_installer_linux.sh
       - name: Test installer for Linux
         shell: bash -l {0}
         run: |
-          sudo dpkg -i release/one_click_linux_gui/dist/alphastats_gui_installer_linux.deb
+          sudo dpkg -i release/linux/dist/alphastats_gui_installer_linux.deb
       - name: Upload Linux Installer
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
@@ -62,12 +66,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
-          asset_path: release/one_click_linux_gui/dist/alphastats_gui_installer_linux.deb
+          asset_path: release/linux/dist/alphastats_gui_installer_linux.deb
           asset_name: alphastats_gui_installer_linux.deb
           asset_content_type: application/octet-stream
   Create_MacOS_Release:
     runs-on: macos-latest
     needs: Create_Draft_On_GitHub
+    env:
+      BUILD_NAME: alphastats_gui_installer_macos
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -82,12 +88,12 @@ jobs:
       - name: Creating installer for MacOS
         shell: bash -l {0}
         run: |
-          cd release/one_click_macos_gui
+          cd release/macos
           . ./create_installer_macos.sh
       - name: Test installer for MacOS
         shell: bash -l {0}
         run: |
-          sudo installer -pkg release/one_click_macos_gui/dist/alphastats_gui_installer_macos.pkg -target /
+          sudo installer -pkg release/macos/dist/alphastats_gui_installer_macos.pkg -target /
       - name: Upload MacOS Installer
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
@@ -95,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
-          asset_path: release/one_click_macos_gui/dist/alphastats_gui_installer_macos.pkg
+          asset_path: release/macos/dist/alphastats_gui_installer_macos.pkg
           asset_name: alphastats_gui_installer_macos.pkg
           asset_content_type: application/octet-stream
   Create_Windows_Release:
@@ -115,12 +121,12 @@ jobs:
       - name: Creating installer for Windows
         shell: bash -l {0}
         run: |
-          cd release/one_click_windows_gui
+          cd release/windows
           . ./create_installer_windows.sh
       - name: Test installer for Windows
         shell: bash -l {0}
         run: |
-          cd release/one_click_windows_gui/dist/
+          cd release/windows/dist/
           echo "TODO, this test seems to freeze the runner..."
           # ./alphastats_gui_installer_windows.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
           # cat log.txt
@@ -131,6 +137,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
-          asset_path: release/one_click_windows_gui/dist/alphastats_gui_installer_windows.exe
+          asset_path: release/windows/dist/alphastats_gui_installer_windows.exe
           asset_name: alphastats_gui_installer_windows.exe
           asset_content_type: application/octet-stream

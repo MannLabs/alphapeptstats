@@ -1,26 +1,27 @@
 import streamlit as st
 import pandas as pd
 
-
-@st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
-    return df.to_csv().encode("utf-8")
+from alphastats import DataSet
+from alphastats.gui.utils.ui_helper import convert_df
 
 
-@st.cache_data
-def get_sample_histogram_matrix(user_session_id=st.session_state.user_session_id):
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_sample_histogram_matrix():
     return st.session_state.dataset.plot_samplehistograms()
 
 
-@st.cache_data
-def get_intensity_distribution_processed(
-    user_session_id=st.session_state.user_session_id,
-):
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_intensity_distribution_unprocessed():
+    return st.session_state.dataset.plot_sampledistribution(use_raw=True)
+
+
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_intensity_distribution_processed():
     return st.session_state.dataset.plot_sampledistribution()
 
 
-@st.cache_data
-def get_display_matrix(user_session_id=st.session_state.user_session_id):
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_display_matrix():
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
@@ -42,11 +43,28 @@ def display_matrix():
     st.markdown("**DataFrame used for analysis** *preview*")
     st.markdown(text)
 
-    df = get_display_matrix()
-    csv = convert_df(st.session_state.dataset.mat)
+    df = get_display_matrix(st.session_state.user_session_id)
+    csv = convert_df(st.session_state.dataset.mat, st.session_state.user_session_id)
 
     st.dataframe(df)
 
     st.download_button(
         "Download as .csv", csv, "analysis_matrix.csv", "text/csv", key="download-csv"
     )
+
+
+def display_loaded_dataset(dataset: DataSet) -> None:
+    st.markdown(f"*Preview:* Raw data from {dataset.software}")
+    st.dataframe(dataset.rawinput.head(5))
+
+    st.markdown("*Preview:* Metadata")
+    st.dataframe(dataset.metadata.head(5))
+
+    st.markdown("*Preview:* Matrix")
+
+    df = pd.DataFrame(
+        dataset.mat.values,
+        index=dataset.mat.index.to_list(),
+    ).head(5)
+
+    st.dataframe(df)
