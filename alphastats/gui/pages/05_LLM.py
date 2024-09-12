@@ -3,48 +3,28 @@ import streamlit as st
 import pandas as pd
 from openai import AuthenticationError
 
+from alphastats.gui.utils.analysis_helper import (
+    check_if_options_are_loaded,
+    display_figure,
+    save_plot_to_session_state,
+    gui_volcano_plot_differential_expression_analysis,
+    helper_compare_two_groups,
+)
+from alphastats.gui.utils.gpt_helper import (
+    get_assistant_functions,
+    display_proteins,
+    get_subgroups_for_each_group,
+    get_general_assistant_functions,
+)
+from alphastats.gui.utils.openai_utils import (
+    try_to_set_api_key,
+)
+from alphastats.gui.utils.ollama_utils import LLMIntegration
 from alphastats.gui.utils.options import interpretation_options
+from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
 
-try:
-    from alphastats.gui.utils.analysis_helper import (
-        check_if_options_are_loaded,
-        display_figure,
-        save_plot_to_session_state,
-        gui_volcano_plot_differential_expression_analysis,
-        helper_compare_two_groups,
-    )
-    from alphastats.gui.utils.gpt_helper import (
-        get_assistant_functions,
-        display_proteins,
-        get_subgroups_for_each_group,
-        get_general_assistant_functions,
-    )
-    from alphastats.gui.utils.openai_utils import (
-        try_to_set_api_key,
-    )
-    from alphastats.gui.utils.ollama_utils import LLMIntegration
-    from alphastats.gui.utils.ui_helper import sidebar_info
-
-except ModuleNotFoundError:
-    from utils.analysis_helper import (
-        check_if_options_are_loaded,
-        display_figure,
-        save_plot_to_session_state,
-        gui_volcano_plot_differential_expression_analysis,
-        helper_compare_two_groups,
-    )
-    from utils.gpt_helper import (
-        get_assistant_functions,
-        display_proteins,
-        get_subgroups_for_each_group,
-        get_general_assistant_functions,
-    )
-    from utils.openai_utils import (
-        try_to_set_api_key,
-    )
-    from utils.ollama_utils import LLMIntegration
-    from utils.ui_helper import sidebar_info
-
+init_session_state()
+sidebar_info()
 st.session_state.plot_dict = {}
 
 
@@ -180,7 +160,7 @@ if (
         "plot_submitted_clicked"
     ]
     volcano_plot = gui_volcano_plot_differential_expression_analysis(
-        chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+        chosen_parameter_dict
     )
     volcano_plot._update(plotting_parameter_dict)
     volcano_plot._annotate_result_df()
