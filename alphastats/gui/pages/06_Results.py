@@ -3,7 +3,7 @@ import pandas as pd
 import io
 
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info
+    from alphastats.gui.utils.ui_helper import sidebar_info, convert_df
 except ModuleNotFoundError:
     from utils.ui_helper import sidebar_info
 
@@ -20,12 +20,6 @@ def save_plotly(plot, name, format):
     st.download_button(
         label="Download as " + format, data=buffer, file_name=name + "." + format
     )
-
-
-@st.cache_data
-def convert_df(df, user_session_id=st.session_state.user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
-    return df.to_csv().encode("utf-8")
 
 
 def download_preprocessing_info(plot, name, count):
