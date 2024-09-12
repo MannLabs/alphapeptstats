@@ -1,6 +1,7 @@
-import numpy as no
+import numpy as np
 
 
+# TODO: Check if StatisticUtils is used productively anywhere. Otherwise remove it.
 class StatisticUtils:
     def __init__(self) -> None:
         pass
