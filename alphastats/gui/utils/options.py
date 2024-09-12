@@ -184,17 +184,19 @@ SOFTWARE_OPTIONS = {
     },
 }
 
-interpretation_options = {
-    "Volcano Plot": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.plot_volcano,
-    },
-    "Differential Expression Analysis - T-test": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.diff_expression_analysis,
-    },
-    "Differential Expression Analysis - Wald-test": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.diff_expression_analysis,
-    },
-}
+
+def interpretation_options(state):
+    return {
+        "Volcano Plot": {
+            "between_two_groups": True,
+            "function": state.dataset.plot_volcano,
+        },
+        "Differential Expression Analysis - T-test": {
+            "between_two_groups": True,
+            "function": state.dataset.diff_expression_analysis,
+        },
+        "Differential Expression Analysis - Wald-test": {
+            "between_two_groups": True,
+            "function": state.dataset.diff_expression_analysis,
+        },
+    }

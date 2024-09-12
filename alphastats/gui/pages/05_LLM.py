@@ -3,6 +3,8 @@ import streamlit as st
 import pandas as pd
 from openai import AuthenticationError
 
+from alphastats.gui.utils.options import interpretation_options
+
 try:
     from alphastats.gui.utils.analysis_helper import (
         check_if_options_are_loaded,
@@ -55,7 +57,7 @@ def select_analysis():
     method = st.selectbox(
         "Analysis",
         # options=["Volcano plot"],
-        options=list(st.session_state.interpretation_options.keys()),
+        options=list(interpretation_options(st.session_state).keys()),
     )
     return method
 
