@@ -1,3 +1,5 @@
+from typing import List
+
 import streamlit as st
 import pandas as pd
 from st_cytoscape import cytoscape
@@ -108,7 +110,7 @@ PREDEFINED_ORDER = [
 ]
 
 
-def draw_workflow(workflow: list[str], order: list[str] = PREDEFINED_ORDER):
+def draw_workflow(workflow: List[str], order: List[str] = PREDEFINED_ORDER):
     """Draws a workflow using the given workflow and order of elements.
 
     The order defines which elements are shown and in which order. The workflow defines which elements are visually highlighted and connected by arrows.
@@ -302,5 +304,6 @@ def reset_preprocessing(dataset):
     # TODO: check if the method names make sense
     dataset.create_matrix()
     st.info(
-        "Data has been reset. " + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        "Preprocessing has been reset. "
+        + datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     )
