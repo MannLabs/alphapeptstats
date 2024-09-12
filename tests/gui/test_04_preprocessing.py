@@ -2,7 +2,7 @@ from alphastats import DataSet
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from .test_helper import create_dataset_alphapept
+from .conftest import create_dataset_alphapept
 import pandas as pd
 from io import BytesIO
 
