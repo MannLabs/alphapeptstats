@@ -22,7 +22,7 @@ sklearn_pandas==2.2.0
 statsmodels==0.14.0
 streamlit==1.38.0
 swifter==1.2.0
-tables==3.7.0
+tables==3.7.0 # TODO 3.10.1 is required for supporting apple M1 builds but needs python >= 3.10
 tqdm>=4.64.0
 umap-learn==0.5.3
 xlsxwriter==3.1.0
