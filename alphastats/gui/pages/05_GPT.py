@@ -6,7 +6,6 @@ from openai import OpenAI, OpenAIError, AuthenticationError
 try:
     from alphastats.gui.utils.analysis_helper import (
         check_if_options_are_loaded,
-        convert_df,
         display_df,
         display_figure,
         download_figure,
@@ -34,7 +33,6 @@ try:
 except ModuleNotFoundError:
     from utils.analysis_helper import (
         check_if_options_are_loaded,
-        convert_df,
         display_df,
         display_figure,
         download_figure,
@@ -192,7 +190,7 @@ if (
         "plot_submitted_clicked"
     ]
     volcano_plot = gui_volcano_plot_differential_expression_analysis(
-        chosen_parameter_dict, user_session_id=st.session_state.user_session_id
+        chosen_parameter_dict
     )
     volcano_plot._update(plotting_parameter_dict)
     volcano_plot._annotate_result_df()

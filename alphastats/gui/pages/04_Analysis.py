@@ -1,7 +1,7 @@
 import streamlit as st
 
 try:
-    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
+    from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, convert_df
     from alphastats.gui.utils.analysis_helper import (
         get_analysis,
         load_options,
@@ -9,7 +9,6 @@ try:
         save_plot_to_session_state,
         download_figure,
         display_df,
-        convert_df,
         download_preprocessing_info,
     )
 
@@ -22,7 +21,6 @@ except ModuleNotFoundError:
         save_plot_to_session_state,
         download_figure,
         display_df,
-        convert_df,
         download_preprocessing_info,
     )
 

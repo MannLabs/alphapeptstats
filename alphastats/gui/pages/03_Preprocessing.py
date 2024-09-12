@@ -43,15 +43,13 @@ with c1:
 
     else:
         c11, c12 = st.columns([1, 1])
-
-        if c11.button("Run preprocessing"):
+        if c11.button("Run preprocessing", key="_run_preprocessing"):
             run_preprocessing(settings, st.session_state["dataset"])
             # TODO show more info about the preprocessing steps
             display_preprocessing_info(st.session_state["dataset"].preprocessing_info)
 
-        if c12.button("Reset all Preprocessing steps"):
+        if c12.button("Reset all Preprocessing steps", key="_reset_preprocessing"):
             reset_preprocessing(st.session_state["dataset"])
             display_preprocessing_info(st.session_state["dataset"].preprocessing_info)
-
 
 # TODO: Add comparison plot of intensity distribution before and after preprocessing

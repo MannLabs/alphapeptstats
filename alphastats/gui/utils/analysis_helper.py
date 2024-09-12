@@ -1,13 +1,8 @@
-from pathlib import Path
-from typing import Optional, List
-
 import pandas as pd
 import streamlit as st
 import io
 
-from streamlit.runtime.uploaded_file_manager import UploadedFile
-
-from alphastats import BaseLoader
+from alphastats.gui.utils.ui_helper import convert_df
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -67,17 +62,11 @@ def download_figure(obj, format, plotting_library="plotly"):
     st.download_button(label="Download as " + format, data=buffer, file_name=filename)
 
 
-@st.cache_data
-def convert_df(df, user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
-    return df.to_csv().encode("utf-8")
-
-
 def download_preprocessing_info(plot):
     preprocesing_dict = plot[1].preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
     filename = "plot" + plot[0] + "preprocessing_info.csv"
-    csv = convert_df(df, st.session_state.user_session_id)
+    csv = convert_df(df)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
@@ -117,14 +106,13 @@ def st_general(method_dict):
             return method_dict["function"](**chosen_parameter_dict)
 
 
-@st.cache_data
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
 def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict, user_session_id
+    chosen_parameter_dict,
 ):
     """
     initalize volcano plot object with differential expression analysis results
     """
-    del user_session_id  # needed to invalidate cache for changing user_session_id
     volcano_plot = VolcanoPlot(
         dataset=st.session_state.dataset, **chosen_parameter_dict, plot=False
     )

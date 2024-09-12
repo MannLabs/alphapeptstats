@@ -2,35 +2,26 @@ import streamlit as st
 import pandas as pd
 
 from alphastats import DataSet
+from alphastats.gui.utils.ui_helper import convert_df
 
 
-@st.cache_data
-def convert_df(df, user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
-    return df.to_csv().encode("utf-8")
-
-
-@st.cache_data
-def get_sample_histogram_matrix(user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_sample_histogram_matrix():
     return st.session_state.dataset.plot_samplehistograms()
 
 
-@st.cache_data
-def get_intensity_distribution_unprocessed(user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_intensity_distribution_unprocessed():
     return st.session_state.dataset.plot_sampledistribution(use_raw=True)
 
 
-@st.cache_data
-def get_intensity_distribution_processed(user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_intensity_distribution_processed():
     return st.session_state.dataset.plot_sampledistribution()
 
 
-@st.cache_data
-def get_display_matrix(user_session_id):
-    del user_session_id  # needed to invalidate cache for changing user_session_id
+# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
+def get_display_matrix():
     processed_df = pd.DataFrame(
         st.session_state.dataset.mat.values,
         index=st.session_state.dataset.mat.index.to_list(),
