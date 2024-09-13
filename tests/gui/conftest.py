@@ -4,6 +4,7 @@ from pathlib import Path
 from alphastats import DataSet
 from io import BytesIO
 
+# TODO: Turn the helpers into fixtures
 
 APP_FOLDER = Path(__file__).parent / "../../alphastats/gui/"
 TEST_INPUT_FILES_PATH = APP_FOLDER / "../../testfiles"
