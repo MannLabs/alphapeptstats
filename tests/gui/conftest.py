@@ -2,10 +2,11 @@ from streamlit.testing.v1 import AppTest
 from alphastats.load_data import load_data
 from pathlib import Path
 from alphastats import DataSet
+from io import BytesIO
 
 
-APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
-TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
+APP_FOLDER = Path(__file__).parent / "../../alphastats/gui/"
+TEST_INPUT_FILES_PATH = APP_FOLDER / "../../testfiles"
 
 
 def print_session_state(apptest: AppTest):
@@ -20,11 +21,32 @@ def print_session_state(apptest: AppTest):
 def create_dataset_alphapept():
     """Creates a dataset object from the alphapept testfiles."""
     loader = load_data(
-        file=TEST_INPUT_FILES + "/alphapept/results_proteins.csv", type="alphapept"
+        file=str(TEST_INPUT_FILES_PATH / "alphapept/results_proteins.csv"),
+        type="alphapept",
     )
-    metadata_path = TEST_INPUT_FILES + "/alphapept/metadata.csv"
+    metadata_path = TEST_INPUT_FILES_PATH / "alphapept/metadata.csv"
     return DataSet(
         loader=loader,
-        metadata_path=metadata_path,
+        metadata_path=str(metadata_path),
         sample_column="sample",
     )
+
+
+def data_buf(file_path: str):
+    """Helper function to open a data file from the testfiles folder and return a BytesIO object.
+
+    Additionally add filename as attribute."""
+    with open(TEST_INPUT_FILES_PATH / file_path, "rb") as f:
+        buf = BytesIO(f.read())
+        buf.name = file_path.split("/")[-1]
+        return buf
+
+
+def metadata_buf(file_path: str):
+    """Helper function to open a metadata file from the testfiles folder and return a BytesIO object.
+
+    Additionally add filename as attribute and set the metadatafile in the session state."""
+    with open(TEST_INPUT_FILES_PATH / file_path, "rb") as f:
+        buf = BytesIO(f.read())
+        buf.name = file_path.split("/")[-1]
+        return buf

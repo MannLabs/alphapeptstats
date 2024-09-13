@@ -1,19 +1,10 @@
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from io import BytesIO
+from .conftest import APP_FOLDER, data_buf, metadata_buf
 
 
-def print_session_state(apptest: AppTest):
-    for k, v in apptest.session_state.filtered_state.items():
-        print(
-            f"{k}:    {str(type(v))}   {str(v)[:20] if type(v) not in [int, list, str] else v}"
-        )
-
-
-APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
 TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
-TEST_INPUT_FILES_PATH = APP_FOLDER / "../../testfiles"
 
 
 def test_page_02_loads_without_input():
@@ -69,26 +60,6 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
     assert "statistic_options" in at.session_state
 
 
-def _data_buf(file_path: str):
-    """Helper function to open a data file from the testfiles folder and return a BytesIO object.
-
-    Additionally add filename as attribute."""
-    with open(TEST_INPUT_FILES_PATH / file_path, "rb") as f:
-        buf = BytesIO(f.read())
-        buf.name = file_path.split("/")[-1]
-        return buf
-
-
-def _metadata_buf(file_path: str, at: AppTest):
-    """Helper function to open a metadata file from the testfiles folder and return a BytesIO object.
-
-    Additionally add filename as attribute and set the metadatafile in the session state."""
-    with open(TEST_INPUT_FILES_PATH / file_path, "rb") as f:
-        buf = BytesIO(f.read())
-        buf.name = file_path.split("/")[-1]
-        return buf
-
-
 @patch("streamlit.file_uploader")
 @patch(
     "streamlit.page_link"
@@ -114,13 +85,13 @@ def test_page_02_loads_maxquant_testfiles(
     at.run()
 
     # User uploads the data file
-    mock_file_uploader.side_effect = [_data_buf(DATA_FILE), None]
+    mock_file_uploader.side_effect = [data_buf(DATA_FILE), None]
     at.run()
 
     # User uploads the metadata file
     mock_file_uploader.side_effect = [
-        _data_buf(DATA_FILE),
-        _metadata_buf(METADATA_FILE, at),
+        data_buf(DATA_FILE),
+        metadata_buf(METADATA_FILE),
     ]
     at.run()
 
@@ -128,8 +99,8 @@ def test_page_02_loads_maxquant_testfiles(
 
     # User clicks the Load Data button
     mock_file_uploader.side_effect = [
-        _data_buf(DATA_FILE),
-        _metadata_buf(METADATA_FILE, at),
+        data_buf(DATA_FILE),
+        metadata_buf(METADATA_FILE),
     ]
     at.button(key="_create_dataset").click()
     at.run()
