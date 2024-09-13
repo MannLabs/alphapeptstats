@@ -1,15 +1,10 @@
-from alphastats import DataSet
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from .conftest import create_dataset_alphapept
-import pandas as pd
-from io import BytesIO
+from .conftest import create_dataset_alphapept, APP_FOLDER
 
 
-APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
 APP_FILE = f"{APP_FOLDER}/pages/03_Preprocessing.py"
-TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
 
 
 def test_page_04_loads_without_input():
@@ -21,7 +16,7 @@ def test_page_04_loads_without_input():
 
 
 def test_page_04_loads_with_input():
-    """Test if the page loads with input and inititalizes the session state with the correct values."""
+    """Test if the page loads with input and serves the processing interface correctly."""
     at = AppTest(APP_FILE, default_timeout=200)
     at.run()
 

@@ -9,6 +9,8 @@ TEST_INPUT_FILES = f"{APP_FOLDER}/../../testfiles"
 
 
 def print_session_state(apptest: AppTest):
+    """Prints the session state of the AppTest object.
+    Not used productively, but for debugging purposes."""
     for k, v in apptest.session_state.filtered_state.items():
         print(
             f"{k}:    {str(type(v))}   {str(v)[:20] if type(v) not in [int, list, str] else v}"
@@ -16,6 +18,7 @@ def print_session_state(apptest: AppTest):
 
 
 def create_dataset_alphapept():
+    """Creates a dataset object from the alphapept testfiles."""
     loader = load_data(
         file=TEST_INPUT_FILES + "/alphapept/results_proteins.csv", type="alphapept"
     )
