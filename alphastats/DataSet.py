@@ -93,7 +93,7 @@ class DataSet(PreprocessInterface, Statistics, Plot, Enrichment):
         imputation: str = None,
         remove_samples: list = None,
         **kwargs,
-    ):
+    ) -> None:
         """See documentation in the class implementing PreprocessInterface."""
         pp = Preprocess(
             self.filter_columns,
@@ -121,6 +121,18 @@ class DataSet(PreprocessInterface, Statistics, Plot, Enrichment):
         """Reset all preprocessing steps"""
         self.create_matrix()
         print("All preprocessing steps are reset.")
+
+    def batch_correction(self, batch: str) -> None:
+        pp = Preprocess(
+            self.filter_columns,
+            self.rawinput,
+            self.index_column,
+            self.sample,
+            self.metadata,
+            self.preprocessing_info,
+            self.mat,
+        )
+        self.mat, self.metadata = pp.batch_correction(batch)
 
     def _create_metadata(self):
         samples = list(self.mat.index)
@@ -165,6 +177,15 @@ class DataSet(PreprocessInterface, Statistics, Plot, Enrichment):
                 f"{misc_samples} are not described in the protein data and"
                 "are removed from the metadata."
             )
+
+    # TODO this is implemented in both preprocessing and here
+    def _subset(self):
+        # filter matrix so only samples that are described in metadata
+        # also found in matrix
+        self.preprocessing_info.update(
+            {"Matrix: Number of samples": self.metadata.shape[0]}
+        )
+        return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
     def create_matrix(self):
         """

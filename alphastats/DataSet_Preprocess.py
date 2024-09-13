@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,10 @@ class PreprocessInterface(ABC):
         remove_samples: list,
         **kwargs,
     ):
+        pass
+
+    @abstractmethod
+    def batch_correction(self, batch: str) -> None:
         pass
 
 
@@ -287,11 +292,16 @@ class Preprocess(PreprocessInterface):
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
 
-    def batch_correction(self, batch: str):
+    def batch_correction(self, batch: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Correct for technical bias/batch effects
-        Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
+
         Args:
             batch (str): column name in the metadata describing the different batches
+
+        # TODO should the employed methods (and citations) be made transparent in the UI?
+        Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat,
+        a Python tool for batch effects correction in high-throughput molecular
+        data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
         """
         from combat.pycombat import pycombat
 
@@ -299,7 +309,10 @@ class Preprocess(PreprocessInterface):
         series_of_batches = self.metadata.set_index(self.sample).reindex(
             data.columns.to_list()
         )[batch]
-        self.mat = pycombat(data=data, batch=series_of_batches).transpose()
+
+        batch_corrected_data = pycombat(data=data, batch=series_of_batches).transpose()
+
+        return batch_corrected_data, self.metadata
 
     @ignore_warning(RuntimeWarning)
     def preprocess(

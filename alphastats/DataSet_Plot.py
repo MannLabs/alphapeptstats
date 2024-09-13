@@ -135,7 +135,7 @@ class Plot:
         draw_line: bool = True,
         perm: int = 100,
         fdr: float = 0.05,
-        compare_preprocessing_modes: bool = False,
+        # compare_preprocessing_modes: bool = False, # TODO reimplement
         color_list: list = [],
     ):
         """Plot Volcano Plot
@@ -267,7 +267,7 @@ class Plot:
         method: str = "box",
         add_significance: bool = False,
         log_scale: bool = False,
-        compare_preprocessing_modes: bool = False,
+        # compare_preprocessing_modes: bool = False, TODO reimplement
     ):
         """Plot Intensity of individual Protein/ProteinGroup
 
