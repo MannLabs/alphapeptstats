@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,23 @@ from sklearn.experimental import enable_iterative_imputer  # noqa
 from alphastats.utils import ignore_warning
 
 
-class Preprocess:
+class PreprocessInterface(ABC):
+    @abstractmethod
+    def preprocess(
+        self,
+        log2_transform: bool,
+        remove_contaminations: bool,
+        subset: bool,
+        data_completeness: float,
+        normalization: str,
+        imputation: str,
+        remove_samples: list,
+        **kwargs,
+    ):
+        pass
+
+
+class Preprocess(PreprocessInterface):
     imputation_methods = ["mean", "median", "knn", "randomforest"]
     normalization_methods = ["vst", "zscore", "quantile"]
 

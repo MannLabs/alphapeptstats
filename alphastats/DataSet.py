@@ -8,7 +8,7 @@ from alphastats import BaseLoader
 
 
 from alphastats.DataSet_Plot import Plot
-from alphastats.DataSet_Preprocess import Preprocess
+from alphastats.DataSet_Preprocess import Preprocess, PreprocessInterface
 from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
@@ -34,7 +34,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(Statistics, Plot, Enrichment):
+class DataSet(PreprocessInterface, Statistics, Plot, Enrichment):
     """Analysis Object"""
 
     def __init__(self, loader, metadata_path=None, sample_column=None):
@@ -83,7 +83,18 @@ class DataSet(Statistics, Plot, Enrichment):
         print("DataSet has been created.")
         self.overview()
 
-    def preprocess(self, **kwargs):
+    def preprocess(
+        self,
+        log2_transform: bool = True,
+        remove_contaminations: bool = False,
+        subset: bool = False,
+        data_completeness: float = 0,
+        normalization: str = None,
+        imputation: str = None,
+        remove_samples: list = None,
+        **kwargs,
+    ):
+        """See documentation in the class implementing PreprocessInterface."""
         pp = Preprocess(
             self.filter_columns,
             self.rawinput,
@@ -94,7 +105,16 @@ class DataSet(Statistics, Plot, Enrichment):
             self.mat,
         )
 
-        self.mat, self.metadata, self.preprocessing_info = pp.preprocess(**kwargs)
+        self.mat, self.metadata, self.preprocessing_info = pp.preprocess(
+            log2_transform,
+            remove_contaminations,
+            subset,
+            data_completeness,
+            normalization,
+            imputation,
+            remove_samples,
+            **kwargs,
+        )
         self.preprocessed = True
 
     def reset_preprocessing(self):
