@@ -5,6 +5,7 @@ from .conftest import create_dataset_alphapept, APP_FOLDER
 
 APP_FILE = f"{APP_FOLDER}/pages/03_Data Overview.py"
 
+
 def test_page_03_loads_without_input():
     """Test if the page loads without any input and inititalizes the session state with the correct values."""
     at = AppTest(APP_FILE, default_timeout=200)
