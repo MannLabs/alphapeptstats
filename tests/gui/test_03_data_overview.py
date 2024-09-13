@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from .conftest import create_dataset_alphapept, APP_FOLDER
 
-TESTED_PAGE = f"{APP_FOLDER}/pages/03_Data Overview.py"
+TESTED_PAGE = APP_FOLDER / "pages/03_Data Overview.py"
 
 
 def test_page_03_loads_without_input():
