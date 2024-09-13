@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from .conftest import APP_FOLDER, data_buf, metadata_buf
 
 
-TESTED_PAGE = APP_FOLDER / "pages/02_Import Data.py"
+TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
 
 
 def test_page_02_loads_without_input():

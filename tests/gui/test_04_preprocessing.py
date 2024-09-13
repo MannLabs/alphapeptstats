@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from .conftest import create_dataset_alphapept, APP_FOLDER
 
 
-TESTED_PAGE = APP_FOLDER / "pages/03_Preprocessing.py"
+TESTED_PAGE = f"{APP_FOLDER}/pages/03_Preprocessing.py"
 
 
 def test_page_04_loads_without_input():
