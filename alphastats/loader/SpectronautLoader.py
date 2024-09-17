@@ -15,8 +15,6 @@ class SpectronautLoader(BaseLoader):
         index_column="PG.ProteinGroups",
         sample_column="R.FileName",
         gene_names_column="PG.Genes",
-        filter_qvalue=True,
-        qvalue_cutoff=0.01,
         sep="\t",
     ):
         """Loads Spectronaut output. Will add contamination column for further analysis.
@@ -43,9 +41,6 @@ class SpectronautLoader(BaseLoader):
         self._read_spectronaut_file(file=file, sep=sep)
 
         is_long = self._check_if_long(self.rawinput)
-
-        if filter_qvalue and is_long:
-            self._filter_qvalue(qvalue_cutoff=qvalue_cutoff)
 
         if is_long:
             self._reshape_spectronaut(
@@ -85,22 +80,6 @@ class SpectronautLoader(BaseLoader):
                 return True
             elif "PG.Quantity" in colname:
                 return False
-
-    def _filter_qvalue(self, qvalue_cutoff):
-        print(self.rawinput.columns.to_list())
-        if "EG.Qvalue" not in self.rawinput.columns.to_list():
-            raise Warning(
-                "Column EG.Qvalue not found in file. File will not be filtered according to q-value."
-            )
-
-        rows_before_filtering = self.rawinput.shape[0]
-        self.rawinput = self.rawinput[self.rawinput["EG.Qvalue"] < qvalue_cutoff]
-        rows_after_filtering = self.rawinput.shape[0]
-
-        rows_removed = rows_before_filtering - rows_after_filtering
-        logging.info(
-            f"{rows_removed} identification with a qvalue below {qvalue_cutoff} have been removed"
-        )
 
     def _read_spectronaut_file(self, file, sep):
         # some spectronaut files include european decimal separators

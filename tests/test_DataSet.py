@@ -929,9 +929,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
 
-        cls.cls_loader = SpectronautLoader(
-            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
-        )
+        cls.cls_loader = SpectronautLoader(file="testfiles/spectronaut/results.tsv")
         cls.cls_metadata_path = "testfiles/spectronaut/metadata.xlsx"
         cls.cls_obj = DataSet(
             loader=cls.cls_loader,
