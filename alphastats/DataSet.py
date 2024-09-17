@@ -235,12 +235,11 @@ class DataSet(Statistics, Plot, Enrichment):
         # transpose dataframe
         mat = df.transpose()
         mat.replace([np.inf, -np.inf], np.nan, inplace=True)
+        self.rawmat = mat
 
         # remove proteins with only zero  # TODO this is re-done in preprocessing
-        mat = mat.loc[:, (mat != 0).any(axis=0)]
-
-        self.mat = mat.astype(float)
-        self.rawmat = mat
+        mat_no_zeros = mat.loc[:, (mat != 0).any(axis=0)]
+        self.mat = mat_no_zeros.astype(float)
 
     def _load_metadata(
         self, file_path: Union[pd.DataFrame, str]
