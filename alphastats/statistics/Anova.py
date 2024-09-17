@@ -58,7 +58,7 @@ class Anova:
         tukey_df_list = []
         for protein_id in tqdm(self.protein_ids_list):
             tukey_df_list.append(
-                self.dataset.tukey_test(df=df, protein_id=protein_id, group=self.column)
+                tukey_test(self.index_column, df=df, protein_id=protein_id, group=self.column)
             )
         # combine all tukey test results
         tukey_df = pd.concat(tukey_df_list)

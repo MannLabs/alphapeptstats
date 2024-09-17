@@ -159,6 +159,17 @@ class DataSet(Statistics, Plot):
             self.mat,
         )
         self.mat = pp.batch_correction(batch)
+    def tukey_test(
+        self, protein_id: str, group: str, df: pd.DataFrame = None
+    ) -> pd.DataFrame:
+        df = (
+            self.mat[[protein_id]]
+            .reset_index()
+            .rename(columns={"index": self.sample})
+        )
+        df = df.merge(self.metadata, how="inner", on=[self.sample])
+
+        return tukey_test(self.index_column, protein_id, group, df)
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
