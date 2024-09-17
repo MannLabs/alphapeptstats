@@ -13,6 +13,7 @@ from alphastats.gui.utils.gpt_helper import (
 # from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
+from gui.utils.ui_helper import StateKeys
 
 
 class LLMIntegration:
@@ -137,8 +138,8 @@ class LLMIntegration:
         -------
         None
         """
-        st.session_state["messages"] = self.messages
-        st.session_state["artifacts"] = self.artifacts
+        st.session_state[StateKeys.MESSAGES] = self.messages
+        st.session_state[StateKeys.ARTIFACTS] = self.artifacts
 
     def parse_model_response(self, response: Any) -> Dict[str, Any]:
         """

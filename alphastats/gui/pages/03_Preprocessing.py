@@ -16,8 +16,8 @@ from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, Sta
 init_session_state()
 sidebar_info()
 
-if "workflow" not in st.session_state:
-    st.session_state["workflow"] = [
+if StateKeys.WORKFLOW not in st.session_state:
+    st.session_state[StateKeys.WORKFLOW] = [
         PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
         PREPROCESSING_STEPS.SUBSET,
         PREPROCESSING_STEPS.LOG2_TRANSFORM,
@@ -30,13 +30,13 @@ with c2:
     if "dataset" in st.session_state:
         settings = configure_preprocessing(dataset=st.session_state[StateKeys.DATASET])
         new_workflow = update_workflow(settings)
-        if new_workflow != st.session_state.workflow:
-            st.session_state.workflow = new_workflow
+        if new_workflow != st.session_state[StateKeys.WORKFLOW]:
+            st.session_state[StateKeys.WORKFLOW] = new_workflow
 
 with c1:
     st.write("#### Flowchart of preprocessing workflow:")
 
-    selected_nodes = draw_workflow(st.session_state.workflow)
+    selected_nodes = draw_workflow(st.session_state[StateKeys.WORKFLOW])
 
     if "dataset" not in st.session_state:
         st.info("Import data first to configure and run preprocessing")

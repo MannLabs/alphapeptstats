@@ -100,17 +100,28 @@ class StateKeys:
     DATASET = "dataset"  # functions upload_metadatafile
     PLOTTING_OPTIONS = "plotting_options"  # function load_options
     STATISTIC_OPTIONS = "statistic_options"  # function load_options
-    # on metadata upload
-    SAMPLE_COLUMN = "sample_column"
-    # "workflow"
-    # "plot_list"
-    # "openai_model"
-    #
-    # "plot_submitted_clicked"
-    # "plot_submitted_counter"
-    #
-    # "lookup_submitted_clicked"
-    # "lookup_submitted_counter"
-    #
-    # "gpt_submitted_clicked"
-    # "gpt_submitted_counter"
+
+    WORKFLOW = "workflow"
+
+    PLOT_LIST = "plot_list"
+    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
+    API_TYPE = "api_type"
+    LLM_INTEGRATION = "llm_integration"
+
+    PLOT_SUBMITTED_CLICKED = "plot_submitted_clicked"
+    PLOT_SUBMITTED_COUNTER = "plot_submitted_counter"
+
+    LOOKUP_SUBMITTED_CLICKED = "lookup_submitted_clicked"
+    LOOKUP_SUBMITTED_COUNTER = "lookup_submitted_counter"
+
+    GPT_SUBMITTED_CLICKED = "gpt_submitted_clicked"
+    GPT_SUBMITTED_COUNTER = "gpt_submitted_counter"
+
+    INSTRUCTIONS = "instructions"
+    USER_PROMPT = "user_prompt"
+    MESSAGES = "messages"
+    ARTIFACTS = "artifacts"
+    PROT_ID_TO_GENE = "prot_id_to_gene"
+    GENES_OF_INTEREST_COLORED = "genes_of_interest_colored"
+    UPREGULATED = "upregulated"
+    DOWNREGULATED = "downregulated"

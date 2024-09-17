@@ -32,7 +32,7 @@ def save_plot_to_session_state(plot, method):
     """
     save plot with method to session state to retrieve old results
     """
-    st.session_state["plot_list"] += [(method, plot)]
+    st.session_state[StateKeys.PLOT_LIST] += [(method, plot)]
 
 
 def display_df(df):

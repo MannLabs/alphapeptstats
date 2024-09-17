@@ -6,6 +6,7 @@ from alphastats.gui.utils.ui_helper import (
     sidebar_info,
     init_session_state,
     convert_df,
+    StateKeys,
 )
 
 
@@ -45,7 +46,7 @@ st.markdown("### Results")
 
 
 if "plot_list" in st.session_state:
-    for count, plot in enumerate(st.session_state.plot_list):
+    for count, plot in enumerate(st.session_state[StateKeys.PLOT_LIST]):
         print("plot", type(plot), count)
         count = str(count)
 

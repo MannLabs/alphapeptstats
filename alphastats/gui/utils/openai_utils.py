@@ -8,6 +8,8 @@ import json
 import openai
 import streamlit as st
 
+from gui.utils.ui_helper import StateKeys
+
 try:
     from alphastats.gui.utils.gpt_helper import (
         turn_args_to_float,
@@ -53,12 +55,12 @@ def wait_for_run_completion(
             "create_intensity_plot",
             "perform_dimensionality_reduction",
             "create_sample_histogram",
-            "st.session_state.dataset.plot_volcano",
-            "st.session_state.dataset.plot_sampledistribution",
-            "st.session_state.dataset.plot_intensity",
-            "st.session_state.dataset.plot_pca",
-            "st.session_state.dataset.plot_umap",
-            "st.session_state.dataset.plot_tsne",
+            "st.session_state[StateKeys.DATASET].plot_volcano",
+            "st.session_state[StateKeys.DATASET].plot_sampledistribution",
+            "st.session_state[StateKeys.DATASET].plot_intensity",
+            "st.session_state[StateKeys.DATASET].plot_pca",
+            "st.session_state[StateKeys.DATASET].plot_umap",
+            "st.session_state[StateKeys.DATASET].plot_tsne",
             "get_enrichment_data",
         }
         if run_status.status == "completed":
@@ -178,7 +180,7 @@ def try_to_set_api_key(api_key: str = None) -> None:
         None
     """
     if api_key and "api_key" not in st.session_state:
-        st.session_state["openai_api_key"] = api_key
+        st.session_state[StateKeys.OPENAI_API_KEY] = api_key
         secret_path = Path(st.secrets._file_paths[-1])
         secret_path.parent.mkdir(parents=True, exist_ok=True)
         with open(secret_path, "w") as f:

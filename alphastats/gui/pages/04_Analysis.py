@@ -52,7 +52,7 @@ st.markdown(styl, unsafe_allow_html=True)
 
 
 if "plot_list" not in st.session_state:
-    st.session_state["plot_list"] = []
+    st.session_state[StateKeys.PLOT_LIST] = []
 
 
 if "dataset" in st.session_state:
