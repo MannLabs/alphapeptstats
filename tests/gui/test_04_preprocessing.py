@@ -1,8 +1,6 @@
 from streamlit.testing.v1 import AppTest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 from .conftest import create_dataset_alphapept, APP_FOLDER
-from .utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 TESTED_PAGE = f"{APP_FOLDER}/pages/03_Preprocessing.py"
 
