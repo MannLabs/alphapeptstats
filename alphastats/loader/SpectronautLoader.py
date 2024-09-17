@@ -3,6 +3,8 @@ from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
 import numpy as np
 import logging
+import re
+import warnings
 
 
 class SpectronautLoader(BaseLoader):
@@ -36,55 +38,76 @@ class SpectronautLoader(BaseLoader):
         self.confidence_column = None
         self.filter_columns = []
         self.evidence_df = None
-        self.gene_names = gene_names_column
 
-        self._read_spectronaut_file(file=file, sep=sep)
-
-        is_long = self._check_if_long(self.rawinput)
-
-        if is_long:
-            self._reshape_spectronaut(
-                sample_column=sample_column, gene_names_column=gene_names_column
+        columns = (
+            "^"
+            + "$|^".join(
+                [
+                    ".*" + intensity_column,
+                    index_column,
+                    sample_column,
+                    gene_names_column,
+                ]
             )
+            + "$"
+        )
+
+        self.rawinput = self._read_spectronaut_file(file=file, sep=sep, columns=columns)
+
+        if gene_names_column in self.rawinput.columns.to_list():
+            self.gene_names = gene_names_column
+        else:
+            self.gene_names = None
+        if sample_column in self.rawinput.columns.to_list():
+            self.sample_column = sample_column
+        else:
+            self.sample_column = None
+            warnings.warn(
+                f"No sample column was found so the data will be treated as wide format. If this is wrong make sure {sample_column} is present in the file."
+            )
+
+        self.rawinput = self._deduplicate_data(long=self.sample_column)
+
+        if self.sample_column is not None:
+            self.rawinput = self._reshape_long_to_wide()
+
+        self.intensity_column = "[sample]." + self.intensity_column
 
         self._add_contamination_column()
         self._read_all_columns_as_string()
 
-    def _reshape_spectronaut(self, sample_column, gene_names_column):
+    def _reshape_long_to_wide(self):
         """
         other proteomics softwares use a wide format (column for each sample)
         reshape to a wider format
         """
         self.rawinput["sample"] = (
-            self.rawinput[sample_column] + "_" + self.intensity_column
+            self.rawinput[self.sample_column] + "." + self.intensity_column
         )
         indexing_columns = [self.index_column]
-        if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names = gene_names_column
+        if self.gene_names is not None:
             indexing_columns.append(self.gene_names)
 
-        keep_columns = [self.intensity_column, "sample"] + indexing_columns
-        df = self.rawinput[keep_columns].drop_duplicates()
-        df = df.pivot(
+        df = self.rawinput.pivot(
             columns="sample", index=indexing_columns, values=self.intensity_column
         )
         df.reset_index(inplace=True)
 
-        self.rawinput = df
+        return df
 
-        self.intensity_column = "[sample]_" + self.intensity_column
+    def _deduplicate_data(self, long):
+        subset = [self.index_column] + [
+            col for col in self.rawinput.columns if self.intensity_column in col
+        ]
+        if long:
+            subset.append(self.sample_column)
+        unique_df = self.rawinput.drop_duplicates(subset=subset)
+        return unique_df
 
-    def _check_if_long(self, df):
-        for colname in df.columns.to_list():
-            if colname.startswith("PG.Quantity"):
-                return True
-            elif "PG.Quantity" in colname:
-                return False
-
-    def _read_spectronaut_file(self, file, sep):
+    def _read_spectronaut_file(self, file, sep, columns):
         # some spectronaut files include european decimal separators
         if isinstance(file, pd.DataFrame):
-            df = file
+            df = file[[col for col in file.columns if bool(re.match(columns, col))]]
             for column in df.columns:
                 try:
                     if df[column].dtype == np.float64:
@@ -94,7 +117,12 @@ class SpectronautLoader(BaseLoader):
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)
         else:
-            df = pd.read_csv(file, sep=sep, low_memory=False)
+            df = pd.read_csv(
+                file,
+                sep=sep,
+                low_memory=False,
+                usecols=lambda col: bool(re.match(columns, col)),
+            )
             for column in df.columns:
                 try:
                     if df[column].dtype == np.float64:
@@ -104,19 +132,4 @@ class SpectronautLoader(BaseLoader):
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)
 
-        self.rawinput = df
-
-
-# filter_with_Qvalue
-# TRUE(default) will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.
-
-# qvalue_cutoff
-# Cutoff for EG.Qvalue. default is 0.01.
-
-#  Protein Level
-#  PG.Quantity
-# PG.ProteinGroups
-
-# Peptide Level
-# F.PeakArea
-# PEP.StrippedSequence
+        return df
