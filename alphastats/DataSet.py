@@ -1,3 +1,5 @@
+from typing import List, Union, Dict, Optional
+
 import pandas as pd
 import numpy as np
 import logging
@@ -8,7 +10,7 @@ from alphastats import BaseLoader
 
 
 from alphastats.DataSet_Plot import Plot
-from alphastats.DataSet_Preprocess import Preprocess, PreprocessInterface
+from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
@@ -34,7 +36,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(PreprocessInterface, Statistics, Plot, Enrichment):
+class DataSet(Statistics, Plot, Enrichment):
     """Analysis Object"""
 
     def __init__(self, loader, metadata_path=None, sample_column=None):
