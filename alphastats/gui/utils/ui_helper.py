@@ -40,7 +40,7 @@ def _display_sidebar_html_table():
     if "dataset" not in st.session_state:
         return
 
-    preprocessing_dict = st.session_state.dataset.preprocessing_info
+    preprocessing_dict = st.session_state[StateKeys.DATASET].preprocessing_info
 
     html_string = (
         "<style>.mytable th, td{ font-size:10px;font-family:Arial, Helvetica, sans-serif;color:#8C878D; border-color:#96D4D4;}</style>"
@@ -80,10 +80,37 @@ def init_session_state() -> None:
     """Initialize the session state if not done yet."""
 
     if "user_session_id" not in st.session_state:
-        st.session_state["user_session_id"] = str(uuid.uuid4())
+        st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
 
     if "gene_to_prot_id" not in st.session_state:
-        st.session_state["gene_to_prot_id"] = {}
+        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
 
     if "organism" not in st.session_state:
-        st.session_state["organism"] = 9606  # human
+        st.session_state[StateKeys.ORGANISM] = 9606  # human
+
+
+class StateKeys:
+    ## 02_Data Import
+    # on 1st run
+    ORGANISM = "organism"
+    GENE_TO_PROT_ID = "gene_to_prot_id"
+    USER_SESSION_ID = "user_session_id"
+    LOADER = "loader"
+    # on sample run (function load_sample_data), removed on new session click
+    DATASET = "dataset"  # functions upload_metadatafile
+    PLOTTING_OPTIONS = "plotting_options"  # function load_options
+    STATISTIC_OPTIONS = "statistic_options"  # function load_options
+    # on metadata upload
+    SAMPLE_COLUMN = "sample_column"
+    # "workflow"
+    # "plot_list"
+    # "openai_model"
+    #
+    # "plot_submitted_clicked"
+    # "plot_submitted_counter"
+    #
+    # "lookup_submitted_clicked"
+    # "lookup_submitted_counter"
+    #
+    # "gpt_submitted_clicked"
+    # "gpt_submitted_counter"

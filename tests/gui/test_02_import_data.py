@@ -2,7 +2,7 @@ from streamlit.testing.v1 import AppTest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from .conftest import APP_FOLDER, data_buf, metadata_buf
-
+from .utils.ui_helper import StateKeys
 
 TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
 
@@ -14,9 +14,9 @@ def test_page_02_loads_without_input():
 
     assert not at.exception
 
-    assert at.session_state.organism == 9606
-    assert at.session_state.user_session_id is not None
-    assert at.session_state.gene_to_prot_id == {}
+    assert at.session_state[StateKeys.ORGANISM] == 9606
+    assert at.session_state[StateKeys.USER_SESSION_ID] is not None
+    assert at.session_state[StateKeys.GENE_TO_PROT_ID] == {}
 
 
 @patch("streamlit.file_uploader")
@@ -27,9 +27,9 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
 
     assert not at.exception
 
-    assert at.session_state.organism == 9606
-    assert at.session_state.user_session_id is not None
-    assert at.session_state.gene_to_prot_id == {}
+    assert at.session_state[StateKeys.ORGANISM] == 9606
+    assert at.session_state[StateKeys.USER_SESSION_ID] is not None
+    assert at.session_state[StateKeys.GENE_TO_PROT_ID] == {}
 
 
 @patch(
@@ -51,9 +51,12 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
         "Drug therapy (procedure) (416608005)",
         "Lipid-lowering therapy (134350008)",
     ]
-    assert str(type(at.session_state.dataset)) == "<class 'alphastats.DataSet.DataSet'>"
     assert (
-        str(type(at.session_state.loader))
+        str(type(at.session_state[StateKeys.DATASET]))
+        == "<class 'alphastats.DataSet.DataSet'>"
+    )
+    assert (
+        str(type(at.session_state[StateKeys.LOADER]))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
     assert "plotting_options" in at.session_state
@@ -107,7 +110,7 @@ def test_page_02_loads_maxquant_testfiles(
 
     assert not at.exception
 
-    dataset = at.session_state.dataset
+    dataset = at.session_state[StateKeys.DATASET]
     assert dataset.gene_names == "Gene names"
     assert dataset.index_column == "Protein IDs"
     assert dataset.intensity_column == "LFQ intensity [sample]"
@@ -115,7 +118,7 @@ def test_page_02_loads_maxquant_testfiles(
     assert dataset.software == "MaxQuant"
     assert dataset.sample == "sample"
     assert (
-        str(type(at.session_state.loader))
+        str(type(at.session_state[StateKeys.LOADER]))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
     assert "plotting_options" in at.session_state

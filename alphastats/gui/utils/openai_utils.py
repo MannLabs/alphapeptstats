@@ -71,8 +71,8 @@ def wait_for_run_completion(
             print("requires_action", run_status)
             print(
                 [
-                    st.session_state.plotting_options[i]["function"].__name__
-                    for i in st.session_state.plotting_options
+                    st.session_state[StateKeys.PLOTTING_OPTIONS][i]["function"].__name__
+                    for i in st.session_state[StateKeys.PLOTTING_OPTIONS]
                 ]
             )
             tool_calls = run_status.required_action.submit_tool_outputs.tool_calls
@@ -94,8 +94,10 @@ def wait_for_run_completion(
                 elif (
                     tool_call.function.name
                     in [
-                        st.session_state.plotting_options[i]["function"].__name__
-                        for i in st.session_state.plotting_options
+                        st.session_state[StateKeys.PLOTTING_OPTIONS][i][
+                            "function"
+                        ].__name__
+                        for i in st.session_state[StateKeys.PLOTTING_OPTIONS]
                     ]
                     or tool_call.function.name in assistant_functions
                 ):

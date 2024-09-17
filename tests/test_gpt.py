@@ -9,9 +9,10 @@ import streamlit as st
 from alphastats.gui.utils.uniprot_utils import get_uniprot_data, extract_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
+from gui.utils.ui_helper import StateKeys
 
 if "gene_to_prot_id" not in st.session_state:
-    st.session_state["gene_to_prot_id"] = {}
+    st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
 
 
 logger = logging.getLogger(__name__)

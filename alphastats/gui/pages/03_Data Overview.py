@@ -7,7 +7,7 @@ from alphastats.gui.utils.overview_helper import (
     get_intensity_distribution_unprocessed,
     display_loaded_dataset,
 )
-from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
+from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, StateKeys
 
 init_session_state()
 sidebar_info()
@@ -18,7 +18,7 @@ if "dataset" not in st.session_state:
 
 st.markdown("### DataSet Info")
 
-display_loaded_dataset(st.session_state["dataset"])
+display_loaded_dataset(st.session_state[StateKeys.DATASET])
 
 st.markdown("## DataSet overview")
 

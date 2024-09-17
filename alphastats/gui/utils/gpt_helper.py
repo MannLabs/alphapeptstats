@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-
+from gui.utils.ui_helper import StateKeys
 
 Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
 
@@ -302,7 +302,7 @@ def get_assistant_functions(
 
 def perform_dimensionality_reduction(group, method, circle, **kwargs):
     dr = DimensionalityReduction(
-        st.session_state.dataset, group, method, circle, **kwargs
+        st.session_state[StateKeys.DATASET], group, method, circle, **kwargs
     )
     return dr.plot
 

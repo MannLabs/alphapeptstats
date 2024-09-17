@@ -20,7 +20,7 @@ from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-
+from gui.utils.ui_helper import StateKeys
 
 logger = logging.getLogger(__name__)
 
@@ -523,7 +523,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         import streamlit as st
 
-        st.session_state["gene_to_prot_id"] = {}
+        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
         plot = self.obj.plot_intensity(
             protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",

@@ -21,7 +21,7 @@ from alphastats.gui.utils.openai_utils import (
 )
 from alphastats.gui.utils.ollama_utils import LLMIntegration
 from alphastats.gui.utils.options import interpretation_options
-from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
+from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, StateKeys
 
 init_session_state()
 sidebar_info()
@@ -127,7 +127,7 @@ with c1:
         label="UniProt organism ID, for example human is 9606, R. norvegicus is 10116",
         value=9606,
     )
-    st.session_state["organism"] = organism
+    st.session_state[StateKeys.ORGANISM] = organism
 
     min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
 
@@ -169,8 +169,8 @@ if (
     genes_of_interest_colored_df = volcano_plot.get_colored_labels_df()
     print(genes_of_interest_colored_df)
 
-    gene_names_colname = st.session_state["loader"].gene_names
-    prot_ids_colname = st.session_state["loader"].index_column
+    gene_names_colname = st.session_state[StateKeys.LOADER].gene_names
+    prot_ids_colname = st.session_state[StateKeys.LOADER].index_column
 
     st.session_state["prot_id_to_gene"] = dict(
         zip(
@@ -178,7 +178,7 @@ if (
             genes_of_interest_colored_df[gene_names_colname].tolist(),
         )
     )
-    st.session_state["gene_to_prot_id"] = dict(
+    st.session_state[StateKeys.GENE_TO_PROT_ID] = dict(
         zip(
             genes_of_interest_colored_df[gene_names_colname].tolist(),
             genes_of_interest_colored_df[prot_ids_colname].tolist(),
@@ -239,7 +239,7 @@ st.session_state["instructions"] = (
     "sourced from UniProt and abstracts from scientific publications. They seek your "
     "expertise in understanding the connections between these proteins and their potential role "
     f"in disease genesis. {os.linesep}Provide a detailed and insightful, yet concise response based on the given information. Use formatting to make your response more human readable."
-    f"The data you have has following groups and respective subgroups: {str(get_subgroups_for_each_group(st.session_state.dataset.metadata))}."
+    f"The data you have has following groups and respective subgroups: {str(get_subgroups_for_each_group(st.session_state[StateKeys.DATASET].metadata))}."
     "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that. If the data coming to"
     " you from a function has references to the literature (for example, PubMed), always quote the references in your response."
 )
@@ -287,15 +287,15 @@ if (
             st.session_state["llm_integration"] = LLMIntegration(
                 api_type="gpt",
                 api_key=st.secrets["openai_api_key"],
-                dataset=st.session_state["dataset"],
-                metadata=st.session_state["dataset"].metadata,
+                dataset=st.session_state[StateKeys.DATASET],
+                metadata=st.session_state[StateKeys.DATASET].metadata,
             )
         else:
             st.session_state["llm_integration"] = LLMIntegration(
                 api_type="ollama",
                 base_url=base_url,
-                dataset=st.session_state["dataset"],
-                metadata=st.session_state["dataset"].metadata,
+                dataset=st.session_state[StateKeys.DATASET],
+                metadata=st.session_state[StateKeys.DATASET].metadata,
             )
         st.success(
             f"{st.session_state['api_type'].upper()} integration initialized successfully!"
@@ -316,10 +316,10 @@ llm = st.session_state["llm_integration"]
 llm.tools = [
     *get_general_assistant_functions(),
     *get_assistant_functions(
-        gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
-        metadata=st.session_state["dataset"].metadata,
+        gene_to_prot_id_dict=st.session_state[StateKeys.GENE_TO_PROT_ID],
+        metadata=st.session_state[StateKeys.DATASET].metadata,
         subgroups_for_each_group=get_subgroups_for_each_group(
-            st.session_state["dataset"].metadata
+            st.session_state[StateKeys.DATASET].metadata
         ),
     ),
 ]
