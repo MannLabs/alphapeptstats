@@ -87,13 +87,3 @@ All GO-analysis functions will return a DataFrame with the results.
 
 * Plot Scatterplot with -log10(p-value) on x-axis and effect size on y-axis. `df.plot_scatter()`
 * Plot p-values as Barplot `df.plot_bar`
-
-
-Misc
-------
-
-Get an overview over your dataset
-
-* :py:meth:`~alphastats.DataSet.overview`
-
-* :py:meth:`~alphastats.DataSet_Preprocess.Preprocess.preprocess_print_info`
