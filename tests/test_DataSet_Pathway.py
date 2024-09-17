@@ -2,6 +2,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
+from DataSet_Pathway import Enrichment
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
 
@@ -87,11 +88,11 @@ class BaseTestDataSet:
         def test_extract_protein_ids(self):
             # test function with different entries
             entry_one = "sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN"
-            entry_one_protein_id = self.obj._extract_protein_ids(entry=entry_one)
+            entry_one_protein_id = Enrichment._extract_protein_ids(entry=entry_one)
             self.assertEqual(entry_one_protein_id, "P0DMV9;P0DMV8")
 
             entry_two = "ENSEMBL:ENSBTAP00000007350"
-            entry_two_protein_id = self.obj._extract_protein_ids(entry=entry_two)
+            entry_two_protein_id = Enrichment._extract_protein_ids(entry=entry_two)
             self.assertEqual(entry_two_protein_id, "ENSBTAP00000007350")
 
 
