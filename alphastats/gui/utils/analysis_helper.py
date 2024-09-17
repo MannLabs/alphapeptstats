@@ -383,6 +383,7 @@ def load_options():
 
     st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
     st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
+    # TODO: Check if this should be reintroduced or removed
     # st.session_state["interpretation_options"] = interpretation_options
 
 

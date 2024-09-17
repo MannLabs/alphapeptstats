@@ -180,7 +180,7 @@ def try_to_set_api_key(api_key: str = None) -> None:
     Returns:
         None
     """
-    if api_key and "api_key" not in st.session_state:
+    if api_key and [StateKeys.OPENAI_API_KEY] not in st.session_state:
         st.session_state[StateKeys.OPENAI_API_KEY] = api_key
         secret_path = Path(st.secrets._file_paths[-1])
         secret_path.parent.mkdir(parents=True, exist_ok=True)

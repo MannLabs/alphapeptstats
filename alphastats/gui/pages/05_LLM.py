@@ -42,7 +42,7 @@ def select_analysis():
     return method
 
 
-if "dataset" not in st.session_state:
+if StateKeys.DATASET not in st.session_state:
     st.info("Import Data first")
     st.stop()
 
@@ -247,8 +247,8 @@ if "column" in chosen_parameter_dict and StateKeys.UPREGULATED in st.session_sta
     st.session_state[StateKeys.USER_PROMPT] = (
         f"We've recently identified several proteins that appear to be differently regulated in cells "
         f"when comparing {chosen_parameter_dict['group1']} and {chosen_parameter_dict['group2']} in the {chosen_parameter_dict['column']} group. "
-        f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(st.session_state['upregulated'])}.{os.linesep}{os.linesep}"
-        f"Here is the list of proteins that are downregulated: {', '.join(st.session_state['downregulated'])}.{os.linesep}{os.linesep}"
+        f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(st.session_state[StateKeys.UPREGULATED])}.{os.linesep}{os.linesep}"
+        f"Here is the list of proteins that are downregulated: {', '.join(st.session_state[StateKeys.DOWNREGULATED])}.{os.linesep}{os.linesep}"
         f"Help us understand the potential connections between these proteins and how they might be contributing "
         f"to the differences. After that provide a high level summary"
     )
@@ -298,7 +298,7 @@ if (
                 metadata=st.session_state[StateKeys.DATASET].metadata,
             )
         st.success(
-            f"{st.session_state['api_type'].upper()} integration initialized successfully!"
+            f"{st.session_state[StateKeys.API_TYPE].upper()} integration initialized successfully!"
         )
     except AuthenticationError:
         st.warning(
