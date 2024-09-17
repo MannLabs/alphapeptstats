@@ -771,6 +771,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertAlmostEqual(-0.00555, first_value, places=3)
 
     # TODO this opens a plot in a browser window
+    @skip
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(
