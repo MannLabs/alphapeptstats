@@ -15,47 +15,7 @@ from alphastats.statistics.Anova import Anova
 
 
 class Statistics:
-    def _calculate_foldchange(
-        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
-    ) -> pd.DataFrame:
-        mat_transpose += 0.00001
 
-        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            fc = (
-                mat_transpose[group1_samples].T.mean().values
-                - mat_transpose[group2_samples].T.mean().values
-            )
-
-        else:
-            fc = (
-                mat_transpose[group1_samples].T.mean().values
-                / mat_transpose[group2_samples].T.mean().values
-            )
-            fc = np.log2(fc)
-
-        return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
-
-    def _add_metadata_column(self, group1_list: list, group2_list: list):
-        # create new column in metadata with defined groups
-        metadata = self.metadata
-
-        sample_names = metadata[self.sample].to_list()
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
-
-        column = "_comparison_column"
-        conditons = [
-            metadata[self.sample].isin(group1_list),
-            metadata[self.sample].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
-
-        return column, "group1", "group2"
 
     @ignore_warning(RuntimeWarning)
     def diff_expression_analysis(
