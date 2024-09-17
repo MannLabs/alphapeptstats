@@ -1,3 +1,4 @@
+# TODO this whole module is unused
 import plotly.express as px
 import requests
 import pandas as pd
@@ -8,11 +9,11 @@ from alphastats import AlphaPeptLoader
 from alphastats.utils import check_internetconnection, check_if_df_empty
 
 
-class enrichement_df(pd.DataFrame):
+class enrichment_df(pd.DataFrame):
     # this is that added methods dont get lost when operatons on pd Dataframe get performed
     @property
     def _constructor(self):
-        return enrichement_df
+        return enrichment_df
 
     def _modify_df(self):
         self["Description"] = self["term"] + " " + self["description"]
@@ -65,6 +66,10 @@ class enrichement_df(pd.DataFrame):
 
 
 class Enrichment:
+    def __init__(self, mat: pd.DataFrame, evidence_df: pd.DataFrame):
+        self.mat = mat
+        self.evidence_df = evidence_df
+
     @staticmethod
     def _extract_protein_ids(entry):
         try:
@@ -157,7 +162,7 @@ class Enrichment:
             data={"foreground": protein_list},
         )
 
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
 
     def go_abundance_correction(self, bg_sample, fg_sample=None, fg_protein_list=None):
@@ -226,7 +231,7 @@ class Enrichment:
                 "background_intensity": bg_intensity,
             },
         )
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
 
     def go_compare_samples(self, fg_sample, bg_sample):
@@ -271,7 +276,7 @@ class Enrichment:
             params={"output_format": "tsv", "enrichment_method": "compare_samples"},
             data={"foreground": fg_proteins, "background": bg_proteins},
         )
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
 
     def go_genome(self, tax_id=9606, fg_sample=None, protein_list=None):
@@ -325,5 +330,5 @@ class Enrichment:
             data={"foreground": protein_list},
         )
 
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
