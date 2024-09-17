@@ -129,7 +129,8 @@ def load_example_data():
         ]
     ]
     dataset.preprocess(subset=True)
-    return loader, dataset
+    metadata_columns = dataset.metadata.columns.to_list()
+    return loader, metadata_columns, dataset
 
 
 def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
