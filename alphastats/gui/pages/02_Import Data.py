@@ -31,7 +31,7 @@ def _finalize_data_loading(
     st.session_state[StateKeys.LOADER] = (
         loader  # TODO: Figure out if we even need the loader here, as the dataset has the loader as an attribute.
     )
-    st.session_state["metadata_columns"] = metadata_columns
+    st.session_state[StateKeys.METADATA_COLUMNS] = metadata_columns
     st.session_state[StateKeys.DATASET] = dataset
 
     load_options()

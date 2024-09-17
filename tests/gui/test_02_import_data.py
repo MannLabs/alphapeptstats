@@ -44,7 +44,7 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
 
     assert not at.exception
 
-    assert at.session_state.metadata_columns == [
+    assert at.session_state[StateKeys.METADATA_COLUMNS] == [
         "sample",
         "disease",
         "Drug therapy (procedure) (416608005)",

@@ -101,6 +101,7 @@ class StateKeys:
     PLOTTING_OPTIONS = "plotting_options"  # function load_options
     STATISTIC_OPTIONS = "statistic_options"  # function load_options
 
+    METADATA_COLUMNS = "metadata_columns"
     WORKFLOW = "workflow"
     PLOT_LIST = "plot_list"
 

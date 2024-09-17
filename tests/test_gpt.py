@@ -31,7 +31,7 @@ class TestGPT(unittest.TestCase):
         self.matrix_dim = (312, 2596)
         self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
-        st.session_state.metadata_columns = [self.comparison_column]
+        st.session_state[StateKeys.METADATA_COLUMNS] = [self.comparison_column]
 
 
 class TestGetUniProtData(unittest.TestCase):
