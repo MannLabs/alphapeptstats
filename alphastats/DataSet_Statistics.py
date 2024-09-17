@@ -5,7 +5,7 @@ import pingouin
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.utils import ignore_warning
 from functools import lru_cache
-from typing import Union
+from typing import Union, Dict
 
 from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 from alphastats.statistics.DifferentialExpressionAnalysis import (
@@ -15,7 +15,19 @@ from alphastats.statistics.Anova import Anova
 
 
 class Statistics:
-
+    def __init__(
+        self,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        index_column: str,
+        sample: str,
+        preprocessing_info: Dict,
+    ):
+        self.mat: pd.DataFrame = mat
+        self.metadata: pd.DataFrame = metadata
+        self.index_column: str = index_column
+        self.sample: str = sample
+        self.preprocessing_info: Dict = preprocessing_info
 
     @ignore_warning(RuntimeWarning)
     def diff_expression_analysis(
@@ -50,7 +62,11 @@ class Statistics:
             * ``'ll'``: the log-likelihood of the estimation
         """
         df = DifferentialExpressionAnalysis(
-            dataset=self,
+            mat=self.mat,
+            metadata=self.metadata,
+            index_column=self.index_column,
+            sample=self.sample,
+            preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
             column=column,
@@ -59,54 +75,6 @@ class Statistics:
             fdr=fdr,
         ).perform()
         return df
-
-    @ignore_warning(RuntimeWarning)
-    def tukey_test(
-        self, protein_id: str, group: str, df: pd.DataFrame = None
-    ) -> pd.DataFrame:
-        """Calculate Pairwise Tukey-HSD post-hoc test
-        Wrapper around:
-        https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
-
-        Args:
-            protein_id (str): ProteinID to calculate Pairwise Tukey-HSD post-hoc test - dependend variable
-            group (str): A metadata column used calculate pairwise tukey
-            df (pandas.DataFrame, optional): Defaults to None.
-
-        Returns:
-            pandas.DataFrame:
-            * ``'A'``: Name of first measurement
-            * ``'B'``: Name of second measurement
-            * ``'mean(A)'``: Mean of first measurement
-            * ``'mean(B)'``: Mean of second measurement
-            * ``'diff'``: Mean difference (= mean(A) - mean(B))
-            * ``'se'``: Standard error
-            * ``'T'``: T-values
-            * ``'p-tukey'``: Tukey-HSD corrected p-values
-            * ``'hedges'``: Hedges effect size (or any effect size defined in
-            ``effsize``)
-            * ``'comparison'``: combination of measurment
-            * ``'Protein ID'``: ProteinID/ProteinGroup
-        """
-        if df is None:
-            df = (
-                self.mat[[protein_id]]
-                .reset_index()
-                .rename(columns={"index": self.sample})
-            )
-            df = df.merge(self.metadata, how="inner", on=[self.sample])
-
-        try:
-            tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
-            tukey_df["comparison"] = (
-                tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
-            )
-            tukey_df[self.index_column] = protein_id
-
-        except ValueError:
-            tukey_df = pd.DataFrame()
-
-        return tukey_df
 
     @ignore_warning(RuntimeWarning)
     def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
@@ -124,7 +92,13 @@ class Statistics:
             * ``'A vs. B Tukey test'``: Tukey-HSD corrected p-values (each combination represents a column)
         """
         return Anova(
-            dataset=self, column=column, protein_ids=protein_ids, tukey=tukey
+            mat=self.mat,
+            metadata=self.metadata,
+            sample=self.sample,
+            index_column=self.index_column,
+            column=column,
+            protein_ids=protein_ids,
+            tukey=tukey,
         ).perform()
 
     @lru_cache(maxsize=20)
