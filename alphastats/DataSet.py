@@ -13,6 +13,7 @@ from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess, PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
+from alphastats.statistics.tukey_test import tukey_test
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
@@ -35,7 +36,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(Statistics, Plot):
+class DataSet(Plot):
     """Analysis Object"""
 
     def __init__(
@@ -100,6 +101,18 @@ class DataSet(Statistics, Plot):
 
         print("DataSet has been created.")
 
+    def _get_preprocess(self) -> Preprocess:
+        """Return instance of the Preprocess object."""
+        return Preprocess(
+            self.filter_columns,
+            self.rawinput,
+            self.index_column,
+            self.sample,
+            self.metadata,
+            self.preprocessing_info,
+            self.mat,
+        )
+
     def preprocess(
         self,
         log2_transform: bool = True,
@@ -112,25 +125,17 @@ class DataSet(Statistics, Plot):
         **kwargs,
     ) -> None:
         """A wrapper for the preprocess() method, see documentation in Preprocess.preprocess()."""
-        pp = Preprocess(
-            self.filter_columns,
-            self.rawinput,
-            self.index_column,
-            self.sample,
-            self.metadata,
-            self.preprocessing_info,
-            self.mat,
-        )
-
-        self.mat, self.metadata, self.preprocessing_info = pp.preprocess(
-            log2_transform,
-            remove_contaminations,
-            subset,
-            data_completeness,
-            normalization,
-            imputation,
-            remove_samples,
-            **kwargs,
+        self.mat, self.metadata, self.preprocessing_info = (
+            self._get_preprocess().preprocess(
+                log2_transform,
+                remove_contaminations,
+                subset,
+                data_completeness,
+                normalization,
+                imputation,
+                remove_samples,
+                **kwargs,
+            )
         )
         self.preprocessed = True
 
@@ -149,27 +154,51 @@ class DataSet(Statistics, Plot):
         print("All preprocessing steps are reset.")
 
     def batch_correction(self, batch: str) -> None:
-        pp = Preprocess(
-            self.filter_columns,
-            self.rawinput,
+        self.mat = self._get_preprocess().batch_correction(batch)
+
+    def _get_statistics(self) -> Statistics:
+        """Return instance of the Statistics object."""
+        return Statistics(
+            self.mat,
+            self.metadata,
             self.index_column,
             self.sample,
-            self.metadata,
             self.preprocessing_info,
-            self.mat,
         )
-        self.mat = pp.batch_correction(batch)
+
+    def diff_expression_analysis(  # statistic_options, VolcanoPlot
+        self,
+        group1: Union[str, list],
+        group2: Union[str, list],
+        column: str = None,
+        method: str = "ttest",
+        perm: int = 10,
+        fdr: float = 0.05,
+    ) -> pd.DataFrame:
+        return self._get_statistics().diff_expression_analysis(
+            group1,
+            group2,
+            column,
+            method,
+            perm,
+            fdr,
+        )
+
     def tukey_test(
         self, protein_id: str, group: str, df: pd.DataFrame = None
     ) -> pd.DataFrame:
-        df = (
-            self.mat[[protein_id]]
-            .reset_index()
-            .rename(columns={"index": self.sample})
-        )
+        df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
         df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         return tukey_test(self.index_column, protein_id, group, df)
+
+    def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
+        return self._get_statistics().anova(column, protein_ids, tukey)
+
+    def ancova(  # only used in statistic_options
+        self, protein_id: str, covar: Union[str, list], between: str
+    ) -> pd.DataFrame:
+        return self._get_statistics().ancova(protein_id, covar, between)
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
