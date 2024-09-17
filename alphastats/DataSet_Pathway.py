@@ -1,4 +1,5 @@
 # TODO this whole module is unused
+#  Check if this can be merged with the enrichment code accessible through the p'interpreter
 import plotly.express as px
 import requests
 import pandas as pd
@@ -73,6 +74,7 @@ class Enrichment:
     @staticmethod
     def _extract_protein_ids(entry):
         try:
+            # TODO should be part of the data unification executed within the AlphaPeptLoader
             protein_id_concatenate = AlphaPeptLoader.standardize_protein_group_column(
                 entry
             )

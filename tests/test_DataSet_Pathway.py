@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from DataSet_Pathway import Enrichment
+from alphastats.DataSet_Pathway import Enrichment
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
 
