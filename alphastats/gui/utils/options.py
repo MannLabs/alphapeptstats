@@ -5,7 +5,7 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
 from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 
 def plotting_options(state):
