@@ -51,11 +51,11 @@ styl = f"""
 st.markdown(styl, unsafe_allow_html=True)
 
 
-if "plot_list" not in st.session_state:
+if StateKeys.PLOT_LIST not in st.session_state:
     st.session_state[StateKeys.PLOT_LIST] = []
 
 
-if "dataset" in st.session_state:
+if StateKeys.DATASET in st.session_state:
     c1, c2 = st.columns((1, 2))
 
     plot_to_display = False

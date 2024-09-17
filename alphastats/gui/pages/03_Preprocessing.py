@@ -27,7 +27,7 @@ st.markdown("### Preprocessing")
 c1, c2 = st.columns([1, 1])
 
 with c2:
-    if "dataset" in st.session_state:
+    if StateKeys.DATASET in st.session_state:
         settings = configure_preprocessing(dataset=st.session_state[StateKeys.DATASET])
         new_workflow = update_workflow(settings)
         if new_workflow != st.session_state[StateKeys.WORKFLOW]:
@@ -38,7 +38,7 @@ with c1:
 
     selected_nodes = draw_workflow(st.session_state[StateKeys.WORKFLOW])
 
-    if "dataset" not in st.session_state:
+    if StateKeys.DATASET not in st.session_state:
         st.info("Import data first to configure and run preprocessing")
 
     else:

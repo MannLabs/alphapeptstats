@@ -318,7 +318,7 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
     Returns:
         str: The gene function and description.
     """
-    if "organism" in st.session_state:
+    if StateKeys.ORGANISM in st.session_state:
         organism_id = st.session_state[StateKeys.ORGANISM]
     if isinstance(gene_name, dict):
         gene_name = gene_name["gene_name"]

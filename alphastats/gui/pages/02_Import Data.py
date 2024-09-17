@@ -63,7 +63,7 @@ if c2.button("Start new Session with example DataSet", key="_load_example_data")
 
 
 st.markdown("### Import Proteomics Data")
-if "dataset" in st.session_state:
+if StateKeys.DATASET in st.session_state:
     st.info(f"DataSet already present.")
     st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
     st.stop()

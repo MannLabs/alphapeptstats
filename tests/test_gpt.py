@@ -11,7 +11,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
 from gui.utils.ui_helper import StateKeys
 
-if "gene_to_prot_id" not in st.session_state:
+if StateKeys.GENE_TO_PROT_ID not in st.session_state:
     st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
 
 

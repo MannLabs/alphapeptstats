@@ -67,26 +67,26 @@ styl = """
 st.markdown(styl, unsafe_allow_html=True)
 
 # Initialize session state variables
-if "llm_integration" not in st.session_state:
+if StateKeys.LLM_INTEGRATION not in st.session_state:
     st.session_state[StateKeys.LLM_INTEGRATION] = None
-if "api_type" not in st.session_state:
+if StateKeys.API_TYPE not in st.session_state:
     st.session_state[StateKeys.API_TYPE] = "gpt"
 
-if "plot_list" not in st.session_state:
+if StateKeys.PLOT_LIST not in st.session_state:
     st.session_state[StateKeys.PLOT_LIST] = []
 
-if "messages" not in st.session_state:
+if StateKeys.MESSAGES not in st.session_state:
     st.session_state[StateKeys.MESSAGES] = []
 
-if "plot_submitted_clicked" not in st.session_state:
+if StateKeys.PLOT_SUBMITTED_CLICKED not in st.session_state:
     st.session_state[StateKeys.PLOT_SUBMITTED_CLICKED] = 0
     st.session_state[StateKeys.PLOT_SUBMITTED_COUNTER] = 0
 
-if "lookup_submitted_clicked" not in st.session_state:
+if StateKeys.LOOKUP_SUBMITTED_CLICKED not in st.session_state:
     st.session_state[StateKeys.LOOKUP_SUBMITTED_CLICKED] = 0
     st.session_state[StateKeys.LOOKUP_SUBMITTED_COUNTER] = 0
 
-if "gpt_submitted_clicked" not in st.session_state:
+if StateKeys.GPT_SUBMITTED_CLICKED not in st.session_state:
     st.session_state[StateKeys.GPT_SUBMITTED_CLICKED] = 0
     st.session_state[StateKeys.GPT_SUBMITTED_COUNTER] = 0
 
@@ -157,7 +157,7 @@ if (
     < st.session_state[StateKeys.PLOT_SUBMITTED_CLICKED]
 ):
     st.session_state[StateKeys.PLOT_SUBMITTED_COUNTER] = st.session_state[
-        "plot_submitted_clicked"
+        StateKeys.PLOT_SUBMITTED_CLICKED
     ]
     volcano_plot = gui_volcano_plot_differential_expression_analysis(
         chosen_parameter_dict
@@ -243,7 +243,7 @@ st.session_state[StateKeys.INSTRUCTIONS] = (
     "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that. If the data coming to"
     " you from a function has references to the literature (for example, PubMed), always quote the references in your response."
 )
-if "column" in chosen_parameter_dict and "upregulated" in st.session_state:
+if "column" in chosen_parameter_dict and StateKeys.UPREGULATED in st.session_state:
     st.session_state[StateKeys.USER_PROMPT] = (
         f"We've recently identified several proteins that appear to be differently regulated in cells "
         f"when comparing {chosen_parameter_dict['group1']} and {chosen_parameter_dict['group2']} in the {chosen_parameter_dict['column']} group. "
@@ -253,7 +253,7 @@ if "column" in chosen_parameter_dict and "upregulated" in st.session_state:
         f"to the differences. After that provide a high level summary"
     )
 
-if "user_prompt" in st.session_state:
+if StateKeys.USER_PROMPT in st.session_state:
     st.subheader("Automatically generated prompt based on gene functions:")
     with st.expander("Adjust system prompt (see example below)", expanded=False):
         st.session_state[StateKeys.INSTRUCTIONS] = st.text_area(
@@ -267,7 +267,7 @@ if "user_prompt" in st.session_state:
 
 gpt_submitted = st.button("Run GPT analysis")
 
-if gpt_submitted and "user_prompt" not in st.session_state:
+if gpt_submitted and StateKeys.USER_PROMPT not in st.session_state:
     st.warning("Please enter a user prompt first")
     st.stop()
 
@@ -307,7 +307,7 @@ if (
         st.stop()
 
 if (
-    "llm_integration" not in st.session_state
+    StateKeys.LLM_INTEGRATION not in st.session_state
     or not st.session_state[StateKeys.LLM_INTEGRATION]
 ):
     st.warning("Please initialize the model first")
@@ -327,7 +327,7 @@ llm.tools = [
     ),
 ]
 
-if "artifacts" not in st.session_state:
+if StateKeys.ARTIFACTS not in st.session_state:
     st.session_state[StateKeys.ARTIFACTS] = {}
 
 if (
@@ -335,7 +335,7 @@ if (
     < st.session_state[StateKeys.GPT_SUBMITTED_CLICKED]
 ):
     st.session_state[StateKeys.GPT_SUBMITTED_COUNTER] = st.session_state[
-        "gpt_submitted_clicked"
+        StateKeys.GPT_SUBMITTED_CLICKED
     ]
     st.session_state[StateKeys.ARTIFACTS] = {}
     llm.messages = [

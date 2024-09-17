@@ -10,7 +10,7 @@ def check_if_options_are_loaded(f):
     # decorator to check for missing values
     # TODO remove this
     def inner(*args, **kwargs):
-        if hasattr(st.session_state, "plotting_options") is False:
+        if hasattr(st.session_state, StateKeys.PLOTTING_OPTIONS) is False:
             load_options()
 
         return f(*args, **kwargs)

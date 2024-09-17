@@ -12,7 +12,7 @@ from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, Sta
 init_session_state()
 sidebar_info()
 
-if "dataset" not in st.session_state:
+if StateKeys.DATASET not in st.session_state:
     st.info("Import Data first")
     st.stop()
 

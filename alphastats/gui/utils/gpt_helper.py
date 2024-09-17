@@ -339,11 +339,11 @@ def get_gene_to_prot_id_mapping(gene_id: str) -> str:
     import streamlit as st
 
     session_state_copy = dict(copy.deepcopy(st.session_state))
-    if "gene_to_prot_id" not in session_state_copy:
-        session_state_copy["gene_to_prot_id"] = {}
-    if gene_id in session_state_copy["gene_to_prot_id"]:
-        return session_state_copy["gene_to_prot_id"][gene_id]
-    for gene, prot_id in session_state_copy["gene_to_prot_id"].items():
+    if StateKeys.GENE_TO_PROT_ID not in session_state_copy:
+        session_state_copy[StateKeys.GENE_TO_PROT_ID] = {}
+    if gene_id in session_state_copy[StateKeys.GENE_TO_PROT_ID]:
+        return session_state_copy[StateKeys.GENE_TO_PROT_ID][gene_id]
+    for gene, prot_id in session_state_copy[StateKeys.GENE_TO_PROT_ID].items():
         if gene_id in gene.split(";"):
             return prot_id
     return gene_id

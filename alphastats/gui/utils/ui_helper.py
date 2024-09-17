@@ -37,7 +37,7 @@ def sidebar_info():
 
 
 def _display_sidebar_html_table():
-    if "dataset" not in st.session_state:
+    if StateKeys.DATASET not in st.session_state:
         return
 
     preprocessing_dict = st.session_state[StateKeys.DATASET].preprocessing_info
@@ -79,13 +79,13 @@ def empty_session_state():
 def init_session_state() -> None:
     """Initialize the session state if not done yet."""
 
-    if "user_session_id" not in st.session_state:
+    if StateKeys.USER_SESSION_ID not in st.session_state:
         st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
 
-    if "gene_to_prot_id" not in st.session_state:
+    if StateKeys.GENE_TO_PROT_ID not in st.session_state:
         st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
 
-    if "organism" not in st.session_state:
+    if StateKeys.ORGANISM not in st.session_state:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
 
 
@@ -102,8 +102,9 @@ class StateKeys:
     STATISTIC_OPTIONS = "statistic_options"  # function load_options
 
     WORKFLOW = "workflow"
-
     PLOT_LIST = "plot_list"
+
+    # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
     API_TYPE = "api_type"
     LLM_INTEGRATION = "llm_integration"
