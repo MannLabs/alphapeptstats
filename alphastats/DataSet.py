@@ -83,8 +83,15 @@ class DataSet(Statistics, Plot, Enrichment):
             )
             self.intensity_column = intensity_column
 
-        # save preprocessing settings
-        self.preprocessing_info: Dict = self._save_dataset_info()
+        # init preprocessing settings
+        self.preprocessing_info: Dict = Preprocess.init_preprocessing_info(
+            num_samples=self.mat.shape[0],
+            num_protein_groups=self.mat.shape[1],
+            intensity_column=self.intensity_column,
+            filter_columns=self.filter_columns,
+        )
+
+        self.preprocessed = False
         self.preprocessed: bool = False
 
         print("DataSet has been created.")
@@ -127,7 +134,15 @@ class DataSet(Statistics, Plot, Enrichment):
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
         self.create_matrix()
-        # TODO fix bug: metadata is not reset here
+        self.preprocessing_info = Preprocess.init_preprocessing_info(
+            num_samples=self.mat.shape[0],
+            num_protein_groups=self.mat.shape[1],
+            intensity_column=self.intensity_column,
+            filter_columns=self.filter_columns,
+        )
+
+        self.preprocessed = False
+        # TODO fix bug: metadata is not reset/reloaded here
         print("All preprocessing steps are reset.")
 
     def batch_correction(self, batch: str) -> None:
@@ -221,9 +236,6 @@ class DataSet(Statistics, Plot, Enrichment):
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         self.mat = self.mat.astype(float)
 
-        # reset preproccessing info
-        self.preprocessing_info = self._save_dataset_info()
-        self.preprocessed = False
         self.rawmat = mat
 
     def load_metadata(self, file_path: Union[pd.DataFrame, str]) -> pd.DataFrame:
@@ -261,25 +273,6 @@ class DataSet(Statistics, Plot, Enrichment):
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         df.columns = df.columns.astype(str)
         return df
-
-    def _save_dataset_info(self):
-        n_proteingroups = self.mat.shape[1]
-        preprocessing_dict = {
-            PreprocessingStateKeys.RAW_DATA_NUM_PG: n_proteingroups,
-            PreprocessingStateKeys.NUM_PG: self.mat.shape[1],
-            PreprocessingStateKeys.NUM_SAMPLES: self.mat.shape[0],
-            PreprocessingStateKeys.INTENSITY_COLUMN: self.intensity_column,
-            PreprocessingStateKeys.LOG2_TRANSFORMED: False,
-            PreprocessingStateKeys.NORMALIZATION: None,
-            PreprocessingStateKeys.IMPUTATION: None,
-            PreprocessingStateKeys.CONTAMINATIONS_REMOVED: False,
-            PreprocessingStateKeys.CONTAMINATION_COLUMNS: self.filter_columns,
-            PreprocessingStateKeys.NUM_REMOVED_PG_DUE_TO_CONTAMINATION: 0,
-            PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: 0,
-            PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: 0,
-            PreprocessingStateKeys.MISSING_VALUES_REMOVED: False,
-        }
-        return preprocessing_dict
 
     def overview(self):
         """Print overview of the DataSet"""
