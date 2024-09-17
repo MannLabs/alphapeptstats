@@ -52,6 +52,11 @@ class DataSet(Statistics, Plot, Enrichment):
             metadata_path (str, optional): path to metadata file. Defaults to None.
             sample_column (str, optional): column in metadata file indicating the sample IDs. Defaults to None.
 
+        Attributes of a DataSet instance:
+            DataSet().rawinput: Raw Protein data.
+            DataSet().mat:      Processed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.
+            DataSet().metadata: Metadata for the samples in the matrix. Metadata will be matched with DataSet().mat when needed (for instance Volcano Plot).
+
         """
         self._check_loader(loader=loader)
 
@@ -64,14 +69,14 @@ class DataSet(Statistics, Plot, Enrichment):
         self.gene_names: str = loader.gene_names
 
         # include filtering before
-        self.create_matrix()
+        self._create_matrix()
         self._check_matrix_values()
 
         self.metadata: pd.DataFrame
         self.sample: str
         if metadata_path is not None:
             self.sample = sample_column
-            self.metadata = self.load_metadata(file_path=metadata_path)
+            self.metadata = self._load_metadata(file_path=metadata_path)
             self._remove_misc_samples_in_metadata()
         else:
             self.sample = "sample"
@@ -95,7 +100,6 @@ class DataSet(Statistics, Plot, Enrichment):
         self.preprocessed: bool = False
 
         print("DataSet has been created.")
-        self.overview()
 
     def preprocess(
         self,
@@ -133,7 +137,7 @@ class DataSet(Statistics, Plot, Enrichment):
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
-        self.create_matrix()
+        self._create_matrix()
         self.preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=self.mat.shape[0],
             num_protein_groups=self.mat.shape[1],
@@ -207,7 +211,7 @@ class DataSet(Statistics, Plot, Enrichment):
         )
         return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
-    def create_matrix(self):
+    def _create_matrix(self):
         """
         Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
@@ -233,12 +237,14 @@ class DataSet(Statistics, Plot, Enrichment):
         mat.replace([np.inf, -np.inf], np.nan, inplace=True)
 
         # remove proteins with only zero  # TODO this is re-done in preprocessing
-        self.mat = mat.loc[:, (mat != 0).any(axis=0)]
-        self.mat = self.mat.astype(float)
+        mat = mat.loc[:, (mat != 0).any(axis=0)]
 
+        self.mat = mat.astype(float)
         self.rawmat = mat
 
-    def load_metadata(self, file_path: Union[pd.DataFrame, str]) -> pd.DataFrame:
+    def _load_metadata(
+        self, file_path: Union[pd.DataFrame, str]
+    ) -> Optional[pd.DataFrame]:
         """Load metadata either xlsx, txt, csv or txt file
 
         Args:
@@ -261,11 +267,11 @@ class DataSet(Statistics, Plot, Enrichment):
         elif file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
         else:
-            df = None
             logging.warning(
                 "WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file"
             )
-            return
+            return None
+
         if df is not None and self.sample not in df.columns:
             logging.error(f"sample_column: {self.sample} not found in {file_path}")
 
@@ -273,13 +279,3 @@ class DataSet(Statistics, Plot, Enrichment):
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         df.columns = df.columns.astype(str)
         return df
-
-    def overview(self):
-        """Print overview of the DataSet"""
-        dataset_overview = (
-            "Attributes of the DataSet can be accessed using: \n"
-            + "DataSet.rawinput:\t Raw Protein data.\n"
-            + "DataSet.mat:\t\tProcessed data matrix with ProteinIDs/ProteinGroups as columns and samples as rows. All computations are performed on this matrix.\n"
-            + "DataSet.metadata:\tMetadata for the samples in the matrix. Metadata will be matched with DataSet.mat when needed (for instance Volcano Plot)."
-        )
-        print(dataset_overview)
