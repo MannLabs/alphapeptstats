@@ -9,7 +9,7 @@ from alphastats.gui.utils.gpt_helper import (
     perform_dimensionality_reduction,
     get_general_assistant_functions,
 )
-from alphastats.gui.utils.artefacts import ArtifactManager
+# from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 
@@ -78,7 +78,7 @@ class LLMIntegration:
         self.metadata = metadata
         self.tools = self._get_tools()
         self.artifacts = {}
-        self.artifact_manager = ArtifactManager()
+        # self.artifact_manager = ArtifactManager()
         self.message_artifact_map = {}
 
     def set_api_key(self, api_key: str):
