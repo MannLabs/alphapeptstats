@@ -29,6 +29,10 @@ class PreprocessingStateKeys:
         "Number of removed ProteinGroups due to contaminaton"
     )
     DATA_COMPLETENESS_CUTOFF = "Data completeness cut-off"
+    NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF = (
+        "Number of removed ProteinGroups due to data completeness cutoff"
+    )
+    MISSING_VALUES_REMOVED = "Missing values were removed"
 
 
 class Preprocess:
@@ -69,7 +73,7 @@ class Preprocess:
 
     def _remove_na_values(self, cut_off):
         if (
-            self.preprocessing_info.get("Missing values were removed")
+            self.preprocessing_info.get(PreprocessingStateKeys.MISSING_VALUES_REMOVED)
             and self.preprocessing_info.get(
                 PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF
             )
@@ -104,9 +108,9 @@ class Preprocess:
 
         self.preprocessing_info.update(
             {
-                "Number of removed ProteinGroups due to data completeness cutoff": num_proteins
+                PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: num_proteins
                 - self.mat.shape[1],
-                "Missing values were removed": True,
+                PreprocessingStateKeys.MISSING_VALUES_REMOVED: True,
                 PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: cut_off,
             }
         )

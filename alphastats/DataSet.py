@@ -276,6 +276,8 @@ class DataSet(Statistics, Plot, Enrichment):
             PreprocessingStateKeys.CONTAMINATION_COLUMNS: self.filter_columns,
             PreprocessingStateKeys.NUM_REMOVED_PG_DUE_TO_CONTAMINATION: 0,
             PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: 0,
+            PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: 0,
+            PreprocessingStateKeys.MISSING_VALUES_REMOVED: False,
         }
         return preprocessing_dict
 
