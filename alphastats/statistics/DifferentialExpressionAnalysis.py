@@ -104,7 +104,7 @@ class DifferentialExpressionAnalysis:
 
         return column, "group1", "group2"
 
-    def _sam(self) -> pd.DataFrame:
+    def _sam(self) -> pd.DataFrame:  # TODO duplicated?
         from alphastats.multicova import multicova
 
         transposed = self.mat.transpose()  # DUP CODE?
@@ -231,22 +231,18 @@ class DifferentialExpressionAnalysis:
         df["log2fc"] = fc
         return df
 
-    def _calculate_foldchange(
+    def _calculate_foldchange(  # TODO duplicated
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ):
         mat_transpose += 0.00001
 
+        group1_values = mat_transpose[group1_samples].T.mean().values
+        group2_values = mat_transpose[group2_samples].T.mean().values
         if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            fc = (
-                mat_transpose[group1_samples].T.mean().values
-                - mat_transpose[group2_samples].T.mean().values
-            )
+            fc = group1_values - group2_values
 
         else:
-            fc = (
-                mat_transpose[group1_samples].T.mean().values
-                / mat_transpose[group2_samples].T.mean().values
-            )
+            fc = group1_values / group2_values
             fc = np.log2(fc)
 
         return fc

@@ -175,7 +175,7 @@ class VolcanoPlot(PlotUtils):
         )
 
     @lru_cache(maxsize=20)
-    def _sam(self):
+    def _sam(self):  # TODO duplicated?
         from alphastats.multicova import multicova
 
         print("Calculating t-test and permutation based FDR (SAM)... ")
@@ -277,20 +277,23 @@ class VolcanoPlot(PlotUtils):
         )
         self.pvalue_column = "pval"
 
-    def _calculate_foldchange(
+    def _calculate_foldchange(  # TODO duplicated
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ) -> pd.DataFrame:
         mat_transpose += 0.00001
 
-        fc = (
-            mat_transpose[group1_samples].T.mean().values
-            - mat_transpose[group2_samples].T.mean().values
-        )
+        group1_values = mat_transpose[group1_samples].T.mean().values
+        group2_values = mat_transpose[group2_samples].T.mean().values
+        if self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+            fc = group1_values - group2_values
 
-        if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+        else:
+            fc = group1_values / group2_values
             fc = np.log2(fc)
 
-        return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
+        return pd.DataFrame(
+            {"log2fc": fc, self.dataset.index_column: mat_transpose.index}
+        )
 
     @lru_cache(maxsize=20)
     def _anova(self):
