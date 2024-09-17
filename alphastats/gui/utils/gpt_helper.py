@@ -143,6 +143,10 @@ def get_assistant_functions(
     Returns:
         list[dict]: A list of assistant functions.
     """
+    # TODO figure out how this relates to the parameter `subgroups_for_each_group`
+    subgroups_for_each_group_ = str(
+        get_subgroups_for_each_group(st.session_state[StateKeys.DATASET].metadata)
+    )
     return [
         {
             "type": "function",
@@ -165,7 +169,8 @@ def get_assistant_functions(
                         "subgroups": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": f"Specific subgroups within the group to analyze. For each group you need to look up the subgroups in the dict {str(get_subgroups_for_each_group(st.session_state['dataset'].metadata))} or present user with them first if you are not sure what to choose",
+                            "description": f"Specific subgroups within the group to analyze. For each group you need to look up the subgroups in the dict"
+                            f" {subgroups_for_each_group_} or present user with them first if you are not sure what to choose",
                         },
                         "method": {
                             "type": "string",
