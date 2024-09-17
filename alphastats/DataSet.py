@@ -49,20 +49,21 @@ class DataSet(Statistics, Plot, Enrichment):
 
         """
         self._check_loader(loader=loader)
-        #  load data from loader object
-        self.loader = loader
-        self.rawinput = loader.rawinput
-        self.software = loader.software
-        self.index_column = loader.index_column
-        self.intensity_column = loader.intensity_column
-        self.filter_columns = loader.filter_columns
-        self.evidence_df = loader.evidence_df
-        self.gene_names = loader.gene_names
+
+        self.rawinput: pd.DataFrame = loader.rawinput
+        self.software: str = loader.software
+        self.index_column: str = loader.index_column
+        self.intensity_column: Union[str, list] = loader.intensity_column
+        self.filter_columns: List[str] = loader.filter_columns
+        self.evidence_df: pd.DataFrame = loader.evidence_df
+        self.gene_names: str = loader.gene_names
+
+        self.metadata: Optional[pd.DataFrame] = None
+        self.sample: Optional[str] = None
 
         # include filtering before
         self.create_matrix()
         self._check_matrix_values()
-        self.metadata = None
 
         if metadata_path is not None:
             self.sample = sample_column
@@ -72,15 +73,15 @@ class DataSet(Statistics, Plot, Enrichment):
         else:
             self._create_metadata()
 
-        if self.loader == "Generic":
+        if loader == "Generic":
             intensity_column = loader._extract_sample_names(
                 metadata=self.metadata, sample_column=self.sample
             )
             self.intensity_column = intensity_column
 
         # save preprocessing settings
-        self.preprocessing_info = self._save_dataset_info()
-        self.preprocessed = False
+        self.preprocessing_info: Dict = self._save_dataset_info()
+        self.preprocessed: bool = False
 
         print("DataSet has been created.")
         self.overview()
@@ -96,7 +97,7 @@ class DataSet(Statistics, Plot, Enrichment):
         remove_samples: list = None,
         **kwargs,
     ) -> None:
-        """See documentation in the class implementing PreprocessInterface."""
+        """A wrapper for the preprocess() method, see documentation in Preprocess.preprocess()."""
         pp = Preprocess(
             self.filter_columns,
             self.rawinput,
@@ -122,6 +123,7 @@ class DataSet(Statistics, Plot, Enrichment):
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
         self.create_matrix()
+        # TODO fix bug: metadata is not reset here
         print("All preprocessing steps are reset.")
 
     def batch_correction(self, batch: str) -> None:
@@ -134,7 +136,7 @@ class DataSet(Statistics, Plot, Enrichment):
             self.preprocessing_info,
             self.mat,
         )
-        self.mat, self.metadata = pp.batch_correction(batch)
+        self.mat = pp.batch_correction(batch)
 
     def _create_metadata(self):
         samples = list(self.mat.index)
@@ -181,9 +183,11 @@ class DataSet(Statistics, Plot, Enrichment):
             )
 
     # TODO this is implemented in both preprocessing and here
+    #  This is only needed in the DimensionalityReduction class and only if the step was not run during preprocessing.
+    #  idea: replace the step in DimensionalityReduction with something like:
+    #  mat = self.data.mat.loc[sample_names,:] after creating sample_names.
     def _subset(self):
-        # filter matrix so only samples that are described in metadata
-        # also found in matrix
+        # filter matrix so only samples that are described in metadata are also found in matrix
         self.preprocessing_info.update(
             {"Matrix: Number of samples": self.metadata.shape[0]}
         )
@@ -209,12 +213,15 @@ class DataSet(Statistics, Plot, Enrichment):
 
         else:
             df = df[self.intensity_column]
+
         # transpose dataframe
         mat = df.transpose()
         mat.replace([np.inf, -np.inf], np.nan, inplace=True)
-        # remove proteins with only zero
+
+        # remove proteins with only zero  # TODO this is re-done in preprocessing
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         self.mat = self.mat.astype(float)
+
         # reset preproccessing info
         self.preprocessing_info = self._save_dataset_info()
         self.preprocessed = False

@@ -19,13 +19,13 @@ class Preprocess:
 
     def __init__(
         self,
-        filter_columns,
-        rawinput,
-        index_column,
-        sample,
-        metadata,
-        preprocessing_info,
-        mat,
+        filter_columns: List[str],
+        rawinput: pd.DataFrame,
+        index_column: Union[str, List[str]],
+        sample: str,
+        metadata: pd.DataFrame,
+        preprocessing_info: Dict,
+        mat: pd.DataFrame,
     ):
         self.filter_columns = filter_columns
 
@@ -43,8 +43,7 @@ class Preprocess:
         self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
 
     def _subset(self):
-        # filter matrix so only samples that are described in metadata
-        # also found in matrix
+        # filter matrix so only samples that are described in metadata are also found in matrix
         self.preprocessing_info.update(
             {"Matrix: Number of samples": self.metadata.shape[0]}
         )
@@ -271,7 +270,7 @@ class Preprocess:
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
 
-    def batch_correction(self, batch: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def batch_correction(self, batch: str) -> pd.DataFrame:
         """Correct for technical bias/batch effects
 
         Args:
@@ -291,7 +290,7 @@ class Preprocess:
 
         batch_corrected_data = pycombat(data=data, batch=series_of_batches).transpose()
 
-        return batch_corrected_data, self.metadata
+        return batch_corrected_data
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
@@ -304,7 +303,7 @@ class Preprocess:
         imputation: str = None,
         remove_samples: list = None,
         **kwargs,
-    ):
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict]:
         """Preprocess Protein data
 
         Removal of contaminations:
@@ -375,7 +374,10 @@ class Preprocess:
         if imputation is not None:
             self._imputation(method=imputation)
 
+        # TODO should this step be optional, too? is also done in create_matrix
+        # for now, add it to `preprocessing_info`
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+
         self.preprocessing_info.update(
             {
                 "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
