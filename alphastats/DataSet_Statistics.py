@@ -131,7 +131,7 @@ class Statistics:
         return ancova_df
 
     # @ignore_warning(RuntimeWarning)
-    # def multicova_analysis(  # never used outside of tests
+    # def multicova_analysis(  # TODO never used outside of tests .. how does this relate to multicova.py?
     #     self,
     #     covariates: list,
     #     n_permutations: int = 3,

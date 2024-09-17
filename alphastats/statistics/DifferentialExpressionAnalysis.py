@@ -107,7 +107,7 @@ class DifferentialExpressionAnalysis:
     def _sam(self) -> pd.DataFrame:  # TODO duplicated?
         from alphastats.multicova import multicova
 
-        transposed = self.mat.transpose()  # DUP CODE?
+        transposed = self.mat.transpose()
 
         if self.preprocessing_info[PreprocessingStateKeys.NORMALIZATION] is None:
             # needs to be lpog2 transformed for fold change calculations
