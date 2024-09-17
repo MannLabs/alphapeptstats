@@ -4,7 +4,7 @@ import requests
 
 import streamlit as st
 
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 uniprot_fields = [
     # Names & Taxonomy

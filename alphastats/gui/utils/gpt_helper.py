@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
 

@@ -11,7 +11,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 
 def load_options():

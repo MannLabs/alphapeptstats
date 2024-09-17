@@ -9,7 +9,7 @@ import streamlit as st
 from alphastats.gui.utils.uniprot_utils import get_uniprot_data, extract_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 if StateKeys.GENE_TO_PROT_ID not in st.session_state:
     st.session_state[StateKeys.GENE_TO_PROT_ID] = {}

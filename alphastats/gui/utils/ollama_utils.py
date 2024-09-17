@@ -13,7 +13,7 @@ from alphastats.gui.utils.gpt_helper import (
 # from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 
 class LLMIntegration:

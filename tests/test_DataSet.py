@@ -20,7 +20,7 @@ from alphastats.DataSet import DataSet
 
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 logger = logging.getLogger(__name__)
 

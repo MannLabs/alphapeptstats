@@ -8,7 +8,7 @@ import json
 import openai
 import streamlit as st
 
-from gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 
 try:
     from alphastats.gui.utils.gpt_helper import (
