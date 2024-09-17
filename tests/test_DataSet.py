@@ -762,7 +762,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(312, len(fig["data"]))
 
     def test_batch_correction(self):
-        self.obj.preprocess(subset=True, imputation="knn", normalization="linear")
+        self.obj.preprocess(
+            subset=True, imputation="knn", normalization="linear", log2_transform=True
+        )
         self.obj.batch_correction(batch="batch_artifical_added")
         first_value = self.obj.mat.values[0, 0]
         self.assertAlmostEqual(-0.00555, first_value, places=3)
@@ -865,7 +867,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
             self.obj.plot_dendrogram()
 
     def test_volcano_plot_anova(self):
-        self.obj.preprocess(imputation="knn")
+        self.obj.preprocess(imputation="knn", log2_transform=True)
         plot = self.obj.plot_volcano(
             column="grouping1", group1="Healthy", group2="Disease", method="anova"
         )

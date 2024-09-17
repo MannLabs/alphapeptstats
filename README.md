@@ -78,6 +78,8 @@ alphastats gui
 ```
 If you get an `AxiosError: Request failed with status code 403'` when uploading files, try running `DISABLE_XSRF=1 alphastats gui`.
 
+If you want to use local Large Language Models to help interpret the data, you would need to download and install ollama (https://ollama.com/download).
+
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 

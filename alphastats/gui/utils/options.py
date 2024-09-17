@@ -71,7 +71,7 @@ def plotting_options(state):
             "function": state.dataset.plot_volcano,
         },
         "Clustermap": {"function": state.dataset.plot_clustermap},
-        "Dendrogram": {"function": state.dataset.plot_dendrogram},
+        # "Dendrogram": {"function": state.dataset.plot_dendrogram},  # TODO why commented?
     }
     return plotting_options
 
@@ -183,3 +183,20 @@ SOFTWARE_OPTIONS = {
         "loader_function": mzTabLoader,
     },
 }
+
+
+def interpretation_options(state):
+    return {
+        "Volcano Plot": {
+            "between_two_groups": True,
+            "function": state.dataset.plot_volcano,
+        },
+        "Differential Expression Analysis - T-test": {
+            "between_two_groups": True,
+            "function": state.dataset.diff_expression_analysis,
+        },
+        "Differential Expression Analysis - Wald-test": {
+            "between_two_groups": True,
+            "function": state.dataset.diff_expression_analysis,
+        },
+    }

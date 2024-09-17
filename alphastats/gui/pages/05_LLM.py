@@ -1,16 +1,11 @@
 import os
 import streamlit as st
 import pandas as pd
-from openai import OpenAI, OpenAIError, AuthenticationError
+from openai import AuthenticationError
 
 from alphastats.gui.utils.analysis_helper import (
     check_if_options_are_loaded,
-    display_df,
     display_figure,
-    download_figure,
-    download_preprocessing_info,
-    get_analysis,
-    load_options,
     save_plot_to_session_state,
     gui_volcano_plot_differential_expression_analysis,
     helper_compare_two_groups,
@@ -18,17 +13,15 @@ from alphastats.gui.utils.analysis_helper import (
 from alphastats.gui.utils.gpt_helper import (
     get_assistant_functions,
     display_proteins,
-    get_gene_function,
-    get_info,
     get_subgroups_for_each_group,
-    turn_args_to_float,
-    perform_dimensionality_reduction,
-    wait_for_run_completion,
-    send_message_save_thread,
+    get_general_assistant_functions,
+)
+from alphastats.gui.utils.openai_utils import (
     try_to_set_api_key,
 )
+from alphastats.gui.utils.ollama_utils import LLMIntegration
+from alphastats.gui.utils.options import interpretation_options
 from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
-
 
 init_session_state()
 sidebar_info()
@@ -43,8 +36,8 @@ def select_analysis():
     """
     method = st.selectbox(
         "Analysis",
-        options=["Volcano plot"],
-        # options=list(st.session_state.interpretation_options.keys()),
+        # options=["Volcano plot"],
+        options=list(interpretation_options(st.session_state).keys()),
     )
     return method
 
@@ -54,31 +47,33 @@ if "dataset" not in st.session_state:
     st.stop()
 
 
-st.markdown("### GPT4 Analysis")
+st.markdown("### LLM Analysis")
+
+sidebar_info()
 
 
 # set background to white so downloaded pngs dont have grey background
-styl = f"""
+styl = """
     <style>
-        .css-jc5rf5 {{
+        .css-jc5rf5 {
             position: absolute;
             background: rgb(255, 255, 255);
             color: rgb(48, 46, 48);
             inset: 0px;
             overflow: hidden;
-        }}
+        }
     </style>
     """
 st.markdown(styl, unsafe_allow_html=True)
 
+# Initialize session state variables
+if "llm_integration" not in st.session_state:
+    st.session_state["llm_integration"] = None
+if "api_type" not in st.session_state:
+    st.session_state["api_type"] = "gpt"
 
 if "plot_list" not in st.session_state:
     st.session_state["plot_list"] = []
-
-
-if "openai_model" not in st.session_state:
-    # st.session_state["openai_model"] = "gpt-3.5-turbo-16k"
-    st.session_state["openai_model"] = "gpt-4-0125-preview"  # "gpt-4-1106-preview"
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
@@ -101,14 +96,17 @@ c1, c2 = st.columns((1, 2))
 with c1:
     method = select_analysis()
     chosen_parameter_dict = helper_compare_two_groups()
-    api_key = st.text_input("API Key", type="password")
 
-    try_to_set_api_key(api_key)
+    st.session_state["api_type"] = st.selectbox(
+        "Select LLM",
+        ["gpt4o", "llama3.1 70b"],
+        index=0 if st.session_state["api_type"] == "gpt4o" else 1,
+    )
+    base_url = "http://localhost:11434/v1"
+    if st.session_state["api_type"] == "gpt4o":
+        api_key = st.text_input("Enter OpenAI API Key", type="password")
+        try_to_set_api_key(api_key)
 
-    try:
-        client = OpenAI(api_key=st.secrets["openai_api_key"])
-    except OpenAIError:
-        pass
     method = st.selectbox(
         "Differential Analysis using:",
         options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
@@ -240,9 +238,10 @@ st.session_state["instructions"] = (
     "A user will present you with data regarding proteins upregulated in certain cells "
     "sourced from UniProt and abstracts from scientific publications. They seek your "
     "expertise in understanding the connections between these proteins and their potential role "
-    f"in disease genesis. {os.linesep}Provide a detailed and insightful, yet concise response based on the given information. "
+    f"in disease genesis. {os.linesep}Provide a detailed and insightful, yet concise response based on the given information. Use formatting to make your response more human readable."
     f"The data you have has following groups and respective subgroups: {str(get_subgroups_for_each_group(st.session_state.dataset.metadata))}."
-    "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that."
+    "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that. If the data coming to"
+    " you from a function has references to the literature (for example, PubMed), always quote the references in your response."
 )
 if "column" in chosen_parameter_dict and "upregulated" in st.session_state:
     st.session_state["user_prompt"] = (
@@ -280,22 +279,26 @@ if (
     st.session_state["gpt_submitted_clicked"]
     > st.session_state["gpt_submitted_counter"]
 ):
-    try_to_set_api_key()
-
-    client = OpenAI(api_key=st.secrets["openai_api_key"])
+    if st.session_state["api_type"] == "gpt4o":
+        try_to_set_api_key()
 
     try:
-        st.session_state["assistant"] = client.beta.assistants.create(
-            instructions=st.session_state["instructions"],
-            name="Proteomics interpreter",
-            model=st.session_state["openai_model"],
-            tools=get_assistant_functions(
-                gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
+        if st.session_state["api_type"] == "gpt4o":
+            st.session_state["llm_integration"] = LLMIntegration(
+                api_type="gpt",
+                api_key=st.secrets["openai_api_key"],
+                dataset=st.session_state["dataset"],
                 metadata=st.session_state["dataset"].metadata,
-                subgroups_for_each_group=get_subgroups_for_each_group(
-                    st.session_state["dataset"].metadata
-                ),
-            ),
+            )
+        else:
+            st.session_state["llm_integration"] = LLMIntegration(
+                api_type="ollama",
+                base_url=base_url,
+                dataset=st.session_state["dataset"],
+                metadata=st.session_state["dataset"].metadata,
+            )
+        st.success(
+            f"{st.session_state['api_type'].upper()} integration initialized successfully!"
         )
     except AuthenticationError:
         st.warning(
@@ -303,8 +306,26 @@ if (
         )
         st.stop()
 
-if "artefact_enum_dict" not in st.session_state:
-    st.session_state["artefact_enum_dict"] = {}
+if "llm_integration" not in st.session_state or not st.session_state["llm_integration"]:
+    st.warning("Please initialize the model first")
+    st.stop()
+
+llm = st.session_state["llm_integration"]
+
+# Set instructions and update tools
+llm.tools = [
+    *get_general_assistant_functions(),
+    *get_assistant_functions(
+        gene_to_prot_id_dict=st.session_state["gene_to_prot_id"],
+        metadata=st.session_state["dataset"].metadata,
+        subgroups_for_each_group=get_subgroups_for_each_group(
+            st.session_state["dataset"].metadata
+        ),
+    ),
+]
+
+if "artifacts" not in st.session_state:
+    st.session_state["artifacts"] = {}
 
 if (
     st.session_state["gpt_submitted_counter"]
@@ -313,30 +334,23 @@ if (
     st.session_state["gpt_submitted_counter"] = st.session_state[
         "gpt_submitted_clicked"
     ]
-    st.session_state["artefact_enum_dict"] = {}
-    thread = client.beta.threads.create()
-    st.session_state["thread_id"] = thread.id
-    artefacts = send_message_save_thread(client, st.session_state["user_prompt"])
-    if artefacts:
-        st.session_state["artefact_enum_dict"][len(st.session_state.messages) - 1] = (
-            artefacts
-        )
+    st.session_state["artifacts"] = {}
+    llm.messages = [{"role": "system", "content": st.session_state["instructions"]}]
+    response = llm.chat_completion(st.session_state["user_prompt"])
 
 if st.session_state["gpt_submitted_clicked"] > 0:
     if prompt := st.chat_input("Say something"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        artefacts = send_message_save_thread(client, prompt)
-        if artefacts:
-            st.session_state["artefact_enum_dict"][
-                len(st.session_state.messages) - 1
-            ] = artefacts
+        response = llm.chat_completion(prompt)
     for num, role_content_dict in enumerate(st.session_state.messages):
+        if role_content_dict["role"] == "tool" or role_content_dict["role"] == "system":
+            continue
+        if "tool_calls" in role_content_dict:
+            continue
         with st.chat_message(role_content_dict["role"]):
             st.markdown(role_content_dict["content"])
-            if num in st.session_state["artefact_enum_dict"]:
-                for artefact in st.session_state["artefact_enum_dict"][num]:
+            if num in st.session_state["artifacts"]:
+                for artefact in st.session_state["artifacts"][num]:
                     if isinstance(artefact, pd.DataFrame):
                         st.dataframe(artefact)
-                    else:
+                    elif "plotly" in str(type(artefact)):
                         st.plotly_chart(artefact)
-    print(st.session_state["artefact_enum_dict"])
