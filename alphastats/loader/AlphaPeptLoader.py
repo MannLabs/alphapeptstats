@@ -44,7 +44,7 @@ class AlphaPeptLoader(BaseLoader):
         self._read_all_columns_as_string()
         #  make ProteinGroup column
         self.rawinput["ProteinGroup"] = self.rawinput[self.index_column].map(
-            self._standardize_protein_group_column
+            self.standardize_protein_group_column
         )
         self.index_column = "ProteinGroup"
 
@@ -62,9 +62,12 @@ class AlphaPeptLoader(BaseLoader):
             "These proteins should be filtered with `DataSet.preprocess(remove_contaminations=True)` later."
         )
 
-    def _standardize_protein_group_column(self, entry):
-        #  make column with ProteinGroup to make comparison between softwares possible
-        #  'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN', -> P0DMV9;P0DMV8
+    @staticmethod
+    def standardize_protein_group_column(entry: str) -> str:
+        """Standardize the ProteinGroup column to make comparison between different software possible.
+
+        E.g. 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN', -> P0DMV9;P0DMV8
+        """
 
         # TODO this needs a more beautiful and robuster solution
         # split proteins into list

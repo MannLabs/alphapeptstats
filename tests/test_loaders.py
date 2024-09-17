@@ -109,13 +109,13 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
         # test function with different entries
         entry_one = "sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN"
-        entry_one_protein_id = self.obj._standardize_protein_group_column(
+        entry_one_protein_id = self.obj.standardize_protein_group_column(
             entry=entry_one
         )
         self.assertEqual(entry_one_protein_id, "P0DMV9;P0DMV8")
 
         entry_two = "ENSEMBL:ENSBTAP00000007350"
-        entry_two_protein_id = self.obj._standardize_protein_group_column(
+        entry_two_protein_id = self.obj.standardize_protein_group_column(
             entry=entry_two
         )
         self.assertEqual(entry_two_protein_id, "ENSBTAP00000007350")

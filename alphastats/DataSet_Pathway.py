@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 from io import StringIO
 import numpy as np
+
+from alphastats import AlphaPeptLoader
 from alphastats.utils import check_internetconnection, check_if_df_empty
 
 
@@ -66,32 +68,14 @@ class Enrichment:
     @staticmethod
     def _extract_protein_ids(entry):
         try:
-            proteins = entry.split(",")
-            protein_id_list = []
-            for protein in proteins:
-                # 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN',
-                if "|" in protein:
-                    fasta_header_split = protein.split("|")
-                else:
-                    fasta_header_split = protein
-                if isinstance(fasta_header_split, str):
-                    #  'ENSEMBL:ENSBTAP00000007350',
-                    if "ENSEMBL:" in fasta_header_split:
-                        protein_id = fasta_header_split.replace("ENSEMBL:", "")
-                    else:
-                        protein_id = fasta_header_split
-                else:
-                    protein_id = fasta_header_split[1]
-                protein_id_list.append(protein_id)
-            protein_id_concentate = ";".join(protein_id_list)
-            # ADD REV to the protein ID, else there will be duplicates in the ProteinGroup column
-            if "REV_" in entry:
-                protein_id_concentate = "REV_" + protein_id_concentate
+            protein_id_concatenate = AlphaPeptLoader.standardize_protein_group_column(
+                entry
+            )
 
         except AttributeError:
-            protein_id_concentate = entry
+            protein_id_concatenate = entry
 
-        return protein_id_concentate
+        return protein_id_concatenate
 
     def _get_ptm_proteins(self, sample=None):
         if self.evidence_df is None:
