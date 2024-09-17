@@ -39,7 +39,12 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 class DataSet(Statistics, Plot, Enrichment):
     """Analysis Object"""
 
-    def __init__(self, loader, metadata_path=None, sample_column=None):
+    def __init__(
+        self,
+        loader: BaseLoader,
+        metadata_path: Optional[str] = None,
+        sample_column: Optional[str] = None,
+    ):
         """Create DataSet
 
         Args:
@@ -58,20 +63,19 @@ class DataSet(Statistics, Plot, Enrichment):
         self.evidence_df: pd.DataFrame = loader.evidence_df
         self.gene_names: str = loader.gene_names
 
-        self.metadata: Optional[pd.DataFrame] = None
-        self.sample: Optional[str] = None
-
         # include filtering before
         self.create_matrix()
         self._check_matrix_values()
 
+        self.metadata: pd.DataFrame
+        self.sample: str
         if metadata_path is not None:
             self.sample = sample_column
-            self.load_metadata(file_path=metadata_path)
+            self.metadata = self.load_metadata(file_path=metadata_path)
             self._remove_misc_samples_in_metadata()
-
         else:
-            self._create_metadata()
+            self.sample = "sample"
+            self.metadata = pd.DataFrame({"sample": list(self.mat.index)})
 
         if loader == "Generic":
             intensity_column = loader._extract_sample_names(
@@ -137,11 +141,6 @@ class DataSet(Statistics, Plot, Enrichment):
             self.mat,
         )
         self.mat = pp.batch_correction(batch)
-
-    def _create_metadata(self):
-        samples = list(self.mat.index)
-        self.metadata = pd.DataFrame({"sample": samples})
-        self.sample = "sample"
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -227,15 +226,14 @@ class DataSet(Statistics, Plot, Enrichment):
         self.preprocessed = False
         self.rawmat = mat
 
-    def load_metadata(self, file_path):
+    def load_metadata(self, file_path: Union[pd.DataFrame, str]) -> pd.DataFrame:
         """Load metadata either xlsx, txt, csv or txt file
 
         Args:
-            file_path (str): path to metadata file
+            file_path: path to metadata file or metadata DataFrame  # TODO disentangle this
         """
         if isinstance(file_path, pd.DataFrame):
             df = file_path
-        #  loading file needs to be more beautiful
         elif file_path.endswith(".xlsx"):
             warnings.filterwarnings(
                 "ignore",
@@ -262,7 +260,7 @@ class DataSet(Statistics, Plot, Enrichment):
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         df.columns = df.columns.astype(str)
-        self.metadata = df
+        return df
 
     def _save_dataset_info(self):
         n_proteingroups = self.mat.shape[1]

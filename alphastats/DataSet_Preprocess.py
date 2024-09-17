@@ -21,7 +21,7 @@ class Preprocess:
         self,
         filter_columns: List[str],
         rawinput: pd.DataFrame,
-        index_column: Union[str, List[str]],
+        index_column: str,
         sample: str,
         metadata: pd.DataFrame,
         preprocessing_info: Dict,
