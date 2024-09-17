@@ -24,14 +24,12 @@ from alphastats.gui.utils.ui_helper import (
 
 def _finalize_data_loading(
     loader: BaseLoader,
-    metadata_columns: List[str],
     dataset: DataSet,
 ) -> None:
     """Finalize the data loading process."""
     st.session_state[StateKeys.LOADER] = (
         loader  # TODO: Figure out if we even need the loader here, as the dataset has the loader as an attribute.
     )
-    st.session_state["metadata_columns"] = metadata_columns
     st.session_state[StateKeys.DATASET] = dataset
 
     load_options()
@@ -58,9 +56,9 @@ if c1.button("Start new Session"):
 if c2.button("Start new Session with example DataSet", key="_load_example_data"):
     empty_session_state()
     init_session_state()
-    loader, metadata_columns, dataset = load_example_data()
+    loader, dataset = load_example_data()
 
-    _finalize_data_loading(loader, metadata_columns, dataset)
+    _finalize_data_loading(loader, dataset)
     st.stop()
 
 
