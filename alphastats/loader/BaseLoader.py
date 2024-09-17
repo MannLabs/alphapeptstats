@@ -45,7 +45,7 @@ class BaseLoader:
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
-        self._read_all_columns_as_string()
+        self._read_all_column_names_as_string()
 
     def _check_if_columns_are_present(self):
         """check if given columns present in rawinput"""
@@ -61,7 +61,7 @@ class BaseLoader:
                 "MaxQuant Format: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
             )
 
-    def _read_all_columns_as_string(self):
+    def _read_all_column_names_as_string(self):
         self.rawinput.columns = self.rawinput.columns.astype(str)
 
     def _check_if_indexcolumn_is_unique(self):
