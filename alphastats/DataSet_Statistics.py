@@ -1,11 +1,9 @@
-from codecs import ignore_errors
-from itertools import permutations
 import pandas as pd
-import scipy.stats
 import numpy as np
 import pingouin
+
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.utils import ignore_warning
-from tqdm import tqdm
 from functools import lru_cache
 from typing import Union
 
@@ -22,7 +20,7 @@ class Statistics:
     ) -> pd.DataFrame:
         mat_transpose += 0.00001
 
-        if self.preprocessing_info["Log2-transformed"]:
+        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
                 - mat_transpose[group2_samples].T.mean().values

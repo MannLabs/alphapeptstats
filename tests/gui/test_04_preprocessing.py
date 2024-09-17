@@ -1,10 +1,7 @@
-from alphastats import DataSet
+from alphastats.DataSet import DataSet
 from alphastats.load_data import load_data
 from streamlit.testing.v1 import AppTest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-import pandas as pd
-from io import BytesIO
 
 
 APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")

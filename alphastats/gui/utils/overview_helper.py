@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-from alphastats import DataSet
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import convert_df
 
 
@@ -33,11 +34,23 @@ def get_display_matrix():
 def display_matrix():
     text = (
         "Normalization: "
-        + str(st.session_state.dataset.preprocessing_info["Normalization"])
+        + str(
+            st.session_state.dataset.preprocessing_info[
+                PreprocessingStateKeys.NORMALIZATION
+            ]
+        )
         + ", Imputation: "
-        + str(st.session_state.dataset.preprocessing_info["Imputation"])
+        + str(
+            st.session_state.dataset.preprocessing_info[
+                PreprocessingStateKeys.IMPUTATION
+            ]
+        )
         + ", Log2-transformed: "
-        + str(st.session_state.dataset.preprocessing_info["Log2-transformed"])
+        + str(
+            st.session_state.dataset.preprocessing_info[
+                PreprocessingStateKeys.LOG2_TRANSFORMED
+            ]
+        )
     )
 
     st.markdown("**DataFrame used for analysis** *preview*")

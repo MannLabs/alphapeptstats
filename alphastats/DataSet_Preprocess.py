@@ -13,6 +13,24 @@ from sklearn.experimental import enable_iterative_imputer  # noqa
 from alphastats.utils import ignore_warning
 
 
+class PreprocessingStateKeys:
+    """Keys for accessing the dictionary holding the information about preprocessing."""
+
+    RAW_DATA_NUM_PG = "Raw data number of Protein Groups"
+    NUM_PG = "Matrix= Number of ProteinIDs/ProteinGroups"
+    NUM_SAMPLES = "Matrix= Number of samples"
+    INTENSITY_COLUMN = "Intensity used for analysis"
+    LOG2_TRANSFORMED = "Log2-transformed"
+    NORMALIZATION = "Normalization"
+    IMPUTATION = "Imputation"
+    CONTAMINATIONS_REMOVED = "Contaminations have been removed"
+    CONTAMINATION_COLUMNS = "Contamination columns"
+    NUM_REMOVED_PG_DUE_TO_CONTAMINATION = (
+        "Number of removed ProteinGroups due to contaminaton"
+    )
+    DATA_COMPLETENESS_CUTOFF = "Data completeness cut-off"
+
+
 class Preprocess:
     imputation_methods = ["mean", "median", "knn", "randomforest"]
     normalization_methods = ["vst", "zscore", "quantile"]
@@ -45,14 +63,17 @@ class Preprocess:
     def _subset(self):
         # filter matrix so only samples that are described in metadata are also found in matrix
         self.preprocessing_info.update(
-            {"Matrix: Number of samples": self.metadata.shape[0]}
+            {PreprocessingStateKeys.NUM_SAMPLES: self.metadata.shape[0]}
         )
         return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
     def _remove_na_values(self, cut_off):
         if (
             self.preprocessing_info.get("Missing values were removed")
-            and self.preprocessing_info.get("Data completeness cut-off") == cut_off
+            and self.preprocessing_info.get(
+                PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF
+            )
+            == cut_off
         ):
             logging.info("Missing values have already been filtered.")
             st.warning(
@@ -86,7 +107,7 @@ class Preprocess:
                 "Number of removed ProteinGroups due to data completeness cutoff": num_proteins
                 - self.mat.shape[1],
                 "Missing values were removed": True,
-                "Data completeness cut-off": cut_off,
+                PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: cut_off,
             }
         )
 
@@ -95,7 +116,7 @@ class Preprocess:
             logging.info("No columns to filter.")
             return
 
-        if self.preprocessing_info.get("Contaminations have been removed"):
+        if self.preprocessing_info.get(PreprocessingStateKeys.CONTAMINATIONS_REMOVED):
             logging.info("Contaminatons have already been filtered.")
             return
 
@@ -113,11 +134,11 @@ class Preprocess:
 
         self.preprocessing_info.update(
             {
-                "Number of removed ProteinGroups due to contaminaton": len(
+                PreprocessingStateKeys.NUM_REMOVED_PG_DUE_TO_CONTAMINATION: len(
                     protein_groups_to_remove
                 ),
-                "Contaminations have been removed": True,
-                "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
+                PreprocessingStateKeys.CONTAMINATIONS_REMOVED: True,
+                PreprocessingStateKeys.NUM_PG: self.mat.shape[1],
             }
         )
 
@@ -177,7 +198,7 @@ class Preprocess:
         self.mat = pd.DataFrame(
             imputation_array, index=self.mat.index, columns=self.mat.columns
         )
-        self.preprocessing_info.update({"Imputation": method})
+        self.preprocessing_info.update({PreprocessingStateKeys.IMPUTATION: method})
 
     def _linear_normalization(self, dataframe: pd.DataFrame):
         """Normalize data using l2 norm without breaking when encoutering nones
@@ -227,7 +248,7 @@ class Preprocess:
             normalized_array, index=self.mat.index, columns=self.mat.columns
         )
 
-        self.preprocessing_info.update({"Normalization": method})
+        self.preprocessing_info.update({PreprocessingStateKeys.NORMALIZATION: method})
 
     # TODO this needs to be reimplemented
     # @ignore_warning(RuntimeWarning)
@@ -267,7 +288,7 @@ class Preprocess:
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat + 0.1)
-        self.preprocessing_info.update({"Log2-transformed": True})
+        self.preprocessing_info.update({PreprocessingStateKeys.LOG2_TRANSFORMED: True})
         print("Data has been log2-transformed.")
 
     def batch_correction(self, batch: str) -> pd.DataFrame:
@@ -364,7 +385,11 @@ class Preprocess:
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)
 
-        if log2_transform and self.preprocessing_info.get("Log2-transformed") is False:
+        if (
+            log2_transform
+            and self.preprocessing_info.get(PreprocessingStateKeys.LOG2_TRANSFORMED)
+            is False
+        ):
             self._log2_transform()
 
         if normalization is not None:
@@ -380,7 +405,7 @@ class Preprocess:
 
         self.preprocessing_info.update(
             {
-                "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
+                PreprocessingStateKeys.NUM_PG: self.mat.shape[1],
             }
         )
 

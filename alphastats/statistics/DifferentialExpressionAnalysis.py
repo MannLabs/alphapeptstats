@@ -4,6 +4,8 @@ import numpy as np
 import scipy
 from typing import Union
 
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+
 
 class DifferentialExpressionAnalysis:
     def __init__(
@@ -99,7 +101,10 @@ class DifferentialExpressionAnalysis:
 
         transposed = self.dataset.mat.transpose()
 
-        if self.dataset.preprocessing_info["Normalization"] is None:
+        if (
+            self.dataset.preprocessing_info[PreprocessingStateKeys.NORMALIZATION]
+            is None
+        ):
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 
@@ -230,7 +235,7 @@ class DifferentialExpressionAnalysis:
     ):
         mat_transpose += 0.00001
 
-        if self.dataset.preprocessing_info["Log2-transformed"]:
+        if self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
                 - mat_transpose[group2_samples].T.mean().values
