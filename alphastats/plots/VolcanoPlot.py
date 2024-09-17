@@ -278,13 +278,13 @@ class VolcanoPlot(PlotUtils):
         self.pvalue_column = "pval"
 
     def _calculate_foldchange(
-            self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
+        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ) -> pd.DataFrame:
         mat_transpose += 0.00001
 
         fc = (
-                mat_transpose[group1_samples].T.mean().values
-                - mat_transpose[group2_samples].T.mean().values
+            mat_transpose[group1_samples].T.mean().values
+            - mat_transpose[group2_samples].T.mean().values
         )
 
         if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
@@ -309,9 +309,7 @@ class VolcanoPlot(PlotUtils):
         ][self.dataset.sample].tolist()
 
         mat_transpose = self.dataset.mat.transpose()
-        fc = self._calculate_foldchange(
-            mat_transpose, group1_samples, group2_samples
-        )
+        fc = self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
 
         #  check how column is ordered
         self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"

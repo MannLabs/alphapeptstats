@@ -2,9 +2,8 @@ import pandas as pd
 import pingouin
 
 
-
-def tukey_test(index_column: str,
-        protein_id: str, group: str, df: pd.DataFrame
+def tukey_test(
+    index_column: str, protein_id: str, group: str, df: pd.DataFrame
 ) -> pd.DataFrame:
     """Calculate Pairwise Tukey-HSD post-hoc test
     Wrapper around:
@@ -32,9 +31,7 @@ def tukey_test(index_column: str,
     """
     try:
         tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
-        tukey_df["comparison"] = (
-                tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
-        )
+        tukey_df["comparison"] = tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
         tukey_df[index_column] = protein_id
 
     except ValueError:
