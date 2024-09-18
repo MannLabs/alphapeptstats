@@ -191,7 +191,12 @@ class DataSet(Plot):
         df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
         df = df.merge(self.metadata, how="inner", on=[self.sample])
 
-        return tukey_test(self.index_column, protein_id, group, df)
+        return tukey_test(
+            df,
+            protein_id,
+            group,
+            self.index_column,
+        )
 
     def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
         """A wrapper for Statistics.anova(), see documentation there."""

@@ -549,7 +549,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_tukey_test(self):
         protein_id = "K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1"
-        tukey_df = self.obj.tukey_test(protein_id=protein_id, group="disease", df=None)
+        tukey_df = self.obj.tukey_test(protein_id=protein_id, group="disease")
         self.assertEqual(tukey_df["p-tukey"][0], 0.674989009816342)
 
     def test_ancova(self):

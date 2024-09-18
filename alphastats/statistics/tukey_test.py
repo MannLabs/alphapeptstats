@@ -3,7 +3,10 @@ import pingouin
 
 
 def tukey_test(
-    index_column: str, protein_id: str, group: str, df: pd.DataFrame
+    df: pd.DataFrame,
+    protein_id: str,
+    group: str,
+    index_column: str,
 ) -> pd.DataFrame:
     """Calculate Pairwise Tukey-HSD post-hoc test
     Wrapper around:
