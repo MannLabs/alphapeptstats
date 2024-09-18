@@ -1,8 +1,7 @@
-import copy
 from alphastats.loader.BaseLoader import BaseLoader
+from typing import Union
 import pandas as pd
 import numpy as np
-import logging
 import re
 import warnings
 
@@ -66,7 +65,7 @@ class SpectronautLoader(BaseLoader):
                 f"No sample column was found so the data will be treated as wide format. If this is wrong make sure {sample_column} is present in the file."
             )
 
-        self.rawinput = self._deduplicate_data(long=self.sample_column)
+        self.rawinput = self._deduplicate_data(long=bool(self.sample_column))
 
         if self.sample_column is not None:
             self.rawinput = self._reshape_long_to_wide()
@@ -95,7 +94,17 @@ class SpectronautLoader(BaseLoader):
 
         return df
 
-    def _deduplicate_data(self, long):
+    def _deduplicate_data(self, long: bool):
+        """Deduplicates the data based on the index column and the intensity column.
+
+        If long format is used, the sample column is also used for indexing. Deduplicaiton is necessary because additional columns for lower level qunatification, i.e. peptides, can be present in the data, leading to duplication of the protein group data.
+
+        Args:
+            long (bool): if the data is in long format
+
+        Returns:
+            pd.DataFrame: deduplicated data
+        """
         subset = [self.index_column] + [
             col for col in self.rawinput.columns if self.intensity_column in col
         ]
@@ -104,8 +113,22 @@ class SpectronautLoader(BaseLoader):
         unique_df = self.rawinput.drop_duplicates(subset=subset)
         return unique_df
 
-    def _read_spectronaut_file(self, file, sep, columns):
-        # some spectronaut files include european decimal separators
+    def _read_spectronaut_file(
+        self, file: Union[str, pd.DataFrame], sep: str, columns: str
+    ):
+        """
+        Reads the Spectronaut file and converts numeric columns to float.
+
+        Some spectronaut files include european decimal separators.
+
+        Args:
+            file (Union[str, pd.DataFrame]): path to the file or pandas.DataFrame
+            sep (str): separator of the file
+            columns (str): regex pattern for columns to read
+
+        Returns:
+            df (pd.DataFrame): Spectronaut data
+        """
         if isinstance(file, pd.DataFrame):
             df = file[[col for col in file.columns if bool(re.match(columns, col))]]
             for column in df.columns:
