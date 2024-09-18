@@ -219,7 +219,7 @@ class TestSpectronautLoader(BaseTestLoader.BaseTest):
             file="testfiles/spectronaut/results_non_european_comma.tsv",
         )
         mean = s.rawinput[
-            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03_PG.Quantity"
+            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03.PG.Quantity"
         ].mean()
 
     def test_gene_name_column(self):
