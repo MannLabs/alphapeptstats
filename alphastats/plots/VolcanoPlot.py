@@ -1,3 +1,6 @@
+from typing import Dict
+
+from alphastats.DataSet_Statistics import Statistics
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 from alphastats.utils import ignore_warning
@@ -33,7 +36,14 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 class VolcanoPlot(PlotUtils):
     def __init__(
         self,
-        dataset,
+        *,
+        mat: pd.DataFrame,
+        rawinput: pd.DataFrame,
+        metadata: pd.DataFrame,
+        sample: str,
+        index_column: str,
+        gene_names: str,
+        preprocessing_info: Dict,
         group1,
         group2,
         column=None,
@@ -47,7 +57,14 @@ class VolcanoPlot(PlotUtils):
         fdr=0.05,
         color_list=[],
     ):
-        self.dataset = dataset
+        self.mat: pd.DataFrame = mat
+        self.rawinput = rawinput
+        self.metadata: pd.DataFrame = metadata
+        self.sample: str = sample
+        self.index_column: str = index_column
+        self.gene_names: str = gene_names
+        self.preprocessing_info: Dict = preprocessing_info
+
         self.group1 = group1
         self.group2 = group2
         self.column = column
@@ -62,6 +79,14 @@ class VolcanoPlot(PlotUtils):
         self.pvalue_column = None
         self.perm = perm
         self.color_list = color_list
+
+        self._statistics = Statistics(
+            mat=self.mat,
+            metadata=self.metadata,
+            sample=self.sample,
+            index_column=self.index_column,
+            preprocessing_info=self.preprocessing_info,
+        )
         self._check_input()
 
         if plot:
@@ -70,12 +95,12 @@ class VolcanoPlot(PlotUtils):
             self._add_hover_data_columns()
             self._plot()
 
-    # TODO this changes the actual metadata .. is this intended?
+    # TODO this used to change the actual metadata .. is this intended?
     def _add_metadata_column(self, group1_list: list, group2_list: list):
         # create new column in metadata with defined groups
-        metadata = self.dataset.metadata
+        metadata = self.metadata
 
-        sample_names = metadata[self.dataset.sample].to_list()
+        sample_names = metadata[self.sample].to_list()
         misc_samples = list(set(group1_list + group2_list) - set(sample_names))
         if len(misc_samples) > 0:
             raise ValueError(
@@ -84,12 +109,12 @@ class VolcanoPlot(PlotUtils):
 
         column = "_comparison_column"
         conditons = [
-            metadata[self.dataset.sample].isin(group1_list),
-            metadata[self.dataset.sample].isin(group2_list),
+            metadata[self.sample].isin(group1_list),
+            metadata[self.sample].isin(group2_list),
         ]
         choices = ["group1", "group2"]
         metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.dataset.metadata = metadata
+        self.metadata = metadata
 
         return column, "group1", "group2"
 
@@ -153,16 +178,16 @@ class VolcanoPlot(PlotUtils):
             s0=0.05,
             n_x=len(
                 list(
-                    self.dataset.metadata[
-                        self.dataset.metadata[self.column] == self.group1
-                    ][self.dataset.sample]
+                    self.metadata[self.metadata[self.column] == self.group1][
+                        self.sample
+                    ]
                 )
             ),
             n_y=len(
                 list(
-                    self.dataset.metadata[
-                        self.dataset.metadata[self.column] == self.group2
-                    ][self.dataset.sample]
+                    self.metadata[self.metadata[self.column] == self.group2][
+                        self.sample
+                    ]
                 )
             ),
             fc_s=np.arange(
@@ -180,41 +205,34 @@ class VolcanoPlot(PlotUtils):
 
         print("Calculating t-test and permutation based FDR (SAM)... ")
 
-        transposed = self.dataset.mat.transpose()
+        transposed = self.mat.transpose()
 
-        if (
-            self.dataset.preprocessing_info[PreprocessingStateKeys.NORMALIZATION]
-            is None
-        ):
+        if self.preprocessing_info[PreprocessingStateKeys.NORMALIZATION] is None:
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 
-        transposed[self.dataset.index_column] = transposed.index
+        transposed[self.index_column] = transposed.index
         transposed = transposed.reset_index(drop=True)
 
         res_ttest, tlim_ttest = multicova.perform_ttest_analysis(
             transposed,
             c1=list(
-                self.dataset.metadata[
-                    self.dataset.metadata[self.column] == self.group1
-                ][self.dataset.sample]
+                self.metadata[self.metadata[self.column] == self.group1][self.sample]
             ),
             c2=list(
-                self.dataset.metadata[
-                    self.dataset.metadata[self.column] == self.group2
-                ][self.dataset.sample]
+                self.metadata[self.metadata[self.column] == self.group2][self.sample]
             ),
             s0=0.05,
             n_perm=self.perm,
             fdr=self.fdr,
-            id_col=self.dataset.index_column,
+            id_col=self.index_column,
             parallelize=True,
         )
 
         fdr_column = "FDR" + str(int(self.fdr * 100)) + "%"
         self.res = res_ttest[
             [
-                self.dataset.index_column,
+                self.index_column,
                 "fc",
                 "tval",
                 "pval",
@@ -233,7 +251,7 @@ class VolcanoPlot(PlotUtils):
         print(
             "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
         )
-        self.res = self.dataset.diff_expression_analysis(
+        self.res = self._statistics.diff_expression_analysis(
             column=self.column,
             group1=self.group1,
             group2=self.group2,
@@ -245,7 +263,7 @@ class VolcanoPlot(PlotUtils):
     def _welch_ttest(self):
         print("Calculating Welchs t-test...")
 
-        self.res = self.dataset.diff_expression_analysis(
+        self.res = self._statistics.diff_expression_analysis(
             column=self.column,
             group1=self.group1,
             group2=self.group2,
@@ -257,7 +275,7 @@ class VolcanoPlot(PlotUtils):
     def _ttest(self):
         print("Calculating Students t-test...")
 
-        self.res = self.dataset.diff_expression_analysis(
+        self.res = self._statistics.diff_expression_analysis(
             column=self.column,
             group1=self.group1,
             group2=self.group2,
@@ -269,7 +287,7 @@ class VolcanoPlot(PlotUtils):
     def _pairedttest(self):
         print("Calculating paired t-test...")
 
-        self.res = self.dataset.diff_expression_analysis(
+        self.res = self._statistics.diff_expression_analysis(
             column=self.column,
             group1=self.group1,
             group2=self.group2,
@@ -284,34 +302,32 @@ class VolcanoPlot(PlotUtils):
 
         group1_values = mat_transpose[group1_samples].T.mean().values
         group2_values = mat_transpose[group2_samples].T.mean().values
-        if self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
             fc = group1_values - group2_values
 
         else:
             fc = group1_values / group2_values
             fc = np.log2(fc)
 
-        return pd.DataFrame(
-            {"log2fc": fc, self.dataset.index_column: mat_transpose.index}
-        )
+        return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
 
     @lru_cache(maxsize=20)
     def _anova(self):
         print("Calculating ANOVA with follow-up tukey test...")
 
-        result_df = self.dataset.anova(
+        result_df = self._statistics.anova(
             column=self.column, protein_ids="all", tukey=True
         )
 
-        group1_samples = self.dataset.metadata[
-            self.dataset.metadata[self.column] == self.group1
-        ][self.dataset.sample].tolist()
+        group1_samples = self.metadata[self.metadata[self.column] == self.group1][
+            self.sample
+        ].tolist()
 
-        group2_samples = self.dataset.metadata[
-            self.dataset.metadata[self.column] == self.group2
-        ][self.dataset.sample].tolist()
+        group2_samples = self.metadata[self.metadata[self.column] == self.group2][
+            self.sample
+        ].tolist()
 
-        mat_transpose = self.dataset.mat.transpose()
+        mat_transpose = self.mat.transpose()
         fc = self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
 
         #  check how column is ordered
@@ -320,24 +336,20 @@ class VolcanoPlot(PlotUtils):
         if self.pvalue_column not in result_df.columns:
             self.pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
-        self.res = result_df.reset_index().merge(
-            fc.reset_index(), on=self.dataset.index_column
-        )
+        self.res = result_df.reset_index().merge(fc.reset_index(), on=self.index_column)
 
     def _add_hover_data_columns(self):
         # additional labeling with gene names
-        self.hover_data = [self.dataset.index_column]
+        self.hover_data = [self.index_column]
 
-        if self.dataset.gene_names is not None:
+        if self.gene_names is not None:
             self.res = pd.merge(
                 self.res,
-                self.dataset.rawinput[
-                    [self.dataset.gene_names, self.dataset.index_column]
-                ],
-                on=self.dataset.index_column,
+                self.rawinput[[self.gene_names, self.index_column]],
+                on=self.index_column,
                 how="left",
             )
-            self.hover_data.append(self.dataset.gene_names)
+            self.hover_data.append(self.gene_names)
 
     def _annotate_result_df(self):
         """
@@ -370,7 +382,7 @@ class VolcanoPlot(PlotUtils):
 
         if len(self.color_list) > 0:
             self.res["color"] = np.where(
-                self.res[self.dataset.index_column].isin(self.color_list),
+                self.res[self.index_column].isin(self.color_list),
                 "color",
                 "no_color",
             )
@@ -380,10 +392,10 @@ class VolcanoPlot(PlotUtils):
         get dict of upregulated and downregulated genes in form of {gene_name: color}
         """
         if "label" not in self.res.columns:
-            if self.dataset.gene_names is not None:
-                label_column = self.dataset.gene_names
+            if self.gene_names is not None:
+                label_column = self.gene_names
             else:
-                label_column = self.dataset.index_column
+                label_column = self.index_column
 
             self.res["label"] = np.where(
                 self.res.color != "non_sig", self.res[label_column], ""
@@ -405,10 +417,10 @@ class VolcanoPlot(PlotUtils):
         get dataframe of upregulated and downregulated genes in form of {gene_name: color}
         """
         if "label" not in self.res.columns:
-            if self.dataset.gene_names is not None:
-                label_column = self.dataset.gene_names
+            if self.gene_names is not None:
+                label_column = self.gene_names
             else:
-                label_column = self.dataset.index_column
+                label_column = self.index_column
 
             self.res["label"] = np.where(
                 self.res.color != "non_sig", self.res[label_column], ""
@@ -425,10 +437,10 @@ class VolcanoPlot(PlotUtils):
         add gene names as hover data if they are given
         """
 
-        if self.dataset.gene_names is not None:
-            label_column = self.dataset.gene_names
+        if self.gene_names is not None:
+            label_column = self.gene_names
         else:
-            label_column = self.dataset.index_column
+            label_column = self.index_column
 
         self.res["label"] = np.where(
             self.res.color != "non_sig", self.res[label_column], ""
@@ -527,6 +539,6 @@ class VolcanoPlot(PlotUtils):
         self.plot = self._update_figure_attributes(
             figure_object=self.plot,
             plotting_data=self.res,
-            preprocessing_info=self.dataset.preprocessing_info,
+            preprocessing_info=self.preprocessing_info,
             method=self.method,
         )
