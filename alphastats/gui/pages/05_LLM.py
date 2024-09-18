@@ -93,22 +93,23 @@ if "gpt_submitted_clicked" not in st.session_state:
 
 
 st.markdown("#### Configure LLM")
-st.session_state["api_type"] = st.selectbox(
-    "Select LLM",
-    ["gpt4o", "llama3.1 70b"],
-    index=0 if st.session_state["api_type"] == "gpt4o" else 1,
-)
 
-api_key = None
-if st.session_state["api_type"] == "gpt4o":
-    api_key = st.text_input("Enter OpenAI API Key", type="password")
-    set_api_key(api_key)
+c1, _ = st.columns((1, 2))
+with c1:
+    st.session_state["api_type"] = st.selectbox(
+        "Select LLM",
+        ["gpt4o", "llama3.1 70b"],
+        index=0 if st.session_state["api_type"] == "gpt4o" else 1,
+    )
 
+    if st.session_state["api_type"] == "gpt4o":
+        api_key = st.text_input("Enter OpenAI API Key", type="password")
+        set_api_key(api_key)
 
+st.markdown("#### Analysis")
 c1, c2 = st.columns((1, 2))
 
 with c1:
-    st.markdown("#### Analysis")
     method = select_analysis()
     chosen_parameter_dict = helper_compare_two_groups()
 
