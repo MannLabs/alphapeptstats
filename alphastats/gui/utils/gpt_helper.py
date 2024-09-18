@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-
+from alphastats.gui.utils.ui_helper import StateKeys
 
 Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
 
@@ -143,6 +143,10 @@ def get_assistant_functions(
     Returns:
         list[dict]: A list of assistant functions.
     """
+    # TODO figure out how this relates to the parameter `subgroups_for_each_group`
+    subgroups_for_each_group_ = str(
+        get_subgroups_for_each_group(st.session_state[StateKeys.DATASET].metadata)
+    )
     return [
         {
             "type": "function",
@@ -165,7 +169,8 @@ def get_assistant_functions(
                         "subgroups": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": f"Specific subgroups within the group to analyze. For each group you need to look up the subgroups in the dict {str(get_subgroups_for_each_group(st.session_state['dataset'].metadata))} or present user with them first if you are not sure what to choose",
+                            "description": f"Specific subgroups within the group to analyze. For each group you need to look up the subgroups in the dict"
+                            f" {subgroups_for_each_group_} or present user with them first if you are not sure what to choose",
                         },
                         "method": {
                             "type": "string",
@@ -302,7 +307,7 @@ def get_assistant_functions(
 
 def perform_dimensionality_reduction(group, method, circle, **kwargs):
     dr = DimensionalityReduction(
-        st.session_state.dataset, group, method, circle, **kwargs
+        st.session_state[StateKeys.DATASET], group, method, circle, **kwargs
     )
     return dr.plot
 
@@ -339,11 +344,11 @@ def get_gene_to_prot_id_mapping(gene_id: str) -> str:
     import streamlit as st
 
     session_state_copy = dict(copy.deepcopy(st.session_state))
-    if "gene_to_prot_id" not in session_state_copy:
-        session_state_copy["gene_to_prot_id"] = {}
-    if gene_id in session_state_copy["gene_to_prot_id"]:
-        return session_state_copy["gene_to_prot_id"][gene_id]
-    for gene, prot_id in session_state_copy["gene_to_prot_id"].items():
+    if StateKeys.GENE_TO_PROT_ID not in session_state_copy:
+        session_state_copy[StateKeys.GENE_TO_PROT_ID] = {}
+    if gene_id in session_state_copy[StateKeys.GENE_TO_PROT_ID]:
+        return session_state_copy[StateKeys.GENE_TO_PROT_ID][gene_id]
+    for gene, prot_id in session_state_copy[StateKeys.GENE_TO_PROT_ID].items():
         if gene_id in gene.split(";"):
             return prot_id
     return gene_id
