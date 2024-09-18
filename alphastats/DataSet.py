@@ -439,7 +439,7 @@ class DataSet(Plot):
         return clustermap.plot
 
     def plot_samplehistograms(self):
-        """Plots the Denisty distribution of each sample
+        """Plots the density distribution of each sample
 
         Returns:
             plotly: Plotly Graph Object
@@ -457,6 +457,7 @@ class DataSet(Plot):
         )
 
     def plot_correlation_matrix(self, method: str = "pearson"):  # TODO unused
+        """A wrapper for Plot.plot_correlation_matrix(), see documentation there."""
         return self._get_plot().plot_correlation_matrix(method)
 
     def plot_sampledistribution(
@@ -466,6 +467,7 @@ class DataSet(Plot):
         log_scale: bool = False,
         use_raw: bool = False,
     ):
+        """A wrapper for Plot.plot_sampledistribution(), see documentation there."""
         return self._get_plot().plot_sampledistribution(
             method, color, log_scale, use_raw
         )
@@ -473,6 +475,7 @@ class DataSet(Plot):
     def plot_dendrogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
+        """A wrapper for Plot.plot_dendrogram(), see documentation there."""
         return self._get_plot().plot_dendrogram(linkagefun)
 
     def _check_loader(self, loader):
