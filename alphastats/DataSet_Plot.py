@@ -1,25 +1,13 @@
-import sklearn
-import logging
 import plotly.express as px
 import plotly
 import scipy
-import sklearn.manifold
 
 import plotly.graph_objects as go
-import numpy as np
 import seaborn as sns
 import pandas as pd
-from scipy.spatial.distance import pdist, squareform
-import random
-import itertools
 import plotly.figure_factory
-from typing import Union
+from typing import Dict
 
-from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-from alphastats.plots.VolcanoPlot import VolcanoPlot
-from alphastats.plots.IntensityPlot import IntensityPlot
-from alphastats.plots.ClusterMap import ClusterMap
-from alphastats.plots.SampleHistogram import SampleHistogram
 from alphastats.utils import ignore_warning, check_for_missing_values
 
 
@@ -57,133 +45,25 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class Plot:
+    def __init__(
+        self,
+        mat: pd.DataFrame,
+        rawmat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        sample: str,
+        preprocessing_info: Dict,
+    ):
+        self.mat: pd.DataFrame = mat
+        self.rawmat: pd.DataFrame = rawmat
+        self.metadata: pd.DataFrame = metadata
+        self.sample: str = sample
+        self.preprocessing_info: Dict = preprocessing_info
+
     def _update_figure_attributes(self, figure_object, plotting_data, method=None):
         setattr(figure_object, "plotting_data", plotting_data)
         setattr(figure_object, "preprocessing", self.preprocessing_info)
         setattr(figure_object, "method", method)
         return figure_object
-
-    @check_for_missing_values
-    def plot_pca(self, group: str = None, circle: bool = False):
-        """Plot Principal Component Analysis (PCA)
-
-        Args:
-            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
-            circle (bool, optional): draw circle around each group. Defaults to False.
-
-        Returns:
-            plotly.graph_objects._figure.Figure: PCA plot
-        """
-        dimensionality_reduction = DimensionalityReduction(
-            dataset=self, group=group, method="pca", circle=circle
-        )
-        return dimensionality_reduction.plot
-
-    @check_for_missing_values
-    def plot_tsne(
-        self,
-        group: str = None,
-        circle: bool = False,
-        perplexity: int = 5,
-        n_iter: int = 1000,
-    ):
-        """Plot t-distributed stochastic neighbor embedding (t-SNE)
-
-        Args:
-            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
-            circle (bool, optional): draw circle around each group. Defaults to False.
-
-        Returns:
-            plotly.graph_objects._figure.Figure: t-SNE plot
-        """
-        dimensionality_reduction = DimensionalityReduction(
-            dataset=self,
-            group=group,
-            method="tsne",
-            circle=circle,
-            perplexity=perplexity,
-            n_iter=n_iter,
-        )
-        return dimensionality_reduction.plot
-
-    @check_for_missing_values
-    def plot_umap(self, group: str = None, circle: bool = False):
-        """Plot Uniform Manifold Approximation and Projection for Dimension Reduction
-
-        Args:
-            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
-            circle (bool, optional): draw circle around each group. Defaults to False.
-
-        Returns:
-            plotly.graph_objects._figure.Figure: UMAP plot
-        """
-        dimensionality_reduction = DimensionalityReduction(
-            dataset=self, group=group, method="umap", circle=circle
-        )
-        return dimensionality_reduction.plot
-
-    @ignore_warning(RuntimeWarning)
-    def plot_volcano(
-        self,
-        group1: Union[str, list],
-        group2: Union[str, list],
-        column: str = None,
-        method: str = "ttest",
-        labels: bool = False,
-        min_fc: float = 1.0,
-        alpha: float = 0.05,
-        draw_line: bool = True,
-        perm: int = 100,
-        fdr: float = 0.05,
-        # compare_preprocessing_modes: bool = False, # TODO reimplement
-        color_list: list = [],
-    ):
-        """Plot Volcano Plot
-
-        Args:
-            column (str): column name in the metadata file with the two groups to compare
-            group1 (str/list): name of group to compare needs to be present in column or list of sample names to compare
-            group2 (str/list): name of group to compare needs to be present in column  or list of sample names to compare
-            method (str): "anova", "wald", "ttest", "SAM" Defaul ttest.
-            labels (bool): Add text labels to significant Proteins, Default False.
-            alpha(float,optional): p-value cut off.
-            min_fc (float): Minimum fold change.
-            draw_line(boolean): whether to draw cut off lines.
-            perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
-            fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
-            color_list (list): list with ProteinIDs that should be highlighted.
-            compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
-
-
-        Returns:
-            plotly.graph_objects._figure.Figure: Volcano Plot
-        """
-
-        # TODO this needs to orchestrated from outside this method
-        # if compare_preprocessing_modes:
-        #     params_for_func = locals()
-        #     results = self._compare_preprocessing_modes(
-        #         func=VolcanoPlot, params_for_func=params_for_func
-        #     )
-        #     return results
-        #
-        # else:
-        volcano_plot = VolcanoPlot(
-            dataset=self,
-            group1=group1,
-            group2=group2,
-            column=column,
-            method=method,
-            labels=labels,
-            min_fc=min_fc,
-            alpha=alpha,
-            draw_line=draw_line,
-            perm=perm,
-            fdr=fdr,
-            color_list=color_list,
-        )
-
-        return volcano_plot.plot
 
     def plot_correlation_matrix(self, method: str = "pearson"):  # TODO unused
         """Plot Correlation Matrix
@@ -259,92 +139,11 @@ class Plot:
         )
         return fig
 
-    def plot_intensity(
-        self,
-        protein_id: str,
-        group: str = None,
-        subgroups: list = None,
-        method: str = "box",
-        add_significance: bool = False,
-        log_scale: bool = False,
-        # compare_preprocessing_modes: bool = False, TODO reimplement
-    ):
-        """Plot Intensity of individual Protein/ProteinGroup
-
-        Args:
-            protein_id (str): ProteinGroup ID
-            group (str, optional): A metadata column used for grouping. Defaults to None.
-            subgroups (list, optional): Select variables from the group column. Defaults to None.
-            method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter" or "all". Defaults to "box".
-            add_significance (bool, optional): add p-value bar, only possible when two groups are compared. Defaults False.
-            log_scale (bool, optional): yaxis in logarithmic scale. Defaults to False.
-
-        Returns:
-            plotly.graph_objects._figure.Figure: Plotly Plot
-        """
-        # TODO this needs to orchestrated from outside this method
-        # if compare_preprocessing_modes:
-        #     params_for_func = locals()
-        #     results = self._compare_preprocessing_modes(
-        #         func=IntensityPlot, params_for_func=params_for_func
-        #     )
-        #     return results
-
-        intensity_plot = IntensityPlot(
-            dataset=self,
-            protein_id=protein_id,
-            group=group,
-            subgroups=subgroups,
-            method=method,
-            add_significance=add_significance,
-            log_scale=log_scale,
-        )
-
-        return intensity_plot.plot
-
-    @ignore_warning(UserWarning)
-    @check_for_missing_values
-    def plot_clustermap(
-        self,
-        label_bar: str = None,
-        only_significant: bool = False,
-        group: str = None,
-        subgroups: list = None,
-    ):
-        """Plot a matrix dataset as a hierarchically-clustered heatmap
-
-        Args:
-            label_bar (str, optional): column/variable name described in the metadata. Will be plotted as bar above the heatmap to see wheteher groups are clustering together. Defaults to None.. Defaults to None.
-            only_significant (bool, optional): performs ANOVA and only signficantly different proteins will be clustered (p<0.05). Defaults to False.
-            group (str, optional): group containing subgroups that should be clustered. Defaults to None.
-            subgroups (list, optional): variables in group that should be plotted. Defaults to None.
-
-        Returns:
-             ClusterGrid: Clustermap
-        """
-
-        clustermap = ClusterMap(
-            dataset=self,
-            label_bar=label_bar,
-            only_significant=only_significant,
-            group=group,
-            subgroups=subgroups,
-        )
-        return clustermap.plot
-
-    def plot_samplehistograms(self):
-        """Plots the Denisty distribution of each sample
-
-        Returns:
-            plotly: Plotly Graph Object
-        """
-        return SampleHistogram(dataset=self).plot()
-
     @check_for_missing_values
     def plot_dendrogram(
         self, linkagefun=lambda x: scipy.cluster.hierarchy.linkage(x, "complete")
     ):
-        """Plot Hierarichical Clustering Dendrogram. This is a wrapper around:
+        """Plot Hierarchical Clustering Dendrogram. This is a wrapper around:
         https://plotly.com/python-api-reference/generated/plotly.figure_factory.create_dendrogram.html
 
         Args:
