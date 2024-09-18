@@ -17,6 +17,9 @@ from alphastats.gui.utils.uniprot_utils import get_gene_function
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 
 
+logger = logging.getLogger(__name__)
+
+
 class LLMIntegration:
     """
     A class to integrate different Language Model APIs and handle chat interactions.
@@ -255,7 +258,7 @@ class LLMIntegration:
             )
         post_artefact_message_idx = len(self.messages)
         self.artifacts[post_artefact_message_idx] = new_artifacts.values()
-        logging.info(
+        logger.info(
             f"Calling 'chat.completions.create' {self.model=} {self.messages=} {self.tools=} .."
         )
         response = self.client.chat.completions.create(
@@ -263,7 +266,7 @@ class LLMIntegration:
             messages=self.messages,
             tools=self.tools,
         )
-        logging.info(f".. done")
+        logger.info(f".. done")
 
         parsed_response = self.parse_model_response(response)
         parsed_response["new_artifacts"] = new_artifacts
@@ -297,7 +300,7 @@ class LLMIntegration:
         self.truncate_conversation_history()
 
         try:
-            logging.info(
+            logger.info(
                 f"Calling 'chat.completions.create' {self.model=} {self.messages=} {self.tools=} .."
             )
             response = self.client.chat.completions.create(
@@ -305,7 +308,7 @@ class LLMIntegration:
                 messages=self.messages,
                 tools=self.tools,
             )
-            logging.info(f".. done")
+            logger.info(f".. done")
 
             parsed_response = self.parse_model_response(response)
             new_artifacts = {}
