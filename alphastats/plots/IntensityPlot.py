@@ -208,8 +208,8 @@ class IntensityPlot(PlotUtils):
             fig = self._add_significance(fig)
 
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig,
+        self._update_figure_attributes(
+            fig,
             plotting_data=self.prepared_df,
             preprocessing_info=self.preprocessing_info,
             method=self.method,

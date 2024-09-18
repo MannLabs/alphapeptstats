@@ -536,8 +536,8 @@ class VolcanoPlot(PlotUtils):
 
         #  save plotting data in figure object
         self.plot = plotly_object(self.plot)
-        self.plot = self._update_figure_attributes(
-            figure_object=self.plot,
+        self._update_figure_attributes(
+            self.plot,
             plotting_data=self.res,
             preprocessing_info=self.preprocessing_info,
             method=self.method,

@@ -3,7 +3,7 @@ from typing import Dict
 import pandas as pd
 
 from alphastats.DataSet_Statistics import Statistics
-from alphastats.plots.PlotUtils import PlotUtils, seaborn_object
+from alphastats.plots.PlotUtils import PlotUtils
 
 import seaborn as sns
 import random
@@ -76,10 +76,12 @@ class ClusterMap(PlotUtils):
         if self.label_bar is not None:
             fig = self._add_label_bar(fig)
 
-        # set attributes
-        setattr(fig, "plotting_data", self.prepared_df)
-        setattr(fig, "preprocessing", self.preprocessing_info)
-        setattr(fig, "method", "clustermap")
+        self._update_figure_attributes(
+            fig,
+            plotting_data=self.prepared_df,
+            preprocessing_info=self.preprocessing_info,
+            method="clustermap",
+        )
 
         self.plot = fig
 

@@ -8,7 +8,8 @@ import pandas as pd
 import plotly.figure_factory
 from typing import Dict
 
-from alphastats.utils import ignore_warning, check_for_missing_values
+from alphastats.utils import check_for_missing_values
+from alphastats.plots.PlotUtils import PlotUtils
 
 
 class plotly_object(plotly.graph_objs._figure.Figure):
@@ -44,7 +45,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class Plot:
+class Plot(PlotUtils):
     def __init__(
         self,
         mat: pd.DataFrame,
@@ -58,12 +59,6 @@ class Plot:
         self.metadata: pd.DataFrame = metadata
         self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
-
-    def _update_figure_attributes(self, figure_object, plotting_data, method=None):
-        setattr(figure_object, "plotting_data", plotting_data)
-        setattr(figure_object, "preprocessing", self.preprocessing_info)
-        setattr(figure_object, "method", method)
-        return figure_object
 
     def plot_correlation_matrix(self, method: str = "pearson"):  # TODO unused
         """Plot Correlation Matrix
@@ -134,8 +129,11 @@ class Plot:
             fig.update_layout(yaxis=dict(type="log"))
 
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=df, method=method
+        self._update_figure_attributes(
+            fig,
+            plotting_data=df,
+            preprocessing_info=self.preprocessing_info,
+            method=method,
         )
         return fig
 
@@ -163,8 +161,11 @@ class Plot:
         )
 
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig, plotting_data=self.mat, method="dendrogram"
+        self._update_figure_attributes(
+            fig,
+            plotting_data=self.mat,
+            preprocessing_info=self.preprocessing_info,
+            method="dendrogram",
         )
         return fig
 

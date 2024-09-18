@@ -167,8 +167,8 @@ class DimensionalityReduction(PlotUtils):
 
         #  save plotting data in figure object
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig,
+        self._update_figure_attributes(
+            fig,
             plotting_data=pd.DataFrame(components),
             method=self.method,
             preprocessing_info=self.preprocessing_info,
