@@ -9,10 +9,9 @@ import streamlit as st
 from alphastats.gui.utils.uniprot_utils import get_uniprot_data, extract_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
-from alphastats.gui.utils.ui_helper import StateKeys
 
-if StateKeys.GENE_TO_PROT_ID not in st.session_state:
-    st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
+if "gene_to_prot_id" not in st.session_state:
+    st.session_state["gene_to_prot_id"] = {}
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +30,7 @@ class TestGPT(unittest.TestCase):
         self.matrix_dim = (312, 2596)
         self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
-        st.session_state[StateKeys.METADATA_COLUMNS] = [self.comparison_column]
+        st.session_state.metadata_columns = [self.comparison_column]
 
 
 class TestGetUniProtData(unittest.TestCase):

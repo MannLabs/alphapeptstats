@@ -208,7 +208,9 @@ class TestSpectronautLoader(BaseTestLoader.BaseTest):
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
 
-        cls.obj = SpectronautLoader(file="testfiles/spectronaut/results.tsv")
+        cls.obj = SpectronautLoader(
+            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
+        )
         cls.df_dim = (2458, 11)
 
     def test_reading_non_european_comma(self):
@@ -217,15 +219,30 @@ class TestSpectronautLoader(BaseTestLoader.BaseTest):
         """
         s = SpectronautLoader(
             file="testfiles/spectronaut/results_non_european_comma.tsv",
+            filter_qvalue=False,
         )
         mean = s.rawinput[
-            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03.PG.Quantity"
+            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03_PG.Quantity"
         ].mean()
+
+    def test_qvalue_filtering(self):
+        obj = SpectronautLoader(
+            file="testfiles/spectronaut/results.tsv",
+            filter_qvalue=True,
+            qvalue_cutoff=0.00000001,
+        )
+        self.assertEqual(obj.rawinput.shape, (2071, 10))
+
+    def test_qvalue_filtering_warning(self):
+        with self.assertRaises(Warning):
+            df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
+            df.drop(columns=["EG.Qvalue"], axis=1, inplace=True)
+            SpectronautLoader(file=df)
 
     def test_gene_name_column(self):
         df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
         df["PG.Genes"] = 0
-        s = SpectronautLoader(file=df)
+        s = SpectronautLoader(file=df, filter_qvalue=False)
 
     @classmethod
     def tearDownClass(cls):

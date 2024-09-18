@@ -290,13 +290,14 @@ def helper_compare_two_groups():
     """
 
     chosen_parameter_dict = {}
+    default_option = "<select>"
     group = st.selectbox(
         "Grouping variable",
-        options=["< None >"]
+        options=[default_option]
         + st.session_state[StateKeys.DATASET].metadata.columns.to_list(),
     )
 
-    if group != "< None >":
+    if group != default_option:
         unique_values = get_unique_values_from_column(column=group)
 
         group1 = st.selectbox("Group 1", options=unique_values)

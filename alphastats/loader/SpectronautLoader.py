@@ -1,11 +1,8 @@
+import copy
 from alphastats.loader.BaseLoader import BaseLoader
-from typing import Union
 import pandas as pd
 import numpy as np
-import re
-import warnings
-
-SPECTRONAUT_COLUMN_DELIM = "."
+import logging
 
 
 class SpectronautLoader(BaseLoader):
@@ -18,6 +15,8 @@ class SpectronautLoader(BaseLoader):
         index_column="PG.ProteinGroups",
         sample_column="R.FileName",
         gene_names_column="PG.Genes",
+        filter_qvalue=True,
+        qvalue_cutoff=0.01,
         sep="\t",
     ):
         """Loads Spectronaut output. Will add contamination column for further analysis.
@@ -39,112 +38,74 @@ class SpectronautLoader(BaseLoader):
         self.confidence_column = None
         self.filter_columns = []
         self.evidence_df = None
+        self.gene_names = gene_names_column
 
-        column_selection_regex = (
-            "^"
-            + "$|^".join(
-                [
-                    ".*" + intensity_column,
-                    index_column,
-                    sample_column,
-                    gene_names_column,
-                ]
+        self._read_spectronaut_file(file=file, sep=sep)
+
+        is_long = self._check_if_long(self.rawinput)
+
+        if filter_qvalue and is_long:
+            self._filter_qvalue(qvalue_cutoff=qvalue_cutoff)
+
+        if is_long:
+            self._reshape_spectronaut(
+                sample_column=sample_column, gene_names_column=gene_names_column
             )
-            + "$"
-        )
-
-        self.rawinput = self._read_spectronaut_file(
-            file=file, sep=sep, column_selection_regex=column_selection_regex
-        )
-
-        if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names = gene_names_column
-        else:
-            self.gene_names = None
-        if sample_column in self.rawinput.columns.to_list():
-            self.sample_column = sample_column
-        else:
-            self.sample_column = None
-            warnings.warn(
-                f"No sample column was found so the data will be treated as wide format. If this is wrong make sure {sample_column} is present in the file."
-            )
-
-        self.rawinput = self._deduplicate_data(long=bool(self.sample_column))
-
-        if self.sample_column is not None:
-            self.rawinput = self._reshape_long_to_wide()
-
-        self.intensity_column = (
-            "[sample]" + SPECTRONAUT_COLUMN_DELIM + self.intensity_column
-        )
 
         self._add_contamination_column()
-        self._read_all_column_names_as_string()
+        self._read_all_columns_as_string()
 
-    def _reshape_long_to_wide(self):
+    def _reshape_spectronaut(self, sample_column, gene_names_column):
         """
         other proteomics softwares use a wide format (column for each sample)
         reshape to a wider format
         """
         self.rawinput["sample"] = (
-            self.rawinput[self.sample_column]
-            + SPECTRONAUT_COLUMN_DELIM
-            + self.intensity_column
+            self.rawinput[sample_column] + "_" + self.intensity_column
         )
         indexing_columns = [self.index_column]
-        if self.gene_names is not None:
+        if gene_names_column in self.rawinput.columns.to_list():
+            self.gene_names = gene_names_column
             indexing_columns.append(self.gene_names)
 
-        df = self.rawinput.pivot(
+        keep_columns = [self.intensity_column, "sample"] + indexing_columns
+        df = self.rawinput[keep_columns].drop_duplicates()
+        df = df.pivot(
             columns="sample", index=indexing_columns, values=self.intensity_column
         )
         df.reset_index(inplace=True)
 
-        return df
+        self.rawinput = df
 
-    def _deduplicate_data(self, long: bool):
-        """Deduplicates the data based on the index column and the intensity column.
+        self.intensity_column = "[sample]_" + self.intensity_column
 
-        If long format is used, the sample column is also used for indexing. Deduplicaiton is necessary because additional columns for lower level qunatification, i.e. peptides, can be present in the data, leading to duplication of the protein group data.
+    def _check_if_long(self, df):
+        for colname in df.columns.to_list():
+            if colname.startswith("PG.Quantity"):
+                return True
+            elif "PG.Quantity" in colname:
+                return False
 
-        Args:
-            long (bool): if the data is in long format
+    def _filter_qvalue(self, qvalue_cutoff):
+        print(self.rawinput.columns.to_list())
+        if "EG.Qvalue" not in self.rawinput.columns.to_list():
+            raise Warning(
+                "Column EG.Qvalue not found in file. File will not be filtered according to q-value."
+            )
 
-        Returns:
-            pd.DataFrame: deduplicated data
-        """
-        subset = [self.index_column] + [
-            col for col in self.rawinput.columns if self.intensity_column in col
-        ]
-        if long:
-            subset.append(self.sample_column)
-        unique_df = self.rawinput.drop_duplicates(subset=subset)
-        return unique_df
+        rows_before_filtering = self.rawinput.shape[0]
+        self.rawinput = self.rawinput[self.rawinput["EG.Qvalue"] < qvalue_cutoff]
+        rows_after_filtering = self.rawinput.shape[0]
 
-    def _read_spectronaut_file(
-        self, file: Union[str, pd.DataFrame], sep: str, column_selection_regex: str
-    ):
-        """
-        Reads the Spectronaut file and converts numeric columns to float.
+        rows_removed = rows_before_filtering - rows_after_filtering
+        logging.info(
+            f"{rows_removed} identification with a qvalue below {qvalue_cutoff} have been removed"
+        )
 
-        Some spectronaut files include european decimal separators.
-
-        Args:
-            file (Union[str, pd.DataFrame]): path to the file or pandas.DataFrame
-            sep (str): separator of the file
-            column_selection_regex (str): regex pattern for columns to read
-
-        Returns:
-            df (pd.DataFrame): Spectronaut data
-        """
+    def _read_spectronaut_file(self, file, sep):
+        # some spectronaut files include european decimal separators
         if isinstance(file, pd.DataFrame):
-            df = file[
-                [
-                    col
-                    for col in file.columns
-                    if bool(re.match(column_selection_regex, col))
-                ]
-            ]
+            df = file
             for column in df.columns:
                 try:
                     if df[column].dtype == np.float64:
@@ -154,12 +115,7 @@ class SpectronautLoader(BaseLoader):
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)
         else:
-            df = pd.read_csv(
-                file,
-                sep=sep,
-                low_memory=False,
-                usecols=lambda col: bool(re.match(column_selection_regex, col)),
-            )
+            df = pd.read_csv(file, sep=sep, low_memory=False)
             for column in df.columns:
                 try:
                     if df[column].dtype == np.float64:
@@ -169,4 +125,19 @@ class SpectronautLoader(BaseLoader):
                 except (ValueError, AttributeError) as e:
                     print("failed", column, df[column].dtype)
 
-        return df
+        self.rawinput = df
+
+
+# filter_with_Qvalue
+# TRUE(default) will filter out the intensities that have greater than qvalue_cutoff in EG.Qvalue column. Those intensities will be replaced with zero and will be considered as censored missing values for imputation purpose.
+
+# qvalue_cutoff
+# Cutoff for EG.Qvalue. default is 0.01.
+
+#  Protein Level
+#  PG.Quantity
+# PG.ProteinGroups
+
+# Peptide Level
+# F.PeakArea
+# PEP.StrippedSequence

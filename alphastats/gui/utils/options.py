@@ -5,26 +5,24 @@ from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.SpectronautLoader import SpectronautLoader
 from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
-from alphastats.gui.utils.ui_helper import StateKeys
 
 
 def plotting_options(state):
-    dataset = state[StateKeys.DATASET]
     plotting_options = {
         "Sampledistribution Plot": {
             "settings": {
                 "method": {"options": ["violin", "box"], "label": "Plot layout"},
                 "color": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": [None] + state.metadata_columns,
                     "label": "Color according to",
                 },
             },
-            "function": dataset.plot_sampledistribution,
+            "function": state.dataset.plot_sampledistribution,
         },
         "Intensity Plot": {
             "settings": {
                 "protein_id": {
-                    "options": dataset.mat.columns.to_list(),
+                    "options": state.dataset.mat.columns.to_list(),
                     "label": "ProteinID/ProteinGroup",
                 },
                 "method": {
@@ -32,106 +30,105 @@ def plotting_options(state):
                     "label": "Plot layout",
                 },
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": [None] + state.metadata_columns,
                     "label": "Color according to",
                 },
             },
-            "function": dataset.plot_intensity,
+            "function": state.dataset.plot_intensity,
         },
         "PCA Plot": {
             "settings": {
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": [None] + state.metadata_columns,
                     "label": "Color according to",
                 },
                 "circle": {"label": "Circle"},
             },
-            "function": dataset.plot_pca,
+            "function": state.dataset.plot_pca,
         },
         "UMAP Plot": {
             "settings": {
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": [None] + state.metadata_columns,
                     "label": "Color according to",
                 },
                 "circle": {"label": "Circle"},
             },
-            "function": dataset.plot_umap,
+            "function": state.dataset.plot_umap,
         },
         "t-SNE Plot": {
             "settings": {
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": [None] + state.metadata_columns,
                     "label": "Color according to",
                 },
                 "circle": {"label": "Circle"},
             },
-            "function": dataset.plot_tsne,
+            "function": state.dataset.plot_tsne,
         },
         "Volcano Plot": {
             "between_two_groups": True,
-            "function": dataset.plot_volcano,
+            "function": state.dataset.plot_volcano,
         },
-        "Clustermap": {"function": dataset.plot_clustermap},
-        # "Dendrogram": {"function": state[StateKeys.DATASET].plot_dendrogram},  # TODO why commented?
+        "Clustermap": {"function": state.dataset.plot_clustermap},
+        # "Dendrogram": {"function": state.dataset.plot_dendrogram},  # TODO why commented?
     }
     return plotting_options
 
 
 def statistic_options(state):
-    dataset = state[StateKeys.DATASET]
     statistic_options = {
         "Differential Expression Analysis - T-test": {
             "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
+            "function": state.dataset.diff_expression_analysis,
         },
         "Differential Expression Analysis - Wald-test": {
             "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
+            "function": state.dataset.diff_expression_analysis,
         },
         "Tukey - Test": {
             "settings": {
                 "protein_id": {
-                    "options": dataset.mat.columns.to_list(),
+                    "options": state.dataset.mat.columns.to_list(),
                     "label": "ProteinID/ProteinGroup",
                 },
                 "group": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": state.metadata_columns,
                     "label": "A metadata variable to calculate pairwise tukey",
                 },
             },
-            "function": dataset.tukey_test,
+            "function": state.dataset.tukey_test,
         },
         "ANOVA": {
             "settings": {
                 "column": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": state.metadata_columns,
                     "label": "A variable from the metadata to calculate ANOVA",
                 },
                 "protein_ids": {
-                    "options": ["all"] + dataset.mat.columns.to_list(),
+                    "options": ["all"] + state.dataset.mat.columns.to_list(),
                     "label": "All ProteinIDs/or specific ProteinID to perform ANOVA",
                 },
                 "tukey": {"label": "Follow-up Tukey"},
             },
-            "function": dataset.anova,
+            "function": state.dataset.anova,
         },
         "ANCOVA": {
             "settings": {
                 "protein_id": {
-                    "options": [None] + dataset.mat.columns.to_list(),
+                    "options": [None] + state.dataset.mat.columns.to_list(),
                     "label": "Color according to",
                 },
                 "covar": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": state.metadata_columns,
                     "label": "Name(s) of column(s) in metadata with the covariate.",
                 },
                 "between": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": state.metadata_columns,
                     "label": "Name of the column in the metadata with the between factor.",
                 },
             },
-            "function": dataset.ancova,
+            "function": state.dataset.ancova,
         },
     }
     return statistic_options
@@ -188,20 +185,18 @@ SOFTWARE_OPTIONS = {
 }
 
 
-# TODO unused
 def interpretation_options(state):
-    dataset = state[StateKeys.DATASET]
     return {
         "Volcano Plot": {
             "between_two_groups": True,
-            "function": dataset.plot_volcano,
+            "function": state.dataset.plot_volcano,
         },
         "Differential Expression Analysis - T-test": {
             "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
+            "function": state.dataset.diff_expression_analysis,
         },
         "Differential Expression Analysis - Wald-test": {
             "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
+            "function": state.dataset.diff_expression_analysis,
         },
     }

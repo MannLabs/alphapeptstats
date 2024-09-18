@@ -1,3 +1,5 @@
+import logging
+
 from openai import OpenAI
 from typing import List, Dict, Any, Optional, Tuple
 import json
@@ -14,6 +16,9 @@ from alphastats.gui.utils.gpt_helper import (
 from alphastats.gui.utils.uniprot_utils import get_gene_function
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 from alphastats.gui.utils.ui_helper import StateKeys
+
+
+logger = logging.getLogger(__name__)
 
 
 class LLMIntegration:
@@ -66,9 +71,8 @@ class LLMIntegration:
     ):
         self.api_type = api_type
         if api_type == "ollama":
-            self.client = OpenAI(
-                base_url=base_url or "http://localhost:11434/v1", api_key="ollama"
-            )
+            url = f"{base_url or 'http://localhost:11434'}/v1"
+            self.client = OpenAI(base_url=url, api_key="ollama")
             self.model = "llama3.1:70b"
         else:
             self.client = OpenAI(api_key=api_key)
@@ -82,23 +86,6 @@ class LLMIntegration:
         self.artifacts = {}
         # self.artifact_manager = ArtifactManager()
         self.message_artifact_map = {}
-
-    def set_api_key(self, api_key: str):
-        """
-        Set the API key for GPT API.
-
-        Parameters
-        ----------
-        api_key : str
-            The API key to be set
-
-        Returns
-        -------
-        None
-        """
-        if self.api_type == "gpt":
-            self.client.api_key = api_key
-            st.secrets["openai_api_key"] = api_key
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -255,11 +242,16 @@ class LLMIntegration:
             )
         post_artefact_message_idx = len(self.messages)
         self.artifacts[post_artefact_message_idx] = new_artifacts.values()
+        logger.info(
+            f"Calling 'chat.completions.create' {self.model=} {self.messages=} {self.tools=} .."
+        )
         response = self.client.chat.completions.create(
             model=self.model,
             messages=self.messages,
             tools=self.tools,
         )
+        logger.info(f".. done")
+
         parsed_response = self.parse_model_response(response)
         parsed_response["new_artifacts"] = new_artifacts
 
@@ -292,11 +284,15 @@ class LLMIntegration:
         self.truncate_conversation_history()
 
         try:
+            logger.info(
+                f"Calling 'chat.completions.create' {self.model=} {self.messages=} {self.tools=} .."
+            )
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=self.messages,
                 tools=self.tools,
             )
+            logger.info(f".. done")
 
             parsed_response = self.parse_model_response(response)
             new_artifacts = {}

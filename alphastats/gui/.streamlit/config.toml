@@ -24,3 +24,6 @@ enableCORS = false
 
 [browser]
 gatherUsageStats = true
+
+[logger]
+level = "debug"  # TODO this seems to have no effect?

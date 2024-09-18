@@ -17,7 +17,7 @@ from alphastats.gui.utils.gpt_helper import (
     get_general_assistant_functions,
 )
 from alphastats.gui.utils.openai_utils import (
-    try_to_set_api_key,
+    set_api_key,
 )
 from alphastats.gui.utils.ollama_utils import LLMIntegration
 from alphastats.gui.utils.options import interpretation_options
@@ -50,6 +50,7 @@ if StateKeys.DATASET not in st.session_state:
 st.markdown("### LLM Analysis")
 
 sidebar_info()
+init_session_state()
 
 
 # set background to white so downloaded pngs dont have grey background
@@ -90,22 +91,27 @@ if StateKeys.GPT_SUBMITTED_CLICKED not in st.session_state:
     st.session_state[StateKeys.GPT_SUBMITTED_CLICKED] = 0
     st.session_state[StateKeys.GPT_SUBMITTED_COUNTER] = 0
 
-c1, c2 = st.columns((1, 2))
 
+st.markdown("#### Configure LLM")
 
+c1, _ = st.columns((1, 2))
 with c1:
-    method = select_analysis()
-    chosen_parameter_dict = helper_compare_two_groups()
-
     st.session_state[StateKeys.API_TYPE] = st.selectbox(
         "Select LLM",
         ["gpt4o", "llama3.1 70b"],
         index=0 if st.session_state[StateKeys.API_TYPE] == "gpt4o" else 1,
     )
-    base_url = "http://localhost:11434/v1"
+
     if st.session_state[StateKeys.API_TYPE] == "gpt4o":
         api_key = st.text_input("Enter OpenAI API Key", type="password")
-        try_to_set_api_key(api_key)
+        set_api_key(api_key)
+
+st.markdown("#### Analysis")
+c1, c2 = st.columns((1, 2))
+
+with c1:
+    method = select_analysis()
+    chosen_parameter_dict = helper_compare_two_groups()
 
     method = st.selectbox(
         "Differential Analysis using:",
@@ -265,7 +271,7 @@ if StateKeys.USER_PROMPT in st.session_state:
             "", value=st.session_state[StateKeys.USER_PROMPT], height=200
         )
 
-gpt_submitted = st.button("Run GPT analysis")
+gpt_submitted = st.button("Run LLM analysis")
 
 if gpt_submitted and StateKeys.USER_PROMPT not in st.session_state:
     st.warning("Please enter a user prompt first")
@@ -280,20 +286,20 @@ if (
     > st.session_state[StateKeys.GPT_SUBMITTED_COUNTER]
 ):
     if st.session_state[StateKeys.API_TYPE] == "gpt4o":
-        try_to_set_api_key()
+        set_api_key()
 
     try:
         if st.session_state[StateKeys.API_TYPE] == "gpt4o":
             st.session_state[StateKeys.LLM_INTEGRATION] = LLMIntegration(
                 api_type="gpt",
-                api_key=st.secrets["openai_api_key"],
+                api_key=st.session_state[StateKeys.OPENAI_API_KEY],
                 dataset=st.session_state[StateKeys.DATASET],
                 metadata=st.session_state[StateKeys.DATASET].metadata,
             )
         else:
             st.session_state[StateKeys.LLM_INTEGRATION] = LLMIntegration(
                 api_type="ollama",
-                base_url=base_url,
+                base_url=os.getenv("OLLAMA_BASE_URL", None),
                 dataset=st.session_state[StateKeys.DATASET],
                 metadata=st.session_state[StateKeys.DATASET].metadata,
             )

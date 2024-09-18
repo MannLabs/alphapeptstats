@@ -4,7 +4,6 @@ import requests
 
 import streamlit as st
 
-from alphastats.gui.utils.ui_helper import StateKeys
 
 uniprot_fields = [
     # Names & Taxonomy
@@ -318,8 +317,8 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
     Returns:
         str: The gene function and description.
     """
-    if StateKeys.ORGANISM in st.session_state:
-        organism_id = st.session_state[StateKeys.ORGANISM]
+    if "organism" in st.session_state:
+        organism_id = st.session_state["organism"]
     if isinstance(gene_name, dict):
         gene_name = gene_name["gene_name"]
     result = get_uniprot_data(gene_name, organism_id)

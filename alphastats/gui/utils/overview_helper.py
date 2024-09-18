@@ -2,29 +2,29 @@ import streamlit as st
 import pandas as pd
 
 from alphastats import DataSet
-from alphastats.gui.utils.ui_helper import convert_df, StateKeys
+from alphastats.gui.utils.ui_helper import convert_df
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
 def get_sample_histogram_matrix():
-    return st.session_state[StateKeys.DATASET].plot_samplehistograms()
+    return st.session_state.dataset.plot_samplehistograms()
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
 def get_intensity_distribution_unprocessed():
-    return st.session_state[StateKeys.DATASET].plot_sampledistribution(use_raw=True)
+    return st.session_state.dataset.plot_sampledistribution(use_raw=True)
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
 def get_intensity_distribution_processed():
-    return st.session_state[StateKeys.DATASET].plot_sampledistribution()
+    return st.session_state.dataset.plot_sampledistribution()
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
 def get_display_matrix():
     processed_df = pd.DataFrame(
-        st.session_state[StateKeys.DATASET].mat.values,
-        index=st.session_state[StateKeys.DATASET].mat.index.to_list(),
+        st.session_state.dataset.mat.values,
+        index=st.session_state.dataset.mat.index.to_list(),
     ).head(10)
 
     return processed_df
@@ -33,20 +33,18 @@ def get_display_matrix():
 def display_matrix():
     text = (
         "Normalization: "
-        + str(st.session_state[StateKeys.DATASET].preprocessing_info["Normalization"])
+        + str(st.session_state.dataset.preprocessing_info["Normalization"])
         + ", Imputation: "
-        + str(st.session_state[StateKeys.DATASET].preprocessing_info["Imputation"])
+        + str(st.session_state.dataset.preprocessing_info["Imputation"])
         + ", Log2-transformed: "
-        + str(
-            st.session_state[StateKeys.DATASET].preprocessing_info["Log2-transformed"]
-        )
+        + str(st.session_state.dataset.preprocessing_info["Log2-transformed"])
     )
 
     st.markdown("**DataFrame used for analysis** *preview*")
     st.markdown(text)
 
     df = get_display_matrix()
-    csv = convert_df(st.session_state[StateKeys.DATASET].mat)
+    csv = convert_df(st.session_state.dataset.mat)
 
     st.dataframe(df)
 
