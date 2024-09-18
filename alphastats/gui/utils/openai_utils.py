@@ -8,6 +8,8 @@ import json
 import openai
 import streamlit as st
 
+from alphastats.gui.utils.ui_helper import StateKeys
+
 try:
     from alphastats.gui.utils.gpt_helper import (
         turn_args_to_float,
@@ -49,16 +51,17 @@ def wait_for_run_completion(
             thread_id=thread_id, run_id=run_id
         )
         print(run_status.status, run_id, run_status.required_action)
+        # TODO check if this still works after introducing StateKeys.DATASET
         assistant_functions = {
             "create_intensity_plot",
             "perform_dimensionality_reduction",
             "create_sample_histogram",
-            "st.session_state.dataset.plot_volcano",
-            "st.session_state.dataset.plot_sampledistribution",
-            "st.session_state.dataset.plot_intensity",
-            "st.session_state.dataset.plot_pca",
-            "st.session_state.dataset.plot_umap",
-            "st.session_state.dataset.plot_tsne",
+            "st.session_state[StateKeys.DATASET].plot_volcano",
+            "st.session_state[StateKeys.DATASET].plot_sampledistribution",
+            "st.session_state[StateKeys.DATASET].plot_intensity",
+            "st.session_state[StateKeys.DATASET].plot_pca",
+            "st.session_state[StateKeys.DATASET].plot_umap",
+            "st.session_state[StateKeys.DATASET].plot_tsne",
             "get_enrichment_data",
         }
         if run_status.status == "completed":
@@ -71,8 +74,8 @@ def wait_for_run_completion(
             print("requires_action", run_status)
             print(
                 [
-                    st.session_state.plotting_options[i]["function"].__name__
-                    for i in st.session_state.plotting_options
+                    st.session_state[StateKeys.PLOTTING_OPTIONS][i]["function"].__name__
+                    for i in st.session_state[StateKeys.PLOTTING_OPTIONS]
                 ]
             )
             tool_calls = run_status.required_action.submit_tool_outputs.tool_calls
@@ -94,8 +97,10 @@ def wait_for_run_completion(
                 elif (
                     tool_call.function.name
                     in [
-                        st.session_state.plotting_options[i]["function"].__name__
-                        for i in st.session_state.plotting_options
+                        st.session_state[StateKeys.PLOTTING_OPTIONS][i][
+                            "function"
+                        ].__name__
+                        for i in st.session_state[StateKeys.PLOTTING_OPTIONS]
                     ]
                     or tool_call.function.name in assistant_functions
                 ):
@@ -175,16 +180,16 @@ def set_api_key(api_key: str = None) -> None:
         api_key (str, optional): The OpenAI API key. Defaults to None.
     """
     if api_key:
-        st.session_state["openai_api_key"] = api_key
+        st.session_state[StateKeys.OPENAI_API_KEY] = api_key
         # TODO we should not write secrets to disk without user consent
         # secret_path = Path("./.streamlit/secrets.toml")
         # secret_path.parent.mkdir(parents=True, exist_ok=True)
         # with open(secret_path, "w") as f:
         #     f.write(f'openai_api_key = "{api_key}"')
-        # openai.OpenAI.api_key = st.session_state["openai_api_key"]
+        # openai.OpenAI.api_key = st.session_state[StateKeys.OPENAI_API_KEY"]
         # return
-    elif "openai_api_key" in st.session_state:
-        api_key = st.session_state["openai_api_key"]
+    elif StateKeys.OPENAI_API_KEY in st.session_state:
+        api_key = st.session_state[StateKeys.OPENAI_API_KEY]
     else:
         try:
             api_key = st.secrets["openai_api_key"]

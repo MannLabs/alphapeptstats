@@ -15,6 +15,7 @@ from alphastats.gui.utils.gpt_helper import (
 # from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
+from alphastats.gui.utils.ui_helper import StateKeys
 
 
 logger = logging.getLogger(__name__)
@@ -86,23 +87,6 @@ class LLMIntegration:
         # self.artifact_manager = ArtifactManager()
         self.message_artifact_map = {}
 
-    def set_api_key(self, api_key: str):
-        """
-        Set the API key for GPT API.
-
-        Parameters
-        ----------
-        api_key : str
-            The API key to be set
-
-        Returns
-        -------
-        None
-        """
-        if self.api_type == "gpt":
-            self.client.api_key = api_key
-            st.secrets["openai_api_key"] = api_key
-
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
         Get the list of available tools or functions.
@@ -141,8 +125,8 @@ class LLMIntegration:
         -------
         None
         """
-        st.session_state["messages"] = self.messages
-        st.session_state["artifacts"] = self.artifacts
+        st.session_state[StateKeys.MESSAGES] = self.messages
+        st.session_state[StateKeys.ARTIFACTS] = self.artifacts
 
     def parse_model_response(self, response: Any) -> Dict[str, Any]:
         """
