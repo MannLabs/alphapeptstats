@@ -20,6 +20,7 @@ from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.IntensityPlot import IntensityPlot
 from alphastats.plots.SampleHistogram import SampleHistogram
 from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.dataset_factory import DataSetFactory
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
@@ -48,14 +49,14 @@ class DataSet:
     def __init__(
         self,
         loader: BaseLoader,
-        metadata_path: Optional[str] = None,
+        metadata_path: Optional[Union[str, pd.DataFrame]] = None,
         sample_column: Optional[str] = None,
     ):
         """Create DataSet
 
         Args:
             loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader
-            metadata_path (str, optional): path to metadata file. Defaults to None.
+            metadata_path (str or pd.DataFrame, optional): path to metadata file or an actual df. Defaults to None.
             sample_column (str, optional): column in metadata file indicating the sample IDs. Defaults to None.
 
         Attributes of a DataSet instance:
@@ -72,45 +73,74 @@ class DataSet:
         self.index_column: str = loader.index_column
         self.software: str = loader.software
         self._gene_names: str = loader.gene_names
-        # TODO this is used when creating the matrix, but then overwritten for Generic loaders later?
-        self._intensity_column: Union[str, list] = loader.intensity_column
+
+        self._intensity_column: Union[str, list] = (
+            loader._extract_sample_names(
+                metadata=self.metadata, sample_column=self.sample
+            )
+            if loader == "Generic"
+            else loader.intensity_column
+        )
 
         # self.evidence_df: pd.DataFrame = loader.evidence_df  # TODO unused
 
-        # create matrix
-        self.rawmat: pd.DataFrame
-        self.mat: pd.DataFrame
-        self.rawmat, self.mat = self._create_matrix_from_rawinput()
-        self._check_matrix_values(self.mat)
+        self.dataset_factory = DataSetFactory(
+            rawinput=self.rawinput,
+            index_column=self.index_column,
+            intensity_column=self._intensity_column,
+            metadata_path=metadata_path,
+            sample_column=sample_column,
+        )
 
-        # create metadata
-        self.metadata: pd.DataFrame
-        self.sample: str
-        if metadata_path is not None:
-            self.sample = sample_column
-            metadata = self._load_metadata(file_path=metadata_path)
-            self.metadata = self._remove_misc_samples_in_metadata(metadata)
-        else:
-            self.sample = "sample"
-            self.metadata = pd.DataFrame({"sample": list(self.mat.index)})
+        rawmat, mat, metadata, sample, preprocessing_info, preprocessed = (
+            self._init_dataset()
+        )
+        self.rawmat: pd.DataFrame = rawmat
+        self.mat: pd.DataFrame = mat
+        self.metadata: pd.DataFrame = metadata
+        self.sample: str = sample
+        self.preprocessing_info: Dict = preprocessing_info
+        self._preprocessed: bool = preprocessed
 
-        if loader == "Generic":
-            self._intensity_column = loader._extract_sample_names(
-                metadata=self.metadata, sample_column=self.sample
-            )
+        print("DataSet has been created.")
 
-        self.preprocessing_info: Dict = Preprocess.init_preprocessing_info(
-            num_samples=self.mat.shape[0],
-            num_protein_groups=self.mat.shape[1],
+    def _init_dataset(self):
+        rawmat, mat = self.dataset_factory.create_matrix_from_rawinput()
+
+        metadata, sample = self.dataset_factory.create_metadata(mat)
+
+        preprocessing_info = Preprocess.init_preprocessing_info(
+            num_samples=mat.shape[0],
+            num_protein_groups=mat.shape[1],
             intensity_column=self._intensity_column,
             filter_columns=self.filter_columns,
         )
 
-        self._preprocessed: bool = (
-            False  # TODO could be moved to preprocessing_info dict
-        )
+        preprocessed = False  # TODO could be moved to preprocessing_info dict
 
-        print("DataSet has been created.")
+        return rawmat, mat, metadata, sample, preprocessing_info, preprocessed
+
+    def _check_loader(self, loader):
+        """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
+
+        Args:
+            loader : loader
+        """
+        if not isinstance(loader, BaseLoader):
+            raise LoaderError(
+                "loader must be a subclass of BaseLoader, "
+                f"got {loader.__class__.__name__}"
+            )
+
+        if not isinstance(loader.rawinput, pd.DataFrame) or loader.rawinput.empty:
+            raise ValueError(
+                "Error in rawinput, consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
+            )
+
+        if not isinstance(loader.index_column, str):
+            raise ValueError(
+                "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
+            )
 
     def _get_preprocess(self) -> Preprocess:
         """Return instance of the Preprocess object."""
@@ -152,17 +182,14 @@ class DataSet:
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
-        self.rawmat, self.mat = self._create_matrix_from_rawinput()
-        self.preprocessing_info = Preprocess.init_preprocessing_info(
-            num_samples=self.mat.shape[0],
-            num_protein_groups=self.mat.shape[1],
-            intensity_column=self._intensity_column,
-            filter_columns=self.filter_columns,
-        )
-
-        self._preprocessed = False
-        # TODO fix bug: metadata is not reset/reloaded here
-        print("All preprocessing steps are reset.")
+        (
+            self.rawmat,
+            self.mat,
+            self.metadata,
+            self.sample,
+            self.preprocessing_info,
+            self._preprocessed,
+        ) = self._init_dataset()
 
     def batch_correction(self, batch: str) -> None:
         """A wrapper for Preprocess.batch_correction(), see documentation there."""
