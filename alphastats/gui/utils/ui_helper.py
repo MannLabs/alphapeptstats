@@ -37,10 +37,10 @@ def sidebar_info():
 
 
 def _display_sidebar_html_table():
-    if "dataset" not in st.session_state:
+    if StateKeys.DATASET not in st.session_state:
         return
 
-    preprocessing_dict = st.session_state.dataset.preprocessing_info
+    preprocessing_dict = st.session_state[StateKeys.DATASET].preprocessing_info
 
     html_string = (
         "<style>.mytable th, td{ font-size:10px;font-family:Arial, Helvetica, sans-serif;color:#8C878D; border-color:#96D4D4;}</style>"
@@ -79,11 +79,51 @@ def empty_session_state():
 def init_session_state() -> None:
     """Initialize the session state if not done yet."""
 
-    if "user_session_id" not in st.session_state:
-        st.session_state["user_session_id"] = str(uuid.uuid4())
+    if StateKeys.USER_SESSION_ID not in st.session_state:
+        st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
 
-    if "gene_to_prot_id" not in st.session_state:
-        st.session_state["gene_to_prot_id"] = {}
+    if StateKeys.GENE_TO_PROT_ID not in st.session_state:
+        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
 
-    if "organism" not in st.session_state:
-        st.session_state["organism"] = 9606  # human
+    if StateKeys.ORGANISM not in st.session_state:
+        st.session_state[StateKeys.ORGANISM] = 9606  # human
+
+
+class StateKeys:
+    ## 02_Data Import
+    # on 1st run
+    ORGANISM = "organism"
+    GENE_TO_PROT_ID = "gene_to_prot_id"
+    USER_SESSION_ID = "user_session_id"
+    LOADER = "loader"
+    # on sample run (function load_sample_data), removed on new session click
+    DATASET = "dataset"  # functions upload_metadatafile
+    PLOTTING_OPTIONS = "plotting_options"  # function load_options
+    STATISTIC_OPTIONS = "statistic_options"  # function load_options
+
+    METADATA_COLUMNS = "metadata_columns"
+    WORKFLOW = "workflow"
+    PLOT_LIST = "plot_list"
+
+    # LLM
+    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
+    API_TYPE = "api_type"
+    LLM_INTEGRATION = "llm_integration"
+
+    PLOT_SUBMITTED_CLICKED = "plot_submitted_clicked"
+    PLOT_SUBMITTED_COUNTER = "plot_submitted_counter"
+
+    LOOKUP_SUBMITTED_CLICKED = "lookup_submitted_clicked"
+    LOOKUP_SUBMITTED_COUNTER = "lookup_submitted_counter"
+
+    GPT_SUBMITTED_CLICKED = "gpt_submitted_clicked"
+    GPT_SUBMITTED_COUNTER = "gpt_submitted_counter"
+
+    INSTRUCTIONS = "instructions"
+    USER_PROMPT = "user_prompt"
+    MESSAGES = "messages"
+    ARTIFACTS = "artifacts"
+    PROT_ID_TO_GENE = "prot_id_to_gene"
+    GENES_OF_INTEREST_COLORED = "genes_of_interest_colored"
+    UPREGULATED = "upregulated"
+    DOWNREGULATED = "downregulated"

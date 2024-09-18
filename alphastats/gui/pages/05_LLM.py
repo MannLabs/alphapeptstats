@@ -25,7 +25,6 @@ from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, Sta
 
 init_session_state()
 sidebar_info()
-st.session_state[StateKeys.PLOT_DICT] = {}
 
 
 @check_if_options_are_loaded
