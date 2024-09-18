@@ -1,7 +1,6 @@
 from streamlit.testing.v1 import AppTest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 from .conftest import create_dataset_alphapept, APP_FOLDER
+from alphastats.gui.utils.ui_helper import StateKeys
 
 TESTED_PAGE = f"{APP_FOLDER}/pages/03_Data Overview.py"
 
@@ -19,7 +18,7 @@ def test_page_03_loads_with_input():
     at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
 
-    at.session_state["dataset"] = create_dataset_alphapept()
+    at.session_state[StateKeys.DATASET] = create_dataset_alphapept()
     at.run()
 
     assert not at.exception

@@ -79,7 +79,7 @@ class SpectronautLoader(BaseLoader):
         )
 
         self._add_contamination_column()
-        self._read_all_columns_as_string()
+        self._read_all_column_names_as_string()
 
     def _reshape_long_to_wide(self):
         """
