@@ -26,4 +26,4 @@ enableCORS = false
 gatherUsageStats = true
 
 [logger]
-level = "debug"
+level = "debug"  # TODO this seems to have no effect?
