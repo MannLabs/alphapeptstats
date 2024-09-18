@@ -168,43 +168,43 @@ class Plot:
         )
         return fig
 
-    def plot_imputed_values(self):  # not used
-        # get coordinates of missing values
-        df = self.mat
-        s = df.stack(dropna=False)
-        missing_values_coordinates = [list(x) for x in s.index[s.isna()]]
-
-        # get all coordinates
-        coordinates = list(
-            itertools.product(list(self.mat.index), list(self.mat.columns))
-        )
-
-        # needs to be speed up
-        imputed_values, original_values = [], []
-        for coordinate in coordinates:
-            coordinate = list(coordinate)
-            if coordinate in missing_values_coordinates:
-                value = self.mat.loc[coordinate[0], coordinate[1]]
-                imputed_values.append(value)
-            else:
-                original_values.append(value)
-
-        label = ["imputed values"] * len(imputed_values) + ["non imputed values"] * len(
-            original_values
-        )
-        values = imputed_values + original_values
-
-        plot_df = pd.DataFrame(
-            list(zip(label, values)), columns=["Imputation", "values"]
-        )
-
-        fig = px.histogram(
-            plot_df,
-            x="values",
-            color="Imputation",
-            opacity=0.8,
-            hover_data=plot_df.columns,
-            template="simple_white+alphastats_colors",
-        )
-
-        pass
+    # def plot_imputed_values(self):  # TODO not used
+    #     # get coordinates of missing values
+    #     df = self.mat
+    #     s = df.stack(dropna=False)
+    #     missing_values_coordinates = [list(x) for x in s.index[s.isna()]]
+    #
+    #     # get all coordinates
+    #     coordinates = list(
+    #         itertools.product(list(self.mat.index), list(self.mat.columns))
+    #     )
+    #
+    #     # needs to be speed up
+    #     imputed_values, original_values = [], []
+    #     for coordinate in coordinates:
+    #         coordinate = list(coordinate)
+    #         if coordinate in missing_values_coordinates:
+    #             value = self.mat.loc[coordinate[0], coordinate[1]]
+    #             imputed_values.append(value)
+    #         else:
+    #             original_values.append(value)
+    #
+    #     label = ["imputed values"] * len(imputed_values) + ["non imputed values"] * len(
+    #         original_values
+    #     )
+    #     values = imputed_values + original_values
+    #
+    #     plot_df = pd.DataFrame(
+    #         list(zip(label, values)), columns=["Imputation", "values"]
+    #     )
+    #
+    #     fig = px.histogram(
+    #         plot_df,
+    #         x="values",
+    #         color="Imputation",
+    #         opacity=0.8,
+    #         hover_data=plot_df.columns,
+    #         template="simple_white+alphastats_colors",
+    #     )
+    #
+    #     pass
