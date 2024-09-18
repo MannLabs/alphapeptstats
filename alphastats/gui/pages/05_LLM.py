@@ -98,7 +98,7 @@ st.session_state["api_type"] = st.selectbox(
     ["gpt4o", "llama3.1 70b"],
     index=0 if st.session_state["api_type"] == "gpt4o" else 1,
 )
-base_url = "http://localhost:11434/v1"
+
 api_key = None
 if st.session_state["api_type"] == "gpt4o":
     api_key = st.text_input("Enter OpenAI API Key", type="password")
@@ -298,7 +298,7 @@ if (
         else:
             st.session_state["llm_integration"] = LLMIntegration(
                 api_type="ollama",
-                base_url=base_url,
+                base_url=os.getenv("OLLAMA_BASE_URL", None),
                 dataset=st.session_state["dataset"],
                 metadata=st.session_state["dataset"].metadata,
             )

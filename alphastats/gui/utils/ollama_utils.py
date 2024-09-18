@@ -65,9 +65,8 @@ class LLMIntegration:
     ):
         self.api_type = api_type
         if api_type == "ollama":
-            self.client = OpenAI(
-                base_url=base_url or "http://localhost:11434/v1", api_key="ollama"
-            )
+            url = f"{base_url or 'http://localhost:11434'}/v1"
+            self.client = OpenAI(base_url=url, api_key="ollama")
             self.model = "llama3.1:70b"
         else:
             self.client = OpenAI(api_key=api_key)
