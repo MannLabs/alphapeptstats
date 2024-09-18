@@ -17,6 +17,7 @@ from alphastats.statistics.Anova import Anova
 class Statistics:
     def __init__(
         self,
+        *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
         index_column: str,

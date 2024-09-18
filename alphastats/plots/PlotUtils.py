@@ -25,9 +25,6 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class PlotUtils:
-    def __init__(self) -> None:
-        pass
-
     @staticmethod
     def _update_colors_plotly(fig, color_dict):
         # plotly doesnt allow to assign color to certain group
