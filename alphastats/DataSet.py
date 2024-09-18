@@ -42,8 +42,8 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(Plot):
-    """Analysis Object"""
+class DataSet:
+    """The main object of AlphaPeptStats, providing an interface to all relevant functionality and data."""
 
     def __init__(
         self,
