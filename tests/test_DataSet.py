@@ -19,9 +19,8 @@ from alphastats.loader.SpectronautLoader import SpectronautLoader
 from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.DataSet import DataSet
 
-from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
-
+from alphastats.dataset_factory import DataSetFactory
 
 logger = logging.getLogger(__name__)
 
@@ -79,15 +78,15 @@ class BaseTestDataSet:
         def test_load_metadata_missing_sample_column(self, mock):
             # is error raised when name of sample column is missing
             path = self.metadata_path
-            self.obj.sample = "wrong_sample_column"
-            self.obj._load_metadata(file_path=path)
+            self.obj.dataset_factory.sample_column = "wrong_sample_column"
+            self.obj.dataset_factory._load_metadata(file_path=path)
             mock.assert_called_once()
 
         @patch("logging.Logger.warning")
         def test_load_metadata_warning(self, mock):
             # is dataframe None and is warning produced
             file_path = "wrong/file.xxx"
-            self.obj._load_metadata(file_path=file_path)
+            self.obj.dataset_factory._load_metadata(file_path=file_path)
             mock.assert_called_once()
 
         def test_create_matrix(self):
@@ -108,7 +107,7 @@ class BaseTestDataSet:
                 "C": [66, 72, np.inf, 68, -np.inf],
             }
             mat = pd.DataFrame(data)
-            self.obj._check_matrix_values(mat)
+            DataSetFactory._check_matrix_values(mat)
             mock.assert_called_once()
 
         @patch("logging.Logger.info")
@@ -221,15 +220,15 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
     def test_load_metadata_fileformats(self):
         # test if different fileformats get loaded correctly
         metadata_path = "testfiles/alphapept/metadata.txt"
-        self.obj._load_metadata(file_path=metadata_path)
+        self.obj.dataset_factory._load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
         metadata_path = "testfiles/alphapept/metadata.tsv"
-        self.obj._load_metadata(file_path=metadata_path)
+        self.obj.dataset_factory._load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
         metadata_path = "testfiles/alphapept/metadata.csv"
-        self.obj._load_metadata(file_path=metadata_path)
+        self.obj.dataset_factory._load_metadata(file_path=metadata_path)
         self.assertEqual(self.obj.metadata.shape, (2, 2))
 
     @patch("logging.Logger.warning")
