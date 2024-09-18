@@ -5,6 +5,8 @@ import numpy as np
 import re
 import warnings
 
+SPECTRONAUT_COLUMN_DELIM = "."
+
 
 class SpectronautLoader(BaseLoader):
     """Loader for Spectronaut outputfiles"""
@@ -72,7 +74,9 @@ class SpectronautLoader(BaseLoader):
         if self.sample_column is not None:
             self.rawinput = self._reshape_long_to_wide()
 
-        self.intensity_column = "[sample]." + self.intensity_column
+        self.intensity_column = (
+            "[sample]" + SPECTRONAUT_COLUMN_DELIM + self.intensity_column
+        )
 
         self._add_contamination_column()
         self._read_all_columns_as_string()
@@ -83,7 +87,9 @@ class SpectronautLoader(BaseLoader):
         reshape to a wider format
         """
         self.rawinput["sample"] = (
-            self.rawinput[self.sample_column] + "." + self.intensity_column
+            self.rawinput[self.sample_column]
+            + SPECTRONAUT_COLUMN_DELIM
+            + self.intensity_column
         )
         indexing_columns = [self.index_column]
         if self.gene_names is not None:
