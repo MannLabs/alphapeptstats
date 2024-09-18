@@ -99,7 +99,7 @@ st.session_state["api_type"] = st.selectbox(
     index=0 if st.session_state["api_type"] == "gpt4o" else 1,
 )
 base_url = "http://localhost:11434/v1"
-api_key=None
+api_key = None
 if st.session_state["api_type"] == "gpt4o":
     api_key = st.text_input("Enter OpenAI API Key", type="password")
     set_api_key(api_key)
@@ -108,7 +108,6 @@ if st.session_state["api_type"] == "gpt4o":
 c1, c2 = st.columns((1, 2))
 
 with c1:
-
     st.markdown("#### Analysis")
     method = select_analysis()
     chosen_parameter_dict = helper_compare_two_groups()

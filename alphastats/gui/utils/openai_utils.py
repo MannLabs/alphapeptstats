@@ -193,11 +193,8 @@ def set_api_key(api_key: str = None) -> None:
                 "`openai_api_key = <key>`"
             )
         except KeyError:
-            st.write(
-                "OpenAI API key not found in secrets."
-            )
+            st.write("OpenAI API key not found in secrets.")
         except Exception as e:
-            st.write(
-                f"Error loading OpenAI API key: {e}.")
+            st.write(f"Error loading OpenAI API key: {e}.")
 
     openai.OpenAI.api_key = api_key
