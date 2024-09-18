@@ -107,8 +107,8 @@ class BaseTestDataSet:
                 "B": [23, 22, 24, 22, 25],
                 "C": [66, 72, np.inf, 68, -np.inf],
             }
-            self.obj.mat = pd.DataFrame(data)
-            self.obj._check_matrix_values()
+            mat = pd.DataFrame(data)
+            self.obj._check_matrix_values(mat)
             mock.assert_called_once()
 
         @patch("logging.Logger.info")

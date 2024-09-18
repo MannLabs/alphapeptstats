@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
 
 import pandas as pd
 import numpy as np
@@ -66,44 +66,49 @@ class DataSet:
         """
         self._check_loader(loader=loader)
 
+        # fill data from loader
         self.rawinput: pd.DataFrame = loader.rawinput
-        self.software: str = loader.software
-        self.index_column: str = loader.index_column
-        self.intensity_column: Union[str, list] = loader.intensity_column
         self.filter_columns: List[str] = loader.filter_columns
-        self.evidence_df: pd.DataFrame = loader.evidence_df
-        self.gene_names: str = loader.gene_names
+        self.index_column: str = loader.index_column
+        self.software: str = loader.software
+        self._gene_names: str = loader.gene_names
+        # TODO this is used when creating the matrix, but then overwritten for Generic loaders later?
+        self._intensity_column: Union[str, list] = loader.intensity_column
 
-        # include filtering before
-        self._create_matrix()
-        self._check_matrix_values()
+        # self.evidence_df: pd.DataFrame = loader.evidence_df  # TODO unused
 
+        # create matrix
+        self.rawmat: pd.DataFrame
+        self.mat: pd.DataFrame
+        self.rawmat, self.mat = self._create_matrix_from_rawinput()
+        self._check_matrix_values(self.mat)
+
+        # create metadata
         self.metadata: pd.DataFrame
         self.sample: str
         if metadata_path is not None:
             self.sample = sample_column
-            self.metadata = self._load_metadata(file_path=metadata_path)
-            self._remove_misc_samples_in_metadata()
+            metadata = self._load_metadata(file_path=metadata_path)
+            self.metadata = self._remove_misc_samples_in_metadata(metadata)
         else:
             self.sample = "sample"
             self.metadata = pd.DataFrame({"sample": list(self.mat.index)})
 
         if loader == "Generic":
-            intensity_column = loader._extract_sample_names(
+            self._intensity_column = loader._extract_sample_names(
                 metadata=self.metadata, sample_column=self.sample
             )
-            self.intensity_column = intensity_column
 
-        # init preprocessing settings
         self.preprocessing_info: Dict = Preprocess.init_preprocessing_info(
             num_samples=self.mat.shape[0],
             num_protein_groups=self.mat.shape[1],
-            intensity_column=self.intensity_column,
+            intensity_column=self._intensity_column,
             filter_columns=self.filter_columns,
         )
 
-        self.preprocessed = False
-        self.preprocessed: bool = False
+        self._preprocessed: bool = (
+            False  # TODO could be moved to preprocessing_info dict
+        )
 
         print("DataSet has been created.")
 
@@ -143,19 +148,19 @@ class DataSet:
                 **kwargs,
             )
         )
-        self.preprocessed = True
+        self._preprocessed = True
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
-        self._create_matrix()
+        self.rawmat, self.mat = self._create_matrix_from_rawinput()
         self.preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=self.mat.shape[0],
             num_protein_groups=self.mat.shape[1],
-            intensity_column=self.intensity_column,
+            intensity_column=self._intensity_column,
             filter_columns=self.filter_columns,
         )
 
-        self.preprocessed = False
+        self._preprocessed = False
         # TODO fix bug: metadata is not reset/reloaded here
         print("All preprocessing steps are reset.")
 
@@ -340,7 +345,7 @@ class DataSet:
             metadata=self.metadata,
             sample=self.sample,
             index_column=self.index_column,
-            gene_names=self.gene_names,
+            gene_names=self._gene_names,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
@@ -392,7 +397,7 @@ class DataSet:
             mat=self.mat,
             metadata=self.metadata,
             sample=self.sample,
-            intensity_column=self.intensity_column,
+            intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
             group=group,
@@ -500,24 +505,24 @@ class DataSet:
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
 
-    def _check_matrix_values(self):
-        if np.isinf(self.mat).values.sum() > 0:
+    @staticmethod
+    def _check_matrix_values(mat: pd.DataFrame) -> None:
+        if np.isinf(mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
 
-    def _remove_misc_samples_in_metadata(self):
+    def _remove_misc_samples_in_metadata(self, metadata: pd.DataFrame) -> pd.DataFrame:
         samples_matrix = self.mat.index.to_list()
-        samples_metadata = self.metadata[self.sample].to_list()
+        samples_metadata = metadata[self.sample].to_list()
         misc_samples = list(set(samples_metadata) - set(samples_matrix))
         if len(misc_samples) > 0:
-            self.metadata = self.metadata[
-                ~self.metadata[self.sample].isin(misc_samples)
-            ]
+            metadata = metadata[~metadata[self.sample].isin(misc_samples)]
             logging.warning(
                 f"{misc_samples} are not described in the protein data and"
                 "are removed from the metadata."
             )
+        return metadata
 
-    def _create_matrix(self):
+    def _create_matrix_from_rawinput(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
         rows the samples.
@@ -526,26 +531,25 @@ class DataSet:
         df = self.rawinput
         df = df.set_index(self.index_column)
 
-        if isinstance(self.intensity_column, str):
-            regex_find_intensity_columns = self.intensity_column.replace(
+        if isinstance(self._intensity_column, str):
+            regex_find_intensity_columns = self._intensity_column.replace(
                 "[sample]", ".*"
             )
-            df = df.filter(regex=(regex_find_intensity_columns), axis=1)
+            df = df.filter(regex=regex_find_intensity_columns, axis=1)
             # remove Intensity so only sample names remain
             substring_to_remove = regex_find_intensity_columns.replace(".*", "")
             df.columns = df.columns.str.replace(substring_to_remove, "")
 
         else:
-            df = df[self.intensity_column]
+            df = df[self._intensity_column]
 
-        # transpose dataframe
-        mat = df.transpose()
-        mat.replace([np.inf, -np.inf], np.nan, inplace=True)
-        self.rawmat = mat
+        rawmat = df.transpose()
+        rawmat.replace([np.inf, -np.inf], np.nan, inplace=True)
 
         # remove proteins with only zero  # TODO this is re-done in preprocessing
-        mat_no_zeros = mat.loc[:, (mat != 0).any(axis=0)]
-        self.mat = mat_no_zeros.astype(float)
+        mat_no_zeros = rawmat.loc[:, (rawmat != 0).any(axis=0)]
+
+        return rawmat, mat_no_zeros.astype(float)
 
     def _load_metadata(
         self, file_path: Union[pd.DataFrame, str]
