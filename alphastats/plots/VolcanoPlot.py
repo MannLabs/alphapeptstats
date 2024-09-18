@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Union
 
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
@@ -44,10 +44,10 @@ class VolcanoPlot(PlotUtils):
         index_column: str,
         gene_names: str,
         preprocessing_info: Dict,
-        group1,
-        group2,
-        column=None,
-        method=None,
+        group1: Union[List[str], str],
+        group2: Union[List[str], str],
+        column: str = None,
+        method: str = None,
         labels=None,
         min_fc=None,
         alpha=None,
@@ -65,9 +65,6 @@ class VolcanoPlot(PlotUtils):
         self.gene_names: str = gene_names
         self.preprocessing_info: Dict = preprocessing_info
 
-        self.group1 = group1
-        self.group2 = group2
-        self.column = column
         self.method = method
         self.labels = labels
         self.min_fc = min_fc
@@ -80,6 +77,17 @@ class VolcanoPlot(PlotUtils):
         self.perm = perm
         self.color_list = color_list
 
+        if isinstance(group1, list) and isinstance(group2, list):
+            self.metadata, self.column = self._add_metadata_column(
+                metadata, group1, group2
+            )
+            self.group1, self.group2 = "group1", "group2"
+        else:
+            self.metadata, self.column = metadata, column
+            self.group1, self.group2 = group1, group2
+
+        self._check_input()
+
         self._statistics = Statistics(
             mat=self.mat,
             metadata=self.metadata,
@@ -87,7 +95,6 @@ class VolcanoPlot(PlotUtils):
             index_column=self.index_column,
             preprocessing_info=self.preprocessing_info,
         )
-        self._check_input()
 
         if plot:
             self._perform_differential_expression_analysis()
@@ -95,10 +102,11 @@ class VolcanoPlot(PlotUtils):
             self._add_hover_data_columns()
             self._plot()
 
-    # TODO this used to change the actual metadata .. is this intended?
-    def _add_metadata_column(self, group1_list: list, group2_list: list):
+    # TODO this used to change the actual metadata .. was this intended?
+    def _add_metadata_column(
+        self, metadata: pd.DataFrame, group1_list: list, group2_list: list
+    ):
         # create new column in metadata with defined groups
-        metadata = self.metadata
 
         sample_names = metadata[self.sample].to_list()
         misc_samples = list(set(group1_list + group2_list) - set(sample_names))
@@ -114,24 +122,17 @@ class VolcanoPlot(PlotUtils):
         ]
         choices = ["group1", "group2"]
         metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
 
-        return column, "group1", "group2"
+        return metadata, column
 
     def _check_input(self):
-        """
-        check input and add metadata column if samples are given
-        """
-        if isinstance(self.group1, list) and isinstance(self.group2, list):
-            self.column, self.group1, self.group2 = self._add_metadata_column(
-                self.group1, self.group2
-            )
-
+        """Check if self.column is set correctly."""
         if self.column is None:
             raise ValueError(
                 "Column containing group1 and group2 needs to be specified"
             )
 
+    # TODO revisit this
     def _update(self, updated_attributes):
         """
         update attributes using dict
