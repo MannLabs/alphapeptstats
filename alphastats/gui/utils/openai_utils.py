@@ -183,6 +183,8 @@ def set_api_key(api_key: str = None) -> None:
         #     f.write(f'openai_api_key = "{api_key}"')
         # openai.OpenAI.api_key = st.session_state["openai_api_key"]
         # return
+    elif "openai_api_key" in st.session_state:
+        api_key = st.session_state["openai_api_key"]
     else:
         try:
             api_key = st.secrets["openai_api_key"]
