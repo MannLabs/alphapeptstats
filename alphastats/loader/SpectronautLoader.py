@@ -38,7 +38,7 @@ class SpectronautLoader(BaseLoader):
         self.filter_columns = []
         self.evidence_df = None
 
-        columns = (
+        column_selection_regex = (
             "^"
             + "$|^".join(
                 [
@@ -51,7 +51,9 @@ class SpectronautLoader(BaseLoader):
             + "$"
         )
 
-        self.rawinput = self._read_spectronaut_file(file=file, sep=sep, columns=columns)
+        self.rawinput = self._read_spectronaut_file(
+            file=file, sep=sep, column_selection_regex=column_selection_regex
+        )
 
         if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names = gene_names_column
@@ -114,7 +116,7 @@ class SpectronautLoader(BaseLoader):
         return unique_df
 
     def _read_spectronaut_file(
-        self, file: Union[str, pd.DataFrame], sep: str, columns: str
+        self, file: Union[str, pd.DataFrame], sep: str, column_selection_regex: str
     ):
         """
         Reads the Spectronaut file and converts numeric columns to float.
@@ -124,13 +126,19 @@ class SpectronautLoader(BaseLoader):
         Args:
             file (Union[str, pd.DataFrame]): path to the file or pandas.DataFrame
             sep (str): separator of the file
-            columns (str): regex pattern for columns to read
+            column_selection_regex (str): regex pattern for columns to read
 
         Returns:
             df (pd.DataFrame): Spectronaut data
         """
         if isinstance(file, pd.DataFrame):
-            df = file[[col for col in file.columns if bool(re.match(columns, col))]]
+            df = file[
+                [
+                    col
+                    for col in file.columns
+                    if bool(re.match(column_selection_regex, col))
+                ]
+            ]
             for column in df.columns:
                 try:
                     if df[column].dtype == np.float64:
@@ -144,7 +152,7 @@ class SpectronautLoader(BaseLoader):
                 file,
                 sep=sep,
                 low_memory=False,
-                usecols=lambda col: bool(re.match(columns, col)),
+                usecols=lambda col: bool(re.match(column_selection_regex, col)),
             )
             for column in df.columns:
                 try:
