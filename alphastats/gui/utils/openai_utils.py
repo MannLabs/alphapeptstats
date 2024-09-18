@@ -164,28 +164,40 @@ def send_message_save_thread(
     return plots
 
 
-def try_to_set_api_key(api_key: str = None) -> None:
-    """
-    Checks if the OpenAI API key is available in the environment / system variables.
-    If the API key is not available, saves the key to secrets.toml in the repository root directory.
+def set_api_key(api_key: str = None) -> None:
+    """Put the OpenAI API key in the session state.
+
+    If provided, use the `api_key`.
+    If not, take the key from the secrets.toml file.
+    Show a message if the file is not found.
 
     Args:
         api_key (str, optional): The OpenAI API key. Defaults to None.
-
-    Returns:
-        None
     """
-    if api_key and "api_key" not in st.session_state:
+    if api_key:
         st.session_state["openai_api_key"] = api_key
-        secret_path = Path(st.secrets._file_paths[-1])
-        secret_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(secret_path, "w") as f:
-            f.write(f'openai_api_key = "{api_key}"')
-        openai.OpenAI.api_key = api_key
-        return
-    try:
-        openai.OpenAI.api_key = st.secrets["openai_api_key"]
-    except KeyError:
-        st.write(
-            "OpenAI API key not found in environment variables. Please enter your API key to continue."
-        )
+        # TODO we should not write secrets to disk without user consent
+        # secret_path = Path("./.streamlit/secrets.toml")
+        # secret_path.parent.mkdir(parents=True, exist_ok=True)
+        # with open(secret_path, "w") as f:
+        #     f.write(f'openai_api_key = "{api_key}"')
+        # openai.OpenAI.api_key = st.session_state["openai_api_key"]
+        # return
+    else:
+        try:
+            api_key = st.secrets["openai_api_key"]
+        except FileNotFoundError:
+            st.info(
+                "Please enter an OpenAI key or provide it in a secrets.toml file in the "
+                "alphastats/gui/.streamlit directory like "
+                "`openai_api_key = <key>`"
+            )
+        except KeyError:
+            st.write(
+                "OpenAI API key not found in secrets."
+            )
+        except Exception as e:
+            st.write(
+                f"Error loading OpenAI API key: {e}.")
+
+    openai.OpenAI.api_key = api_key
