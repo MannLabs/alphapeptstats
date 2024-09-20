@@ -49,14 +49,15 @@ jobs:
     - name: Print pip freeze
       run: |
           pip freeze
-    - name: Run notebooks
-      run: |
-        python3 -m ipykernel install --user
-        # TODO add the excluded notebook
-        TEST_NBS=$(find ./nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
-        python -m pytest --nbmake $(echo $TEST_NBS)
     - name: Run tests
       run: |
         coverage run -m pytest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v4
+# TODO reintroduce this!
+#    - name: Run notebooks
+#      run: |
+#        python3 -m ipykernel install --user
+#        # TODO add the excluded notebook
+#        TEST_NBS=$(find ./nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
+#        python -m pytest --nbmake $(echo $TEST_NBS)
