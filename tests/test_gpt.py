@@ -22,7 +22,7 @@ class TestGPT(unittest.TestCase):
         self.metadata_path = "testfiles/maxquant/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="sample",
         )
         # expected dimensions of matrix

@@ -159,7 +159,7 @@ if c1.button(
 
     dataset = DataSet(
         loader=loader,
-        metadata_path=metadatafile_df,
+        metadata_path_or_df=metadatafile_df,
         sample_column=sample_column,
     )
     metadata_columns = metadatafile_df.columns.to_list()

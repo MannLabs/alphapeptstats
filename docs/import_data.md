@@ -14,7 +14,7 @@ maxquant_data = alphastats.MaxQuantLoader(
 
 dataset = alphastats.DataSet(
     loader = maxquant_data,
-    metadata_path="../testfiles/maxquant/metadata.xlsx",
+    metadata_path_or_df="../testfiles/maxquant/metadata.xlsx",
     sample_column="sample"
 )
 ```
@@ -126,7 +126,7 @@ maxquant_data = alphastats.MaxQuantLoader(
 
 dataset = alphastats.DataSet(
     loader = maxquant_data,
-    metadata_path="../testfiles/maxquant/metadata.xlsx",
+    metadata_path_or_df="../testfiles/maxquant/metadata.xlsx",
     sample_column="sample"
 )
 ```
