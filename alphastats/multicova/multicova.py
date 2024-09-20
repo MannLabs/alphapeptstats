@@ -223,16 +223,14 @@ def get_fdr(n_pos, n_false_pos, pi0):
     proportion of true null (unaffected) genes in the data set.
     """
     n = n_false_pos * pi0
+
+    fdr = 0
     if n != 0:
         if n_pos != 0:
             fdr = n / n_pos
-        else:
-            fdr = 0
-    else:
-        if n_pos > 0:
-            fdr = 0
-        else:
-            fdr = np.nan
+    elif n_pos <= 0:
+        fdr = np.nan
+
     return fdr
 
 
