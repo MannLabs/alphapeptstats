@@ -98,9 +98,6 @@ class BaseTestDataSet:
             )
             self.assertEqual(is_dtype_numeric, [True])
 
-        def test_preprocess_print_info(self):
-            self.obj.preprocess_print_info()
-
         @patch("logging.Logger.warning")
         def test_check_values_warning(self, mock):
             # is dataframe None and is warning produced
@@ -462,6 +459,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
                 group2=["1_71_F10", "1_73_F12"],
             )
 
+    @skip  # TODO reimplement compare_preprocessing_modes
     def test_plot_volcano_compare_preprocessing_modes_no_randomforest(self):
         obj_ut = DataSet(
             loader=self.loader,

@@ -1,5 +1,5 @@
-import itertools
 import logging
+from typing import Tuple, Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,6 @@ import sklearn.impute
 import streamlit as st
 
 from sklearn.experimental import enable_iterative_imputer  # noqa
-from tqdm import tqdm
 
 from alphastats.utils import ignore_warning
 
@@ -18,22 +17,37 @@ class Preprocess:
     imputation_methods = ["mean", "median", "knn", "randomforest"]
     normalization_methods = ["vst", "zscore", "quantile"]
 
-    def _remove_sampels(self, sample_list: list):
+    def __init__(
+        self,
+        filter_columns: List[str],
+        rawinput: pd.DataFrame,
+        index_column: str,
+        sample: str,
+        metadata: pd.DataFrame,
+        preprocessing_info: Dict,
+        mat: pd.DataFrame,
+    ):
+        self.filter_columns = filter_columns
+
+        self.rawinput = rawinput
+        self.index_column = index_column
+        self.sample = sample
+
+        self.metadata = metadata  # changed
+        self.preprocessing_info = preprocessing_info  # changed
+        self.mat = mat  # changed
+
+    def _remove_samples(self, sample_list: list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
         self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
 
     def _subset(self):
-        # filter matrix so only samples that are described in metadata
-        # also found in matrix
+        # filter matrix so only samples that are described in metadata are also found in matrix
         self.preprocessing_info.update(
             {"Matrix: Number of samples": self.metadata.shape[0]}
         )
         return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
-
-    def preprocess_print_info(self):
-        """Print summary of preprocessing steps"""
-        print(pd.DataFrame(self.preprocessing_info.items()))
 
     def _remove_na_values(self, cut_off):
         if (
@@ -227,56 +241,57 @@ class Preprocess:
 
         self.preprocessing_info.update({"Normalization": method})
 
-    def reset_preprocessing(self):
-        """Reset all preprocessing steps"""
-        self.create_matrix()
-        print("All preprocessing steps are reset.")
-
-    @ignore_warning(RuntimeWarning)
-    def _compare_preprocessing_modes(self, func, params_for_func) -> list:
-        dataset = self
-
-        preprocessing_modes = list(
-            itertools.product(self.normalization_methods, self.imputation_methods)
-        )
-
-        results_list = []
-
-        del params_for_func["compare_preprocessing_modes"]
-        params_for_func["dataset"] = params_for_func.pop("self")
-
-        # TODO: make this progress transparent in GUI
-        for preprocessing_mode in tqdm(preprocessing_modes):
-            # reset preprocessing
-            dataset.reset_preprocessing()
-            print(
-                f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}"
-            )
-            dataset.mat.replace([np.inf, -np.inf], np.nan, inplace=True)
-
-            dataset.preprocess(
-                subset=True,
-                normalization=preprocessing_mode[0],
-                imputation=preprocessing_mode[1],
-            )
-
-            res = func(**params_for_func)
-            results_list.append(res)
-
-            print("\t")
-
-        return results_list
+    # TODO this needs to be reimplemented
+    # @ignore_warning(RuntimeWarning)
+    # def _compare_preprocessing_modes(self, func, params_for_func) -> list:
+    #     dataset = self
+    #
+    #     preprocessing_modes = list(
+    #         itertools.product(self.normalization_methods, self.imputation_methods)
+    #     )
+    #
+    #     results_list = []
+    #
+    #     del params_for_func["compare_preprocessing_modes"]
+    #     params_for_func["dataset"] = params_for_func.pop("self")
+    #
+    #     # TODO: make this progress transparent in GUI
+    #     for preprocessing_mode in tqdm(preprocessing_modes):
+    #         # reset preprocessing
+    #         dataset.reset_preprocessing()
+    #         print(
+    #             f"Normalization {preprocessing_mode[0]}, Imputation {str(preprocessing_mode[1])}"
+    #         )
+    #         dataset.mat.replace([np.inf, -np.inf], np.nan, inplace=True)
+    #
+    #         dataset.preprocess(
+    #             subset=True,
+    #             normalization=preprocessing_mode[0],
+    #             imputation=preprocessing_mode[1],
+    #         )
+    #
+    #         res = func(**params_for_func)
+    #         results_list.append(res)
+    #
+    #         print("\t")
+    #
+    #     return results_list
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat)
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
 
-    def batch_correction(self, batch: str):
+    def batch_correction(self, batch: str) -> pd.DataFrame:
         """Correct for technical bias/batch effects
-        Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
+
         Args:
             batch (str): column name in the metadata describing the different batches
+
+        # TODO should the employed methods (and citations) be made transparent in the UI?
+        Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat,
+        a Python tool for batch effects correction in high-throughput molecular
+        data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
         """
         from combat.pycombat import pycombat
 
@@ -284,7 +299,10 @@ class Preprocess:
         series_of_batches = self.metadata.set_index(self.sample).reindex(
             data.columns.to_list()
         )[batch]
-        self.mat = pycombat(data=data, batch=series_of_batches).transpose()
+
+        batch_corrected_data = pycombat(data=data, batch=series_of_batches).transpose()
+
+        return batch_corrected_data
 
     @ignore_warning(RuntimeWarning)
     def preprocess(
@@ -297,7 +315,7 @@ class Preprocess:
         imputation: str = None,
         remove_samples: list = None,
         **kwargs,
-    ):
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict]:
         """Preprocess Protein data
 
         Removal of contaminations:
@@ -350,7 +368,7 @@ class Preprocess:
             self._filter()
 
         if remove_samples is not None:
-            self._remove_sampels(sample_list=remove_samples)
+            self._remove_samples(sample_list=remove_samples)
 
         if subset:
             self.mat = self._subset()
@@ -368,10 +386,14 @@ class Preprocess:
         if imputation is not None:
             self._imputation(method=imputation)
 
+        # TODO should this step be optional, too? is also done in create_matrix
+        # for now, add it to `preprocessing_info`
         self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+
         self.preprocessing_info.update(
             {
                 "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
             }
         )
-        self.preprocessed = True
+
+        return self.mat, self.metadata, self.preprocessing_info

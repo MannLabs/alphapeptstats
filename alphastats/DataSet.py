@@ -1,3 +1,5 @@
+from typing import List, Union, Dict, Optional
+
 import pandas as pd
 import numpy as np
 import logging
@@ -34,10 +36,15 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(Preprocess, Statistics, Plot, Enrichment):
+class DataSet(Statistics, Plot, Enrichment):
     """Analysis Object"""
 
-    def __init__(self, loader, metadata_path=None, sample_column=None):
+    def __init__(
+        self,
+        loader: BaseLoader,
+        metadata_path: Optional[str] = None,
+        sample_column: Optional[str] = None,
+    ):
         """Create DataSet
 
         Args:
@@ -47,46 +54,93 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         """
         self._check_loader(loader=loader)
-        #  load data from loader object
-        self.loader = loader
-        self.rawinput = loader.rawinput
-        self.software = loader.software
-        self.index_column = loader.index_column
-        self.intensity_column = loader.intensity_column
-        self.filter_columns = loader.filter_columns
-        self.evidence_df = loader.evidence_df
-        self.gene_names = loader.gene_names
+
+        self.rawinput: pd.DataFrame = loader.rawinput
+        self.software: str = loader.software
+        self.index_column: str = loader.index_column
+        self.intensity_column: Union[str, list] = loader.intensity_column
+        self.filter_columns: List[str] = loader.filter_columns
+        self.evidence_df: pd.DataFrame = loader.evidence_df
+        self.gene_names: str = loader.gene_names
 
         # include filtering before
         self.create_matrix()
         self._check_matrix_values()
-        self.metadata = None
 
+        self.metadata: pd.DataFrame
+        self.sample: str
         if metadata_path is not None:
             self.sample = sample_column
-            self.load_metadata(file_path=metadata_path)
+            self.metadata = self.load_metadata(file_path=metadata_path)
             self._remove_misc_samples_in_metadata()
-
         else:
-            self._create_metadata()
+            self.sample = "sample"
+            self.metadata = pd.DataFrame({"sample": list(self.mat.index)})
 
-        if self.loader == "Generic":
+        if loader == "Generic":
             intensity_column = loader._extract_sample_names(
                 metadata=self.metadata, sample_column=self.sample
             )
             self.intensity_column = intensity_column
 
         # save preprocessing settings
-        self.preprocessing_info = self._save_dataset_info()
-        self.preprocessed = False
+        self.preprocessing_info: Dict = self._save_dataset_info()
+        self.preprocessed: bool = False
 
         print("DataSet has been created.")
         self.overview()
 
-    def _create_metadata(self):
-        samples = list(self.mat.index)
-        self.metadata = pd.DataFrame({"sample": samples})
-        self.sample = "sample"
+    def preprocess(
+        self,
+        log2_transform: bool = True,
+        remove_contaminations: bool = False,
+        subset: bool = False,
+        data_completeness: float = 0,
+        normalization: str = None,
+        imputation: str = None,
+        remove_samples: list = None,
+        **kwargs,
+    ) -> None:
+        """A wrapper for the preprocess() method, see documentation in Preprocess.preprocess()."""
+        pp = Preprocess(
+            self.filter_columns,
+            self.rawinput,
+            self.index_column,
+            self.sample,
+            self.metadata,
+            self.preprocessing_info,
+            self.mat,
+        )
+
+        self.mat, self.metadata, self.preprocessing_info = pp.preprocess(
+            log2_transform,
+            remove_contaminations,
+            subset,
+            data_completeness,
+            normalization,
+            imputation,
+            remove_samples,
+            **kwargs,
+        )
+        self.preprocessed = True
+
+    def reset_preprocessing(self):
+        """Reset all preprocessing steps"""
+        self.create_matrix()
+        # TODO fix bug: metadata is not reset here
+        print("All preprocessing steps are reset.")
+
+    def batch_correction(self, batch: str) -> None:
+        pp = Preprocess(
+            self.filter_columns,
+            self.rawinput,
+            self.index_column,
+            self.sample,
+            self.metadata,
+            self.preprocessing_info,
+            self.mat,
+        )
+        self.mat = pp.batch_correction(batch)
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -127,6 +181,17 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
                 "are removed from the metadata."
             )
 
+    # TODO this is implemented in both preprocessing and here
+    #  This is only needed in the DimensionalityReduction class and only if the step was not run during preprocessing.
+    #  idea: replace the step in DimensionalityReduction with something like:
+    #  mat = self.data.mat.loc[sample_names,:] after creating sample_names.
+    def _subset(self):
+        # filter matrix so only samples that are described in metadata are also found in matrix
+        self.preprocessing_info.update(
+            {"Matrix: Number of samples": self.metadata.shape[0]}
+        )
+        return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
+
     def create_matrix(self):
         """
         Creates a matrix of the Outputfile, with columns displaying features (Proteins) and
@@ -147,26 +212,28 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
 
         else:
             df = df[self.intensity_column]
+
         # transpose dataframe
         mat = df.transpose()
         mat.replace([np.inf, -np.inf], np.nan, inplace=True)
-        # remove proteins with only zero
+
+        # remove proteins with only zero  # TODO this is re-done in preprocessing
         self.mat = mat.loc[:, (mat != 0).any(axis=0)]
         self.mat = self.mat.astype(float)
+
         # reset preproccessing info
         self.preprocessing_info = self._save_dataset_info()
         self.preprocessed = False
         self.rawmat = mat
 
-    def load_metadata(self, file_path):
+    def load_metadata(self, file_path: Union[pd.DataFrame, str]) -> pd.DataFrame:
         """Load metadata either xlsx, txt, csv or txt file
 
         Args:
-            file_path (str): path to metadata file
+            file_path: path to metadata file or metadata DataFrame  # TODO disentangle this
         """
         if isinstance(file_path, pd.DataFrame):
             df = file_path
-        #  loading file needs to be more beautiful
         elif file_path.endswith(".xlsx"):
             warnings.filterwarnings(
                 "ignore",
@@ -193,7 +260,7 @@ class DataSet(Preprocess, Statistics, Plot, Enrichment):
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         df.columns = df.columns.astype(str)
-        self.metadata = df
+        return df
 
     def _save_dataset_info(self):
         n_proteingroups = self.mat.shape[1]
