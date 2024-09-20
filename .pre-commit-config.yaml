@@ -8,10 +8,10 @@ repos:
     - id: end-of-file-fixer
     - id: trailing-whitespace
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.4.0
+  rev: v0.6.6
   hooks:
     - id: ruff-format
-#    - id: ruff
+    - id: ruff
 -   repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
