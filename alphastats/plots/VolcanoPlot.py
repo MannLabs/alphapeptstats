@@ -209,7 +209,7 @@ class VolcanoPlot(PlotUtils):
 
         transposed = self.mat.transpose()
 
-        if self.preprocessing_info[PreprocessingStateKeys.NORMALIZATION] is None:
+        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED] is None:
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 
@@ -300,8 +300,6 @@ class VolcanoPlot(PlotUtils):
     def _calculate_foldchange(  # TODO duplicated
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ) -> pd.DataFrame:
-        mat_transpose += 0.00001
-
         group1_values = mat_transpose[group1_samples].T.mean().values
         group2_values = mat_transpose[group2_samples].T.mean().values
         if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:

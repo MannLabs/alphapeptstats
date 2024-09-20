@@ -17,6 +17,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - uses: pre-commit/action@v3.0.1
+
+  get-code-review-input:
+    runs-on: ubuntu-latest
+    #if: contains(github.event.pull_request.labels.*.name, 'code-review')
+    steps:
+      - uses: MannLabs/alphashared/actions/get-code-review-input@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
@@ -39,14 +49,14 @@ jobs:
     - name: Print pip freeze
       run: |
           pip freeze
+    - name: Run tests
+      run: |
+        coverage run -m pytest
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
     - name: Run notebooks
       run: |
         python3 -m ipykernel install --user
         # TODO add the excluded notebook
         TEST_NBS=$(find ./nbs -name "*.ipynb" | grep -v "ramus_2016.ipynb")
         python -m pytest --nbmake $(echo $TEST_NBS)
-    - name: Run tests
-      run: |
-        coverage run -m pytest
-    - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4

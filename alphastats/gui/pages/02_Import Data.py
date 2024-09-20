@@ -15,6 +15,7 @@ from alphastats.gui.utils.import_helper import (
 )
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 from alphastats.gui.utils.ui_helper import (
+    StateKeys,
     empty_session_state,
     init_session_state,
     sidebar_info,
@@ -27,11 +28,11 @@ def _finalize_data_loading(
     dataset: DataSet,
 ) -> None:
     """Finalize the data loading process."""
-    st.session_state["loader"] = (
+    st.session_state[StateKeys.LOADER] = (
         loader  # TODO: Figure out if we even need the loader here, as the dataset has the loader as an attribute.
     )
-    st.session_state["metadata_columns"] = metadata_columns
-    st.session_state["dataset"] = dataset
+    st.session_state[StateKeys.METADATA_COLUMNS] = metadata_columns
+    st.session_state[StateKeys.DATASET] = dataset
 
     load_options()
     sidebar_info()
@@ -64,7 +65,7 @@ if c2.button("Start new Session with example DataSet", key="_load_example_data")
 
 
 st.markdown("### Import Proteomics Data")
-if "dataset" in st.session_state:
+if StateKeys.DATASET in st.session_state:
     st.info(f"DataSet already present.")
     st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
     st.stop()

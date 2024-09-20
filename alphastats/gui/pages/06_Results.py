@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import (
+    StateKeys,
     convert_df,
     init_session_state,
     sidebar_info,
@@ -45,8 +46,8 @@ sidebar_info()
 st.markdown("### Results")
 
 
-if "plot_list" in st.session_state:
-    for count, plot in enumerate(st.session_state.plot_list):
+if StateKeys.PLOT_LIST in st.session_state:
+    for count, plot in enumerate(st.session_state[StateKeys.PLOT_LIST]):
         print("plot", type(plot), count)
         count = str(count)
 

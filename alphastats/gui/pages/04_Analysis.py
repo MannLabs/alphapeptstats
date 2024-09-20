@@ -10,6 +10,7 @@ from alphastats.gui.utils.analysis_helper import (
     save_plot_to_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
+    StateKeys,
     convert_df,
     init_session_state,
     sidebar_info,
@@ -24,8 +25,8 @@ def select_analysis():
     load_options()
     method = st.selectbox(
         "Analysis",
-        options=list(st.session_state.plotting_options.keys())
-        + list(st.session_state.statistic_options.keys()),
+        options=list(st.session_state[StateKeys.PLOTTING_OPTIONS].keys())
+        + list(st.session_state[StateKeys.STATISTIC_OPTIONS].keys()),
     )
     return method
 
@@ -50,11 +51,11 @@ styl = f"""
 st.markdown(styl, unsafe_allow_html=True)
 
 
-if "plot_list" not in st.session_state:
-    st.session_state["plot_list"] = []
+if StateKeys.PLOT_LIST not in st.session_state:
+    st.session_state[StateKeys.PLOT_LIST] = []
 
 
-if "dataset" in st.session_state:
+if StateKeys.DATASET in st.session_state:
     c1, c2 = st.columns((1, 2))
 
     plot_to_display = False
@@ -64,15 +65,16 @@ if "dataset" in st.session_state:
     with c1:
         method = select_analysis()
 
-        if method in st.session_state.plotting_options:
+        if method in st.session_state[StateKeys.PLOTTING_OPTIONS]:
             analysis_result = get_analysis(
-                method=method, options_dict=st.session_state.plotting_options
+                method=method, options_dict=st.session_state[StateKeys.PLOTTING_OPTIONS]
             )
             plot_to_display = True
 
-        elif method in st.session_state.statistic_options:
+        elif method in st.session_state[StateKeys.STATISTIC_OPTIONS]:
             analysis_result = get_analysis(
-                method=method, options_dict=st.session_state.statistic_options
+                method=method,
+                options_dict=st.session_state[StateKeys.STATISTIC_OPTIONS],
             )
             df_to_display = True
 
