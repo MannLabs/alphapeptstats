@@ -1,21 +1,18 @@
 import copy
-from typing import Optional, Union, List
-from pathlib import Path
-import requests
-
-import time
-import random
 import json
-
-from Bio import Entrez
-from gprofiler import GProfiler
+import random
+import time
+from pathlib import Path
+from typing import List, Optional, Union
 
 import openai
 import pandas as pd
+import requests
 import streamlit as st
+from Bio import Entrez
+from gprofiler import GProfiler
 
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-
 
 Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
 

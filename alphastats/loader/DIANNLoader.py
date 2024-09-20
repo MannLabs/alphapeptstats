@@ -1,5 +1,6 @@
-from alphastats.loader.BaseLoader import BaseLoader
 import pandas as pd
+
+from alphastats.loader.BaseLoader import BaseLoader
 
 
 class DIANNLoader(BaseLoader):

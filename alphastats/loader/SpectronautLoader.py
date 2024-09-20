@@ -1,8 +1,10 @@
 import copy
-from alphastats.loader.BaseLoader import BaseLoader
-import pandas as pd
-import numpy as np
 import logging
+
+import numpy as np
+import pandas as pd
+
+from alphastats.loader.BaseLoader import BaseLoader
 
 
 class SpectronautLoader(BaseLoader):

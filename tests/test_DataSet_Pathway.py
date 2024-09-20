@@ -1,10 +1,11 @@
 import unittest
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
+
+from alphastats.DataSet import DataSet
 from alphastats.DataSet_Pathway import Enrichment
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.DataSet import DataSet
 
 
 class BaseTestDataSet:

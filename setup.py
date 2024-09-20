@@ -1,7 +1,8 @@
 # builtin
-import setuptools
-import re
 import os
+import re
+
+import setuptools
 
 # local
 # info has to be imported individually or sidepacakges will already be installed

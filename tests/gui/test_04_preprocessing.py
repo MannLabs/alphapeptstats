@@ -1,8 +1,9 @@
-from alphastats.DataSet import DataSet
-from alphastats.load_data import load_data
-from streamlit.testing.v1 import AppTest
 from pathlib import Path
 
+from streamlit.testing.v1 import AppTest
+
+from alphastats.DataSet import DataSet
+from alphastats.load_data import load_data
 
 APP_FOLDER = Path(__file__).parent / Path("../../alphastats/gui/")
 APP_FILE = f"{APP_FOLDER}/pages/03_Preprocessing.py"

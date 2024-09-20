@@ -1,9 +1,8 @@
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import pandas as pd
 import plotly
 import plotly.graph_objects as go
-
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(

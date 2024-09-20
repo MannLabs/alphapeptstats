@@ -1,11 +1,12 @@
-import streamlit as st
-import pandas as pd
 import io
 
+import pandas as pd
+import streamlit as st
+
 from alphastats.gui.utils.ui_helper import (
-    sidebar_info,
-    init_session_state,
     convert_df,
+    init_session_state,
+    sidebar_info,
 )
 
 

@@ -1,26 +1,24 @@
-from typing import List, Union, Dict, Optional, Tuple
-
-import pandas as pd
-import numpy as np
 import logging
 import warnings
+from typing import Dict, List, Optional, Tuple, Union
+
+import numpy as np
+import pandas as pd
 import plotly
 import scipy
 
 from alphastats import BaseLoader
-
-
+from alphastats.dataset_factory import DataSetFactory
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
-from alphastats.utils import LoaderError, check_for_missing_values, ignore_warning
-from alphastats.statistics.tukey_test import tukey_test
 from alphastats.plots.ClusterMap import ClusterMap
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.IntensityPlot import IntensityPlot
 from alphastats.plots.SampleHistogram import SampleHistogram
 from alphastats.plots.VolcanoPlot import VolcanoPlot
-from alphastats.dataset_factory import DataSetFactory
+from alphastats.statistics.tukey_test import tukey_test
+from alphastats.utils import LoaderError, check_for_missing_values, ignore_warning
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(

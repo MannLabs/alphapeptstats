@@ -1,10 +1,10 @@
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.GenericLoader import GenericLoader
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
+from alphastats.loader.SpectronautLoader import SpectronautLoader
 
 
 def plotting_options(state):

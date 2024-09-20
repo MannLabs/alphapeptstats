@@ -1,11 +1,11 @@
 import os
+
 import streamlit as st
 
-
 from alphastats.gui.utils.ui_helper import (
-    sidebar_info,
     img_to_bytes,
     init_session_state,
+    sidebar_info,
 )
 
 st.set_page_config(layout="wide")

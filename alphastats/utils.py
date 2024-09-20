@@ -1,8 +1,8 @@
 import functools
+import http.client as httplib
+import logging
 import warnings
 from typing import Type
-import logging
-import http.client as httplib
 
 
 def ignore_warning(warning: Type[Warning]):

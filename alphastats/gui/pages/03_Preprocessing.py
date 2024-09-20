@@ -1,17 +1,16 @@
-import streamlit as st
 import pandas as pd
-
+import streamlit as st
 
 from alphastats.gui.utils.preprocessing_helper import (
-    draw_workflow,
+    PREPROCESSING_STEPS,
     configure_preprocessing,
     display_preprocessing_info,
-    update_workflow,
-    run_preprocessing,
+    draw_workflow,
     reset_preprocessing,
-    PREPROCESSING_STEPS,
+    run_preprocessing,
+    update_workflow,
 )
-from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state
+from alphastats.gui.utils.ui_helper import init_session_state, sidebar_info
 
 init_session_state()
 sidebar_info()

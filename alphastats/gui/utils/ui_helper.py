@@ -1,8 +1,9 @@
+import base64
 import uuid
 
-import streamlit as st
 import pandas as pd
-import base64
+import streamlit as st
+
 from alphastats import __version__
 
 # TODO add logo above the options when issue is closed

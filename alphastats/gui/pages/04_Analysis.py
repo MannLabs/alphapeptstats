@@ -1,18 +1,18 @@
 import streamlit as st
 
-from alphastats.gui.utils.ui_helper import (
-    sidebar_info,
-    init_session_state,
-    convert_df,
-)
 from alphastats.gui.utils.analysis_helper import (
+    display_df,
+    display_figure,
+    download_figure,
+    download_preprocessing_info,
     get_analysis,
     load_options,
-    display_figure,
     save_plot_to_session_state,
-    download_figure,
-    display_df,
-    download_preprocessing_info,
+)
+from alphastats.gui.utils.ui_helper import (
+    convert_df,
+    init_session_state,
+    sidebar_info,
 )
 
 

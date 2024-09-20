@@ -1,8 +1,9 @@
-from streamlit.testing.v1 import AppTest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from io import BytesIO
+from streamlit.testing.v1 import AppTest
 
 
 def print_session_state(apptest: AppTest):

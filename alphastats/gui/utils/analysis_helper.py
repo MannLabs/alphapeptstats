@@ -1,6 +1,7 @@
+import io
+
 import pandas as pd
 import streamlit as st
-import io
 
 from alphastats.gui.utils.ui_helper import convert_df
 from alphastats.plots.VolcanoPlot import VolcanoPlot
