@@ -10,6 +10,7 @@ import shutil
 import os
 import copy
 
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
@@ -125,12 +126,16 @@ class BaseTestDataSet:
             # is info printed if contamination columns get removed
             # is the new matrix smaller than the older matrix
             self.assertFalse(
-                self.obj.preprocessing_info.get("Contaminations have been removed")
+                self.obj.preprocessing_info.get(
+                    PreprocessingStateKeys.CONTAMINATIONS_REMOVED
+                )
             )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
             self.assertTrue(
-                self.obj.preprocessing_info.get("Contaminations have been removed")
+                self.obj.preprocessing_info.get(
+                    PreprocessingStateKeys.CONTAMINATIONS_REMOVED
+                )
             )
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)

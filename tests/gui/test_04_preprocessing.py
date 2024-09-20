@@ -1,5 +1,9 @@
 from streamlit.testing.v1 import AppTest
+from pathlib import Path
 from .conftest import create_dataset_alphapept, APP_FOLDER
+
+from alphastats.DataSet import DataSet
+from alphastats.load_data import load_data
 from alphastats.gui.utils.ui_helper import StateKeys
 
 TESTED_PAGE = f"{APP_FOLDER}/pages/03_Preprocessing.py"

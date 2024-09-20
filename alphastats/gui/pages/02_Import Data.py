@@ -2,7 +2,8 @@ from typing import List
 
 import streamlit as st
 
-from alphastats import DataSet, BaseLoader
+from alphastats.DataSet import DataSet
+from alphastats import BaseLoader
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 
 from alphastats.gui.utils.import_helper import (

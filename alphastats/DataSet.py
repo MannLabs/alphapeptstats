@@ -10,7 +10,7 @@ from alphastats import BaseLoader
 
 
 from alphastats.DataSet_Plot import Plot
-from alphastats.DataSet_Preprocess import Preprocess
+from alphastats.DataSet_Preprocess import Preprocess, PreprocessingStateKeys
 from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
@@ -188,7 +188,7 @@ class DataSet(Statistics, Plot, Enrichment):
     def _subset(self):
         # filter matrix so only samples that are described in metadata are also found in matrix
         self.preprocessing_info.update(
-            {"Matrix: Number of samples": self.metadata.shape[0]}
+            {PreprocessingStateKeys.NUM_SAMPLES: self.metadata.shape[0]}
         )
         return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
 
@@ -265,17 +265,19 @@ class DataSet(Statistics, Plot, Enrichment):
     def _save_dataset_info(self):
         n_proteingroups = self.mat.shape[1]
         preprocessing_dict = {
-            "Raw data number of Protein Groups": n_proteingroups,
-            "Matrix: Number of ProteinIDs/ProteinGroups": self.mat.shape[1],
-            "Matrix: Number of samples": self.mat.shape[0],
-            "Intensity used for analysis": self.intensity_column,
-            "Log2-transformed": False,
-            "Normalization": None,
-            "Imputation": None,
-            "Contaminations have been removed": False,
-            "Contamination columns": self.filter_columns,
-            "Number of removed ProteinGroups due to contaminaton": 0,
-            "Data completeness cut-off": 0,
+            PreprocessingStateKeys.RAW_DATA_NUM_PG: n_proteingroups,
+            PreprocessingStateKeys.NUM_PG: self.mat.shape[1],
+            PreprocessingStateKeys.NUM_SAMPLES: self.mat.shape[0],
+            PreprocessingStateKeys.INTENSITY_COLUMN: self.intensity_column,
+            PreprocessingStateKeys.LOG2_TRANSFORMED: False,
+            PreprocessingStateKeys.NORMALIZATION: None,
+            PreprocessingStateKeys.IMPUTATION: None,
+            PreprocessingStateKeys.CONTAMINATIONS_REMOVED: False,
+            PreprocessingStateKeys.CONTAMINATION_COLUMNS: self.filter_columns,
+            PreprocessingStateKeys.NUM_REMOVED_PG_DUE_TO_CONTAMINATION: 0,
+            PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: 0,
+            PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: 0,
+            PreprocessingStateKeys.MISSING_VALUES_REMOVED: False,
         }
         return preprocessing_dict
 

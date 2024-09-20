@@ -1,5 +1,6 @@
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
-from alphastats.utils import ignore_warning, check_for_missing_values
+from alphastats.utils import ignore_warning
 
 import numpy as np
 import pandas as pd
@@ -158,7 +159,10 @@ class VolcanoPlot(PlotUtils):
 
         transposed = self.dataset.mat.transpose()
 
-        if self.dataset.preprocessing_info["Log2-transformed"] is None:
+        if (
+            self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]
+            is None
+        ):
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 

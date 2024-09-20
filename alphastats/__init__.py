@@ -39,10 +39,11 @@ __extra_requirements__ = {
     "development": "requirements_development.txt",
 }
 
+# TODO get rid of these imports
 from .loader.AlphaPeptLoader import *
 from .loader.DIANNLoader import *
 from .loader.FragPipeLoader import *
 from .loader.MaxQuantLoader import *
-from .DataSet import *
+from .loader.SpectronautLoader import *
 from .cli import *
 import alphastats.gui
