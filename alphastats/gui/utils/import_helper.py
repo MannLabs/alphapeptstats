@@ -1,17 +1,16 @@
-from pathlib import Path
-from typing import Optional, Tuple, List
-
-import streamlit as st
-import pandas as pd
-import os
 import io
+import os
+from pathlib import Path
+from typing import List, Optional, Tuple
 
+import pandas as pd
+import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader, BaseLoader
 from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.loader.MaxQuantLoader import BaseLoader, MaxQuantLoader
 
 
 def load_options():

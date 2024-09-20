@@ -1,9 +1,9 @@
-import pandas as pd
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-import plotly.express as px
-
 import math
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 class SampleHistogram:

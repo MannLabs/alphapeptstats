@@ -1,13 +1,14 @@
 # TODO this whole module is unused
 #  Check if this can be merged with the enrichment code accessible through the p'interpreter
+from io import StringIO
+
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import requests
-import pandas as pd
-from io import StringIO
-import numpy as np
 
 from alphastats import AlphaPeptLoader
-from alphastats.utils import check_internetconnection, check_if_df_empty
+from alphastats.utils import check_if_df_empty, check_internetconnection
 
 
 class enrichment_df(pd.DataFrame):

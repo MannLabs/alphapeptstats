@@ -1,7 +1,7 @@
 from typing import List
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 from st_cytoscape import cytoscape
 
 from alphastats.DataSet import DataSet

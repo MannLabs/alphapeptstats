@@ -1,12 +1,13 @@
 from typing import Dict, Optional
 
-from alphastats.DataSet_Preprocess import Preprocess
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import sklearn
-import pandas as pd
+
+from alphastats.DataSet_Preprocess import Preprocess
+from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(

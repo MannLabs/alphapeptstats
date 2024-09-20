@@ -1,12 +1,11 @@
+import random
 from typing import Dict
 
 import pandas as pd
+import seaborn as sns
 
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.plots.PlotUtils import PlotUtils
-
-import seaborn as sns
-import random
 
 
 class ClusterMap(PlotUtils):

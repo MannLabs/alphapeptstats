@@ -1,8 +1,8 @@
-import pandas as pd
-import numpy as np
+from typing import Dict, Union
 
+import numpy as np
+import pandas as pd
 import scipy
-from typing import Union, Dict
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 

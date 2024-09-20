@@ -1,15 +1,15 @@
 import logging
 from typing import Dict
 
-import pandas as pd
-import scipy
 import numpy as np
-import plotly.graph_objects as go
-import plotly.express as px
+import pandas as pd
 import plotly
+import plotly.express as px
+import plotly.graph_objects as go
+import scipy
 
-from alphastats.plots.PlotUtils import plotly_object, PlotUtils
 from alphastats.gui.utils.gpt_helper import get_gene_to_prot_id_mapping
+from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(

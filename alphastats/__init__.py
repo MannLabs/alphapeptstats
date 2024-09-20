@@ -40,10 +40,11 @@ __extra_requirements__ = {
 }
 
 # TODO get rid of these imports
+import alphastats.gui
+
+from .cli import *
 from .loader.AlphaPeptLoader import *
 from .loader.DIANNLoader import *
 from .loader.FragPipeLoader import *
 from .loader.MaxQuantLoader import *
 from .loader.SpectronautLoader import *
-from .cli import *
-import alphastats.gui

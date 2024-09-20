@@ -1,7 +1,6 @@
-from typing import Union, List, Dict
+from typing import Dict, List, Union
+
 import requests
-
-
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys

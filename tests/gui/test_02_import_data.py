@@ -1,7 +1,10 @@
-from streamlit.testing.v1 import AppTest
 from unittest.mock import MagicMock, patch
-from .conftest import APP_FOLDER, data_buf, metadata_buf
+
+from streamlit.testing.v1 import AppTest
+
 from alphastats.gui.utils.ui_helper import StateKeys
+
+from .conftest import APP_FOLDER, data_buf, metadata_buf
 
 TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
 

@@ -1,8 +1,9 @@
-import pandas as pd
-import streamlit as st
 import io
 
-from alphastats.gui.utils.ui_helper import convert_df, StateKeys
+import pandas as pd
+import streamlit as st
+
+from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 

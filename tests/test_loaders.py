@@ -1,21 +1,20 @@
+import copy
+import logging
+import os
+import shutil
 import unittest
+from contextlib import contextmanager
 from unittest import skip
+from unittest.mock import patch
 
 import pandas as pd
-from unittest.mock import patch
-import logging
-import shutil
-import os
-import copy
 
-
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
+from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
-from contextlib import contextmanager
+from alphastats.loader.SpectronautLoader import SpectronautLoader
 
 logger = logging.getLogger(__name__)
 

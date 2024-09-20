@@ -1,11 +1,18 @@
-from alphastats.loader.BaseLoader import BaseLoader
-from typing import Union
-import pandas as pd
-import numpy as np
 import re
 import warnings
+from typing import Union
+
+import numpy as np
+import pandas as pd
+
+from alphastats.loader.BaseLoader import BaseLoader
 
 SPECTRONAUT_COLUMN_DELIM = "."
+
+import numpy as np
+import pandas as pd
+
+from alphastats.loader.BaseLoader import BaseLoader
 
 
 class SpectronautLoader(BaseLoader):

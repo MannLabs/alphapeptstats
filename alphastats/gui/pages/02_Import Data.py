@@ -2,24 +2,23 @@ from typing import List
 
 import streamlit as st
 
-from alphastats.DataSet import DataSet
 from alphastats import BaseLoader
-from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-
+from alphastats.DataSet import DataSet
 from alphastats.gui.utils.import_helper import (
     load_example_data,
-    uploaded_file_to_df,
-    show_loader_columns_selection,
-    load_proteomics_data,
     load_options,
-    show_select_sample_column_for_metadata,
+    load_proteomics_data,
     show_button_download_metadata_template_file,
+    show_loader_columns_selection,
+    show_select_sample_column_for_metadata,
+    uploaded_file_to_df,
 )
+from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 from alphastats.gui.utils.ui_helper import (
-    sidebar_info,
+    StateKeys,
     empty_session_state,
     init_session_state,
-    StateKeys,
+    sidebar_info,
 )
 
 

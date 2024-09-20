@@ -1,8 +1,8 @@
 [tool.ruff]
 extend-exclude = [".bumpversion.cfg", ".secrets.baseline"]
 
-# [tool.ruff.lint]
-# select =  [
+ [tool.ruff.lint]
+ select =  [
 #    # pycodestyle
 #    "E",
 #    # Pyflakes
@@ -13,9 +13,9 @@ extend-exclude = [".bumpversion.cfg", ".secrets.baseline"]
 #    "B",
 #    # flake8-simplify
 #    "SIM",
-#    # isort
-#    "I",
-# ]
+    # isort
+    "I",
+ ]
 
 # ignore = [
 #    "E501",  # Line too long  (ruff wraps code, but not docstrings)

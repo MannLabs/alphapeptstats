@@ -1,15 +1,15 @@
-import plotly.express as px
-import plotly
-import scipy
-
-import plotly.graph_objects as go
-import seaborn as sns
-import pandas as pd
-import plotly.figure_factory
 from typing import Dict
 
-from alphastats.utils import check_for_missing_values
+import pandas as pd
+import plotly
+import plotly.express as px
+import plotly.figure_factory
+import plotly.graph_objects as go
+import scipy
+import seaborn as sns
+
 from alphastats.plots.PlotUtils import PlotUtils
+from alphastats.utils import check_for_missing_values
 
 
 class plotly_object(plotly.graph_objs._figure.Figure):

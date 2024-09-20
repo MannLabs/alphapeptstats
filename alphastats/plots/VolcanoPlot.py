@@ -1,16 +1,16 @@
+from functools import lru_cache
 from typing import Dict, List, Union
-
-from alphastats.DataSet_Statistics import Statistics
-from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
-from alphastats.utils import ignore_warning
 
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.express as px
 import plotly.graph_objects as go
-import plotly
-from functools import lru_cache
+
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+from alphastats.DataSet_Statistics import Statistics
+from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.utils import ignore_warning
 
 # TODO this is repeated and needs to go elsewhere!
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(

@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -7,7 +7,6 @@ import sklearn
 import sklearn.ensemble
 import sklearn.impute
 import streamlit as st
-
 from sklearn.experimental import enable_iterative_imputer  # noqa
 
 from alphastats.utils import ignore_warning

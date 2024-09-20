@@ -1,7 +1,9 @@
-from alphastats.loader.BaseLoader import BaseLoader
-import pandas as pd
-import numpy as np
 from typing import Union
+
+import numpy as np
+import pandas as pd
+
+from alphastats.loader.BaseLoader import BaseLoader
 
 
 class MaxQuantLoader(BaseLoader):

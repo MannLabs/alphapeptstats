@@ -1,17 +1,17 @@
-import pandas as pd
+from functools import lru_cache
+from typing import Dict, Union
+
 import numpy as np
+import pandas as pd
 import pingouin
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.utils import ignore_warning
-from functools import lru_cache
-from typing import Union, Dict
-
-from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
+from alphastats.statistics.Anova import Anova
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
 )
-from alphastats.statistics.Anova import Anova
+from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
+from alphastats.utils import ignore_warning
 
 
 class Statistics:

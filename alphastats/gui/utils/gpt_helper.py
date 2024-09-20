@@ -1,15 +1,15 @@
 import copy
-from typing import Union, List, Dict
-
 import json
-
-from Bio import Entrez
+from typing import Dict, List, Union
 
 import pandas as pd
+import requests
 import streamlit as st
+from Bio import Entrez
+from gprofiler import GProfiler
 
-from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 
 Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
 

@@ -1,27 +1,28 @@
 import os
-import streamlit as st
+
 import pandas as pd
+import streamlit as st
 from openai import AuthenticationError
 
 from alphastats.gui.utils.analysis_helper import (
     check_if_options_are_loaded,
     display_figure,
-    save_plot_to_session_state,
     gui_volcano_plot_differential_expression_analysis,
     helper_compare_two_groups,
+    save_plot_to_session_state,
 )
 from alphastats.gui.utils.gpt_helper import (
-    get_assistant_functions,
     display_proteins,
-    get_subgroups_for_each_group,
+    get_assistant_functions,
     get_general_assistant_functions,
+    get_subgroups_for_each_group,
 )
+from alphastats.gui.utils.ollama_utils import LLMIntegration
 from alphastats.gui.utils.openai_utils import (
     set_api_key,
 )
-from alphastats.gui.utils.ollama_utils import LLMIntegration
 from alphastats.gui.utils.options import interpretation_options
-from alphastats.gui.utils.ui_helper import sidebar_info, init_session_state, StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 
 init_session_state()
 sidebar_info()

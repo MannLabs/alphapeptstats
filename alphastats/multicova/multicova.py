@@ -1,22 +1,23 @@
-import numpy as np
-import pandas as pd
+import math
+import multiprocessing
+import os
+import random
+from collections import Counter
+from pathlib import Path
+
 import numba as nb
 import numba_stats as nbs
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from sklearn.linear_model import LinearRegression
-from scipy import stats
 import statsmodels.api as sm
-from collections import Counter
-import multiprocessing
-from joblib import Parallel, delayed
-import random
-import math
 import swifter
+from joblib import Parallel, delayed
+from scipy import stats
+from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.multitest import multipletests
-import os
-from pathlib import Path
 
 # code taken from Isabel Bludau - multicova
 
