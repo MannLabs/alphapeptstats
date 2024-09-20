@@ -110,9 +110,9 @@ def test_page_02_loads_maxquant_testfiles(
     assert not at.exception
 
     dataset = at.session_state[StateKeys.DATASET]
-    assert dataset.gene_names == "Gene names"
+    assert dataset._gene_names == "Gene names"
     assert dataset.index_column == "Protein IDs"
-    assert dataset.intensity_column == "LFQ intensity [sample]"
+    assert dataset._intensity_column == "LFQ intensity [sample]"
     assert dataset.rawmat.shape == (312, 2611)
     assert dataset.software == "MaxQuant"
     assert dataset.sample == "sample"

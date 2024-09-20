@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import plotly
 from functools import lru_cache
 
+# TODO this is repeated and needs to go elsewhere!
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
         paper_bgcolor="rgba(0,0,0,0)",

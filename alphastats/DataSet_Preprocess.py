@@ -16,6 +16,9 @@ from alphastats.utils import ignore_warning
 class PreprocessingStateKeys:
     """Keys for accessing the dictionary holding the information about preprocessing."""
 
+    # TODO disentangle these keys from the human-readably display strings
+    PREPROCESSING_DONE = "Preprocessing done"
+
     RAW_DATA_NUM_PG = "Raw data number of Protein Groups"
     NUM_PG = "Matrix= Number of ProteinIDs/ProteinGroups"
     NUM_SAMPLES = "Matrix= Number of samples"
@@ -68,6 +71,7 @@ class Preprocess:
     ) -> Dict:
         """Initialize preprocessing info."""
         return {
+            PreprocessingStateKeys.PREPROCESSING_DONE: False,
             PreprocessingStateKeys.RAW_DATA_NUM_PG: num_protein_groups,
             PreprocessingStateKeys.NUM_PG: num_protein_groups,
             PreprocessingStateKeys.NUM_SAMPLES: num_samples,
@@ -111,6 +115,7 @@ class Preprocess:
                 "Missing values have already been filtered. To apply another cutoff, reset preprocessing."
             )
             return
+
         cut = 1 - cut_off
 
         num_samples, num_proteins = self.mat.shape
@@ -450,6 +455,7 @@ class Preprocess:
 
         self.preprocessing_info.update(
             {
+                PreprocessingStateKeys.PREPROCESSING_DONE: True,
                 PreprocessingStateKeys.NUM_PG: self.mat.shape[1],
             }
         )
