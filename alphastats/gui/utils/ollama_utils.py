@@ -1,22 +1,22 @@
-import logging
-
-from openai import OpenAI
-from typing import List, Dict, Any, Optional, Tuple
 import json
-import streamlit as st
+import logging
+from typing import Any, Dict, List, Optional, Tuple
+
 import pandas as pd
-from IPython.display import display, Markdown, HTML
 import plotly.io as pio
+import streamlit as st
+from IPython.display import HTML, Markdown, display
+from openai import OpenAI
+
+from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 from alphastats.gui.utils.gpt_helper import (
-    perform_dimensionality_reduction,
     get_general_assistant_functions,
+    perform_dimensionality_reduction,
 )
+from alphastats.gui.utils.ui_helper import StateKeys
 
 # from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
-from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
-from alphastats.gui.utils.ui_helper import StateKeys
-
 
 logger = logging.getLogger(__name__)
 

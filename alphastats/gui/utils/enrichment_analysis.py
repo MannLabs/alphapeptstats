@@ -1,10 +1,8 @@
 from typing import List
-import requests
-
-
-from gprofiler import GProfiler
 
 import pandas as pd
+import requests
+from gprofiler import GProfiler
 
 
 def _get_functional_annotation_string(identifier, species_id="9606") -> pd.DataFrame:

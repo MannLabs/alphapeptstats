@@ -1,9 +1,7 @@
-from typing import Optional, List
-from pathlib import Path
-
-import time
 import json
-
+import time
+from pathlib import Path
+from typing import List, Optional
 
 import openai
 import streamlit as st
@@ -22,11 +20,11 @@ except ModuleNotFoundError:
     from utils.gpt_helper import (
         turn_args_to_float,
     )
-    from utils.uniprot_utils import (
-        get_gene_function,
-    )
     from utils.openai_utils import (
         wait_for_run_completion,
+    )
+    from utils.uniprot_utils import (
+        get_gene_function,
     )
 
 
