@@ -116,8 +116,19 @@ def gui_volcano_plot_differential_expression_analysis(
     """
     initalize volcano plot object with differential expression analysis results
     """
+    dataset = st.session_state[StateKeys.DATASET]
+
+    # TODO this is just a quickfix, a simple interface needs to be provided by DataSet
     volcano_plot = VolcanoPlot(
-        dataset=st.session_state[StateKeys.DATASET], **chosen_parameter_dict, plot=False
+        mat=dataset.mat,
+        rawinput=dataset.rawinput,
+        metadata=dataset.metadata,
+        sample=dataset.sample,
+        index_column=dataset.index_column,
+        gene_names=dataset._gene_names,
+        preprocessing_info=dataset.preprocessing_info,
+        **chosen_parameter_dict,
+        plot=False,
     )
     volcano_plot._perform_differential_expression_analysis()
     volcano_plot._add_hover_data_columns()
