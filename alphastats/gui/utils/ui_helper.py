@@ -72,7 +72,7 @@ def empty_session_state():
     """
     remove all variables to avoid conflicts
     """
-    for key in st.session_state.keys():
+    for key in st.session_state:
         del st.session_state[key]
     st.empty()
 

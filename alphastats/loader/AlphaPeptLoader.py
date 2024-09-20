@@ -77,10 +77,7 @@ class AlphaPeptLoader(BaseLoader):
         protein_id_list = []
         for protein in proteins:
             # 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN',
-            if "|" in protein:
-                fasta_header_split = protein.split("|")
-            else:
-                fasta_header_split = protein
+            fasta_header_split = protein.split("|") if "|" in protein else protein
             if isinstance(fasta_header_split, str):
                 #  'ENSEMBL:ENSBTAP00000007350',
                 if "ENSEMBL:" in fasta_header_split:

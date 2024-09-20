@@ -91,7 +91,7 @@ def st_general(method_dict):
         for parameter in settings_dict:
             parameter_dict = settings_dict[parameter]
 
-            if "options" in parameter_dict.keys():
+            if "options" in parameter_dict:
                 chosen_parameter = st.selectbox(
                     parameter_dict.get("label"), options=parameter_dict.get("options")
                 )
@@ -200,7 +200,7 @@ def get_analysis_options_from_dict(method, options_dict):
     elif method == "UMAP Plot":
         return st_plot_umap(method_dict)
 
-    elif "settings" not in method_dict.keys():
+    elif "settings" not in method_dict:
         if st.session_state.dataset.mat.isna().values.any() == True:
             st.error(
                 "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
@@ -342,7 +342,7 @@ def helper_compare_two_groups():
 
 
 def get_analysis(method, options_dict):
-    if method in options_dict.keys():
+    if method in options_dict:
         obj = get_analysis_options_from_dict(method, options_dict=options_dict)
         return obj
 

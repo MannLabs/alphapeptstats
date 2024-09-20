@@ -145,10 +145,7 @@ def get_tstat_cutoff(res_real, t_perm_avg, delta):
     # between the observed and average random t-stat is
     # larger than the selected delta.
     t_max = t_real_abs[t_diff > delta]
-    if t_max.shape[0] == 0:
-        t_max = np.ceil(np.max(t_real_abs))
-    else:
-        t_max = np.min(t_max)
+    t_max = np.ceil(np.max(t_real_abs)) if t_max.shape[0] == 0 else np.min(t_max)
     return t_max
 
 
@@ -329,10 +326,9 @@ def get_fdr_line(
     for i in np.arange(0, len(fc_s)):
         for j in np.arange(0, len(s_s)):
             res_s = perform_ttest_getMaxS(fc=fc_s[i], s=s_s[j], s0=s0, n_x=n_x, n_y=n_y)
-            if res_s[3] >= t_limit:
-                if svals[i] < s_s[j]:
-                    svals[i] = s_s[j]
-                    pvals[i] = res_s[2]
+            if res_s[3] >= t_limit and svals[i] < s_s[j]:
+                svals[i] = s_s[j]
+                pvals[i] = res_s[2]
 
     s_df = pd.DataFrame(
         np.array([fc_s, svals, pvals]).T, columns=["fc_s", "svals", "pvals"]

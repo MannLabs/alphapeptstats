@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 import pandas as pd
@@ -105,10 +106,8 @@ with c1:
 
     try_to_set_api_key(api_key)
 
-    try:
+    with contextlib.suppress(OpenAIError):
         client = OpenAI(api_key=st.secrets["openai_api_key"])
-    except OpenAIError:
-        pass
     method = st.selectbox(
         "Differential Analysis using:",
         options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
