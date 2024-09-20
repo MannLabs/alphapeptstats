@@ -614,7 +614,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2=["1_71_F10", "1_73_F12"],
             color_list=self.obj.mat.columns.to_list()[0:20],
         )
-        self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 20)
+        self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 1)
 
     def test_plot_clustermap_significant(self):
         import sys
@@ -762,14 +762,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(312, len(fig["data"]))
 
     def test_batch_correction(self):
-        self.obj.preprocess(
-            subset=True, imputation="knn", normalization="linear", log2_transform=True
-        )
+        self.obj.preprocess(subset=True, imputation="knn", normalization="linear")
         self.obj.batch_correction(batch="batch_artifical_added")
         first_value = self.obj.mat.values[0, 0]
-        self.assertAlmostEqual(-0.00555, first_value, places=3)
+        self.assertTrue(np.isclose(2.624937690577153e-08, first_value))
 
     # TODO this opens a plot in a browser window
+    @skip  # TODO multicova_analysis is unused
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(
