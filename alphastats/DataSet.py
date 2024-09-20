@@ -84,7 +84,7 @@ class DataSet:
 
         # self.evidence_df: pd.DataFrame = loader.evidence_df  # TODO unused
 
-        self.dataset_factory = DataSetFactory(
+        self._dataset_factory = DataSetFactory(
             rawinput=self.rawinput,
             index_column=self.index_column,
             intensity_column=self._intensity_column,
@@ -93,7 +93,7 @@ class DataSet:
         )
 
         rawmat, mat, metadata, sample, preprocessing_info, preprocessed = (
-            self._init_dataset()
+            self._get_init_dataset()
         )
         self.rawmat: pd.DataFrame = rawmat
         self.mat: pd.DataFrame = mat
@@ -104,10 +104,13 @@ class DataSet:
 
         print("DataSet has been created.")
 
-    def _init_dataset(self):
-        rawmat, mat = self.dataset_factory.create_matrix_from_rawinput()
+    def _get_init_dataset(
+        self,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str, Dict, bool]:
+        """Get the initial data structure for the DataSet."""
+        rawmat, mat = self._dataset_factory.create_matrix_from_rawinput()
 
-        metadata, sample = self.dataset_factory.create_metadata(mat)
+        metadata, sample = self._dataset_factory.create_metadata(mat)
 
         preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=mat.shape[0],
@@ -189,7 +192,7 @@ class DataSet:
             self.sample,
             self.preprocessing_info,
             self._preprocessed,
-        ) = self._init_dataset()
+        ) = self._get_init_dataset()
 
     def batch_correction(self, batch: str) -> None:
         """A wrapper for Preprocess.batch_correction(), see documentation there."""
