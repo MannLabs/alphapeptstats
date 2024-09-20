@@ -19,6 +19,11 @@ font = "sans serif"
 
 [server]
 maxUploadSize = 500
+enableXsrfProtection = false
+enableCORS = false
 
 [browser]
 gatherUsageStats = true
+
+[logger]
+level = "debug"  # TODO this seems to have no effect?

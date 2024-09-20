@@ -183,7 +183,7 @@ class VolcanoPlot(PlotUtils):
         transposed = self.dataset.mat.transpose()
 
         if (
-            self.dataset.preprocessing_info[PreprocessingStateKeys.NORMALIZATION]
+            self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]
             is None
         ):
             # needs to be lpog2 transformed for fold change calculations
