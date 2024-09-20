@@ -55,9 +55,9 @@ class Preprocess:
         self.index_column = index_column
         self.sample = sample
 
-        self.metadata = metadata  # changed
-        self.preprocessing_info = preprocessing_info  # changed
-        self.mat = mat  # changed
+        self.metadata = metadata
+        self.preprocessing_info = preprocessing_info
+        self.mat = mat
 
     @staticmethod
     def init_preprocessing_info(
@@ -88,12 +88,15 @@ class Preprocess:
         self.mat = self.mat.drop(sample_list)
         self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
 
-    def _subset(self):
-        # filter matrix so only samples that are described in metadata are also found in matrix
-        self.preprocessing_info.update(
-            {PreprocessingStateKeys.NUM_SAMPLES: self.metadata.shape[0]}
+    @staticmethod
+    def subset(
+        mat: pd.DataFrame, metadata: pd.DataFrame, sample: str, preprocessing_info: Dict
+    ) -> pd.DataFrame:
+        """Filter matrix so only samples that are described in metadata are also found in matrix."""
+        preprocessing_info.update(
+            {PreprocessingStateKeys.NUM_SAMPLES: metadata.shape[0]}
         )
-        return self.mat[self.mat.index.isin(self.metadata[self.sample].tolist())]
+        return mat[mat.index.isin(metadata[sample].tolist())]
 
     def _remove_na_values(self, cut_off):
         if (
@@ -420,7 +423,9 @@ class Preprocess:
             self._remove_samples(sample_list=remove_samples)
 
         if subset:
-            self.mat = self._subset()
+            self.mat = self.subset(
+                self.mat, self.metadata, self.sample, self.preprocessing_info
+            )
 
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)

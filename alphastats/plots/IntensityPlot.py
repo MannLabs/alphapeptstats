@@ -1,4 +1,7 @@
 import logging
+from typing import Dict
+
+import pandas as pd
 import scipy
 import numpy as np
 import plotly.graph_objects as go
@@ -32,7 +35,12 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 class IntensityPlot(PlotUtils):
     def __init__(
         self,
-        dataset,
+        *,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        sample: str,
+        intensity_column: str,
+        preprocessing_info: Dict,
         protein_id,
         group,
         subgroups,
@@ -40,7 +48,12 @@ class IntensityPlot(PlotUtils):
         add_significance,
         log_scale,
     ) -> None:
-        self.dataset = dataset
+        self.mat = mat
+        self.metadata = metadata
+        self.sample = sample
+        self.intensity_column = intensity_column
+        self.preprocessing_info = preprocessing_info
+
         self.protein_id = get_gene_to_prot_id_mapping(protein_id)
         self.group = group
         self.subgroups = subgroups
@@ -125,19 +138,17 @@ class IntensityPlot(PlotUtils):
     def _prepare_data(self):
         #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
         df = (
-            self.dataset.mat[[self.protein_id]]
+            self.mat[[self.protein_id]]
             .reset_index()
-            .rename(columns={"index": self.dataset.sample})
+            .rename(columns={"index": self.sample})
         )
-        df = df.merge(self.dataset.metadata, how="inner", on=[self.dataset.sample])
+        df = df.merge(self.metadata, how="inner", on=[self.sample])
 
         if self.subgroups is not None:
             df = df[df[self.group].isin(self.subgroups)]
 
         self.y_label = (
-            self.protein_id
-            + " - "
-            + self.dataset.intensity_column.replace("[sample]", "")
+            self.protein_id + " - " + self.intensity_column.replace("[sample]", "")
         )
         self.prepared_df = df
 
@@ -197,10 +208,10 @@ class IntensityPlot(PlotUtils):
             fig = self._add_significance(fig)
 
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig,
+        self._update_figure_attributes(
+            fig,
             plotting_data=self.prepared_df,
-            preprocessing_info=self.dataset.preprocessing_info,
+            preprocessing_info=self.preprocessing_info,
             method=self.method,
         )
 

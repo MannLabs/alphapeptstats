@@ -1,12 +1,42 @@
-from alphastats.plots.PlotUtils import PlotUtils, seaborn_object
+from typing import Dict
+
+import pandas as pd
+
+from alphastats.DataSet_Statistics import Statistics
+from alphastats.plots.PlotUtils import PlotUtils
 
 import seaborn as sns
 import random
 
 
 class ClusterMap(PlotUtils):
-    def __init__(self, dataset, label_bar, only_significant, group, subgroups):
-        self.dataset = dataset
+    def __init__(
+        self,
+        *,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        sample: str,
+        index_column: str,
+        preprocessing_info: Dict,
+        label_bar,
+        only_significant,
+        group,
+        subgroups,
+    ):
+        self.mat: pd.DataFrame = mat
+        self.metadata: pd.DataFrame = metadata
+        self.sample: str = sample
+        self.index_column: str = index_column
+        self.preprocessing_info: Dict = preprocessing_info
+
+        self._statistics = Statistics(
+            mat=self.mat,
+            metadata=self.metadata,
+            index_column=self.index_column,
+            sample=self.sample,
+            preprocessing_info=self.preprocessing_info,
+        )
+
         self.label_bar = label_bar
         self.only_significant = only_significant
         self.group = group
@@ -16,33 +46,29 @@ class ClusterMap(PlotUtils):
         self._plot()
 
     def _prepare_df(self):
-        df = self.dataset.mat.loc[:, (self.dataset.mat != 0).any(axis=0)]
+        df = self.mat.loc[:, (self.mat != 0).any(axis=0)]
 
         if self.group is not None and self.subgroups is not None:
-            metadata_df = self.dataset.metadata[
-                self.dataset.metadata[self.group].isin(
-                    self.subgroups + [self.dataset.sample]
-                )
+            metadata_df = self.metadata[
+                self.metadata[self.group].isin(self.subgroups + [self.sample])
             ]
-            samples = metadata_df[self.dataset.sample]
+            samples = metadata_df[self.sample]
             df = df.filter(items=samples, axis=0)
 
         else:
-            metadata_df = self.dataset.metadata
+            metadata_df = self.metadata
 
         if self.only_significant and self.group is not None:
-            anova_df = self.dataset.anova(column=self.group, tukey=False)
+            anova_df = self._statistics.anova(column=self.group, tukey=False)
             significant_proteins = anova_df[anova_df["ANOVA_pvalue"] < 0.05][
-                self.dataset.index_column
+                self.index_column
             ].to_list()
             df = df[significant_proteins]
 
         if self.label_bar is not None:
             self._create_label_bar(metadata_df)
 
-        self.prepared_df = self.dataset.mat.loc[
-            :, (self.dataset.mat != 0).any(axis=0)
-        ].transpose()
+        self.prepared_df = self.mat.loc[:, (self.mat != 0).any(axis=0)].transpose()
 
     def _plot(self):
         fig = sns.clustermap(self.prepared_df, col_colors=self.label_bar)
@@ -50,10 +76,12 @@ class ClusterMap(PlotUtils):
         if self.label_bar is not None:
             fig = self._add_label_bar(fig)
 
-        # set attributes
-        setattr(fig, "plotting_data", self.prepared_df)
-        setattr(fig, "preprocessing", self.dataset.preprocessing_info)
-        setattr(fig, "method", "clustermap")
+        self._update_figure_attributes(
+            fig,
+            plotting_data=self.prepared_df,
+            preprocessing_info=self.preprocessing_info,
+            method="clustermap",
+        )
 
         self.plot = fig
 

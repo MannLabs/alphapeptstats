@@ -1,3 +1,4 @@
+import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
@@ -10,12 +11,8 @@ class SampleHistogram:
     Plot denisty plot of each sample in a matrix
     """
 
-    def __init__(self, dataset):
-        self.dataset = dataset
-        self._get_matrix()
-
-    def _get_matrix(self):
-        self.data = self.dataset.mat.transpose()
+    def __init__(self, mat: pd.DataFrame):
+        self.data = mat.transpose()
 
     def _get_position_in_matrix(self, count):
         count += 1

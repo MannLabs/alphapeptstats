@@ -1,3 +1,6 @@
+from typing import Dict, Optional
+
+from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 import plotly
 import plotly.express as px
@@ -28,8 +31,23 @@ plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
 class DimensionalityReduction(PlotUtils):
-    def __init__(self, dataset, group, method, circle, **kwargs) -> None:
-        self.dataset = dataset
+    def __init__(
+        self,
+        *,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        sample: str,
+        preprocessing_info: Dict,
+        group: Optional[str],
+        circle: bool,
+        method: str,
+        **kwargs,
+    ) -> None:
+        self.mat: pd.DataFrame = mat
+        self.metadata: pd.DataFrame = metadata
+        self.sample: str = sample
+        self.preprocessing_info: Dict = preprocessing_info
+
         self.method = method
         self.circle = circle
         self.group = group
@@ -74,15 +92,18 @@ class DimensionalityReduction(PlotUtils):
 
     def _prepare_df(self):
         if self.group:
-            mat = self.dataset._subset()
-            self.dataset.metadata[self.group] = self.dataset.metadata[self.group].apply(
-                str
+            # TODO This is only needed in the DimensionalityReduction class and only if the step was not run during preprocessing.
+            #  idea: replace the step in DimensionalityReduction with something like:
+            #  mat = self.data.mat.loc[sample_names,:] after creating sample_names.
+            mat = Preprocess.subset(
+                self.mat, self.metadata, self.sample, self.preprocessing_info
             )
-            group_color = self.dataset.metadata[self.group]
-            sample_names = self.dataset.metadata[self.dataset.sample].to_list()
+            self.metadata[self.group] = self.metadata[self.group].apply(str)
+            group_color = self.metadata[self.group]
+            sample_names = self.metadata[self.sample].to_list()
 
         else:
-            mat = self.dataset.mat
+            mat = self.mat
             group_color = self.group
             sample_names = mat.reset_index(level=0)["index"].to_list()
 
@@ -123,7 +144,7 @@ class DimensionalityReduction(PlotUtils):
 
     def _plot(self, sample_names, group_color):
         components = pd.DataFrame(self.components)
-        components[self.dataset.sample] = sample_names
+        components[self.sample] = sample_names
 
         fig = px.scatter(
             components,
@@ -131,7 +152,7 @@ class DimensionalityReduction(PlotUtils):
             y=1,
             labels=self.labels,
             color=group_color,
-            hover_data=[components[self.dataset.sample]],
+            hover_data=[components[self.sample]],
             template="simple_white+alphastats_colors",
         )
 
@@ -146,11 +167,11 @@ class DimensionalityReduction(PlotUtils):
 
         #  save plotting data in figure object
         fig = plotly_object(fig)
-        fig = self._update_figure_attributes(
-            figure_object=fig,
+        self._update_figure_attributes(
+            fig,
             plotting_data=pd.DataFrame(components),
             method=self.method,
-            preprocessing_info=self.dataset.preprocessing_info,
+            preprocessing_info=self.preprocessing_info,
         )
 
         # draw circles around plotted groups

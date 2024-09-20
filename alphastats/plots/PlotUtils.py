@@ -1,5 +1,7 @@
+from typing import Optional, Dict
+
+import pandas as pd
 import plotly
-import seaborn as sns
 import plotly.graph_objects as go
 
 
@@ -24,10 +26,21 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class PlotUtils:
-    def __init__(self) -> None:
-        pass
+# TODO rename to PlotlyObject
+class plotly_object(plotly.graph_objs._figure.Figure):
+    plotting_data = None
+    preprocessing = None
+    method = None
 
+
+# TODO unused?
+# class seaborn_object(sns.matrix.ClusterGrid):
+#     plotting_data = None
+#     preprocessing = None
+#     method = None
+
+
+class PlotUtils:
     @staticmethod
     def _update_colors_plotly(fig, color_dict):
         # plotly doesnt allow to assign color to certain group
@@ -43,21 +56,13 @@ class PlotUtils:
         return go.Figure(fig_dict)
 
     def _update_figure_attributes(
-        self, figure_object, plotting_data, preprocessing_info, method=None
-    ):
-        setattr(figure_object, "plotting_data", plotting_data)
-        setattr(figure_object, "preprocessing", preprocessing_info)
-        setattr(figure_object, "method", method)
-        return figure_object
-
-
-class plotly_object(plotly.graph_objs._figure.Figure):
-    plotting_data = None
-    preprocessing = None
-    method = None
-
-
-class seaborn_object(sns.matrix.ClusterGrid):
-    plotting_data = None
-    preprocessing = None
-    method = None
+        self,
+        figure_object: plotly_object,
+        *,
+        plotting_data: pd.DataFrame,
+        preprocessing_info: Dict,
+        method: Optional[str] = None,
+    ) -> None:
+        figure_object.plotting_data = plotting_data
+        figure_object.preprocessing = preprocessing_info
+        figure_object.method = method
