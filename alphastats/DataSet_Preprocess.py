@@ -268,7 +268,7 @@ class Preprocess:
         return results_list
 
     def _log2_transform(self):
-        self.mat = np.log2(self.mat + 0.1)
+        self.mat = np.log2(self.mat)
         self.preprocessing_info.update({"Log2-transformed": True})
         print("Data has been log2-transformed.")
 

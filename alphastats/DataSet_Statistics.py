@@ -20,8 +20,6 @@ class Statistics:
     def _calculate_foldchange(
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ) -> pd.DataFrame:
-        mat_transpose += 0.00001
-
         if self.preprocessing_info["Log2-transformed"]:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
