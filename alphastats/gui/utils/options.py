@@ -1,3 +1,4 @@
+from alphastats import SpectronautLoader
 from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
