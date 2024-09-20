@@ -280,8 +280,6 @@ class VolcanoPlot(PlotUtils):
     def _calculate_foldchange(  # TODO duplicated
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ) -> pd.DataFrame:
-        mat_transpose += 0.00001
-
         group1_values = mat_transpose[group1_samples].T.mean().values
         group2_values = mat_transpose[group2_samples].T.mean().values
         if self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:

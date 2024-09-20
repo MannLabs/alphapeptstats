@@ -13,8 +13,6 @@ from alphastats.statistics.DifferentialExpressionAnalysis import (
 )
 from alphastats.statistics.Anova import Anova
 
-# FIX _calculate_foldchange _add_metadata_column
-
 class Statistics:
     def __init__(
         self,
