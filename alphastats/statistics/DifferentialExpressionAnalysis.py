@@ -109,10 +109,7 @@ class DifferentialExpressionAnalysis:
 
         transposed = self.mat.transpose()
 
-        if (
-            self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]
-            is None
-        ):
+        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED] is None:
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 
