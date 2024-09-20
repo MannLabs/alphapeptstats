@@ -505,7 +505,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(subset=True, log2_transform=False)
         self.assertEqual(self.obj.mat.shape, (48, 1364))
 
-    @patch.object(Statistics, "tukey_test")
+    @patch("alphastats.DataSet.DataSet.tukey_test")
     def test_anova_without_tukey(self, mock):
         anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
@@ -549,7 +549,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_tukey_test(self):
         protein_id = "K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1"
-        tukey_df = self.obj.tukey_test(protein_id=protein_id, group="disease", df=None)
+        tukey_df = self.obj.tukey_test(protein_id=protein_id, group="disease")
         self.assertEqual(tukey_df["p-tukey"][0], 0.674989009816342)
 
     def test_ancova(self):

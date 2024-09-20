@@ -5,7 +5,7 @@ import pingouin
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.utils import ignore_warning
 from functools import lru_cache
-from typing import Union
+from typing import Union, Dict
 
 from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 from alphastats.statistics.DifferentialExpressionAnalysis import (
@@ -15,45 +15,19 @@ from alphastats.statistics.Anova import Anova
 
 
 class Statistics:
-    def _calculate_foldchange(
-        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
-    ) -> pd.DataFrame:
-        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            fc = (
-                mat_transpose[group1_samples].T.mean().values
-                - mat_transpose[group2_samples].T.mean().values
-            )
-
-        else:
-            fc = (
-                mat_transpose[group1_samples].T.mean().values
-                / mat_transpose[group2_samples].T.mean().values
-            )
-            fc = np.log2(fc)
-
-        return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
-
-    def _add_metadata_column(self, group1_list: list, group2_list: list):
-        # create new column in metadata with defined groups
-        metadata = self.metadata
-
-        sample_names = metadata[self.sample].to_list()
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
-
-        column = "_comparison_column"
-        conditons = [
-            metadata[self.sample].isin(group1_list),
-            metadata[self.sample].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
-
-        return column, "group1", "group2"
+    def __init__(
+        self,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        index_column: str,
+        sample: str,
+        preprocessing_info: Dict,
+    ):
+        self.mat: pd.DataFrame = mat
+        self.metadata: pd.DataFrame = metadata
+        self.index_column: str = index_column
+        self.sample: str = sample
+        self.preprocessing_info: Dict = preprocessing_info
 
     @ignore_warning(RuntimeWarning)
     def diff_expression_analysis(
@@ -88,7 +62,11 @@ class Statistics:
             * ``'ll'``: the log-likelihood of the estimation
         """
         df = DifferentialExpressionAnalysis(
-            dataset=self,
+            mat=self.mat,
+            metadata=self.metadata,
+            index_column=self.index_column,
+            sample=self.sample,
+            preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
             column=column,
@@ -97,54 +75,6 @@ class Statistics:
             fdr=fdr,
         ).perform()
         return df
-
-    @ignore_warning(RuntimeWarning)
-    def tukey_test(
-        self, protein_id: str, group: str, df: pd.DataFrame = None
-    ) -> pd.DataFrame:
-        """Calculate Pairwise Tukey-HSD post-hoc test
-        Wrapper around:
-        https://pingouin-stats.org/generated/pingouin.pairwise_tukey.html#pingouin.pairwise_tukey
-
-        Args:
-            protein_id (str): ProteinID to calculate Pairwise Tukey-HSD post-hoc test - dependend variable
-            group (str): A metadata column used calculate pairwise tukey
-            df (pandas.DataFrame, optional): Defaults to None.
-
-        Returns:
-            pandas.DataFrame:
-            * ``'A'``: Name of first measurement
-            * ``'B'``: Name of second measurement
-            * ``'mean(A)'``: Mean of first measurement
-            * ``'mean(B)'``: Mean of second measurement
-            * ``'diff'``: Mean difference (= mean(A) - mean(B))
-            * ``'se'``: Standard error
-            * ``'T'``: T-values
-            * ``'p-tukey'``: Tukey-HSD corrected p-values
-            * ``'hedges'``: Hedges effect size (or any effect size defined in
-            ``effsize``)
-            * ``'comparison'``: combination of measurment
-            * ``'Protein ID'``: ProteinID/ProteinGroup
-        """
-        if df is None:
-            df = (
-                self.mat[[protein_id]]
-                .reset_index()
-                .rename(columns={"index": self.sample})
-            )
-            df = df.merge(self.metadata, how="inner", on=[self.sample])
-
-        try:
-            tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)
-            tukey_df["comparison"] = (
-                tukey_df["A"] + " vs. " + tukey_df["B"] + " Tukey Test"
-            )
-            tukey_df[self.index_column] = protein_id
-
-        except ValueError:
-            tukey_df = pd.DataFrame()
-
-        return tukey_df
 
     @ignore_warning(RuntimeWarning)
     def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
@@ -162,7 +92,13 @@ class Statistics:
             * ``'A vs. B Tukey test'``: Tukey-HSD corrected p-values (each combination represents a column)
         """
         return Anova(
-            dataset=self, column=column, protein_ids=protein_ids, tukey=tukey
+            mat=self.mat,
+            metadata=self.metadata,
+            sample=self.sample,
+            index_column=self.index_column,
+            column=column,
+            protein_ids=protein_ids,
+            tukey=tukey,
         ).perform()
 
     @lru_cache(maxsize=20)
@@ -194,36 +130,36 @@ class Statistics:
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
 
-    @ignore_warning(RuntimeWarning)
-    def multicova_analysis(
-        self,
-        covariates: list,
-        n_permutations: int = 3,
-        fdr: float = 0.05,
-        s0: float = 0.05,
-        subset: dict = None,
-    ) -> Union[pd.DataFrame, list]:
-        """Perform Multicovariat Analysis
-        will return a pandas DataFrame with the results and a list of volcano plots (for each covariat)
-
-        Args:
-            covariates (list): list of covariates, column names in metadata
-            n_permutations (int, optional): number of permutations. Defaults to 3.
-            fdr (float, optional): False Discovery Rate. Defaults to 0.05.
-            s0 (float, optional): . Defaults to 0.05.
-            subset (dict, optional): for categorical covariates . Defaults to None.
-
-        Returns:
-            pd.DataFrame: Multicova Analysis results
-        """
-
-        res, plot_list = MultiCovaAnalysis(
-            dataset=self,
-            covariates=covariates,
-            n_permutations=n_permutations,
-            fdr=fdr,
-            s0=s0,
-            subset=subset,
-            plot=True,
-        ).calculate()
-        return res, plot_list
+    # @ignore_warning(RuntimeWarning)
+    # def multicova_analysis(  # TODO never used outside of tests .. how does this relate to multicova.py?
+    #     self,
+    #     covariates: list,
+    #     n_permutations: int = 3,
+    #     fdr: float = 0.05,
+    #     s0: float = 0.05,
+    #     subset: dict = None,
+    # ) -> Union[pd.DataFrame, list]:
+    #     """Perform Multicovariat Analysis
+    #     will return a pandas DataFrame with the results and a list of volcano plots (for each covariat)
+    #
+    #     Args:
+    #         covariates (list): list of covariates, column names in metadata
+    #         n_permutations (int, optional): number of permutations. Defaults to 3.
+    #         fdr (float, optional): False Discovery Rate. Defaults to 0.05.
+    #         s0 (float, optional): . Defaults to 0.05.
+    #         subset (dict, optional): for categorical covariates . Defaults to None.
+    #
+    #     Returns:
+    #         pd.DataFrame: Multicova Analysis results
+    #     """
+    #
+    #     res, plot_list = MultiCovaAnalysis(
+    #         dataset=self,  # TODO fix .. does this write to it?
+    #         covariates=covariates,
+    #         n_permutations=n_permutations,
+    #         fdr=fdr,
+    #         s0=s0,
+    #         subset=subset,
+    #         plot=True,
+    #     ).calculate()
+    #     return res, plot_list

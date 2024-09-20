@@ -185,7 +185,7 @@ class Plot:
 
         return volcano_plot.plot
 
-    def plot_correlation_matrix(self, method: str = "pearson"):
+    def plot_correlation_matrix(self, method: str = "pearson"):  # TODO unused
         """Plot Correlation Matrix
 
         Args:
@@ -369,7 +369,7 @@ class Plot:
         )
         return fig
 
-    def plot_imputed_values(self):
+    def plot_imputed_values(self):  # not used
         # get coordinates of missing values
         df = self.mat
         s = df.stack(dropna=False)

@@ -70,12 +70,35 @@ class VolcanoPlot(PlotUtils):
             self._add_hover_data_columns()
             self._plot()
 
+    # TODO this changes the actual metadata .. is this intended?
+    def _add_metadata_column(self, group1_list: list, group2_list: list):
+        # create new column in metadata with defined groups
+        metadata = self.dataset.metadata
+
+        sample_names = metadata[self.dataset.sample].to_list()
+        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
+        if len(misc_samples) > 0:
+            raise ValueError(
+                f"Sample names: {misc_samples} are not described in Metadata."
+            )
+
+        column = "_comparison_column"
+        conditons = [
+            metadata[self.dataset.sample].isin(group1_list),
+            metadata[self.dataset.sample].isin(group2_list),
+        ]
+        choices = ["group1", "group2"]
+        metadata[column] = np.select(conditons, choices, default=np.nan)
+        self.dataset.metadata = metadata
+
+        return column, "group1", "group2"
+
     def _check_input(self):
         """
         check input and add metadata column if samples are given
         """
         if isinstance(self.group1, list) and isinstance(self.group2, list):
-            self.column, self.group1, self.group2 = self.dataset._add_metadata_column(
+            self.column, self.group1, self.group2 = self._add_metadata_column(
                 self.group1, self.group2
             )
 
@@ -152,7 +175,7 @@ class VolcanoPlot(PlotUtils):
         )
 
     @lru_cache(maxsize=20)
-    def _sam(self):
+    def _sam(self):  # TODO duplicated?
         from alphastats.multicova import multicova
 
         print("Calculating t-test and permutation based FDR (SAM)... ")
@@ -254,6 +277,22 @@ class VolcanoPlot(PlotUtils):
         )
         self.pvalue_column = "pval"
 
+    def _calculate_foldchange(  # TODO duplicated
+        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
+    ) -> pd.DataFrame:
+        group1_values = mat_transpose[group1_samples].T.mean().values
+        group2_values = mat_transpose[group2_samples].T.mean().values
+        if self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+            fc = group1_values - group2_values
+
+        else:
+            fc = group1_values / group2_values
+            fc = np.log2(fc)
+
+        return pd.DataFrame(
+            {"log2fc": fc, self.dataset.index_column: mat_transpose.index}
+        )
+
     @lru_cache(maxsize=20)
     def _anova(self):
         print("Calculating ANOVA with follow-up tukey test...")
@@ -271,9 +310,7 @@ class VolcanoPlot(PlotUtils):
         ][self.dataset.sample].tolist()
 
         mat_transpose = self.dataset.mat.transpose()
-        fc = self.dataset._calculate_foldchange(
-            mat_transpose, group1_samples, group2_samples
-        )
+        fc = self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
 
         #  check how column is ordered
         self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
