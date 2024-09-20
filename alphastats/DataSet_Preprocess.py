@@ -128,9 +128,8 @@ class Preprocess:
             count = column.isna().sum()
             try:
                 count = count.item()
-                if isinstance(count, int):
-                    if count < limit:
-                        keep_list += [column_name]
+                if isinstance(count, int) and count < limit:
+                    keep_list += [column_name]
 
             except ValueError:
                 invalid += 1
@@ -414,7 +413,7 @@ class Preprocess:
             imputation (str, optional):  method to impute data: either "mean", "median", "knn" or "randomforest". Defaults to None.
             subset (bool, optional): filter matrix so only samples that are described in metadata found in matrix. Defaults to False.
         """
-        for k in kwargs.keys():
+        for k in kwargs:
             if k not in [
                 "batch",
             ]:

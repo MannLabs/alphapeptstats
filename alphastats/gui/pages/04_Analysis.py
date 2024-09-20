@@ -65,13 +65,13 @@ if StateKeys.DATASET in st.session_state:
     with c1:
         method = select_analysis()
 
-        if method in st.session_state[StateKeys.PLOTTING_OPTIONS].keys():
+        if method in st.session_state[StateKeys.PLOTTING_OPTIONS]:
             analysis_result = get_analysis(
                 method=method, options_dict=st.session_state[StateKeys.PLOTTING_OPTIONS]
             )
             plot_to_display = True
 
-        elif method in st.session_state[StateKeys.STATISTIC_OPTIONS].keys():
+        elif method in st.session_state[StateKeys.STATISTIC_OPTIONS]:
             analysis_result = get_analysis(
                 method=method,
                 options_dict=st.session_state[StateKeys.STATISTIC_OPTIONS],

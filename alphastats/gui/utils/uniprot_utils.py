@@ -114,10 +114,10 @@ def extract_data(data: Dict) -> Dict:
     extracted = {}
 
     # 1. Entry Type
-    extracted["entryType"] = data.get("entryType", None)
+    extracted["entryType"] = data.get("entryType")
 
     # 2. Primary Accession
-    extracted["primaryAccession"] = data.get("primaryAccession", None)
+    extracted["primaryAccession"] = data.get("primaryAccession")
 
     # 3. Organism Details
     organism = data.get("organism", {})

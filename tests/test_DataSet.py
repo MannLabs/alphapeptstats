@@ -370,7 +370,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         # check if there are two groups control and disease
         self.assertEqual(plot_dict.get("data")[0].get("legendgroup"), "control")
         #  check that it is boxplot and not violinplot
-        is_boxplot = "boxmode" in plot_dict.get("layout").keys()
+        is_boxplot = "boxmode" in plot_dict.get("layout")
         self.assertTrue(is_boxplot)
 
     def test_plot_correlation_matrix(self):
@@ -827,7 +827,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         plot_dict = plot.to_plotly_json()
         #  log scale
         self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
-        is_boxplot = "boxmode" in plot_dict.get("layout").keys()
+        is_boxplot = "boxmode" in plot_dict.get("layout")
         self.assertTrue(is_boxplot)
 
     def test_plot_intensity_scatter(self):
