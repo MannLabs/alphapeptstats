@@ -177,7 +177,7 @@ def get_assistant_functions(
                     "properties": {
                         "protein_id": {
                             "type": "string",
-                            "enum": [i for i in gene_to_prot_id_dict.keys()],
+                            "enum": [i for i in gene_to_prot_id_dict],
                             "description": "Identifier for the protein of interest",
                         },
                         "group": {
@@ -413,10 +413,10 @@ def extract_data(data: dict) -> dict:
     extracted = {}
 
     # 1. Entry Type
-    extracted["entryType"] = data.get("entryType", None)
+    extracted["entryType"] = data.get("entryType")
 
     # 2. Primary Accession
-    extracted["primaryAccession"] = data.get("primaryAccession", None)
+    extracted["primaryAccession"] = data.get("primaryAccession")
 
     # 3. Organism Details
     organism = data.get("organism", {})
