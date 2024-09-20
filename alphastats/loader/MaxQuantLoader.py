@@ -41,7 +41,7 @@ class MaxQuantLoader(BaseLoader):
         self.confidence_column = confidence_column
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
-        self._read_all_columns_as_string()
+        self._read_all_column_names_as_string()
 
         if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names = gene_names_column

@@ -37,7 +37,7 @@ class GenericLoader(BaseLoader):
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
-        self._read_all_columns_as_string()
+        self._read_all_column_names_as_string()
 
     def _extract_sample_names(self, metadata: pd.DataFrame, sample_column: str):
         sample_names = metadata[sample_column].to_list()

@@ -45,7 +45,7 @@ class DIANNLoader(BaseLoader):
         self._remove_filepath_from_name()
         self._add_tag_to_sample_columns()
         self._add_contamination_column()
-        self._read_all_columns_as_string()
+        self._read_all_column_names_as_string()
 
     def _add_tag_to_sample_columns(self):
         """

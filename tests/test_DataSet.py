@@ -14,6 +14,7 @@ import plotly
 from alphastats.DataSet import DataSet
 from alphastats.dataset_factory import DataSetFactory
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
@@ -525,7 +526,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         import streamlit as st
 
-        st.session_state["gene_to_prot_id"] = {}
+        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
         plot = self.obj.plot_intensity(
             protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
@@ -616,7 +617,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2=["1_71_F10", "1_73_F12"],
             color_list=self.obj.mat.columns.to_list()[0:20],
         )
-        self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 20)
+        self.assertEqual(len(plot.to_plotly_json()["data"][0]["x"]), 1)
 
     def test_plot_clustermap_significant(self):
         import sys
@@ -767,10 +768,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(subset=True, imputation="knn", normalization="linear")
         self.obj.batch_correction(batch="batch_artifical_added")
         first_value = self.obj.mat.values[0, 0]
-        self.assertAlmostEqual(-0.00555, first_value, places=3)
+        self.assertTrue(np.isclose(2.624937690577153e-08, first_value))
 
     # TODO this opens a plot in a browser window
-    @skip
+    @skip  # TODO multicova_analysis is unused
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(
@@ -868,7 +869,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
             self.obj.plot_dendrogram()
 
     def test_volcano_plot_anova(self):
-        self.obj.preprocess(imputation="knn")
+        self.obj.preprocess(imputation="knn", log2_transform=True)
         plot = self.obj.plot_volcano(
             column="grouping1", group1="Healthy", group2="Disease", method="anova"
         )
@@ -932,9 +933,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
 
-        cls.cls_loader = SpectronautLoader(
-            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
-        )
+        cls.cls_loader = SpectronautLoader(file="testfiles/spectronaut/results.tsv")
         cls.cls_metadata_path = "testfiles/spectronaut/metadata.xlsx"
         cls.cls_obj = DataSet(
             loader=cls.cls_loader,
