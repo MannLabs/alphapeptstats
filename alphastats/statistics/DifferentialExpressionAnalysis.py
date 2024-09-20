@@ -102,7 +102,7 @@ class DifferentialExpressionAnalysis:
         transposed = self.dataset.mat.transpose()
 
         if (
-            self.dataset.preprocessing_info[PreprocessingStateKeys.NORMALIZATION]
+            self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]
             is None
         ):
             # needs to be lpog2 transformed for fold change calculations
@@ -233,8 +233,6 @@ class DifferentialExpressionAnalysis:
     def _calculate_foldchange(
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ):
-        mat_transpose += 0.00001
-
         if self.dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
             fc = (
                 mat_transpose[group1_samples].T.mean().values

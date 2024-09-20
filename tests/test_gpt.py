@@ -1,42 +1,19 @@
-import unittest
-import pandas as pd
 import logging
-import logging
-import numpy as np
-import pandas as pd
-import openai
-import json
-import plotly
-from contextlib import contextmanager
-# import dictdiffer
 
 import unittest
 from unittest.mock import patch, MagicMock
 
 
-# from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 import streamlit as st
 
+from alphastats.gui.utils.uniprot_utils import get_uniprot_data, extract_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.DataSet import DataSet
+from alphastats.gui.utils.ui_helper import StateKeys
 
-if "gene_to_prot_id" not in st.session_state:
-    st.session_state["gene_to_prot_id"] = {}
+if StateKeys.GENE_TO_PROT_ID not in st.session_state:
+    st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
 
-from alphastats.gui.utils.gpt_helper import (
-    get_assistant_functions,
-    display_proteins,
-    get_gene_function,
-    get_info,
-    get_subgroups_for_each_group,
-    turn_args_to_float,
-    perform_dimensionality_reduction,
-    wait_for_run_completion,
-    send_message_save_thread,
-    try_to_set_api_key,
-    get_uniprot_data,
-    extract_data,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +31,7 @@ class TestGPT(unittest.TestCase):
         self.matrix_dim = (312, 2596)
         self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
-        st.session_state.metadata_columns = [self.comparison_column]
+        st.session_state[StateKeys.METADATA_COLUMNS] = [self.comparison_column]
 
 
 class TestGetUniProtData(unittest.TestCase):
