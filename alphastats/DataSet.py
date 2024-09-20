@@ -92,21 +92,18 @@ class DataSet:
             sample_column=sample_column,
         )
 
-        rawmat, mat, metadata, sample, preprocessing_info, preprocessed = (
-            self._get_init_dataset()
-        )
+        rawmat, mat, metadata, sample, preprocessing_info = self._get_init_dataset()
         self.rawmat: pd.DataFrame = rawmat
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
         self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
-        self._preprocessed: bool = preprocessed
 
         print("DataSet has been created.")
 
     def _get_init_dataset(
         self,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str, Dict, bool]:
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str, Dict]:
         """Get the initial data structure for the DataSet."""
         rawmat, mat = self._dataset_factory.create_matrix_from_rawinput()
 
@@ -119,9 +116,7 @@ class DataSet:
             filter_columns=self.filter_columns,
         )
 
-        preprocessed = False  # TODO could be moved to preprocessing_info dict
-
-        return rawmat, mat, metadata, sample, preprocessing_info, preprocessed
+        return rawmat, mat, metadata, sample, preprocessing_info
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -181,7 +176,6 @@ class DataSet:
                 **kwargs,
             )
         )
-        self._preprocessed = True
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
@@ -191,7 +185,6 @@ class DataSet:
             self.metadata,
             self.sample,
             self.preprocessing_info,
-            self._preprocessed,
         ) = self._get_init_dataset()
 
     def batch_correction(self, batch: str) -> None:
