@@ -90,7 +90,7 @@ class DifferentialExpressionAnalysis:
         from alphastats.multicova import multicova
         transposed = self.dataset.mat.transpose()
 
-        if self.dataset.preprocessing_info["Normalization"] is None:
+        if self.dataset.preprocessing_info["Log2-transformed"] is None:
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 
@@ -190,9 +190,9 @@ class DifferentialExpressionAnalysis:
         df["log2fc"] = fc
         return df
 
-    def _calculate_foldchange(self, mat_transpose:pd.DataFrame, group1_samples:list, group2_samples:list):
-        mat_transpose += 0.00001
-
+    def _calculate_foldchange(
+        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
+    ):
         if self.dataset.preprocessing_info["Log2-transformed"]:
             fc = (
                 mat_transpose[group1_samples].T.mean().values
