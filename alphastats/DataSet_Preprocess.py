@@ -253,29 +253,41 @@ class Preprocess:
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
-    def _normalization(self, method: str):
+    def _normalization(self, method: str) -> None:
+        """Normalize across samples."""
+        # TODO make both sample and protein normalization available
         if method == "zscore":
             scaler = sklearn.preprocessing.StandardScaler()
+            # normalize samples => for preprocessing
             normalized_array = scaler.fit_transform(
                 self.mat.values.transpose()
             ).transpose()
+            # normalize proteins => for downstream processing
+            # normalized_array = scaler.fit_transform(self.mat.values)
 
         elif method == "quantile":
             qt = sklearn.preprocessing.QuantileTransformer(random_state=0)
             normalized_array = qt.fit_transform(self.mat.values.transpose()).transpose()
+            # normalized_array = qt.fit_transform(self.mat.values) # normalize proteins
 
         elif method == "linear":
             normalized_array = self._linear_normalization(self.mat)
+
+            # normalized_array = self._linear_normalization(
+            #     self.mat.transpose()
+            # ).transpose() # normalize proteins
 
         elif method == "vst":
             minmax = sklearn.preprocessing.MinMaxScaler()
             scaler = sklearn.preprocessing.PowerTransformer()
             minmaxed_array = minmax.fit_transform(self.mat.values.transpose())
             normalized_array = scaler.fit_transform(minmaxed_array).transpose()
+            # minmaxed_array = minmax.fit_transform(self.mat.values)  # normalize proteins
+            # normalized_array = scaler.fit_transform(minmaxed_array)  # normalize proteins
 
         else:
             raise ValueError(
-                "Normalization method: {method} is invalid"
+                f"Normalization method: {method} is invalid. "
                 "Choose from 'zscore', 'quantile', 'linear' normalization. or 'vst' for variance stabilization transformation"
             )
 
@@ -322,7 +334,7 @@ class Preprocess:
     #     return results_list
 
     def _log2_transform(self):
-        self.mat = np.log2(self.mat + 0.1)
+        self.mat = np.log2(self.mat)
         self.preprocessing_info.update({PreprocessingStateKeys.LOG2_TRANSFORMED: True})
         print("Data has been log2-transformed.")
 
@@ -351,7 +363,7 @@ class Preprocess:
     @ignore_warning(RuntimeWarning)
     def preprocess(
         self,
-        log2_transform: bool = True,
+        log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
         data_completeness: float = 0,

@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.ui_helper import convert_df
+from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -11,7 +11,7 @@ def check_if_options_are_loaded(f):
     # decorator to check for missing values
     # TODO remove this
     def inner(*args, **kwargs):
-        if hasattr(st.session_state, "plotting_options") is False:
+        if hasattr(st.session_state, StateKeys.PLOTTING_OPTIONS) is False:
             load_options()
 
         return f(*args, **kwargs)
@@ -33,7 +33,7 @@ def save_plot_to_session_state(plot, method):
     """
     save plot with method to session state to retrieve old results
     """
-    st.session_state["plot_list"] += [(method, plot)]
+    st.session_state[StateKeys.PLOT_LIST] += [(method, plot)]
 
 
 def display_df(df):
@@ -78,7 +78,9 @@ def download_preprocessing_info(plot):
 
 
 def get_unique_values_from_column(column):
-    unique_values = st.session_state.dataset.metadata[column].unique().tolist()
+    unique_values = (
+        st.session_state[StateKeys.DATASET].metadata[column].unique().tolist()
+    )
     return unique_values
 
 
@@ -115,7 +117,7 @@ def gui_volcano_plot_differential_expression_analysis(
     initalize volcano plot object with differential expression analysis results
     """
     volcano_plot = VolcanoPlot(
-        dataset=st.session_state.dataset, **chosen_parameter_dict, plot=False
+        dataset=st.session_state[StateKeys.DATASET], **chosen_parameter_dict, plot=False
     )
     volcano_plot._perform_differential_expression_analysis()
     volcano_plot._add_hover_data_columns()
@@ -201,7 +203,7 @@ def get_analysis_options_from_dict(method, options_dict):
         return st_plot_umap(method_dict)
 
     elif "settings" not in method_dict.keys():
-        if st.session_state.dataset.mat.isna().values.any() == True:
+        if st.session_state[StateKeys.DATASET].mat.isna().values.any() == True:
             st.error(
                 "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
             )
@@ -289,12 +291,14 @@ def helper_compare_two_groups():
     """
 
     chosen_parameter_dict = {}
+    default_option = "<select>"
     group = st.selectbox(
         "Grouping variable",
-        options=["< None >"] + st.session_state.dataset.metadata.columns.to_list(),
+        options=[default_option]
+        + st.session_state[StateKeys.DATASET].metadata.columns.to_list(),
     )
 
-    if group != "< None >":
+    if group != default_option:
         unique_values = get_unique_values_from_column(column=group)
 
         group1 = st.selectbox("Group 1", options=unique_values)
@@ -313,18 +317,18 @@ def helper_compare_two_groups():
     else:
         group1 = st.multiselect(
             "Group 1 samples:",
-            options=st.session_state.dataset.metadata[
-                st.session_state.dataset.sample
-            ].to_list(),
+            options=st.session_state[StateKeys.DATASET]
+            .metadata[st.session_state[StateKeys.DATASET].sample]
+            .to_list(),
         )
 
         group2 = st.multiselect(
             "Group 2 samples:",
             options=list(
                 reversed(
-                    st.session_state.dataset.metadata[
-                        st.session_state.dataset.sample
-                    ].to_list()
+                    st.session_state[StateKeys.DATASET]
+                    .metadata[st.session_state[StateKeys.DATASET].sample]
+                    .to_list()
                 )
             ),
         )
@@ -379,6 +383,7 @@ def load_options():
         # interpretation_options,
     )
 
-    st.session_state["plotting_options"] = plotting_options(st.session_state)
-    st.session_state["statistic_options"] = statistic_options(st.session_state)
+    st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
+    st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
+    # TODO: Check if this should be reintroduced or removed
     # st.session_state["interpretation_options"] = interpretation_options
