@@ -1,16 +1,20 @@
+# TODO this whole module is unused
+#  Check if this can be merged with the enrichment code accessible through the p'interpreter
 import plotly.express as px
 import requests
 import pandas as pd
 from io import StringIO
 import numpy as np
+
+from alphastats import AlphaPeptLoader
 from alphastats.utils import check_internetconnection, check_if_df_empty
 
 
-class enrichement_df(pd.DataFrame):
+class enrichment_df(pd.DataFrame):
     # this is that added methods dont get lost when operatons on pd Dataframe get performed
     @property
     def _constructor(self):
-        return enrichement_df
+        return enrichment_df
 
     def _modify_df(self):
         self["Description"] = self["term"] + " " + self["description"]
@@ -63,35 +67,22 @@ class enrichement_df(pd.DataFrame):
 
 
 class Enrichment:
+    def __init__(self, mat: pd.DataFrame, evidence_df: pd.DataFrame):
+        self.mat = mat
+        self.evidence_df = evidence_df
+
     @staticmethod
     def _extract_protein_ids(entry):
         try:
-            proteins = entry.split(",")
-            protein_id_list = []
-            for protein in proteins:
-                # 'sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN',
-                if "|" in protein:
-                    fasta_header_split = protein.split("|")
-                else:
-                    fasta_header_split = protein
-                if isinstance(fasta_header_split, str):
-                    #  'ENSEMBL:ENSBTAP00000007350',
-                    if "ENSEMBL:" in fasta_header_split:
-                        protein_id = fasta_header_split.replace("ENSEMBL:", "")
-                    else:
-                        protein_id = fasta_header_split
-                else:
-                    protein_id = fasta_header_split[1]
-                protein_id_list.append(protein_id)
-            protein_id_concentate = ";".join(protein_id_list)
-            # ADD REV to the protein ID, else there will be duplicates in the ProteinGroup column
-            if "REV_" in entry:
-                protein_id_concentate = "REV_" + protein_id_concentate
+            # TODO should be part of the data unification executed within the AlphaPeptLoader
+            protein_id_concatenate = AlphaPeptLoader.standardize_protein_group_column(
+                entry
+            )
 
         except AttributeError:
-            protein_id_concentate = entry
+            protein_id_concatenate = entry
 
-        return protein_id_concentate
+        return protein_id_concatenate
 
     def _get_ptm_proteins(self, sample=None):
         if self.evidence_df is None:
@@ -173,7 +164,7 @@ class Enrichment:
             data={"foreground": protein_list},
         )
 
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
 
     def go_abundance_correction(self, bg_sample, fg_sample=None, fg_protein_list=None):
@@ -242,7 +233,7 @@ class Enrichment:
                 "background_intensity": bg_intensity,
             },
         )
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
 
     def go_compare_samples(self, fg_sample, bg_sample):
@@ -287,7 +278,7 @@ class Enrichment:
             params={"output_format": "tsv", "enrichment_method": "compare_samples"},
             data={"foreground": fg_proteins, "background": bg_proteins},
         )
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df
 
     def go_genome(self, tax_id=9606, fg_sample=None, protein_list=None):
@@ -341,5 +332,5 @@ class Enrichment:
             data={"foreground": protein_list},
         )
 
-        result_df = enrichement_df(pd.read_csv(StringIO(result.text), sep="\t"))
+        result_df = enrichment_df(pd.read_csv(StringIO(result.text), sep="\t"))
         return result_df

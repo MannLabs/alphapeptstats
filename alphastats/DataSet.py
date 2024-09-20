@@ -11,7 +11,6 @@ from alphastats import BaseLoader
 
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess, PreprocessingStateKeys
-from alphastats.DataSet_Pathway import Enrichment
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.utils import LoaderError
 
@@ -36,7 +35,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class DataSet(Statistics, Plot, Enrichment):
+class DataSet(Statistics, Plot):
     """Analysis Object"""
 
     def __init__(
