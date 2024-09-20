@@ -108,7 +108,9 @@ def load_example_data():
 
     loader = MaxQuantLoader(file=filepath)
     # TODO why is this done twice?
-    dataset = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+    dataset = DataSet(
+        loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
+    )
     metadatapath = (
         os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
         .replace("pages/", "")
@@ -116,7 +118,9 @@ def load_example_data():
     )
 
     loader = MaxQuantLoader(file=filepath)
-    dataset = DataSet(loader=loader, metadata_path=metadatapath, sample_column="sample")
+    dataset = DataSet(
+        loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
+    )
 
     dataset.metadata = dataset.metadata[
         [

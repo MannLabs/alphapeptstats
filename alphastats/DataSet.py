@@ -47,14 +47,14 @@ class DataSet:
     def __init__(
         self,
         loader: BaseLoader,
-        metadata_path: Optional[Union[str, pd.DataFrame]] = None,
+        metadata_path_or_df: Optional[Union[str, pd.DataFrame]] = None,
         sample_column: Optional[str] = None,
     ):
         """Create DataSet
 
         Args:
             loader (_type_): loader of class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader
-            metadata_path (str or pd.DataFrame, optional): path to metadata file or an actual df. Defaults to None.
+            metadata_path_or_df (str or pd.DataFrame, optional): path to metadata file or an actual df. Defaults to None.
             sample_column (str, optional): column in metadata file indicating the sample IDs. Defaults to None.
 
         Attributes of a DataSet instance:
@@ -86,7 +86,7 @@ class DataSet:
             rawinput=self.rawinput,
             index_column=self.index_column,
             intensity_column=self._intensity_column,
-            metadata_path=metadata_path,
+            metadata_path_or_df=metadata_path_or_df,
             sample_column=sample_column,
         )
 

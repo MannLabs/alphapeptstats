@@ -111,7 +111,7 @@ class TestMaxQuantGODataSet(BaseTestDataSet.BaseTest):
 
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path=metadata,
+            metadata_path_or_df=metadata,
             sample_column="sample",
         )
         self.fg_sample = "AC399"

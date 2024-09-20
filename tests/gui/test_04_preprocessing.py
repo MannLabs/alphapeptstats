@@ -24,7 +24,7 @@ def create_dataset_alphapept():
     metadata_path = TEST_INPUT_FILES + "/alphapept/metadata.csv"
     return DataSet(
         loader=loader,
-        metadata_path=metadata_path,
+        metadata_path_or_df=metadata_path,
         sample_column="sample",
     )
 

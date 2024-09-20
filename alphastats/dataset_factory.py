@@ -15,14 +15,14 @@ class DataSetFactory:
         rawinput: pd.DataFrame,
         index_column: str,
         intensity_column: Union[List[str], str],
-        metadata_path: Union[str, pd.DataFrame],
+        metadata_path_or_df: Union[str, pd.DataFrame],
         sample_column: str,
     ):
         self.rawinput: pd.DataFrame = rawinput
         self.sample_column: str = sample_column
         self.index_column: str = index_column
         self.intensity_column: Union[List[str], str] = intensity_column
-        self.metadata_path: Union[str, pd.DataFrame] = metadata_path
+        self.metadata_path_or_df: Union[str, pd.DataFrame] = metadata_path_or_df
 
     def create_matrix_from_rawinput(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Creates a matrix: features (Proteins) as columns, samples as rows."""
@@ -61,9 +61,9 @@ class DataSetFactory:
     def create_metadata(self, mat: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
         """Create metadata DataFrame from metadata file or DataFrame."""
 
-        if self.metadata_path is not None:
+        if self.metadata_path_or_df is not None:
             sample = self.sample_column
-            metadata = self._load_metadata(file_path=self.metadata_path)
+            metadata = self._load_metadata(file_path=self.metadata_path_or_df)
             metadata = self._remove_missing_samples_from_metadata(mat, metadata, sample)
         else:
             sample = "sample"

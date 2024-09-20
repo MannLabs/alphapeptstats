@@ -204,7 +204,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/alphapept/metadata.csv"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="sample",
         )
         # expected dimensions of matrix
@@ -238,7 +238,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         )
         obj = DataSet(
             loader=self.loader,
-            metadata_path=df,
+            metadata_path_or_df=df,
             sample_column="sample",
         )
         #  is sample C removed
@@ -252,7 +252,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
             df = pd.read_excel(self.metadata_path)
         obj = DataSet(
             loader=self.loader,
-            metadata_path=df,
+            metadata_path_or_df=df,
             sample_column="sample",
         )
         self.assertIsInstance(obj.metadata, pd.DataFrame)
@@ -402,7 +402,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/maxquant/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="sample",
         )
         # expected dimensions of matrix
@@ -418,7 +418,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             )
             DataSet(
                 loader=loader,
-                metadata_path=self.metadata_path,
+                metadata_path_or_df=self.metadata_path,
                 sample_column="sample",
             )
 
@@ -467,7 +467,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_volcano_compare_preprocessing_modes_no_randomforest(self):
         obj_ut = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="sample",
         )
 
@@ -486,7 +486,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_volcano_compare_preprocessing_modes_randomforest(self):
         obj_ut = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="sample",
         )
 
@@ -800,7 +800,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/diann/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
@@ -915,7 +915,7 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
         self.metadata_path = "testfiles/fragpipe/metadata.xlsx"
         self.obj = DataSet(
             loader=self.loader,
-            metadata_path=self.metadata_path,
+            metadata_path_or_df=self.metadata_path,
             sample_column="analytical_sample external_id",
         )
         # expected dimensions of matrix
@@ -938,7 +938,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
         cls.cls_metadata_path = "testfiles/spectronaut/metadata.xlsx"
         cls.cls_obj = DataSet(
             loader=cls.cls_loader,
-            metadata_path=cls.cls_metadata_path,
+            metadata_path_or_df=cls.cls_metadata_path,
             sample_column="sample",
         )
 
@@ -984,7 +984,7 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
         cls.cls_metadata_path = "testfiles/fragpipe/metadata2.xlsx"
         cls.cls_obj = DataSet(
             loader=cls.cls_loader,
-            metadata_path=cls.cls_metadata_path,
+            metadata_path_or_df=cls.cls_metadata_path,
             sample_column="analytical_sample external_id",
         )
 
