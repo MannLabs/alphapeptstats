@@ -59,6 +59,30 @@ class Preprocess:
         self.preprocessing_info = preprocessing_info  # changed
         self.mat = mat  # changed
 
+    @staticmethod
+    def init_preprocessing_info(
+        num_samples: int,
+        num_protein_groups: int,
+        intensity_column: str,
+        filter_columns: List[str],
+    ) -> Dict:
+        """Initialize preprocessing info."""
+        return {
+            PreprocessingStateKeys.RAW_DATA_NUM_PG: num_protein_groups,
+            PreprocessingStateKeys.NUM_PG: num_protein_groups,
+            PreprocessingStateKeys.NUM_SAMPLES: num_samples,
+            PreprocessingStateKeys.INTENSITY_COLUMN: intensity_column,
+            PreprocessingStateKeys.LOG2_TRANSFORMED: False,
+            PreprocessingStateKeys.NORMALIZATION: None,
+            PreprocessingStateKeys.IMPUTATION: None,
+            PreprocessingStateKeys.CONTAMINATIONS_REMOVED: False,
+            PreprocessingStateKeys.CONTAMINATION_COLUMNS: filter_columns,
+            PreprocessingStateKeys.NUM_REMOVED_PG_DUE_TO_CONTAMINATION: 0,
+            PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: 0,
+            PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: 0,
+            PreprocessingStateKeys.MISSING_VALUES_REMOVED: False,
+        }
+
     def _remove_samples(self, sample_list: list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)

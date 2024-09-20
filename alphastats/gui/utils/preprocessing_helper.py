@@ -285,7 +285,6 @@ def display_preprocessing_info(preprocessing_info):
     )
 
 
-# TODO: cache this
 def reset_preprocessing(dataset: DataSet) -> None:
     """Reset the preprocessing of the dataset.
 
@@ -296,5 +295,5 @@ def reset_preprocessing(dataset: DataSet) -> None:
         None
     """
 
-    dataset.create_matrix()
+    dataset.reset_preprocessing()
     st.info("Preprocessing has been reset.")
