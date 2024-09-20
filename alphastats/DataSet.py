@@ -115,7 +115,7 @@ class DataSet(Plot):
 
     def preprocess(
         self,
-        log2_transform: bool = True,
+        log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
         data_completeness: float = 0,
