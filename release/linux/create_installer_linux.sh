@@ -18,7 +18,7 @@ python setup.py sdist bdist_wheel
 # Setting up the local package
 cd release/linux
 # Make sure you include the required extra packages and always use the stable or very-stable options!
-pip install "../../dist/alphastats-0.6.7-py3-none-any.whl"
+pip install "../../dist/alphastats-0.6.9-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
 pip install pyinstaller==5.8
