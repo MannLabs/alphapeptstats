@@ -41,5 +41,5 @@ cp ../../LICENSE.txt Resources/LICENSE.txt
 cp ../logos/alphapeptstats_logo.png Resources/alphapeptstats_logo.png
 chmod 777 scripts/*
 
-pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.6.7--install-location /Applications/alphastats.app --scripts scripts alphastats.pkg
+pkgbuild --root dist/alphastats --identifier de.mpg.biochem.alphastats.app --version 0.6.9--install-location /Applications/alphastats.app --scripts scripts alphastats.pkg
 productbuild --distribution distribution.xml --resources Resources --package-path alphastats.pkg dist/alphastats_gui_installer_macos.pkg

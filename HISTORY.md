@@ -1,5 +1,7 @@
 # Changelog
 
+# for versions >= 0.6.8, change log is found on the respective GitHub release page
+
 # 0.6.7
 * FIX allowing to save multiple plots of the same type
 * FIX uninitialized functions
