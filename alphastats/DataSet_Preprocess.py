@@ -364,7 +364,7 @@ class Preprocess:
         log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
-        replace_zero: bool = True,
+        replace_zero: bool = False,
         data_completeness: float = 0,
         normalization: str = None,
         imputation: str = None,
