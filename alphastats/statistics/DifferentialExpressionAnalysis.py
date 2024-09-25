@@ -170,6 +170,14 @@ class DifferentialExpressionAnalysis:
         return df
 
     def _ttest(self) -> pd.DataFrame:
+        """
+        Perform a t-test between two groups, assuming log-normally distributed data.
+
+        If the data was not already log transformed during preprocessing, it will be log2 transformed here.
+
+        Returns:
+            pd.DataFrame: DataFrame with index_column, p-value and log2 fold change.
+        """
         group1_samples = self.metadata[self.metadata[self.column] == self.group1][
             self.sample
         ].tolist()
@@ -179,15 +187,20 @@ class DifferentialExpressionAnalysis:
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.mat.transpose()
 
+        if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+            mat_transpose = mat_transpose.transform(lambda x: np.log2(x))
+
+        # TODO: return not only the p-value, but also the t-statistic
         p_values = mat_transpose.apply(
             lambda row: scipy.stats.ttest_ind(
                 row[group1_samples].values.flatten(),
                 row[group2_samples].values.flatten(),
+                nan_policy="omit",
             )[1],
             axis=1,
         )
 
-        fc = self._calculate_foldchange(
+        fc = self._calculate_logfoldchange(
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
@@ -218,7 +231,7 @@ class DifferentialExpressionAnalysis:
             axis=1,
         )
 
-        fc = self._calculate_foldchange(
+        fc = self._calculate_logfoldchange(
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
@@ -231,17 +244,13 @@ class DifferentialExpressionAnalysis:
         df["log2fc"] = fc
         return df
 
-    def _calculate_foldchange(  # TODO duplicated
+    def _calculate_logfoldchange(  # TODO duplicated
         self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
     ):
         group1_values = mat_transpose[group1_samples].T.mean().values
         group2_values = mat_transpose[group2_samples].T.mean().values
-        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            fc = group1_values - group2_values
 
-        else:
-            fc = group1_values / group2_values
-            fc = np.log2(fc)
+        fc = group1_values - group2_values
 
         return fc
 
