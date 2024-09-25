@@ -54,6 +54,7 @@ class PREPROCESSING_STEPS:
     REMOVE_CONTAMINATIONS = "remove_contaminations"
     REMOVE_SAMPLES = "remove_samples"
     SUBSET = "subset"
+    REPLACE_ZERO = "replace_zero"
     DATA_COMPLETENESS = "data_completeness"
     LOG2_TRANSFORM = "log2_transform"
     NORMALIZATION = "normalization"
@@ -75,6 +76,10 @@ UI_ELEMENTS = {
     PREPROCESSING_STEPS.SUBSET: {
         "repr": "Subset data",
         "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
+    },
+    PREPROCESSING_STEPS.REPLACE_ZERO: {
+        "repr": "Replace 0 in the data with NaN.",
+        "help": "Replace 0 in the data with NaN.",
     },
     PREPROCESSING_STEPS.DATA_COMPLETENESS: {
         "repr": "Filter data completeness",
@@ -102,6 +107,7 @@ PREDEFINED_ORDER = [
     PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
     PREPROCESSING_STEPS.REMOVE_SAMPLES,
     PREPROCESSING_STEPS.SUBSET,
+    PREPROCESSING_STEPS.REPLACE_ZERO,
     PREPROCESSING_STEPS.DATA_COMPLETENESS,
     PREPROCESSING_STEPS.LOG2_TRANSFORM,
     PREPROCESSING_STEPS.NORMALIZATION,
@@ -194,6 +200,11 @@ def configure_preprocessing(dataset):
     )
     remove_samples = remove_samples if len(remove_samples) != 0 else None
 
+    replace_zero = st.checkbox(
+        "Replace 0 in the data with NaN.",
+        value=True,
+    )
+
     data_completeness = st.number_input(
         f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
         value=0.0,
@@ -224,6 +235,7 @@ def configure_preprocessing(dataset):
         PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS: remove_contaminations,
         PREPROCESSING_STEPS.REMOVE_SAMPLES: remove_samples,
         PREPROCESSING_STEPS.SUBSET: subset,
+        PREPROCESSING_STEPS.REPLACE_ZERO: replace_zero,
         PREPROCESSING_STEPS.DATA_COMPLETENESS: data_completeness,
         PREPROCESSING_STEPS.LOG2_TRANSFORM: log2_transform,
         PREPROCESSING_STEPS.NORMALIZATION: normalization,

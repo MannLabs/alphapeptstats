@@ -120,7 +120,6 @@ class Preprocess:
         num_samples, num_proteins = self.mat.shape
         limit = num_samples * cut
 
-        self.mat.replace(0, np.nan, inplace=True)
         keep_list = list()
         invalid = 0
         for column_name in self.mat.columns:
@@ -365,6 +364,7 @@ class Preprocess:
         log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
+        replace_zero: bool = True,
         data_completeness: float = 0,
         normalization: str = None,
         imputation: str = None,
@@ -429,6 +429,9 @@ class Preprocess:
             self.mat = self.subset(
                 self.mat, self.metadata, self.sample, self.preprocessing_info
             )
+
+        if replace_zero:
+            self.mat = self.mat.replace(0, np.nan)
 
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)
