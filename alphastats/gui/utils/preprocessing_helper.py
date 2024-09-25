@@ -78,7 +78,7 @@ UI_ELEMENTS = {
         "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
     },
     PREPROCESSING_STEPS.REPLACE_ZERO: {
-        "repr": "Replace 0 in the data with NaN.",
+        "repr": "0 --> NaN",
         "help": "Replace 0 in the data with NaN.",
     },
     PREPROCESSING_STEPS.DATA_COMPLETENESS: {
