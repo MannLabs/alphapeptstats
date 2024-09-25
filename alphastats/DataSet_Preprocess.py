@@ -452,7 +452,7 @@ class Preprocess:
 
         # TODO should this step be optional, too? is also done in create_matrix
         # for now, add it to `preprocessing_info`
-        self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+        self.mat = self.mat.loc[:, (self.mat != np.nan).any(axis=0)]
 
         self.preprocessing_info.update(
             {
