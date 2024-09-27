@@ -35,6 +35,7 @@ class PreprocessingStateKeys:
         "Number of removed ProteinGroups due to data completeness cutoff"
     )
     MISSING_VALUES_REMOVED = "Missing values were removed"
+    DROP_UNMEASURED_FEATURES = "Drop unmeasured features"
 
 
 class Preprocess:
@@ -84,6 +85,7 @@ class Preprocess:
             PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: 0,
             PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: 0,
             PreprocessingStateKeys.MISSING_VALUES_REMOVED: False,
+            PreprocessingStateKeys.DROP_UNMEASURED_FEATURES: False,
         }
 
     def _remove_samples(self, sample_list: list):
@@ -120,7 +122,6 @@ class Preprocess:
         num_samples, num_proteins = self.mat.shape
         limit = num_samples * cut
 
-        self.mat.replace(0, np.nan, inplace=True)
         keep_list = list()
         invalid = 0
         for column_name in self.mat.columns:
@@ -334,6 +335,7 @@ class Preprocess:
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat)
+        self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
         self.preprocessing_info.update({PreprocessingStateKeys.LOG2_TRANSFORMED: True})
         print("Data has been log2-transformed.")
 
@@ -365,10 +367,12 @@ class Preprocess:
         log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
+        replace_zero: bool = False,
         data_completeness: float = 0,
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        drop_unmeasured_features: bool = False,
         **kwargs,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict]:
         """Preprocess Protein data
@@ -430,6 +434,9 @@ class Preprocess:
                 self.mat, self.metadata, self.sample, self.preprocessing_info
             )
 
+        if replace_zero:
+            self.mat = self.mat.replace(0, np.nan)
+
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)
 
@@ -447,9 +454,13 @@ class Preprocess:
         if imputation is not None:
             self._imputation(method=imputation)
 
-        # TODO should this step be optional, too? is also done in create_matrix
-        # for now, add it to `preprocessing_info`
-        self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+        self.preprocessing_info.update(
+            {
+                PreprocessingStateKeys.DROP_UNMEASURED_FEATURES: drop_unmeasured_features,
+            }
+        )
+        if drop_unmeasured_features:
+            self.mat = self.mat.loc[:, np.isfinite(self.mat).any(axis=0)]
 
         self.preprocessing_info.update(
             {

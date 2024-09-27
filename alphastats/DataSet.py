@@ -155,10 +155,12 @@ class DataSet:
         log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
+        replace_zero: bool = False,
         data_completeness: float = 0,
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        drop_unmeasured_features: bool = False,
         **kwargs,
     ) -> None:
         """A wrapper for Preprocess.preprocess(), see documentation there."""
@@ -167,10 +169,12 @@ class DataSet:
                 log2_transform,
                 remove_contaminations,
                 subset,
+                replace_zero,
                 data_completeness,
                 normalization,
                 imputation,
                 remove_samples,
+                drop_unmeasured_features,
                 **kwargs,
             )
         )

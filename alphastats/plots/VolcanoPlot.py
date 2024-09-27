@@ -357,7 +357,9 @@ class VolcanoPlot(PlotUtils):
         add color labels for up and down regulates
         """
         self.res = self.res[(self.res["log2fc"] < 20) & (self.res["log2fc"] > -20)]
-        self.res["-log10(p-value)"] = -np.log10(self.res[self.pvalue_column])
+        self.res["-log10(p-value)"] = [
+            -np.log10(el) for el in self.res[self.pvalue_column]
+        ]
 
         self.alpha = -np.log10(self.alpha)
         # add color variable to plot
