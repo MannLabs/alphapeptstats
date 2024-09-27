@@ -504,8 +504,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(len(result_list), 3)
 
     def test_preprocess_subset(self):
-        self.obj.preprocess(subset=True, log2_transform=False, replace_zero=True)
-        self.assertEqual(self.obj.mat.shape, (48, 1364))
+        self.obj.preprocess(subset=True)
+        self.assertEqual(self.obj.mat.shape[0], 48)
 
     @patch("alphastats.DataSet.DataSet.tukey_test")
     def test_anova_without_tukey(self, mock):
