@@ -160,6 +160,7 @@ class DataSet:
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        drop_unmeasured_features: bool = False,
         **kwargs,
     ) -> None:
         """A wrapper for Preprocess.preprocess(), see documentation there."""
@@ -173,6 +174,7 @@ class DataSet:
                 normalization,
                 imputation,
                 remove_samples,
+                drop_unmeasured_features,
                 **kwargs,
             )
         )
