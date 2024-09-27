@@ -21,6 +21,7 @@ if StateKeys.WORKFLOW not in st.session_state:
         PREPROCESSING_STEPS.SUBSET,
         PREPROCESSING_STEPS.REPLACE_ZERO,
         PREPROCESSING_STEPS.LOG2_TRANSFORM,
+        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
     ]
 
 st.markdown("### Preprocessing")

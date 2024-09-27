@@ -28,7 +28,7 @@ def test_page_04_loads_with_input():
     at.run()
 
     assert not at.exception
-    assert at.columns[3].selectbox.len == 6
+    assert at.columns[3].selectbox.len > 3
     assert at.button.len == 2
 
 

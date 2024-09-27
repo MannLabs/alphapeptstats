@@ -59,6 +59,7 @@ class PREPROCESSING_STEPS:
     LOG2_TRANSFORM = "log2_transform"
     NORMALIZATION = "normalization"
     IMPUTATION = "imputation"
+    DROP_UNMEASURED_FEATURES = "drop_unmeasured_features"
     BATCH = "batch"
 
 
@@ -97,6 +98,10 @@ UI_ELEMENTS = {
         "repr": "Imputation",
         "help": 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").',
     },
+    PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES: {
+        "repr": "Drop empty proteins",
+        "help": "Drop unmeasured features (protein groups).",
+    },
     PREPROCESSING_STEPS.BATCH: {
         "repr": "Batch correction",
         "help": "Batch correction.",
@@ -112,6 +117,7 @@ PREDEFINED_ORDER = [
     PREPROCESSING_STEPS.LOG2_TRANSFORM,
     PREPROCESSING_STEPS.NORMALIZATION,
     PREPROCESSING_STEPS.IMPUTATION,
+    PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
     PREPROCESSING_STEPS.BATCH,
 ]
 
@@ -183,14 +189,14 @@ def configure_preprocessing(dataset):
         + "[documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
     )
 
-    remove_contaminations = st.selectbox(
+    remove_contaminations = st.checkbox(
         f"Remove contaminations annotated in {dataset.filter_columns}",
-        options=[True, False],
+        value=True,
     )
 
-    subset = st.selectbox(
+    subset = st.checkbox(
         "Subset data so it matches with metadata. Remove miscellanous samples in rawinput.",
-        options=[True, False],
+        value=False,
     )
 
     # TODO: value of this widget does not persist across dataset reset (likely because the metadata is reset)
@@ -213,9 +219,9 @@ def configure_preprocessing(dataset):
         step=0.01,
     )
 
-    log2_transform = st.selectbox(
+    log2_transform = st.checkbox(
         "Log2-transform dataset",
-        options=[True, False],
+        value=True,
     )
 
     normalization = st.selectbox(
@@ -224,6 +230,11 @@ def configure_preprocessing(dataset):
 
     imputation = st.selectbox(
         "Imputation", options=[None, "mean", "median", "knn", "randomforest"]
+    )
+
+    drop_unmeasured_features = st.checkbox(
+        "Drop unmeasured features (protein groups)",
+        value=True,
     )
 
     batch = st.selectbox(
@@ -240,6 +251,7 @@ def configure_preprocessing(dataset):
         PREPROCESSING_STEPS.LOG2_TRANSFORM: log2_transform,
         PREPROCESSING_STEPS.NORMALIZATION: normalization,
         PREPROCESSING_STEPS.IMPUTATION: imputation,
+        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES: drop_unmeasured_features,
         PREPROCESSING_STEPS.BATCH: batch,
     }
 
