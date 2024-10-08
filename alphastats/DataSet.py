@@ -116,7 +116,8 @@ class DataSet:
 
         return rawmat, mat, metadata, sample, preprocessing_info
 
-    def _check_loader(self, loader):
+    @staticmethod
+    def _check_loader(loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
 
         Args:
