@@ -148,6 +148,13 @@ You can run the checks yourself using:
 pre-commit run --all-files
 ```
 
+##### The `detect-secrets` hook fails
+This is because you added some code that was identified as a potential secret.
+1. Run `detect-secrets scan --exclude-files testfiles --exclude-lines '"(hash|id|image/\w+)":.*' > .secrets.baseline`
+(check `.pre-commit-config.yaml` for the exact parameters)
+2. Run `detect-secrets audit .secrets.baseline` and check if the detected 'secret' is actually a secret
+3. Commit the latest version of `.secrets.baseline`
+
 
 
 ---
