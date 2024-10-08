@@ -3,8 +3,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import scipy
-import tqdm
 
 from alphastats.statistics.StatisticUtils import StatisticUtils
 
@@ -12,7 +10,11 @@ from alphastats.statistics.StatisticUtils import StatisticUtils
 class MultiCovaAnalysis(StatisticUtils):
     def __init__(
         self,
-        dataset,
+        *,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
+        sample: str,
+        index_column: str,
         covariates: list,
         n_permutations: int = 3,
         fdr: float = 0.05,
@@ -20,7 +22,11 @@ class MultiCovaAnalysis(StatisticUtils):
         subset: dict = None,
         plot: bool = False,
     ):
-        self.dataset = dataset
+        self.sample = sample
+        self.metadata = metadata
+        self.mat = mat
+        self.index_column = index_column
+
         self.covariates = covariates
         self.n_permutations = n_permutations
         self.fdr = fdr
@@ -35,22 +41,22 @@ class MultiCovaAnalysis(StatisticUtils):
         self._prepare_matrix()
 
     def _subset_metadata(self):
-        columns_to_keep = self.covariates + [self.dataset.sample]
+        columns_to_keep = self.covariates + [self.sample]
         if self.subset is not None:
             # dict structure {"column_name": ["group1", "group2"]}
             subset_column = list(self.subset.keys())[0]
             groups = self.subset.get(subset_column)
-            self.metadata = self.dataset.metadata[
-                self.dataset.metadata[subset_column].isin(groups)
-            ][columns_to_keep]
+            self.metadata = self.metadata[self.metadata[subset_column].isin(groups)][
+                columns_to_keep
+            ]
 
         else:
-            self.metadata = self.dataset.metadata[columns_to_keep]
+            self.metadata = self.metadata[columns_to_keep]
 
     def _check_covariat_input(self):
         # check whether covariates in metadata column
         misc_covariates = list(
-            set(self.covariates) - set(self.dataset.metadata.columns.to_list())
+            set(self.covariates) - set(self.metadata.columns.to_list())
         )
         if len(misc_covariates) > 0:
             warnings.warn(f"Covariates: {misc_covariates} are not found in Metadata.")
@@ -58,7 +64,7 @@ class MultiCovaAnalysis(StatisticUtils):
 
     def _check_na_values(self):
         for covariate in self.covariates:
-            if self.dataset.metadata[covariate].isna().any():
+            if self.metadata[covariate].isna().any():
                 self.covariates.remove(covariate)
                 warnings.warn(
                     f"Covariate: {covariate} contains missing values"
@@ -101,10 +107,10 @@ class MultiCovaAnalysis(StatisticUtils):
                     self.covariates.remove(col)
 
     def _prepare_matrix(self):
-        transposed = self.dataset.mat.transpose()
-        transposed[self.dataset.index_column] = transposed.index
+        transposed = self.mat.transpose()
+        transposed[self.index_column] = transposed.index
         transposed = transposed.reset_index(drop=True)
-        self.transposed = transposed[self.metadata[self.dataset.sample].to_list()]
+        self.transposed = transposed[self.metadata[self.sample].to_list()]
 
     def _plot_volcano_regression(self, res_real, variable):
         sig_col = res_real.filter(regex=variable + "_" + "FDR").columns[0]
@@ -115,7 +121,7 @@ class MultiCovaAnalysis(StatisticUtils):
             y=-np.log10(res_real[variable + "_" + "pval"]),
             color=res_real[sig_col],
             color_discrete_map={"sig": "#009599", "non_sig": "#404040"},
-            hover_name=res_real[self.dataset.index_column],
+            hover_name=res_real[self.index_column],
             title=variable,
             labels=dict(x="beta value", y="-log10(p-value)", color=sig_level),
         )
@@ -133,12 +139,12 @@ class MultiCovaAnalysis(StatisticUtils):
             quant_data=self.transposed,
             annotation=self.metadata,
             covariates=self.covariates,
-            sample_column=self.dataset.sample,
+            sample_column=self.sample,
             n_permutations=self.n_permutations,
             fdr=self.fdr,
             s0=self.s0,
         )
-        res[self.dataset.index_column] = self.dataset.mat.columns.to_list()
+        res[self.index_column] = self.mat.columns.to_list()
         plot_list = []
 
         if self.plot:
