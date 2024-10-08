@@ -42,9 +42,10 @@ class plotly_object(plotly.graph_objs._figure.Figure):
 class PlotUtils:
     @staticmethod
     def _update_colors_plotly(fig, color_dict):
-        # plotly doesnt allow to assign color to certain group
-        # update instead the figure in form of a dict
-        # color_dict with group_variable/legendgroup as key, and corresponding color as value
+        # TODO revisit this comment:
+        #  plotly doesnt allow to assign color to certain group
+        #  update instead the figure in form of a dict
+        #  color_dict with group_variable/legendgroup as key, and corresponding color as value
         fig_dict = fig.to_plotly_json()
         data_dict_list = fig_dict.get("data")
         for count, group in enumerate(data_dict_list):
