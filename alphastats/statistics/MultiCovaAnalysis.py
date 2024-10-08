@@ -4,10 +4,8 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from alphastats.statistics.StatisticUtils import StatisticUtils
 
-
-class MultiCovaAnalysis(StatisticUtils):
+class MultiCovaAnalysis:
     def __init__(
         self,
         *,
