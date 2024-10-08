@@ -21,9 +21,11 @@ class MultiCovaAnalysis:
         plot: bool = False,
     ):
         self.sample = sample
-        self.metadata = metadata
+        self.metadata_ori = metadata
         self.mat = mat
         self.index_column = index_column
+
+        self.metadata = None  # TODO check if the distinction between metadata and metadata_ori is necessary
 
         self.covariates = covariates
         self.n_permutations = n_permutations
@@ -44,17 +46,17 @@ class MultiCovaAnalysis:
             # dict structure {"column_name": ["group1", "group2"]}
             subset_column = list(self.subset.keys())[0]
             groups = self.subset.get(subset_column)
-            self.metadata = self.metadata[self.metadata[subset_column].isin(groups)][
-                columns_to_keep
-            ]
+            self.metadata = self.metadata_ori[
+                self.metadata_ori[subset_column].isin(groups)
+            ][columns_to_keep]
 
         else:
-            self.metadata = self.metadata[columns_to_keep]
+            self.metadata = self.metadata_ori[columns_to_keep]
 
     def _check_covariat_input(self):
         # check whether covariates in metadata column
         misc_covariates = list(
-            set(self.covariates) - set(self.metadata.columns.to_list())
+            set(self.covariates) - set(self.metadata_ori.columns.to_list())
         )
         if len(misc_covariates) > 0:
             warnings.warn(f"Covariates: {misc_covariates} are not found in Metadata.")
@@ -62,7 +64,7 @@ class MultiCovaAnalysis:
 
     def _check_na_values(self):
         for covariate in self.covariates:
-            if self.metadata[covariate].isna().any():
+            if self.metadata_ori[covariate].isna().any():
                 self.covariates.remove(covariate)
                 warnings.warn(
                     f"Covariate: {covariate} contains missing values"
