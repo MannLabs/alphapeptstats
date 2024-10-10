@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import unittest
-from contextlib import contextmanager
 from unittest import skip
 from unittest.mock import patch
 

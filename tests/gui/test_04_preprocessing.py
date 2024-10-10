@@ -1,10 +1,6 @@
-from pathlib import Path
-
 from streamlit.testing.v1 import AppTest
 
-from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import StateKeys
-from alphastats.load_data import load_data
 
 from .conftest import APP_FOLDER, create_dataset_alphapept
 

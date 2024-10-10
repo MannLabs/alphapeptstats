@@ -195,7 +195,7 @@ def configure_preprocessing(dataset):
     remove_samples = remove_samples if len(remove_samples) != 0 else None
 
     data_completeness = st.number_input(
-        f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
+        "Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
         value=0.0,
         min_value=0.0,
         max_value=1.0,
