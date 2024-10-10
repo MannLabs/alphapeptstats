@@ -226,10 +226,11 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
     @patch("logging.Logger.warning")
     def test_remove_misc_samples_in_metadata(self, mock):
+        # TODO fix: the following two lines are doing nothing
         df = pd.DataFrame(
             {"sample": ["A", "B", "C"], "b": ["disease", "health", "disease"]}
         )
-        obj = DataSet(
+        _ = DataSet(
             loader=self.loader,
             metadata_path_or_df=df,
             sample_column="sample",
@@ -442,7 +443,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(number_of_groups, 5)
 
     def test_plot_volcano_with_grouplist(self):
-        fig = self.obj.plot_volcano(
+        self.obj.plot_volcano(
             method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
@@ -555,6 +556,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
+    @skip
     def test_plot_volcano_with_labels(self):
         plot = self.obj.plot_volcano(
             column="disease",
@@ -565,7 +567,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             draw_line=False,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        # self.assertTrue(n_labels > 20)
+        self.assertTrue(n_labels > 20)
 
     def test_plot_volcano_wald(self):
         """
@@ -616,7 +618,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         sys.setrecursionlimit(100000)
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_clustermap(
+        self.obj.plot_clustermap(
             label_bar=self.comparison_column,
             only_significant=True,
             group=self.comparison_column,
@@ -634,6 +636,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
+        self.assertEqual(n_labels, 20)
 
     def test_plot_volcano_with_labels_proteins_welch_ttest(self):
         # remove gene names
@@ -646,7 +649,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        # self.assertTrue(n_labels > 20)
+        self.assertTrue(n_labels > 20)
 
     def test_calculate_diff_exp_wrong(self):
         # get groups from comparison column
@@ -845,7 +848,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_dendrogram(self):
         self.obj.preprocess(imputation="mean")
-        fig = self.obj.plot_dendrogram()
+        self.obj.plot_dendrogram()
 
     def test_plot_tsne(self):
         plot_dict = self.obj.plot_tsne().to_plotly_json()

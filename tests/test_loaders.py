@@ -209,14 +209,14 @@ class TestSpectronautLoader(BaseTestLoader.BaseTest):
         s = SpectronautLoader(
             file="testfiles/spectronaut/results_non_european_comma.tsv",
         )
-        mean = s.rawinput[
+        s.rawinput[
             "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03.PG.Quantity"
         ].mean()
 
     def test_gene_name_column(self):
         df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
         df["PG.Genes"] = 0
-        s = SpectronautLoader(file=df)
+        SpectronautLoader(file=df)
 
     @classmethod
     def tearDownClass(cls):
