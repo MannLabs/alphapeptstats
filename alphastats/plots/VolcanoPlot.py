@@ -56,8 +56,10 @@ class VolcanoPlot(PlotUtils):
         plot=True,
         perm=100,
         fdr=0.05,
-        color_list=[],
+        color_list=None,
     ):
+        if color_list is None:
+            color_list = []
         self.mat: pd.DataFrame = mat
         self.rawinput = rawinput
         self.metadata: pd.DataFrame = metadata

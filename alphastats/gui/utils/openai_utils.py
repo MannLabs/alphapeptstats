@@ -155,7 +155,7 @@ def send_message_save_thread(
         plots = None
     messages = client.beta.threads.messages.list(thread_id=thread_id)
     st.session_state[storing_variable] = []
-    for num, message in enumerate(messages.data[::-1]):
+    for message in messages.data[::-1]:
         role = message.role
         if message.content:
             content = message.content[0].text.value

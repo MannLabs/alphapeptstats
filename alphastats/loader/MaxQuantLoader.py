@@ -15,11 +15,7 @@ class MaxQuantLoader(BaseLoader):
         intensity_column: Union[str, list] = "LFQ intensity [sample]",
         index_column: str = "Protein IDs",
         gene_names_column: str = "Gene names",
-        filter_columns: list = [
-            "Only identified by site",
-            "Reverse",
-            "Potential contaminant",
-        ],
+        filter_columns: list = None,
         confidence_column: str = "Q-value",
         evidence_file=None,
         sep: str = "\t",
@@ -36,6 +32,12 @@ class MaxQuantLoader(BaseLoader):
             sep (str, optional): separation of the input file. Defaults to "\t".
         """
 
+        if filter_columns is None:
+            filter_columns = [
+                "Only identified by site",
+                "Reverse",
+                "Potential contaminant",
+            ]
         super().__init__(file, intensity_column, index_column, sep)
         self.filter_columns = filter_columns + self.filter_columns
         self.confidence_column = confidence_column

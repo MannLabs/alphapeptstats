@@ -29,9 +29,7 @@ _this_file = os.path.abspath(__file__)
 _this_directory = os.path.dirname(_this_file)
 icon = os.path.join(_this_directory, "alphapeptstats_logo.png")
 
-header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes(icon)
-)
+header_html = img_center + f"<img src='data:image/png;base64,{img_to_bytes(icon)}'>"
 
 st.markdown(
     header_html,

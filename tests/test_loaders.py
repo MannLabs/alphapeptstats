@@ -24,13 +24,6 @@ class BaseTestLoader:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
-        @contextmanager
-        def assertNotRaises(self, exc_type):
-            try:
-                yield None
-            except exc_type:
-                raise self.failureException("{} raised".format(exc_type.__name__))
-
         def test_dataformat(self):
             # check if loaded data is pandas dataframe
             self.assertIsInstance(self.obj.rawinput, pd.DataFrame)
@@ -46,8 +39,9 @@ class BaseTestLoader:
         def test_check_if_columns_are_present_no_error(self):
             # check if columns are present
             # check if error gets raised when column is not present
-            with self.assertNotRaises(KeyError):
-                self.obj._check_if_columns_are_present()
+            self.obj._check_if_columns_are_present()
+
+            # nothing raised -> ok
 
         @patch("logging.Logger.warning")
         def test_check_if_indexcolumn_is_unique_warning(self, mock):

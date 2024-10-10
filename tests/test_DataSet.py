@@ -31,13 +31,6 @@ class BaseTestDataSet:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
-        @contextmanager
-        def assertNotRaises(self, exc_type):
-            try:
-                yield None
-            except exc_type:
-                raise self.failureException("{} raised".format(exc_type.__name__))
-
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
@@ -49,8 +42,8 @@ class BaseTestDataSet:
             self.comparison_column = None
 
         def test_check_loader_no_error(self):
-            with self.assertNotRaises(ValueError):
-                self.obj._check_loader(loader=self.loader)
+            self.obj._check_loader(loader=self.loader)
+            # nothing raised -> ok
 
         def test_check_loader_error_invalid_column(self):
             #  invalid index column
