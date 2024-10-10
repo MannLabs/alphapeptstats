@@ -57,8 +57,8 @@ def check_internetconnection():
     try:
         connection.request("HEAD", "/")
         return True
-    except Exception:
-        raise ConnectionError("No internet connection available.")
+    except Exception as e:
+        raise ConnectionError("No internet connection available.") from e
     finally:
         connection.close()
 
