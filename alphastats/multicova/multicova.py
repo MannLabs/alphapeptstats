@@ -586,9 +586,7 @@ def generate_perms(n, n_rand, seed=42):
     n_rand_max = math.factorial(n) - 1
     if n_rand_max <= n_rand:
         print(
-            "{} random permutations cannot be created. The maximum of n_rand={} is used instead.".format(
-                n_rand, n_rand_max
-            )
+            f"{n_rand} random permutations cannot be created. The maximum of n_rand={n_rand_max} is used instead."
         )
         n_rand = n_rand_max
     while n_rand_i < n_rand:
