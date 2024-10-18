@@ -78,7 +78,7 @@ class BaseLoader:
             )
 
     def _check_if_file_exists(self, file):
-        if os.path.isfile(file) == False:
+        if not os.path.isfile(file):
             raise OSError(f"{file} does not exist.")
 
     def _add_contamination_column(self):

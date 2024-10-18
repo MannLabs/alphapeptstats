@@ -923,7 +923,7 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
 class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
-        if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
+        if not os.path.isfile("testfiles/spectronaut/results.tsv"):
             shutil.unpack_archive(
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
@@ -955,7 +955,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
 class TestGenericDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
-        if os.path.isfile("testfiles/fragpipe/combined_proteins.tsv") == False:
+        if not os.path.isfile("testfiles/fragpipe/combined_proteins.tsv"):
             shutil.unpack_archive(
                 "testfiles/fragpipe/combined_proteins.tsv.zip", "testfiles/fragpipe"
             )

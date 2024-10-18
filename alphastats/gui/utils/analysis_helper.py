@@ -214,7 +214,7 @@ def get_analysis_options_from_dict(method, options_dict):
         return st_plot_umap(method_dict)
 
     elif "settings" not in method_dict:
-        if st.session_state[StateKeys.DATASET].mat.isna().values.any() == True:
+        if st.session_state[StateKeys.DATASET].mat.isna().values.any():
             st.error(
                 "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
             )

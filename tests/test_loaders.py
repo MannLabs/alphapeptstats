@@ -194,7 +194,7 @@ class TestmzTabLoader(BaseTestLoader.BaseTest):
 class TestSpectronautLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
-        if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
+        if not os.path.isfile("testfiles/spectronaut/results.tsv"):
             shutil.unpack_archive(
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
