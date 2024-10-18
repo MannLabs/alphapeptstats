@@ -154,7 +154,7 @@ class Preprocess:
             logging.info("Contaminatons have already been filtered.")
             return
 
-        #  print column names with contamination
+        # print column names with contamination
         protein_groups_to_remove = self.rawinput[
             self.rawinput[self.filter_columns].any(axis=1)
         ][self.index_column].tolist()

@@ -166,7 +166,7 @@ class DimensionalityReduction(PlotUtils):
             fig_dict["data"][count]["hovertemplate"] = hover
         fig = go.Figure(fig_dict)
 
-        #  save plotting data in figure object
+        # save plotting data in figure object
         fig = plotly_object(fig)
         self._update_figure_attributes(
             fig,

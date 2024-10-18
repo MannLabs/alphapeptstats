@@ -78,7 +78,7 @@ class IntensityPlot(PlotUtils):
 
         group1, group2 = data[0]["name"], data[1]["name"]
         y_array1, y_array2 = data[0]["y"], data[1]["y"]
-        #  do ttest
+        # do ttest
         pvalue = scipy.stats.ttest_ind(y_array1, y_array2).pvalue
 
         pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
@@ -136,7 +136,7 @@ class IntensityPlot(PlotUtils):
         return plot
 
     def _prepare_data(self):
-        #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
+        # TODO use difflib to find similar ProteinId if ProteinGroup is not present
         df = (
             self.mat[[self.protein_id]]
             .reset_index()

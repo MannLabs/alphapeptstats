@@ -36,10 +36,10 @@ class FragPipeLoader(BaseLoader):
 """
 # https://github.com/Nesvilab/MSFragger/wiki/Interpreting-MSFragger-Output
 
-#  SAMPLE
+# SAMPLE
 # columm Spectrum
 
 # https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv
 # Frag pipe
 # https://github.com/Nesvilab/philosopher/wiki/Combined-protein-reports
-#  ProteinProphet: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5863791/
+# ProteinProphet: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5863791/

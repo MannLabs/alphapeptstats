@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseTestLoader:
-    #  parent class of test loader for common tests among loaders
+    # parent class of test loader for common tests among loaders
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
@@ -43,7 +43,7 @@ class BaseTestLoader:
 
         @patch("logging.Logger.warning")
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
-            #  check if indexcolumn is unique
+            # check if indexcolumn is unique
             # check if error gets raised when duplicate
             obj = copy.deepcopy(self.obj)
             obj.rawinput[obj.index_column] = "non unique"
@@ -52,7 +52,7 @@ class BaseTestLoader:
 
         # @patch("logging.Logger.warning")
         # def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
-        #  check if indexcolumn is unique
+        # check if indexcolumn is unique
         # self.obj.check_if_indexcolumn_is_unique()
         # mock.assert_not_called()
 
