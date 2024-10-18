@@ -99,8 +99,6 @@ class StateKeys:
     LOADER = "loader"
     # on sample run (function load_sample_data), removed on new session click
     DATASET = "dataset"  # functions upload_metadatafile
-    PLOTTING_OPTIONS = "plotting_options"  # function load_options
-    STATISTIC_OPTIONS = "statistic_options"  # function load_options
 
     METADATA_COLUMNS = "metadata_columns"
     WORKFLOW = "workflow"

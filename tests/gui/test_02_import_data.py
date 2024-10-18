@@ -61,8 +61,6 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
         str(type(at.session_state[StateKeys.LOADER]))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
-    assert StateKeys.PLOTTING_OPTIONS in at.session_state
-    assert StateKeys.STATISTIC_OPTIONS in at.session_state
 
 
 @patch("streamlit.file_uploader")
@@ -123,5 +121,3 @@ def test_page_02_loads_maxquant_testfiles(
         str(type(at.session_state[StateKeys.LOADER]))
         == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
-    assert StateKeys.PLOTTING_OPTIONS in at.session_state
-    assert StateKeys.STATISTIC_OPTIONS in at.session_state

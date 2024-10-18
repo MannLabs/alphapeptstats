@@ -9,16 +9,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.MaxQuantLoader import BaseLoader, MaxQuantLoader
-
-
-def load_options():
-    # TODO move import to top
-    from alphastats.gui.utils.options import plotting_options, statistic_options
-
-    st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
-    st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
