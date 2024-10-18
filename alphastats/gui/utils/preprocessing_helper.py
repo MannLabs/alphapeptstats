@@ -54,10 +54,12 @@ class PREPROCESSING_STEPS:
     REMOVE_CONTAMINATIONS = "remove_contaminations"
     REMOVE_SAMPLES = "remove_samples"
     SUBSET = "subset"
+    REPLACE_ZERO = "replace_zero"
     DATA_COMPLETENESS = "data_completeness"
     LOG2_TRANSFORM = "log2_transform"
     NORMALIZATION = "normalization"
     IMPUTATION = "imputation"
+    DROP_UNMEASURED_FEATURES = "drop_unmeasured_features"
     BATCH = "batch"
 
 
@@ -76,6 +78,10 @@ UI_ELEMENTS = {
         "repr": "Subset data",
         "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
     },
+    PREPROCESSING_STEPS.REPLACE_ZERO: {
+        "repr": "0 --> NaN",
+        "help": "Replace 0 in the data with NaN.",
+    },
     PREPROCESSING_STEPS.DATA_COMPLETENESS: {
         "repr": "Filter data completeness",
         "help": "Filter data based on completeness across samples. E.g. if a protein has to be detected in at least 70% of the samples.",
@@ -92,6 +98,10 @@ UI_ELEMENTS = {
         "repr": "Imputation",
         "help": 'Impute missing values using one of the available methods ("mean", "median", "knn", "randomforest").',
     },
+    PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES: {
+        "repr": "Drop empty proteins",
+        "help": "Drop unmeasured features (protein groups).",
+    },
     PREPROCESSING_STEPS.BATCH: {
         "repr": "Batch correction",
         "help": "Batch correction.",
@@ -102,10 +112,12 @@ PREDEFINED_ORDER = [
     PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
     PREPROCESSING_STEPS.REMOVE_SAMPLES,
     PREPROCESSING_STEPS.SUBSET,
+    PREPROCESSING_STEPS.REPLACE_ZERO,
     PREPROCESSING_STEPS.DATA_COMPLETENESS,
     PREPROCESSING_STEPS.LOG2_TRANSFORM,
     PREPROCESSING_STEPS.NORMALIZATION,
     PREPROCESSING_STEPS.IMPUTATION,
+    PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
     PREPROCESSING_STEPS.BATCH,
 ]
 
@@ -177,14 +189,14 @@ def configure_preprocessing(dataset):
         + "[documentation](https://alphapeptstats.readthedocs.io/en/main/data_preprocessing.html)."
     )
 
-    remove_contaminations = st.selectbox(
+    remove_contaminations = st.checkbox(
         f"Remove contaminations annotated in {dataset.filter_columns}",
-        options=[True, False],
+        value=True,
     )
 
-    subset = st.selectbox(
+    subset = st.checkbox(
         "Subset data so it matches with metadata. Remove miscellanous samples in rawinput.",
-        options=[True, False],
+        value=False,
     )
 
     # TODO: value of this widget does not persist across dataset reset (likely because the metadata is reset)
@@ -194,6 +206,11 @@ def configure_preprocessing(dataset):
     )
     remove_samples = remove_samples if len(remove_samples) != 0 else None
 
+    replace_zero = st.checkbox(
+        "Replace 0 in the data with NaN.",
+        value=True,
+    )
+
     data_completeness = st.number_input(
         f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
         value=0.0,
@@ -202,9 +219,9 @@ def configure_preprocessing(dataset):
         step=0.01,
     )
 
-    log2_transform = st.selectbox(
+    log2_transform = st.checkbox(
         "Log2-transform dataset",
-        options=[True, False],
+        value=True,
     )
 
     normalization = st.selectbox(
@@ -213,6 +230,11 @@ def configure_preprocessing(dataset):
 
     imputation = st.selectbox(
         "Imputation", options=[None, "mean", "median", "knn", "randomforest"]
+    )
+
+    drop_unmeasured_features = st.checkbox(
+        "Drop unmeasured features (protein groups)",
+        value=True,
     )
 
     batch = st.selectbox(
@@ -224,10 +246,12 @@ def configure_preprocessing(dataset):
         PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS: remove_contaminations,
         PREPROCESSING_STEPS.REMOVE_SAMPLES: remove_samples,
         PREPROCESSING_STEPS.SUBSET: subset,
+        PREPROCESSING_STEPS.REPLACE_ZERO: replace_zero,
         PREPROCESSING_STEPS.DATA_COMPLETENESS: data_completeness,
         PREPROCESSING_STEPS.LOG2_TRANSFORM: log2_transform,
         PREPROCESSING_STEPS.NORMALIZATION: normalization,
         PREPROCESSING_STEPS.IMPUTATION: imputation,
+        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES: drop_unmeasured_features,
         PREPROCESSING_STEPS.BATCH: batch,
     }
 
