@@ -332,7 +332,7 @@ class VolcanoPlot(PlotUtils):
         mat_transpose = self.mat.transpose()
         fc = self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
 
-        #  check how column is ordered
+        # check how column is ordered
         self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
 
         if self.pvalue_column not in result_df.columns:
@@ -402,7 +402,7 @@ class VolcanoPlot(PlotUtils):
             self.res["label"] = np.where(
                 self.res.color != "non_sig", self.res[label_column], ""
             )
-            #  replace nas with empty string (can cause error when plotting with gene names)
+            # replace nas with empty string (can cause error when plotting with gene names)
             self.res["label"] = self.res["label"].fillna("")
             self.res = self.res[self.res["label"] != ""]
         if "color" not in self.res.columns:
@@ -427,7 +427,7 @@ class VolcanoPlot(PlotUtils):
             self.res["label"] = np.where(
                 self.res.color != "non_sig", self.res[label_column], ""
             )
-            #  replace nas with empty string (can cause error when plotting with gene names)
+            # replace nas with empty string (can cause error when plotting with gene names)
             self.res["label"] = self.res["label"].fillna("")
             self.res = self.res[self.res["label"] != ""]
         if "color" not in self.res.columns:
@@ -447,7 +447,7 @@ class VolcanoPlot(PlotUtils):
         self.res["label"] = np.where(
             self.res.color != "non_sig", self.res[label_column], ""
         )
-        #  replace nas with empty string (can cause error when plotting with gene names)
+        # replace nas with empty string (can cause error when plotting with gene names)
         self.res["label"] = self.res["label"].fillna("")
         self.res["label"] = [
             ";".join([i for i in j.split(";") if i]) for j in self.res["label"].tolist()
@@ -536,7 +536,7 @@ class VolcanoPlot(PlotUtils):
         self.plot.update_layout(showlegend=False)
         self.plot.update_layout(width=600, height=700)
 
-        #  save plotting data in figure object
+        # save plotting data in figure object
         self.plot = plotly_object(self.plot)
         self._update_figure_attributes(
             self.plot,

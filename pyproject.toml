@@ -3,22 +3,22 @@ extend-exclude = [".bumpversion.cfg", ".secrets.baseline"]
 
  [tool.ruff.lint]
  select =  [
-#    # pycodestyle
-#    "E",
-#    # Pyflakes
+    # pycodestyle
+    "E",
+    # Pyflakes
     "F",
     # pyupgrade
     "UP",
-#    # flake8-bugbear
+    # flake8-bugbear
     "B",
-#    # flake8-simplify
+    # flake8-simplify
     "SIM",
     # isort
     "I",
  ]
 
 ignore = [
-#    "E501",  # Line too long  (ruff wraps code, but not docstrings)
+    "E501",  # Line too long  (ruff wraps code, but not docstrings)
     "B028",  #  No explicit `stacklevel` keyword argument found (for warnings)
 #    "B905"  # This causes problems in numba code: `zip()` without an explicit `strict=` parameter
      "B019" # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks  TODO: revisit

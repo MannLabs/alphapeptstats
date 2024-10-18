@@ -78,17 +78,17 @@ class BaseLoader:
             )
 
     def _check_if_file_exists(self, file):
-        if os.path.isfile(file) == False:
+        if not os.path.isfile(file):
             raise OSError(f"{file} does not exist.")
 
     def _add_contamination_column(self):
-        #  load df with potential contamination from fasta file
+        # load df with potential contamination from fasta file
         contaminations_path = (
             importlib_resources.files(__package__) / "../data/contaminations.txt"
         )
         contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
-        #  add column with True False
+        # add column with True False
 
         self.rawinput["contamination_library"] = np.where(
             self.rawinput[self.index_column].isin(contaminations_ids), True, False

@@ -60,7 +60,7 @@ class DifferentialExpressionAnalysis:
         reduced_matrix = reduced_matrix.loc[:, (reduced_matrix != 0).any(axis=0)]
         # sort metadata according to matrix values
         list_to_sort = reduced_matrix.index.to_list()
-        #  reduce metadata
+        # reduce metadata
         obs_metadata = (
             self.metadata[self.metadata[self.sample].isin(group_samples)]
             .set_index(self.sample)

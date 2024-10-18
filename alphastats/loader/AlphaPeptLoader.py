@@ -44,7 +44,7 @@ class AlphaPeptLoader(BaseLoader):
         self._add_contamination_reverse_column()
         self._add_contamination_column()
         self._read_all_column_names_as_string()
-        #  make ProteinGroup column
+        # make ProteinGroup column
         self.rawinput["ProteinGroup"] = self.rawinput[self.index_column].map(
             self.standardize_protein_group_column
         )

@@ -53,7 +53,7 @@ class GenericLoader(BaseLoader):
     def load_file(self, file_path):
         if isinstance(file_path, pd.DataFrame):
             df = file_path
-        #  loading file needs to be more beautiful
+        # loading file needs to be more beautiful
         elif file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
             # find robust way to detect file format
