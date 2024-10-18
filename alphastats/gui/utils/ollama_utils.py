@@ -356,7 +356,7 @@ class LLMIntegration:
         -------
         None
         """
-        for i, message in enumerate(self.messages):
+        for message in self.messages:
             role = message["role"].capitalize()
             content = message["content"]
 

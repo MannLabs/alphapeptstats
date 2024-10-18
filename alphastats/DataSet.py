@@ -328,7 +328,7 @@ class DataSet:
         perm: int = 100,
         fdr: float = 0.05,
         # compare_preprocessing_modes: bool = False, # TODO reimplement
-        color_list: list = [],
+        color_list: list = None,
     ):
         """Plot Volcano Plot
 
@@ -360,6 +360,8 @@ class DataSet:
         #     return results
         #
         # else:
+        if color_list is None:
+            color_list = []
         volcano_plot = VolcanoPlot(
             mat=self.mat,
             rawinput=self.rawinput,

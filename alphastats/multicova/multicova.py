@@ -105,10 +105,12 @@ def workflow_permutation_tvals(df, c1, c2, s0=1, n_perm=2, parallelize=False):
     res_perm = list()
     for i in np.arange(0, len(all_c_rand)):
         if parallelize:
-            res_i = df.swifter.progress_bar(False).apply(
+            res_i = df.swifter.progress_bar(
+                False
+            ).apply(
                 lambda row: perform_ttest(
-                    row[all_c_rand[i][0 : len(c1)]],
-                    row[all_c_rand[i][len(c1) : len(c1) + len(c2)]],
+                    row[all_c_rand[i][0 : len(c1)]],  # noqa: B023
+                    row[all_c_rand[i][len(c1) : len(c1) + len(c2)]],  # noqa: B023
                     s0=s0,
                 ),
                 axis=1,
@@ -116,8 +118,8 @@ def workflow_permutation_tvals(df, c1, c2, s0=1, n_perm=2, parallelize=False):
         else:
             res_i = df.apply(
                 lambda row: perform_ttest(
-                    row[all_c_rand[i][0 : len(c1)]],
-                    row[all_c_rand[i][len(c1) : len(c1) + len(c2)]],
+                    row[all_c_rand[i][0 : len(c1)]],  # noqa: B023
+                    row[all_c_rand[i][len(c1) : len(c1) + len(c2)]],  # noqa: B023
                     s0=s0,
                 ),
                 axis=1,
@@ -312,13 +314,17 @@ def get_fdr_line(
     n_x,
     n_y,
     plot=False,
-    fc_s=np.arange(0, 6, 0.01),
-    s_s=np.arange(0.005, 6, 0.005),
+    fc_s=None,
+    s_s=None,
 ):
     """
     Function to get the fdr line for a volcano plot as specified tval_s0
     limit, s0, n_x and n_y.
     """
+    if fc_s is None:
+        fc_s = np.arange(0, 6, 0.01)
+    if s_s is None:
+        s_s = np.arange(0.005, 6, 0.005)
     pvals = np.ones(len(fc_s))
     svals = np.zeros(len(fc_s))
     for i in np.arange(0, len(fc_s)):
@@ -490,17 +496,22 @@ def regression_workflow_permutation(y, X_rand, s0):
     return res_rand
 
 
-def get_fdr_line_regression(
+def get_fdr_line_regression(  # TODO: unused
     t_limits,
     s0,
     X,
     plot=False,
-    fc_s=np.arange(0, 6, 0.01),
-    s_s=np.arange(0.005, 6, 0.005),
+    fc_s=None,
+    s_s=None,
 ):
     """
     Function to get the fdr line for a volcano plot as specified tval_s0 limit, s0, n_x and n_y.
     """
+    if fc_s is None:
+        fc_s = np.arange(0, 6, 0.01)
+    if fc_s is None:
+        s_s = np.arange(0.005, 6, 0.005)
+
     # pvals = [list(np.ones(len(fc_s)))] * X.shape[1]
     pvals = [list(np.ones(len(fc_s))) for i in range(0, X.shape[1])]
     # print(pvals)
@@ -565,7 +576,8 @@ def perform_ttest_getMaxS_regression(fc, s, s0, X):
 
 def generate_perms(n, n_rand, seed=42):
     """
-    Generate n_rand permutations of indeces ranging from 0 to n.
+    Generate n_rand permutations of indices ranging from 0 to n.
+    # TODO: replace with something from a library
     """
     np.random.seed(seed)
     idx_v = np.arange(0, n)
@@ -574,18 +586,16 @@ def generate_perms(n, n_rand, seed=42):
     n_rand_max = math.factorial(n) - 1
     if n_rand_max <= n_rand:
         print(
-            "{} random permutations cannot be created. The maximum of n_rand={} is used instead.".format(
-                n_rand, n_rand_max
-            )
+            f"{n_rand} random permutations cannot be created. The maximum of n_rand={n_rand_max} is used instead."
         )
         n_rand = n_rand_max
     while n_rand_i < n_rand:
         rand_i = list(np.random.permutation(idx_v))
         if np.all(rand_i == idx_v):
-            next
+            continue
         else:
             if rand_i in rand_v:
-                next
+                continue
             else:
                 rand_v.append(rand_i)
                 n_rand_i = len(rand_v)

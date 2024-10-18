@@ -11,7 +11,7 @@ import setuptools
 
 
 def get_long_description():
-    with open("README.md", "r") as readme_file:
+    with open("README.md") as readme_file:
         long_description = readme_file.read()
     return long_description
 
