@@ -5,7 +5,6 @@ import streamlit as st
 from openai import AuthenticationError
 
 from alphastats.gui.utils.analysis_helper import (
-    check_if_options_are_loaded,
     display_figure,
     gui_volcano_plot_differential_expression_analysis,
     helper_compare_two_groups,
@@ -28,7 +27,6 @@ init_session_state()
 sidebar_info()
 
 
-@check_if_options_are_loaded
 def select_analysis():
     """
     select box

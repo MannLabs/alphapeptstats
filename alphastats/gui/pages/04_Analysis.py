@@ -6,7 +6,6 @@ from alphastats.gui.utils.analysis_helper import (
     download_figure,
     download_preprocessing_info,
     get_analysis,
-    load_options,
     save_plot_to_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -22,7 +21,6 @@ def select_analysis():
     select box
     loads keys from option dicts
     """
-    load_options()
     method = st.selectbox(
         "Analysis",
         options=list(st.session_state[StateKeys.PLOTTING_OPTIONS].keys())
