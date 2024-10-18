@@ -1,4 +1,5 @@
 import io
+from typing import Any, Dict
 
 import pandas as pd
 import streamlit as st
@@ -72,15 +73,27 @@ def get_unique_values_from_column(column):
     return unique_values
 
 
+def get_analysis(method, options_dict):
+    if method in options_dict:
+        obj = get_analysis_options_from_dict(method, options_dict=options_dict)
+        return obj
+
+
 def st_general(method_dict):
     chosen_parameter_dict = {}
 
-    if "settings" in list(method_dict.keys()):
-        settings_dict = method_dict.get("settings")
+    if "settings" not in method_dict:
+        # TODO: is this check really required here? If so, refactor to be part of plotting/statistic_options
+        if st.session_state[StateKeys.DATASET].mat.isna().values.any():
+            st.error(
+                "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
+            )
+            return None
 
-        for parameter in settings_dict:
-            parameter_dict = settings_dict[parameter]
+        st.info("No parameters to set.")
 
+    else:
+        for parameter, parameter_dict in method_dict["settings"].items():
             if "options" in parameter_dict:
                 chosen_parameter = st.selectbox(
                     parameter_dict.get("label"), options=parameter_dict.get("options")
@@ -90,11 +103,7 @@ def st_general(method_dict):
 
             chosen_parameter_dict[parameter] = chosen_parameter
 
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
+    return chosen_parameter_dict
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
@@ -162,7 +171,7 @@ def gui_volcano_plot():
         )
         chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
 
-    submitted = st.button("Submit")
+    submitted = st.button("Run analysis ..")
 
     if submitted:
         # TODO this seems not be covered by unit test
@@ -175,68 +184,46 @@ def gui_volcano_plot():
         return volcano_plot.plot
 
 
-def get_analysis_options_from_dict(method, options_dict):
-    """
-    extract plotting options from dict amd display as selectbox or
-    give selceted options to plotting function
-    """
+def get_analysis_options_from_dict(method: str, options_dict: Dict[str, Any]) -> Any:
+    """Extract plotting options and display."""
 
     method_dict = options_dict.get(method)
 
-    if method == "t-SNE Plot":
-        return st_tsne_options(method_dict)
-
-    elif method == "Differential Expression Analysis - T-test":
-        return st_calculate_ttest(method=method, options_dict=options_dict)
-
-    elif method == "Differential Expression Analysis - Wald-test":
-        return st_calculate_waldtest(method=method, options_dict=options_dict)
-
-    elif method == "Volcano Plot":
+    if method == "Volcano Plot":
         return gui_volcano_plot()
 
+    elif method == "t-SNE Plot":
+        parameters = st_tsne_options(method_dict)
+
+    elif method == "Differential Expression Analysis - T-test":
+        parameters = st_calculate_ttest(method=method, options_dict=options_dict)
+
+    elif method == "Differential Expression Analysis - Wald-test":
+        parameters = st_calculate_waldtest(method=method, options_dict=options_dict)
+
     elif method == "PCA Plot":
-        return st_plot_pca(method_dict)
+        parameters = st_plot_pca(method_dict)
 
     elif method == "UMAP Plot":
-        return st_plot_umap(method_dict)
-
-    elif "settings" not in method_dict:
-        if st.session_state[StateKeys.DATASET].mat.isna().values.any():
-            st.error(
-                "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
-            )
-            return
-
-        chosen_parameter_dict = {}
-        return method_dict["function"](**chosen_parameter_dict)
+        parameters = st_plot_umap(method_dict)
 
     else:
-        return st_general(method_dict=method_dict)
+        parameters = st_general(method_dict=method_dict)
 
-
-def st_plot_pca(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    submitted = st.button("Submit")
+    submitted = st.button("Run analysis ..")
 
     if submitted:
         with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
+            return method_dict["function"](**parameters)
+
+
+# TODO try to cover all those by st_general()
+def st_plot_pca(method_dict):
+    return helper_plot_dimensionality_reduction(method_dict=method_dict)
 
 
 def st_plot_umap(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
+    return helper_plot_dimensionality_reduction(method_dict=method_dict)
 
 
 def st_calculate_ttest(method, options_dict):
@@ -246,22 +233,14 @@ def st_calculate_ttest(method, options_dict):
     chosen_parameter_dict = helper_compare_two_groups()
     chosen_parameter_dict.update({"method": "ttest"})
 
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return options_dict.get(method)["function"](**chosen_parameter_dict)
+    return chosen_parameter_dict
 
 
 def st_calculate_waldtest(method, options_dict):
     chosen_parameter_dict = helper_compare_two_groups()
     chosen_parameter_dict.update({"method": "wald"})
 
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return options_dict.get(method)["function"](**chosen_parameter_dict)
+    return chosen_parameter_dict
 
 
 def helper_plot_dimensionality_reduction(method_dict):
@@ -344,12 +323,6 @@ def helper_compare_two_groups():
     return chosen_parameter_dict
 
 
-def get_analysis(method, options_dict):
-    if method in options_dict:
-        obj = get_analysis_options_from_dict(method, options_dict=options_dict)
-        return obj
-
-
 def st_tsne_options(method_dict):
     chosen_parameter_dict = helper_plot_dimensionality_reduction(
         method_dict=method_dict
@@ -362,7 +335,6 @@ def st_tsne_options(method_dict):
     )
     perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
 
-    submitted = st.button("Submit")
     chosen_parameter_dict.update(
         {
             "n_iter": n_iter,
@@ -370,6 +342,4 @@ def st_tsne_options(method_dict):
         }
     )
 
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
+    return chosen_parameter_dict
