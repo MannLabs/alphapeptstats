@@ -4,8 +4,8 @@ from typing import List, Optional
 
 import openai
 import streamlit as st
-from gui.utils.options import get_plotting_options
 
+from alphastats.gui.utils.options import get_plotting_options
 from alphastats.gui.utils.ui_helper import StateKeys
 
 try:
