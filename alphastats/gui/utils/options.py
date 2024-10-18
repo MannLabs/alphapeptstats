@@ -8,7 +8,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
 
 
-def plotting_options(state):
+def get_plotting_options(state):
     dataset = state[StateKeys.DATASET]
     plotting_options = {
         "Sampledistribution Plot": {
@@ -78,7 +78,7 @@ def plotting_options(state):
     return plotting_options
 
 
-def statistic_options(state):
+def get_statistic_options(state):
     dataset = state[StateKeys.DATASET]
     statistic_options = {
         "Differential Expression Analysis - T-test": {

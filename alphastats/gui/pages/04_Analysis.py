@@ -1,4 +1,5 @@
 import streamlit as st
+from gui.utils.options import get_plotting_options, get_statistic_options
 
 from alphastats.gui.utils.analysis_helper import (
     display_df,
@@ -23,8 +24,8 @@ def select_analysis():
     """
     method = st.selectbox(
         "Analysis",
-        options=list(st.session_state[StateKeys.PLOTTING_OPTIONS].keys())
-        + list(st.session_state[StateKeys.STATISTIC_OPTIONS].keys()),
+        options=list(get_plotting_options(st.session_state).keys())
+        + list(get_statistic_options(st.session_state).keys()),
     )
     return method
 
@@ -63,16 +64,14 @@ if StateKeys.DATASET in st.session_state:
     with c1:
         method = select_analysis()
 
-        if method in st.session_state[StateKeys.PLOTTING_OPTIONS]:
-            analysis_result = get_analysis(
-                method=method, options_dict=st.session_state[StateKeys.PLOTTING_OPTIONS]
-            )
+        if method in (plotting_options := get_plotting_options(st.session_state)):
+            analysis_result = get_analysis(method=method, options_dict=plotting_options)
             plot_to_display = True
 
-        elif method in st.session_state[StateKeys.STATISTIC_OPTIONS]:
+        elif method in (statistic_options := get_statistic_options(st.session_state)):
             analysis_result = get_analysis(
                 method=method,
-                options_dict=st.session_state[StateKeys.STATISTIC_OPTIONS],
+                options_dict=statistic_options,
             )
             df_to_display = True
 
