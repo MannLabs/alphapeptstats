@@ -3,7 +3,7 @@ import streamlit as st
 from alphastats.gui.utils.analysis_helper import (
     display_df,
     display_plot,
-    get_analysis,
+    do_analysis,
 )
 from alphastats.gui.utils.options import get_plotting_options, get_statistic_options
 from alphastats.gui.utils.ui_helper import (
@@ -54,12 +54,12 @@ with c1:
     )
 
     if method in (plotting_options := get_plotting_options(st.session_state)):
-        analysis_result = get_analysis(method=method, options_dict=plotting_options)
+        analysis_result = do_analysis(method, options_dict=plotting_options)
         show_plot = analysis_result is not None
 
     elif method in (statistic_options := get_statistic_options(st.session_state)):
-        analysis_result = get_analysis(
-            method=method,
+        analysis_result = do_analysis(
+            method,
             options_dict=statistic_options,
         )
         show_df = analysis_result is not None

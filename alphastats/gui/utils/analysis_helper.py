@@ -90,12 +90,6 @@ def get_unique_values_from_column(column):
     return unique_values
 
 
-def get_analysis(method, options_dict):
-    if method in options_dict:
-        obj = get_analysis_options_from_dict(method, options_dict=options_dict)
-        return obj
-
-
 def st_general(method_dict):
     chosen_parameter_dict = {}
 
@@ -201,7 +195,7 @@ def gui_volcano_plot():
         return volcano_plot.plot
 
 
-def get_analysis_options_from_dict(method: str, options_dict: Dict[str, Any]) -> Any:
+def do_analysis(method: str, options_dict: Dict[str, Any]) -> Any:
     """Extract plotting options and display."""
 
     method_dict = options_dict.get(method)
@@ -281,20 +275,19 @@ def helper_plot_dimensionality_reduction(method_dict):
 def helper_compare_two_groups():
     """
     Helper function to compare two groups for example
-    Volcano Plot, Differetial Expression Analysis and t-test
+    Volcano Plot, Differential Expression Analysis and t-test
     selectbox based on selected column
     """
-
+    dataset = st.session_state[StateKeys.DATASET]
     chosen_parameter_dict = {}
     default_option = "<select>"
     group = st.selectbox(
         "Grouping variable",
-        options=[default_option]
-        + st.session_state[StateKeys.DATASET].metadata.columns.to_list(),
+        options=[default_option] + dataset.metadata.columns.to_list(),
     )
 
     if group != default_option:
-        unique_values = get_unique_values_from_column(column=group)
+        unique_values = dataset.metadata[group].unique().tolist()
 
         group1 = st.selectbox("Group 1", options=unique_values)
 
@@ -312,18 +305,18 @@ def helper_compare_two_groups():
     else:
         group1 = st.multiselect(
             "Group 1 samples:",
-            options=st.session_state[StateKeys.DATASET]
-            .metadata[st.session_state[StateKeys.DATASET].sample]
-            .to_list(),
+            options=dataset.metadata[
+                st.session_state[StateKeys.DATASET].sample
+            ].to_list(),
         )
 
         group2 = st.multiselect(
             "Group 2 samples:",
             options=list(
                 reversed(
-                    st.session_state[StateKeys.DATASET]
-                    .metadata[st.session_state[StateKeys.DATASET].sample]
-                    .to_list()
+                    dataset.metadata[
+                        st.session_state[StateKeys.DATASET].sample
+                    ].to_list()
                 )
             ),
         )
