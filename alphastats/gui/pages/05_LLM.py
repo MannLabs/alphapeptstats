@@ -20,7 +20,7 @@ from alphastats.gui.utils.ollama_utils import LLMIntegration
 from alphastats.gui.utils.openai_utils import (
     set_api_key,
 )
-from alphastats.gui.utils.options import interpretation_options
+from alphastats.gui.utils.options import get_interpretation_options
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 
 init_session_state()
@@ -35,7 +35,7 @@ def select_analysis():
     method = st.selectbox(
         "Analysis",
         # options=["Volcano plot"],
-        options=list(interpretation_options(st.session_state).keys()),
+        options=list(get_interpretation_options(st.session_state).keys()),
     )
     return method
 
