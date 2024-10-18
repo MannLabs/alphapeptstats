@@ -25,4 +25,8 @@ for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
     st.markdown("\n\n\n")
     st.markdown(f"#### {method}")
 
+    if st.button("x remove analysis", key="remove" + method + str(count)):
+        st.session_state[StateKeys.PLOT_LIST].remove(saved_item)
+        st.rerun()
+
     display_plot(method + str(count), plot, show_save_button=False)
