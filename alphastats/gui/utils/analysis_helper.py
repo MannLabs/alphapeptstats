@@ -18,7 +18,7 @@ def display_figure(plot):
         st.pyplot(plot)
 
 
-def save_plot_to_session_state(plot, method):
+def save_plot_to_session_state(method, plot):
     """
     save plot with method to session state to retrieve old results
     """
@@ -32,37 +32,54 @@ def display_df(df):
     st.dataframe(df)
 
 
-def download_figure(obj, format, plotting_library="plotly"):
+@st.fragment
+def display_plot(method, analysis_result, show_save_button=True) -> None:
+    """A fragment to display the plot and download options."""
+    display_figure(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
+    with c1:
+        if show_save_button and st.button("Save to results page.."):
+            save_plot_to_session_state(method, analysis_result)
+
+    with c2:
+        download_figure(method, analysis_result, format="pdf")
+        download_figure(method, analysis_result, format="svg")
+
+    with c3:
+        download_preprocessing_info(
+            method, analysis_result
+        )  # TODO this should go elsewhere
+
+
+def download_figure(method, plot, format):
     """
     download plotly figure
     """
 
-    plot = obj[1]
-    filename = obj[0] + "." + format
+    filename = method + "." + format
 
     buffer = io.BytesIO()
 
-    if plotting_library == "plotly":
-        # Save the figure as a pdf to the buffer
+    try:  # plotly
         plot.write_image(file=buffer, format=format)
-
-    else:
+    except AttributeError:
         plot.savefig(buffer, format=format)
 
     st.download_button(label="Download as " + format, data=buffer, file_name=filename)
 
 
-def download_preprocessing_info(plot):
-    preprocesing_dict = plot[1].preprocessing
+def download_preprocessing_info(method, plot):
+    preprocesing_dict = plot.preprocessing
     df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + plot[0] + "preprocessing_info.csv"
+    filename = "plot" + method + "preprocessing_info.csv"
     csv = convert_df(df)
     st.download_button(
         "Download DataSet Info as .csv",
         csv,
         filename,
         "text/csv",
-        key="preprocessing",
     )
 
 
