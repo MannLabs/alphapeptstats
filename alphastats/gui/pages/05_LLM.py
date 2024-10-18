@@ -197,7 +197,7 @@ if (
         st.stop()
     print("genes_of_interest", genes_of_interest_colored)
 
-    save_plot_to_session_state(volcano_plot, method)
+    save_plot_to_session_state(method, volcano_plot)
     st.session_state[StateKeys.GENES_OF_INTEREST_COLORED] = genes_of_interest_colored
     # st.session_state["gene_functions"] = get_info(genes_of_interest_colored, organism)
     st.session_state[StateKeys.UPREGULATED] = [

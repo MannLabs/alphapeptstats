@@ -1,8 +1,7 @@
-import io
-
 import pandas as pd
 import streamlit as st
 
+from alphastats.gui.utils.analysis_helper import display_plot
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
     convert_df,
@@ -13,16 +12,6 @@ from alphastats.gui.utils.ui_helper import (
 
 def display_plotly_figure(plot):
     st.plotly_chart(plot)
-
-
-def save_plotly(plot, name, format):
-    # Create an in-memory buffer
-    buffer = io.BytesIO()
-    # Save the figure as a pdf to the buffer
-    plot.write_image(file=buffer, format=format)
-    st.download_button(
-        label="Download as " + format, data=buffer, file_name=name + "." + format
-    )
 
 
 def download_preprocessing_info(plot, name, count):
@@ -45,30 +34,20 @@ sidebar_info()
 
 st.markdown("### Results")
 
+if not st.session_state[StateKeys.PLOT_LIST]:
+    st.info("No analysis saved yet.")
+    st.stop()
 
-if StateKeys.PLOT_LIST in st.session_state:
-    for count, plot in enumerate(st.session_state[StateKeys.PLOT_LIST]):
-        print("plot", type(plot), count)
-        count = str(count)
+for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
+    print("plot", type(saved_item), count)
 
-        st.markdown("\n\n")
-        name = plot[0]
-        plot = plot[1]
-        if name == "ttest":
-            plot = plot.plot
-        st.write(name)
+    method = saved_item[0]
+    plot = saved_item[1]
 
-        display_plotly_figure(plot)
+    if method == "ttest":
+        plot = plot.plot
 
-        col1, col2, col3 = st.columns([1, 1, 1])
+    st.markdown("\n\n")
+    st.markdown(f"#### {method}")
 
-        with col1:
-            save_plotly(plot, name + count, format="pdf")
-
-        with col2:
-            save_plotly(plot, name + count, format="svg")
-
-        with col3:
-            download_preprocessing_info(plot, name, count)
-else:
-    st.info("No analysis performed yet.")
+    display_plot(method + str(count), plot, show_save_button=False)
