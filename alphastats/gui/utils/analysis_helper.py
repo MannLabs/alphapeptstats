@@ -25,7 +25,7 @@ def display_figure(plot):
     """
     try:
         st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
-    except:
+    except Exception:
         st.pyplot(plot)
 
 
@@ -37,7 +37,7 @@ def save_plot_to_session_state(plot, method):
 
 
 def display_df(df):
-    mask = df.applymap(type) != bool
+    mask = df.applymap(type) != bool  # noqa: E721
     d = {True: "TRUE", False: "FALSE"}
     df = df.where(mask, df.replace(d))
     st.dataframe(df)
