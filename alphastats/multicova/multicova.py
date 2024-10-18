@@ -8,6 +8,7 @@ import numba_stats as nbs
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import swifter  # noqa: F401  required for pd.DataFrame.swifter to work
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.linear_model import LinearRegression
