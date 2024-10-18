@@ -1,6 +1,4 @@
 # builtin
-import os
-import re
 
 import setuptools
 

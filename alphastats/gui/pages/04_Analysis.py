@@ -37,15 +37,15 @@ sidebar_info()
 st.markdown("### Analysis")
 
 # set background to white so downloaded pngs dont have grey background
-styl = f"""
+styl = """
     <style>
-        .css-jc5rf5 {{
+        .css-jc5rf5 {
             position: absolute;
             background: rgb(255, 255, 255);
             color: rgb(48, 46, 48);
             inset: 0px;
             overflow: hidden;
-        }}
+        }
     </style>
     """
 st.markdown(styl, unsafe_allow_html=True)

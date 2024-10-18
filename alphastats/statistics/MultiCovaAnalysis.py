@@ -1,10 +1,7 @@
 import warnings
 
 import numpy as np
-import pandas as pd
 import plotly.express as px
-import scipy
-import tqdm
 
 from alphastats.statistics.StatisticUtils import StatisticUtils
 
@@ -61,8 +58,7 @@ class MultiCovaAnalysis(StatisticUtils):
             if self.dataset.metadata[covariate].isna().any():
                 self.covariates.remove(covariate)
                 warnings.warn(
-                    f"Covariate: {covariate} contains missing values"
-                    + f"in metadata and will not be used for analysis."
+                    f"Covariate: {covariate} contains missing values in metadata and will not be used for analysis."
                 )
 
     def _convert_string_to_binary(self):

@@ -6,7 +6,7 @@ extend-exclude = [".bumpversion.cfg", ".secrets.baseline"]
 #    # pycodestyle
 #    "E",
 #    # Pyflakes
-#    "F",
+    "F",
     # pyupgrade
     "UP",
 #    # flake8-bugbear

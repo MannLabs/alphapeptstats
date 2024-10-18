@@ -250,7 +250,7 @@ class LLMIntegration:
             messages=self.messages,
             tools=self.tools,
         )
-        logger.info(f".. done")
+        logger.info(".. done")
 
         parsed_response = self.parse_model_response(response)
         parsed_response["new_artifacts"] = new_artifacts
@@ -292,7 +292,7 @@ class LLMIntegration:
                 messages=self.messages,
                 tools=self.tools,
             )
-            logger.info(f".. done")
+            logger.info(".. done")
 
             parsed_response = self.parse_model_response(response)
             new_artifacts = {}
