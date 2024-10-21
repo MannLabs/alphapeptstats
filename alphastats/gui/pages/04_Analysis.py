@@ -82,5 +82,6 @@ elif show_df:
         "Download as .csv", csv, method + ".csv", "text/csv", key="download-csv"
     )
 
+# TODO this is still quite rough, should be a list, mb add a button etc..
 if method == "Volcano Plot" and analysis_result is not None:
-    st.session_state["LLM"] = (analysis_object, parameters)
+    st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)

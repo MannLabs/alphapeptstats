@@ -1,11 +1,12 @@
 import json
 import time
+from pathlib import Path
 from typing import List, Optional
 
 import openai
 import streamlit as st
-from gui.utils.options import get_plotting_options
 
+from alphastats.gui.utils.options import get_plotting_options
 from alphastats.gui.utils.ui_helper import StateKeys
 
 try:
@@ -177,27 +178,21 @@ def set_api_key(api_key: str = None) -> None:
     """
     if api_key:
         st.session_state[StateKeys.OPENAI_API_KEY] = api_key
-        # TODO we should not write secrets to disk without user consent
-        # secret_path = Path("./.streamlit/secrets.toml")
-        # secret_path.parent.mkdir(parents=True, exist_ok=True)
-        # with open(secret_path, "w") as f:
-        #     f.write(f'openai_api_key = "{api_key}"')
-        # openai.OpenAI.api_key = st.session_state[StateKeys.OPENAI_API_KEY"]
-        # return
     elif StateKeys.OPENAI_API_KEY in st.session_state:
         api_key = st.session_state[StateKeys.OPENAI_API_KEY]
     else:
         try:
-            api_key = st.secrets["openai_api_key"]
-        except FileNotFoundError:
-            st.info(
-                "Please enter an OpenAI key or provide it in a secrets.toml file in the "
-                "alphastats/gui/.streamlit directory like "
-                "`openai_api_key = <key>`"
-            )
+            if Path("./.streamlit/secrets.toml").exists():
+                api_key = st.secrets["openai_api_key"]
+            else:
+                st.info(
+                    "Please enter an OpenAI key or provide it in a secrets.toml file in the "
+                    "alphastats/gui/.streamlit directory like "
+                    "`openai_api_key = <key>`"
+                )
         except KeyError:
-            st.write("OpenAI API key not found in secrets.")
+            st.error("OpenAI API key not found in secrets.toml .")
         except Exception as e:
-            st.write(f"Error loading OpenAI API key: {e}.")
+            st.error(f"Error loading OpenAI API key: {e}.")
 
     openai.OpenAI.api_key = api_key
