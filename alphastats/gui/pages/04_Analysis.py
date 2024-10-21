@@ -54,11 +54,13 @@ with c1:
     )
 
     if method in (plotting_options := get_plotting_options(st.session_state)):
-        analysis_result = do_analysis(method, options_dict=plotting_options)
+        analysis_result, analysis_object, parameters = do_analysis(
+            method, options_dict=plotting_options
+        )
         show_plot = analysis_result is not None
 
     elif method in (statistic_options := get_statistic_options(st.session_state)):
-        analysis_result = do_analysis(
+        analysis_result, *_ = do_analysis(
             method,
             options_dict=statistic_options,
         )
@@ -79,3 +81,6 @@ elif show_df:
     st.download_button(
         "Download as .csv", csv, method + ".csv", "text/csv", key="download-csv"
     )
+
+if method == "Volcano Plot" and analysis_result is not None:
+    st.session_state["LLM"] = (analysis_object, parameters)
