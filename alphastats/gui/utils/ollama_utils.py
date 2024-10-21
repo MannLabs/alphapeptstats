@@ -315,36 +315,8 @@ class LLMIntegration:
             self.update_session_state()
             return error_message, {}
 
-    def switch_backend(
-        self,
-        new_api_type: str,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
-    ):
-        """
-        Switch between different API backends.
-
-        Parameters
-        ----------
-        new_api_type : str
-            The new API type to switch to ('gpt' or 'ollama')
-        base_url : str, optional
-            The base URL for the new API, by default None
-        api_key : str, optional
-            The API key for the new API, by default None
-
-        Returns
-        -------
-        None
-        """
-        self.__init__(
-            api_type=new_api_type,
-            base_url=base_url,
-            api_key=api_key,
-            dataset=self.dataset,
-            metadata=self.metadata,
-        )
-
+    # TODO this seems to be for notebooks?
+    # we need some "export mode" where everything is shown
     def display_chat_history(self):
         """
         Display the chat history, including messages, function calls, and associated artifacts.
