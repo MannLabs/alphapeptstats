@@ -9,11 +9,9 @@ from alphastats.gui.utils.analysis_helper import (
 )
 from alphastats.gui.utils.gpt_helper import (
     display_proteins,
-    get_assistant_functions,
-    get_general_assistant_functions,
     get_subgroups_for_each_group,
 )
-from alphastats.gui.utils.ollama_utils import LLMIntegration
+from alphastats.gui.utils.ollama_utils import LLMIntegration, Models
 from alphastats.gui.utils.openai_utils import set_api_key
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 
@@ -36,10 +34,10 @@ def llm_config():
     with c1:
         st.session_state[StateKeys.API_TYPE] = st.selectbox(
             "Select LLM",
-            ["gpt4o", "llama3.1 70b"],
+            [Models.GPT, Models.OLLAMA],
         )
 
-        if st.session_state[StateKeys.API_TYPE] == "gpt4o":
+        if st.session_state[StateKeys.API_TYPE] == Models.GPT:
             api_key = st.text_input("Enter OpenAI API Key", type="password")
             set_api_key(api_key)
         else:
@@ -72,12 +70,14 @@ with c1:
     #         genes_of_interest_colored_df[gene_names_colname].tolist(),
     #     )
     # ) # TODO unused?
-    st.session_state[StateKeys.GENE_TO_PROT_ID] = dict(
+
+    gene_to_prot_id_map = dict(
         zip(
             genes_of_interest_colored_df[gene_names_colname].tolist(),
             genes_of_interest_colored_df[prot_ids_colname].tolist(),
         )
     )
+    st.session_state[StateKeys.GENE_TO_PROT_ID] = gene_to_prot_id_map
 
     with c2:
         display_figure(volcano_plot.plot)
@@ -146,32 +146,14 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
         st.stop()
 
     try:
-        if st.session_state[StateKeys.API_TYPE] == "gpt4o":
-            llm = LLMIntegration(
-                api_type="gpt",
-                api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                dataset=st.session_state[StateKeys.DATASET],
-                metadata=st.session_state[StateKeys.DATASET].metadata,
-            )
-        else:
-            llm = LLMIntegration(
-                api_type="ollama",
-                base_url=os.getenv("OLLAMA_BASE_URL", None),
-                dataset=st.session_state[StateKeys.DATASET],
-                metadata=st.session_state[StateKeys.DATASET].metadata,
-            )
+        llm = LLMIntegration(
+            api_type=st.session_state[StateKeys.API_TYPE],
+            api_key=st.session_state[StateKeys.OPENAI_API_KEY],
+            dataset=st.session_state[StateKeys.DATASET],
+            gene_to_prot_id_map=gene_to_prot_id_map,
+        )
 
         # Set instructions and update tools
-        llm.tools = [
-            *get_general_assistant_functions(),
-            *get_assistant_functions(
-                gene_to_prot_id_dict=st.session_state[StateKeys.GENE_TO_PROT_ID],
-                metadata=st.session_state[StateKeys.DATASET].metadata,
-                subgroups_for_each_group=get_subgroups_for_each_group(
-                    st.session_state[StateKeys.DATASET].metadata
-                ),
-            ),
-        ]
 
         st.session_state[StateKeys.ARTIFACTS] = {}
         llm.messages = [{"role": "system", "content": system_message}]
