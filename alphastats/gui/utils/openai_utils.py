@@ -178,12 +178,15 @@ def set_api_key(api_key: str = None) -> None:
     """
     if api_key:
         st.session_state[StateKeys.OPENAI_API_KEY] = api_key
-    elif StateKeys.OPENAI_API_KEY in st.session_state:
+
+    if StateKeys.OPENAI_API_KEY in st.session_state:
         api_key = st.session_state[StateKeys.OPENAI_API_KEY]
+        st.info(f"OpenAI API key set: {api_key[:3]}***{api_key[-3:]}")
     else:
         try:
             if Path("./.streamlit/secrets.toml").exists():
                 api_key = st.secrets["openai_api_key"]
+                st.info("OpenAI API key loaded from secrets.toml.")
             else:
                 st.info(
                     "Please enter an OpenAI key or provide it in a secrets.toml file in the "

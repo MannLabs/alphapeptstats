@@ -42,6 +42,8 @@ def llm_config():
         if st.session_state[StateKeys.API_TYPE] == "gpt4o":
             api_key = st.text_input("Enter OpenAI API Key", type="password")
             set_api_key(api_key)
+        else:
+            st.info("Expecting Ollama API at http://localhost:11434.")
 
 
 llm_config()
