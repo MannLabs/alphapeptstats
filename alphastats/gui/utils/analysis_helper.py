@@ -1,5 +1,5 @@
 import io
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
@@ -143,9 +143,11 @@ def gui_volcano_plot_differential_expression_analysis(
     return volcano_plot
 
 
-def gui_volcano_plot():
-    """
-    Draw Volcano Plot using the VolcanoPlot class
+def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
+    """Draw Volcano Plot using the VolcanoPlot class.
+
+    Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
+    analysis_object is the underlying object, parameters is a dictionary of the parameters used.
     """
     chosen_parameter_dict = helper_compare_two_groups()
     method = st.selectbox(
@@ -192,11 +194,22 @@ def gui_volcano_plot():
         volcano_plot._update(plotting_parameter_dict)
         volcano_plot._annotate_result_df()
         volcano_plot._plot()
-        return volcano_plot.plot
+        return volcano_plot.plot, volcano_plot, chosen_parameter_dict
+
+    return None, None, None
 
 
-def do_analysis(method: str, options_dict: Dict[str, Any]) -> Any:
-    """Extract plotting options and display."""
+def do_analysis(
+    method: str, options_dict: Dict[str, Any]
+) -> Tuple[Optional[Any], Optional[Any], Dict[str, Any]]:
+    """Extract plotting options and display.
+
+    Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
+    analysis_object is the underlying object, parameters is a dictionary of the parameters used.
+
+    Currently, analysis_object is only not-None for Volcano Plot.
+    # TODO unify the API of all analysis methods
+    """
 
     method_dict = options_dict.get(method)
 
@@ -225,7 +238,9 @@ def do_analysis(method: str, options_dict: Dict[str, Any]) -> Any:
 
     if submitted:
         with st.spinner("Calculating..."):
-            return method_dict["function"](**parameters)
+            return method_dict["function"](**parameters), None, parameters
+
+    return None, None, {}
 
 
 # TODO try to cover all those by st_general()
