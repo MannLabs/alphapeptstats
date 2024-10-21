@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
-import streamlit as st
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 
@@ -15,7 +14,6 @@ from alphastats.gui.utils.gpt_helper import (
     get_subgroups_for_each_group,
     perform_dimensionality_reduction,
 )
-from alphastats.gui.utils.ui_helper import StateKeys
 
 # from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
@@ -88,7 +86,7 @@ class LLMIntegration:
 
         self.messages = []
         self.dataset = dataset
-        self.metadata = dataset.metadata
+        self.metadata = None if dataset is None else dataset.metadata
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
         self.tools = self._get_tools()
@@ -139,17 +137,6 @@ class LLMIntegration:
         while total_tokens > max_tokens and len(self.messages) > 1:
             removed_message = self.messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
-
-    def update_session_state(self):
-        """
-        Update the Streamlit session state with current conversation data.
-
-        Returns
-        -------
-        None
-        """
-        st.session_state[StateKeys.MESSAGES] = self.messages
-        st.session_state[StateKeys.ARTIFACTS] = self.artifacts
 
     def parse_model_response(self, response: Any) -> Dict[str, Any]:
         """
@@ -329,13 +316,13 @@ class LLMIntegration:
             self.messages.append(
                 {"role": "assistant", "content": parsed_response["content"]}
             )
-            self.update_session_state()
-            return parsed_response["content"], new_artifacts
+            return parsed_response[
+                "content"
+            ], new_artifacts  # TODO response is not used
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self.messages.append({"role": "system", "content": error_message})
-            self.update_session_state()
             return error_message, {}
 
     # TODO this seems to be for notebooks?

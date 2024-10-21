@@ -140,6 +140,11 @@ with st.expander("User prompt", expanded=True):
 llm_submitted = st.button("Run LLM analysis")
 
 
+def _update_llm_session_state(llm):
+    st.session_state[StateKeys.MESSAGES] = llm.messages
+    st.session_state[StateKeys.ARTIFACTS] = llm.artifacts
+
+
 # creating new assistant only once TODO: add a button to create new assistant
 if StateKeys.LLM_INTEGRATION not in st.session_state:
     if not llm_submitted:
@@ -155,7 +160,6 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
 
         # Set instructions and update tools
 
-        st.session_state[StateKeys.ARTIFACTS] = {}
         llm.messages = [{"role": "system", "content": system_message}]
 
         st.session_state[StateKeys.LLM_INTEGRATION] = llm
@@ -163,7 +167,8 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
             f"{st.session_state[StateKeys.API_TYPE].upper()} integration initialized successfully!"
         )
 
-        response = llm.chat_completion(user_prompt)
+        llm.chat_completion(user_prompt)
+        _update_llm_session_state(llm)
 
     except AuthenticationError:
         st.warning(
@@ -193,6 +198,7 @@ def llm_chat():
 
     if prompt := st.chat_input("Say something"):
         llm.chat_completion(prompt)
+        _update_llm_session_state(llm)
         st.rerun(scope="fragment")
 
 
