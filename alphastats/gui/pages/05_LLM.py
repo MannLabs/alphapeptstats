@@ -182,19 +182,14 @@ def llm_chat():
     """The chat interface for the LLM analysis."""
     llm = st.session_state[StateKeys.LLM_INTEGRATION]
 
-    for num, role_content_dict in enumerate(st.session_state[StateKeys.MESSAGES]):
-        if role_content_dict["role"] == "tool" or role_content_dict["role"] == "system":
-            continue
-        if "tool_calls" in role_content_dict:
-            continue
-        with st.chat_message(role_content_dict["role"]):
-            st.markdown(role_content_dict["content"])
-            if num in st.session_state[StateKeys.ARTIFACTS]:
-                for artefact in st.session_state[StateKeys.ARTIFACTS][num]:
-                    if isinstance(artefact, pd.DataFrame):
-                        st.dataframe(artefact)
-                    elif "plotly" in str(type(artefact)):
-                        st.plotly_chart(artefact)
+    for message in llm.get_print_view():
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            for artefact in message["artifacts"]:
+                if isinstance(artefact, pd.DataFrame):
+                    st.dataframe(artefact)
+                elif "plotly" in str(type(artefact)):
+                    st.plotly_chart(artefact)
 
     if prompt := st.chat_input("Say something"):
         llm.chat_completion(prompt)

@@ -48,8 +48,6 @@ class LLMIntegration:
 
     Attributes
     ----------
-    api_type : str
-        The type of API being used
     client : OpenAI
         The OpenAI client instance
     model : str
@@ -266,6 +264,27 @@ class LLMIntegration:
         parsed_response["new_artifacts"] = new_artifacts
 
         return parsed_response
+
+    def get_print_view(self):
+        """Get a structured view of the conversation history for display purposes."""
+
+        print_view = []
+        for num, role_content_dict in enumerate(self.messages):
+            if (
+                role_content_dict["role"] == "tool"
+                or role_content_dict["role"] == "system"
+            ):
+                continue
+            if "tool_calls" in role_content_dict:
+                continue
+            print_view.append(
+                {
+                    "role": role_content_dict["role"],
+                    "content": role_content_dict["content"],
+                    "artifacts": self.artifacts.get(num, []),
+                }
+            )
+        return print_view
 
     def chat_completion(
         self, prompt: str, role: str = "user"
