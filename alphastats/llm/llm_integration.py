@@ -17,8 +17,6 @@ from alphastats.llm.llm_functions import (
     perform_dimensionality_reduction,
 )
 from alphastats.llm.llm_utils import get_protein_id_for_gene_name
-
-# from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.llm.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
@@ -272,8 +270,8 @@ class LLMIntegration:
                 }
             )
 
-        post_artefact_message_idx = len(self._messages)
-        self._artifacts[post_artefact_message_idx] = new_artifacts.values()
+        post_artifact_message_idx = len(self._messages)
+        self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
         logger.info(
             f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
