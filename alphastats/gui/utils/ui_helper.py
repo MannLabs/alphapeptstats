@@ -83,9 +83,6 @@ def init_session_state() -> None:
     if StateKeys.USER_SESSION_ID not in st.session_state:
         st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
 
-    if StateKeys.GENE_TO_PROT_ID not in st.session_state:
-        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
-
     if StateKeys.ORGANISM not in st.session_state:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
 
@@ -97,7 +94,6 @@ class StateKeys:
     ## 02_Data Import
     # on 1st run
     ORGANISM = "organism"
-    GENE_TO_PROT_ID = "gene_to_prot_id"
     USER_SESSION_ID = "user_session_id"
     LOADER = "loader"
     # on sample run (function load_sample_data), removed on new session click

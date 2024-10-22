@@ -78,7 +78,6 @@ with c1:
             genes_of_interest_colored_df[prot_ids_colname].tolist(),
         )
     )
-    st.session_state[StateKeys.GENE_TO_PROT_ID] = gene_to_prot_id_map
 
     with c2:
         display_figure(volcano_plot.plot)

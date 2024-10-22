@@ -9,10 +9,6 @@ from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.gui.utils.uniprot_utils import extract_data, get_uniprot_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
-if StateKeys.GENE_TO_PROT_ID not in st.session_state:
-    st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
-
-
 logger = logging.getLogger(__name__)
 
 

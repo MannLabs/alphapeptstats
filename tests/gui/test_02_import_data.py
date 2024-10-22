@@ -18,7 +18,6 @@ def test_page_02_loads_without_input():
 
     assert at.session_state[StateKeys.ORGANISM] == 9606
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
-    assert at.session_state[StateKeys.GENE_TO_PROT_ID] == {}
 
 
 @patch("streamlit.file_uploader")
@@ -31,7 +30,6 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
 
     assert at.session_state[StateKeys.ORGANISM] == 9606
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
-    assert at.session_state[StateKeys.GENE_TO_PROT_ID] == {}
 
 
 @patch(

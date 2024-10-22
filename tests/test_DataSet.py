@@ -13,7 +13,6 @@ import plotly
 from alphastats.DataSet import DataSet
 from alphastats.dataset_factory import DataSetFactory
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
@@ -517,9 +516,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(len(plot_dict.get("data")), 3)
 
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
-        import streamlit as st
-
-        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
         plot = self.obj.plot_intensity(
             protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
