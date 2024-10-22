@@ -1,3 +1,5 @@
+"""Module to integrate different LLM APIs and handle chat interactions."""
+
 import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple
@@ -7,17 +9,19 @@ import plotly.io as pio
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 
-from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
-from alphastats.gui.utils.gpt_helper import (
+from alphastats.DataSet import DataSet
+from alphastats.llm.enrichment_analysis import get_enrichment_data
+from alphastats.llm.llm_functions import (
     get_assistant_functions,
     get_general_assistant_functions,
-    get_protein_id_for_gene_name,
-    get_subgroups_for_each_group,
     perform_dimensionality_reduction,
 )
-
-# from alphastats.gui.utils.artefacts import ArtifactManager
-from alphastats.gui.utils.uniprot_utils import get_gene_function
+from alphastats.llm.llm_utils import (
+    get_protein_id_for_gene_name,
+    get_subgroups_for_each_group,
+)
+from alphastats.llm.prompts import get_tool_call_message
+from alphastats.llm.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
 
@@ -28,70 +32,70 @@ class Models:
 
 
 class LLMIntegration:
-    """
-    A class to integrate different Language Model APIs and handle chat interactions.
+    """A class to integrate different LLM APIs and handle chat interactions.
 
     This class provides methods to interact with GPT and Ollama APIs, manage conversation
     history, handle function calls, and manage artifacts.
 
     Parameters
     ----------
-    api_type : str, optional
-        The type of API to use ('gpt' or 'ollama'), by default 'gpt'
+    api_type : str
+        The type of API to use, will be forwarded to the client.
+    system_message : str
+        The system message that should be given to the model.
     base_url : str, optional
         The base URL for the API, by default None
     api_key : str, optional
         The API key for authentication, by default None
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
-    metadata : Any, optional
-        Metadata associated with the dataset, by default None
+    gene_to_prot_id_map: optional
+        Mapping of gene names to protein IDs
 
     Attributes
     ----------
-    client : OpenAI
+    _client : OpenAI
         The OpenAI client instance
-    model : str
+    _model : str
         The name of the language model being used
-    messages : List[Dict[str, Any]]
+    _messages : List[Dict[str, Any]]
         The conversation history
-    dataset : Any
+    _dataset : Any
         The dataset being used
-    metadata : Any
+    _metadata : Any
         Metadata associated with the dataset
-    tools : List[Dict[str, Any]]
+    _tools : List[Dict[str, Any]]
         List of available tools or functions
-    artifacts : Dict[str, Any]
+    _artifacts : Dict[str, Any]
         Dictionary to store conversation artifacts
     """
 
     def __init__(
         self,
         api_type: str,
+        system_message: str,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        dataset=None,
-        gene_to_prot_id_map=None,
+        dataset: Optional[DataSet] = None,
+        gene_to_prot_id_map: Optional[Dict[str, str]] = None,
     ):
-        self.model = api_type
+        self._model = api_type
 
         if api_type == Models.OLLAMA:
             url = f"{base_url or 'http://localhost:11434'}/v1"
-            self.client = OpenAI(base_url=url, api_key="ollama")
+            self._client = OpenAI(base_url=url, api_key="ollama")
         elif api_type == Models.GPT:
-            self.client = OpenAI(api_key=api_key)
+            self._client = OpenAI(api_key=api_key)
         else:
             raise ValueError(f"Invalid API type: {api_type}")
 
-        self.messages = []
-        self.dataset = dataset
-        self.metadata = None if dataset is None else dataset.metadata
+        self._dataset = dataset
+        self._metadata = None if dataset is None else dataset.metadata
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
-        self.tools = self._get_tools()
-        self.artifacts = {}
-        # self.artifact_manager = ArtifactManager()
-        self.message_artifact_map = {}
+        self._tools = self._get_tools()
+        self._messages = [{"role": "system", "content": system_message}]
+        self._artifacts = {}
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -106,20 +110,20 @@ class LLMIntegration:
         tools = [
             *get_general_assistant_functions(),
         ]
-        if self.metadata is not None and self._gene_to_prot_id_map is not None:
+        if self._metadata is not None and self._gene_to_prot_id_map is not None:
             tools += (
                 *get_assistant_functions(
                     gene_to_prot_id_map=self._gene_to_prot_id_map,
-                    metadata=self.metadata,
+                    metadata=self._metadata,
                     subgroups_for_each_group=get_subgroups_for_each_group(
-                        self.metadata
+                        self._metadata
                     ),
                 ),
             )
 
         return tools
 
-    def truncate_conversation_history(self, max_tokens: int = 100000):
+    def _truncate_conversation_history(self, max_tokens: int = 100000):
         """
         Truncate the conversation history to stay within token limits.
 
@@ -132,13 +136,13 @@ class LLMIntegration:
         -------
         None
         """
-        total_tokens = sum(len(m["content"].split()) for m in self.messages)
-        while total_tokens > max_tokens and len(self.messages) > 1:
+        total_tokens = sum(len(m["content"].split()) for m in self._messages)
+        while total_tokens > max_tokens and len(self._messages) > 1:
             # TODO messages should still be displayed!
-            removed_message = self.messages.pop(0)
+            removed_message = self._messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
 
-    def parse_model_response(self, response: Any) -> Dict[str, Any]:
+    def _parse_model_response(self, response: Any) -> Dict[str, Any]:
         """
         Parse the response from the language model.
 
@@ -152,12 +156,14 @@ class LLMIntegration:
         Dict[str, Any]
             A dictionary containing the parsed content and tool calls
         """
-        return {
-            "content": response.choices[0].message.content,
-            "tool_calls": response.choices[0].message.tool_calls,
+        return {  # TODO refactor
+            "content": response.choices[0].message.content,  # str
+            "tool_calls": response.choices[
+                0
+            ].message.tool_calls,  # ChatCompletionMessageToolCall
         }
 
-    def execute_function(
+    def _execute_function(
         self, function_name: str, function_args: Dict[str, Any]
     ) -> Any:
         """
@@ -186,25 +192,29 @@ class LLMIntegration:
                 function := {
                     "get_gene_function": get_gene_function,
                     "get_enrichment_data": get_enrichment_data,
-                    "perform_dimensionality_reduction": perform_dimensionality_reduction,
                 }.get(function_name)
             ) is not None:
                 return function(**function_args)
 
-            # special treatment for this one
+            # special treatment for these functions
+            elif function_name == "perform_dimensionality_reduction":
+                # TODO add API in dataset
+                perform_dimensionality_reduction(self._dataset, **function_args)
+
             elif function_name == "plot_intensity":
+                # TODO move this logic to dataset
                 gene_name = function_args.pop("gene_name")
                 protein_id = get_protein_id_for_gene_name(
                     gene_name, self._gene_to_prot_id_map
                 )
                 function_args["protein_id"] = protein_id
 
-                return self.dataset.plot_intensity(**function_args)
+                return self._dataset.plot_intensity(**function_args)
 
             # fallback: try to find the function in the Dataset functions
             else:
                 plot_function = getattr(
-                    self.dataset,
+                    self._dataset,
                     function_name.split(".")[-1],
                     None,  # TODO why split?
                 )
@@ -217,7 +227,7 @@ class LLMIntegration:
         except Exception as e:
             return f"Error executing {function_name}: {str(e)}"
 
-    def handle_function_calls(
+    def _handle_function_calls(
         self,
         tool_calls: List[Any],
     ) -> Dict[str, Any]:
@@ -235,15 +245,11 @@ class LLMIntegration:
             The parsed response after handling function calls, including any new artifacts
 
         """
+        # TODO avoid infinite loops
         new_artifacts = {}
 
-        funcs_and_args = "\n".join(
-            [
-                f"Calling function: {tool_call.function.name} with arguments: {tool_call.function.arguments}"
-                for tool_call in tool_calls
-            ]
-        )
-        self.messages.append(
+        funcs_and_args = get_tool_call_message(tool_calls)
+        self._messages.append(
             {"role": "assistant", "content": funcs_and_args, "tool_calls": tool_calls}
         )
 
@@ -251,12 +257,12 @@ class LLMIntegration:
             function_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments)
 
-            function_result = self.execute_function(function_name, function_args)
+            function_result = self._execute_function(function_name, function_args)
             artifact_id = f"{function_name}_{tool_call.id}"
 
             new_artifacts[artifact_id] = function_result
 
-            self.messages.append(
+            self._messages.append(
                 {
                     "role": "tool",
                     "content": json.dumps(
@@ -266,20 +272,20 @@ class LLMIntegration:
                 }
             )
 
-        post_artefact_message_idx = len(self.messages)
-        self.artifacts[post_artefact_message_idx] = new_artifacts.values()
+        post_artifact_message_idx = len(self._messages)
+        self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
         logger.info(
-            f"Calling 'chat.completions.create' {self.messages=} {self.tools=} .."
+            f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
         )
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=self.messages,
-            tools=self.tools,
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=self._messages,
+            tools=self._tools,
         )
         logger.info(".. done")
 
-        parsed_response = self.parse_model_response(response)
+        parsed_response = self._parse_model_response(response)
         parsed_response["new_artifacts"] = new_artifacts
 
         return parsed_response
@@ -288,7 +294,7 @@ class LLMIntegration:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
-        for num, role_content_dict in enumerate(self.messages):
+        for num, role_content_dict in enumerate(self._messages):
             if not show_all and (role_content_dict["role"] in ["tool", "system"]):
                 continue
             if not show_all and "tool_calls" in role_content_dict:
@@ -298,7 +304,7 @@ class LLMIntegration:
                 {
                     "role": role_content_dict["role"],
                     "content": role_content_dict["content"],
-                    "artifacts": self.artifacts.get(num, []),
+                    "artifacts": self._artifacts.get(num, []),
                 }
             )
         return print_view
@@ -320,36 +326,31 @@ class LLMIntegration:
         -------
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
-
-        Raises
-        ------
-        ArithmeticError
-            If there's an error in chat completion
         """
-        self.messages.append({"role": role, "content": prompt})
-        self.truncate_conversation_history()
+        self._messages.append({"role": role, "content": prompt})
+        self._truncate_conversation_history()
 
         try:
             logger.info(
-                f"Calling 'chat.completions.create' {self.messages=} {self.tools=} .."
+                f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
             )
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=self.messages,
-                tools=self.tools,
+            response = self._client.chat.completions.create(
+                model=self._model,
+                messages=self._messages,
+                tools=self._tools,
             )
             logger.info(".. done")
 
-            parsed_response = self.parse_model_response(response)
+            parsed_response = self._parse_model_response(response)
             new_artifacts = {}
 
             if parsed_response["tool_calls"]:
-                parsed_response = self.handle_function_calls(
+                parsed_response = self._handle_function_calls(
                     parsed_response["tool_calls"]
                 )
                 new_artifacts = parsed_response.pop("new_artifacts", {})
 
-            self.messages.append(
+            self._messages.append(
                 {"role": "assistant", "content": parsed_response["content"]}
             )
             return parsed_response[
@@ -358,7 +359,7 @@ class LLMIntegration:
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
-            self.messages.append({"role": "system", "content": error_message})
+            self._messages.append({"role": "system", "content": error_message})
             return error_message, {}
 
     # TODO this seems to be for notebooks?
@@ -374,7 +375,7 @@ class LLMIntegration:
         -------
         None
         """
-        for message in self.messages:
+        for message in self._messages:
             role = message["role"].capitalize()
             content = message["content"]
 
@@ -389,8 +390,8 @@ class LLMIntegration:
             elif role == "Tool":
                 tool_result = json.loads(content)
                 artifact_id = tool_result.get("artifact_id")
-                if artifact_id and artifact_id in self.artifacts:
-                    artifact = self.artifacts[artifact_id]
+                if artifact_id and artifact_id in self._artifacts:
+                    artifact = self._artifacts[artifact_id]
                     display(
                         Markdown(f"**Function Result** (Artifact ID: {artifact_id}):")
                     )

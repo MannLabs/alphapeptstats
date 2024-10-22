@@ -255,6 +255,7 @@ def extract_data(data: Dict) -> Dict:
     return extracted
 
 
+# TODO unused?
 def get_info(genes_list: List[str], organism_id: str) -> List[str]:
     """
     Get info from UniProt for a list of genes.

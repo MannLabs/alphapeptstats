@@ -4,6 +4,10 @@ import pandas as pd
 import requests
 from gprofiler import GProfiler
 
+# TODO needed?
+# from Bio import Entrez
+# Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
+
 
 def _get_functional_annotation_string(identifier, species_id="9606") -> pd.DataFrame:
     """
