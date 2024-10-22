@@ -52,25 +52,6 @@ class LLMIntegration:
         The dataset to be used in the conversation, by default None
     gene_to_prot_id_map: optional
         Mapping of gene names to protein IDs
-
-    Attributes
-    ----------
-    _client : OpenAI
-        The OpenAI client instance
-    _model : str
-        The name of the language model being used
-    _messages : List[Dict[str, Any]]
-        The conversation history used for the LLM. Could be truncate at some point.
-    _all_messages : List[Dict[str, Any]]
-        The whole conversation history, used for display.
-    _dataset : Any
-        The dataset being used
-    _metadata : Any
-        Metadata associated with the dataset
-    _tools : List[Dict[str, Any]]
-        List of available tools or functions
-    _artifacts : Dict[str, Any]
-        Dictionary to store conversation artifacts
     """
 
     def __init__(
@@ -97,10 +78,12 @@ class LLMIntegration:
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
         self._tools = self._get_tools()
-        self._messages = []
-        self._all_messages = []
-        self._append_message("system", system_message)
+
+        self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
+        self._all_messages = []  # full conversation history for display
         self._artifacts = {}
+
+        self._append_message("system", system_message)
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -203,11 +186,6 @@ class LLMIntegration:
         -------
         Any
             The result of the function execution
-
-        Raises
-        ------
-        ValueError
-            If the function is not implemented or the dataset is not available
         """
         try:
             # first try to find the function in the non-Dataset functions
@@ -236,13 +214,14 @@ class LLMIntegration:
 
             # fallback: try to find the function in the Dataset functions
             else:
-                plot_function = getattr(
+                function = getattr(
                     self._dataset,
                     function_name.split(".")[-1],
                     None,  # TODO why split?
                 )
-                if plot_function:
-                    return plot_function(**function_args)
+                if function:
+                    return function(**function_args)
+
             raise ValueError(
                 f"Function {function_name} not implemented or dataset not available"
             )
@@ -280,7 +259,6 @@ class LLMIntegration:
 
             function_result = self._execute_function(function_name, function_args)
             artifact_id = f"{function_name}_{tool_call.id}"
-
             new_artifacts[artifact_id] = function_result
 
             content = json.dumps(
@@ -288,12 +266,10 @@ class LLMIntegration:
             )
             self._append_message("tool", content, tool_call_id=tool_call.id)
 
-        post_artifact_message_idx = len(self._messages)
+        post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        logger.info(
-            f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
-        )
+        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]=} ..")
         response = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
@@ -307,7 +283,7 @@ class LLMIntegration:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
-        for num, role_content_dict in enumerate(self._all_messages):
+        for message_idx, role_content_dict in enumerate(self._all_messages):
             if not show_all and (role_content_dict["role"] in ["tool", "system"]):
                 continue
             if not show_all and "tool_calls" in role_content_dict:
@@ -317,7 +293,7 @@ class LLMIntegration:
                 {
                     "role": role_content_dict["role"],
                     "content": role_content_dict["content"],
-                    "artifacts": self._artifacts.get(num, []),
+                    "artifacts": self._artifacts.get(message_idx, []),
                 }
             )
         return print_view
@@ -343,9 +319,7 @@ class LLMIntegration:
         self._append_message(role, prompt)
 
         try:
-            logger.info(
-                f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
-            )
+            logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
             response = self._client.chat.completions.create(
                 model=self._model,
                 messages=self._messages,
@@ -358,7 +332,7 @@ class LLMIntegration:
             if tool_calls:
                 if content:
                     raise ValueError(
-                        f"Unexpected content {content} with tool calls {tool_calls}"
+                        f"Unexpected content {content} with tool calls {tool_calls}."
                     )
 
                 content, _ = self._handle_function_calls(tool_calls)
