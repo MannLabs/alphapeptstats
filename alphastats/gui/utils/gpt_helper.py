@@ -305,7 +305,7 @@ def perform_dimensionality_reduction(group, method, circle, **kwargs):
     return dr.plot
 
 
-def get_gene_to_prot_id_mapping(
+def get_protein_id_for_gene_name(
     gene_name: str, gene_to_prot_id_map: Dict[str, str]
 ) -> str:
     """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
