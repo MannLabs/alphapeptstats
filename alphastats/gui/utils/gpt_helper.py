@@ -299,8 +299,16 @@ def get_assistant_functions(
 
 
 def perform_dimensionality_reduction(group, method, circle, **kwargs):
-    dr = DimensionalityReduction(  # TODO fix this call
-        st.session_state[StateKeys.DATASET], group, method, circle, **kwargs
+    dataset = st.session_state[StateKeys.DATASET]
+    dr = DimensionalityReduction(
+        mat=dataset.mat,
+        metadate=dataset.metadata,
+        sample=dataset.sample,
+        preprocessing_info=dataset.preprocessing_info,
+        group=group,
+        circle=circle,
+        method=method,
+        **kwargs,
     )
     return dr.plot
 

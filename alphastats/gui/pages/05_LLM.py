@@ -72,7 +72,7 @@ with c1:
     #     )
     # ) # TODO unused?
 
-    gene_to_prot_id_map = dict(
+    gene_to_prot_id_map = dict(  # TODO move this logic to dataset
         zip(
             genes_of_interest_colored_df[gene_names_colname].tolist(),
             genes_of_interest_colored_df[prot_ids_colname].tolist(),
