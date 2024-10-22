@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.io as pio
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
+from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.DataSet import DataSet
 from alphastats.llm.enrichment_analysis import get_enrichment_data
@@ -123,6 +124,28 @@ class LLMIntegration:
 
         return tools
 
+    def _append_message(
+        self,
+        role: str,
+        content: str,
+        *,
+        tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
+        tool_call_id: Optional[str] = None,
+    ) -> None:
+        """Construct a message and append it to the conversation history."""
+        message = {
+            "role": role,
+            "content": content,
+        }
+
+        if tool_calls is not None:
+            message["tool_calls"] = tool_calls
+
+        if tool_call_id is not None:
+            message["tool_call_id"] = tool_call_id
+
+        self._messages.append(message)
+
     def _truncate_conversation_history(self, max_tokens: int = 100000):
         """
         Truncate the conversation history to stay within token limits.
@@ -142,26 +165,22 @@ class LLMIntegration:
             removed_message = self._messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
 
-    def _parse_model_response(self, response: Any) -> Dict[str, Any]:
-        """
-        Parse the response from the language model.
+    def _parse_model_response(
+        self, response: ChatCompletion
+    ) -> Tuple[str, List[ChatCompletionMessageToolCall]]:
+        """Parse the response from the language model.
 
         Parameters
         ----------
-        response : Any
+        response : ChatCompletion
             The raw response from the language model
 
         Returns
         -------
-        Dict[str, Any]
-            A dictionary containing the parsed content and tool calls
+        Message content and list of tool calls
         """
-        return {  # TODO refactor
-            "content": response.choices[0].message.content,  # str
-            "tool_calls": response.choices[
-                0
-            ].message.tool_calls,  # ChatCompletionMessageToolCall
-        }
+        message = response.choices[0].message
+        return message.content, message.tool_calls
 
     def _execute_function(
         self, function_name: str, function_args: Dict[str, Any]
@@ -229,8 +248,8 @@ class LLMIntegration:
 
     def _handle_function_calls(
         self,
-        tool_calls: List[Any],
-    ) -> Dict[str, Any]:
+        tool_calls: List[ChatCompletionMessageToolCall],
+    ) -> Tuple[str, List[ChatCompletionMessageToolCall]]:
         """
         Handle function calls from the language model and manage resulting artifacts.
 
@@ -248,10 +267,8 @@ class LLMIntegration:
         # TODO avoid infinite loops
         new_artifacts = {}
 
-        funcs_and_args = get_tool_call_message(tool_calls)
-        self._messages.append(
-            {"role": "assistant", "content": funcs_and_args, "tool_calls": tool_calls}
-        )
+        tool_call_message = get_tool_call_message(tool_calls)
+        self._append_message("tool", tool_call_message, tool_calls=tool_calls)
 
         for tool_call in tool_calls:
             function_name = tool_call.function.name
@@ -262,15 +279,10 @@ class LLMIntegration:
 
             new_artifacts[artifact_id] = function_result
 
-            self._messages.append(
-                {
-                    "role": "tool",
-                    "content": json.dumps(
-                        {"result": str(function_result), "artifact_id": artifact_id}
-                    ),
-                    "tool_call_id": tool_call.id,
-                }
+            content = json.dumps(
+                {"result": str(function_result), "artifact_id": artifact_id}
             )
+            self._append_message("tool", content, tool_call_id=tool_call.id)
 
         post_artifact_message_idx = len(self._messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
@@ -285,10 +297,7 @@ class LLMIntegration:
         )
         logger.info(".. done")
 
-        parsed_response = self._parse_model_response(response)
-        parsed_response["new_artifacts"] = new_artifacts
-
-        return parsed_response
+        return self._parse_model_response(response)
 
     def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
         """Get a structured view of the conversation history for display purposes."""
