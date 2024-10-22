@@ -41,7 +41,8 @@ def llm_config():
             api_key = st.text_input("Enter OpenAI API Key", type="password")
             set_api_key(api_key)
         else:
-            st.info("Expecting Ollama API at http://localhost:11434.")
+            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            st.info(f"Expecting Ollama API at {base_url}.")
 
 
 llm_config()
@@ -149,6 +150,7 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
         llm = LLMIntegration(
             api_type=st.session_state[StateKeys.API_TYPE],
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
+            base_url=os.getenv("OLLAMA_BASE_URL", None),
             dataset=st.session_state[StateKeys.DATASET],
             gene_to_prot_id_map=gene_to_prot_id_map,
         )
