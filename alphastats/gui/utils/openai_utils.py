@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import openai
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys
@@ -16,9 +15,13 @@ def set_api_key(api_key: str = None) -> None:
     Args:
         api_key (str, optional): The OpenAI API key. Defaults to None.
     """
-    if StateKeys.OPENAI_API_KEY in st.session_state:
-        api_key = st.session_state[StateKeys.OPENAI_API_KEY]
-        st.info(f"OpenAI API key set: {api_key[:3]}***{api_key[-3:]}")
+    if not api_key:
+        api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
+
+    if api_key:
+        st.info(
+            f"OpenAI API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
+        )
     else:
         try:
             if Path("./.streamlit/secrets.toml").exists():
@@ -36,4 +39,3 @@ def set_api_key(api_key: str = None) -> None:
             st.error(f"Error loading OpenAI API key: {e}.")
 
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
-    openai.OpenAI.api_key = api_key
