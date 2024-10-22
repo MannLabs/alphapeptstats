@@ -70,6 +70,7 @@ class LLMIntegration:
     def __init__(
         self,
         api_type: str,
+        system_message: str,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         dataset=None,
@@ -85,7 +86,8 @@ class LLMIntegration:
         else:
             raise ValueError(f"Invalid API type: {api_type}")
 
-        self.messages = []
+        self.messages = [{"role": "system", "content": system_message}]
+
         self.dataset = dataset
         self.metadata = None if dataset is None else dataset.metadata
         self._gene_to_prot_id_map = gene_to_prot_id_map

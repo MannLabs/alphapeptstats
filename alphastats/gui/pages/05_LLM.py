@@ -152,11 +152,8 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
             base_url=os.getenv("OLLAMA_BASE_URL", None),
             dataset=st.session_state[StateKeys.DATASET],
             gene_to_prot_id_map=gene_to_prot_id_map,
+            system_message=system_message,
         )
-
-        # Set instructions and update tools
-
-        llm.messages = [{"role": "system", "content": system_message}]
 
         st.session_state[StateKeys.LLM_INTEGRATION] = llm
         st.success(
