@@ -10,8 +10,8 @@ from openai import OpenAI
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 from alphastats.gui.utils.gpt_helper import (
     get_assistant_functions,
-    get_gene_to_prot_id_mapping,
     get_general_assistant_functions,
+    get_protein_id_for_gene_name,
     get_subgroups_for_each_group,
     perform_dimensionality_reduction,
 )
@@ -194,7 +194,7 @@ class LLMIntegration:
             # special treatment for this one
             elif function_name == "plot_intensity":
                 gene_name = function_args.pop("gene_name")
-                protein_id = get_gene_to_prot_id_mapping(
+                protein_id = get_protein_id_for_gene_name(
                     gene_name, self._gene_to_prot_id_map
                 )
                 function_args["protein_id"] = protein_id
