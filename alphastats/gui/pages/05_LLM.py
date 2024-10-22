@@ -7,13 +7,13 @@ from openai import AuthenticationError
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
-from alphastats.gui.utils.gpt_helper import (
+from alphastats.gui.utils.llm_helper import (
     display_proteins,
     get_subgroups_for_each_group,
+    set_api_key,
 )
-from alphastats.gui.utils.ollama_utils import LLMIntegration, Models
-from alphastats.gui.utils.openai_utils import set_api_key
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
+from alphastats.llm.llm_integration import LLMIntegration, Models
 
 init_session_state()
 sidebar_info()

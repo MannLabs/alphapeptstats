@@ -7,17 +7,19 @@ import plotly.io as pio
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 
-from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
-from alphastats.gui.utils.gpt_helper import (
+from alphastats.gui.utils.llm_helper import (
+    get_subgroups_for_each_group,
+)
+from alphastats.llm.enrichment_analysis import get_enrichment_data
+from alphastats.llm.llm_functions import (
     get_assistant_functions,
     get_general_assistant_functions,
-    get_protein_id_for_gene_name,
-    get_subgroups_for_each_group,
     perform_dimensionality_reduction,
 )
+from alphastats.llm.llm_utils import get_protein_id_for_gene_name
 
 # from alphastats.gui.utils.artefacts import ArtifactManager
-from alphastats.gui.utils.uniprot_utils import get_gene_function
+from alphastats.llm.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
 
@@ -186,13 +188,17 @@ class LLMIntegration:
                 function := {
                     "get_gene_function": get_gene_function,
                     "get_enrichment_data": get_enrichment_data,
-                    "perform_dimensionality_reduction": perform_dimensionality_reduction,
                 }.get(function_name)
             ) is not None:
                 return function(**function_args)
 
-            # special treatment for this one
+            # special treatment for these functions
+            elif function_name == "perform_dimensionality_reduction":
+                # TODO add API in dataset
+                perform_dimensionality_reduction(self.dataset, **function_args)
+
             elif function_name == "plot_intensity":
+                # TODO move this logic to dataset
                 gene_name = function_args.pop("gene_name")
                 protein_id = get_protein_id_for_gene_name(
                     gene_name, self._gene_to_prot_id_map

@@ -6,7 +6,7 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import StateKeys
-from alphastats.gui.utils.uniprot_utils import extract_data, get_uniprot_data
+from alphastats.llm.uniprot_utils import extract_data, get_uniprot_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
 logger = logging.getLogger(__name__)
