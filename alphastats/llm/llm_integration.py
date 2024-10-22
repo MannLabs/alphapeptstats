@@ -60,7 +60,9 @@ class LLMIntegration:
     _model : str
         The name of the language model being used
     _messages : List[Dict[str, Any]]
-        The conversation history
+        The conversation history used for the LLM. Could be truncate at some point.
+    _all_messages : List[Dict[str, Any]]
+        The whole conversation history, used for display.
     _dataset : Any
         The dataset being used
     _metadata : Any
@@ -95,7 +97,9 @@ class LLMIntegration:
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
         self._tools = self._get_tools()
-        self._messages = [{"role": "system", "content": system_message}]
+        self._messages = []
+        self._all_messages = []
+        self._append_message("system", system_message)
         self._artifacts = {}
 
     def _get_tools(self) -> List[Dict[str, Any]]:
@@ -145,6 +149,9 @@ class LLMIntegration:
             message["tool_call_id"] = tool_call_id
 
         self._messages.append(message)
+        self._all_messages.append(message)
+
+        self._truncate_conversation_history()
 
     def _truncate_conversation_history(self, max_tokens: int = 100000):
         """
@@ -154,14 +161,11 @@ class LLMIntegration:
         ----------
         max_tokens : int, optional
             The maximum number of tokens to keep in history, by default 100000
-
-        Returns
-        -------
-        None
         """
-        total_tokens = sum(len(m["content"].split()) for m in self._messages)
+        total_tokens = sum(
+            len(message["content"].split()) for message in self._messages
+        )
         while total_tokens > max_tokens and len(self._messages) > 1:
-            # TODO messages should still be displayed!
             removed_message = self._messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
 
@@ -303,7 +307,7 @@ class LLMIntegration:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
-        for num, role_content_dict in enumerate(self._messages):
+        for num, role_content_dict in enumerate(self._all_messages):
             if not show_all and (role_content_dict["role"] in ["tool", "system"]):
                 continue
             if not show_all and "tool_calls" in role_content_dict:
@@ -337,8 +341,6 @@ class LLMIntegration:
             A tuple containing the generated response and a dictionary of new artifacts
         """
         self._append_message(role, prompt)
-
-        self._truncate_conversation_history()
 
         try:
             logger.info(
