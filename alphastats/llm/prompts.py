@@ -1,6 +1,6 @@
 import os
 
-from alphastats.gui.utils.llm_helper import get_subgroups_for_each_group
+from alphastats.llm.llm_utils import get_subgroups_for_each_group
 
 
 def get_system_message(dataset):
