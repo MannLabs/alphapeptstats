@@ -82,6 +82,29 @@ elif show_df:
         "Download as .csv", csv, method + ".csv", "text/csv", key="download-csv"
     )
 
-# TODO this is still quite rough, should be a list, mb add a button etc..
-if method == "Volcano Plot" and analysis_result is not None:
-    st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
+
+@st.fragment
+def show_start_llm_button(method: str) -> None:
+    """Show the button to start the LLM analysis."""
+
+    msg = (
+        "(Note this will overwrite the existing LLM analysis!)"
+        if StateKeys.LLM_INTEGRATION in st.session_state
+        else ""
+    )
+
+    submitted = st.button(
+        f"Analyse with LLM ... {msg}",
+        disabled=(method != "Volcano Plot"),
+        help="Interpret the current analysis with an LLM (available for 'Volcano Plot' only).",
+    )
+    if submitted:
+        if StateKeys.LLM_INTEGRATION in st.session_state:
+            del st.session_state[StateKeys.LLM_INTEGRATION]
+        st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
+
+        st.page_link("pages/05_LLM.py", label="=> Go to LLM page..")
+
+
+if analysis_result is not None:
+    show_start_llm_button(method)
