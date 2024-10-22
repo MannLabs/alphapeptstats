@@ -265,18 +265,16 @@ class LLMIntegration:
 
         return parsed_response
 
-    def get_print_view(self):
+    def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
         for num, role_content_dict in enumerate(self.messages):
-            if (
-                role_content_dict["role"] == "tool"
-                or role_content_dict["role"] == "system"
-            ):
+            if not show_all and (role_content_dict["role"] in ["tool", "system"]):
                 continue
-            if "tool_calls" in role_content_dict:
+            if not show_all and "tool_calls" in role_content_dict:
                 continue
+
             print_view.append(
                 {
                     "role": role_content_dict["role"],
