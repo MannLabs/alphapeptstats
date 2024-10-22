@@ -1,6 +1,5 @@
 import copy
-import json
-from typing import Dict, List, Union
+from typing import Dict, List
 
 import pandas as pd
 import streamlit as st
@@ -308,26 +307,6 @@ def perform_dimensionality_reduction(group, method, circle, **kwargs):
         st.session_state[StateKeys.DATASET], group, method, circle, **kwargs
     )
     return dr.plot
-
-
-def turn_args_to_float(json_string: Union[str, bytes, bytearray]) -> Dict:
-    """
-    Turn all values in a JSON string to floats if possible.
-
-    Args:
-        json_string (Union[str, bytes, bytearray]): The JSON string to convert.
-
-    Returns:
-        dict: The converted JSON string as a dictionary.
-    """
-    data = json.loads(json_string)
-    for key, value in data.items():
-        if isinstance(value, str):
-            try:
-                data[key] = float(value)
-            except ValueError:
-                continue
-    return data
 
 
 def get_gene_to_prot_id_mapping(gene_id: str) -> str:

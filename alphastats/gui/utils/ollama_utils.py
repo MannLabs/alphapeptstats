@@ -4,21 +4,26 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
-import streamlit as st
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 from alphastats.gui.utils.gpt_helper import (
+    get_assistant_functions,
     get_general_assistant_functions,
+    get_subgroups_for_each_group,
     perform_dimensionality_reduction,
 )
-from alphastats.gui.utils.ui_helper import StateKeys
 
 # from alphastats.gui.utils.artefacts import ArtifactManager
 from alphastats.gui.utils.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
+
+
+class Models:
+    GPT = "gpt-4o"
+    OLLAMA = "llama3.1:70b"
 
 
 class LLMIntegration:
@@ -43,8 +48,6 @@ class LLMIntegration:
 
     Attributes
     ----------
-    api_type : str
-        The type of API being used
     client : OpenAI
         The OpenAI client instance
     model : str
@@ -63,25 +66,27 @@ class LLMIntegration:
 
     def __init__(
         self,
-        api_type: str = "gpt",
+        api_type: str,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         dataset=None,
-        metadata=None,
+        gene_to_prot_id_map=None,
     ):
-        self.api_type = api_type
-        if api_type == "ollama":
+        self.model = api_type
+
+        if api_type == Models.OLLAMA:
             url = f"{base_url or 'http://localhost:11434'}/v1"
             self.client = OpenAI(base_url=url, api_key="ollama")
-            self.model = "llama3.1:70b"
-        else:
+        elif api_type == Models.GPT:
             self.client = OpenAI(api_key=api_key)
-            # self.model = "gpt-4-0125-preview"
-            self.model = "gpt-4o"
+        else:
+            raise ValueError(f"Invalid API type: {api_type}")
 
         self.messages = []
         self.dataset = dataset
-        self.metadata = metadata
+        self.metadata = None if dataset is None else dataset.metadata
+        self._gene_to_prot_id_map = gene_to_prot_id_map
+
         self.tools = self._get_tools()
         self.artifacts = {}
         # self.artifact_manager = ArtifactManager()
@@ -96,8 +101,22 @@ class LLMIntegration:
         List[Dict[str, Any]]
             A list of dictionaries describing the available tools
         """
-        general_tools = get_general_assistant_functions()
-        return general_tools
+
+        tools = [
+            *get_general_assistant_functions(),
+        ]
+        if self.metadata is not None and self._gene_to_prot_id_map is not None:
+            tools += (
+                *get_assistant_functions(
+                    gene_to_prot_id_dict=self._gene_to_prot_id_map,
+                    metadata=self.metadata,
+                    subgroups_for_each_group=get_subgroups_for_each_group(
+                        self.metadata
+                    ),
+                ),
+            )
+
+        return tools
 
     def truncate_conversation_history(self, max_tokens: int = 100000):
         """
@@ -116,17 +135,6 @@ class LLMIntegration:
         while total_tokens > max_tokens and len(self.messages) > 1:
             removed_message = self.messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
-
-    def update_session_state(self):
-        """
-        Update the Streamlit session state with current conversation data.
-
-        Returns
-        -------
-        None
-        """
-        st.session_state[StateKeys.MESSAGES] = self.messages
-        st.session_state[StateKeys.ARTIFACTS] = self.artifacts
 
     def parse_model_response(self, response: Any) -> Dict[str, Any]:
         """
@@ -243,7 +251,7 @@ class LLMIntegration:
         post_artefact_message_idx = len(self.messages)
         self.artifacts[post_artefact_message_idx] = new_artifacts.values()
         logger.info(
-            f"Calling 'chat.completions.create' {self.model=} {self.messages=} {self.tools=} .."
+            f"Calling 'chat.completions.create' {self.messages=} {self.tools=} .."
         )
         response = self.client.chat.completions.create(
             model=self.model,
@@ -256,6 +264,25 @@ class LLMIntegration:
         parsed_response["new_artifacts"] = new_artifacts
 
         return parsed_response
+
+    def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
+        """Get a structured view of the conversation history for display purposes."""
+
+        print_view = []
+        for num, role_content_dict in enumerate(self.messages):
+            if not show_all and (role_content_dict["role"] in ["tool", "system"]):
+                continue
+            if not show_all and "tool_calls" in role_content_dict:
+                continue
+
+            print_view.append(
+                {
+                    "role": role_content_dict["role"],
+                    "content": role_content_dict["content"],
+                    "artifacts": self.artifacts.get(num, []),
+                }
+            )
+        return print_view
 
     def chat_completion(
         self, prompt: str, role: str = "user"
@@ -285,7 +312,7 @@ class LLMIntegration:
 
         try:
             logger.info(
-                f"Calling 'chat.completions.create' {self.model=} {self.messages=} {self.tools=} .."
+                f"Calling 'chat.completions.create' {self.messages=} {self.tools=} .."
             )
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -306,45 +333,17 @@ class LLMIntegration:
             self.messages.append(
                 {"role": "assistant", "content": parsed_response["content"]}
             )
-            self.update_session_state()
-            return parsed_response["content"], new_artifacts
+            return parsed_response[
+                "content"
+            ], new_artifacts  # TODO response is not used
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self.messages.append({"role": "system", "content": error_message})
-            self.update_session_state()
             return error_message, {}
 
-    def switch_backend(
-        self,
-        new_api_type: str,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
-    ):
-        """
-        Switch between different API backends.
-
-        Parameters
-        ----------
-        new_api_type : str
-            The new API type to switch to ('gpt' or 'ollama')
-        base_url : str, optional
-            The base URL for the new API, by default None
-        api_key : str, optional
-            The API key for the new API, by default None
-
-        Returns
-        -------
-        None
-        """
-        self.__init__(
-            api_type=new_api_type,
-            base_url=base_url,
-            api_key=api_key,
-            dataset=self.dataset,
-            metadata=self.metadata,
-        )
-
+    # TODO this seems to be for notebooks?
+    # we need some "export mode" where everything is shown
     def display_chat_history(self):
         """
         Display the chat history, including messages, function calls, and associated artifacts.

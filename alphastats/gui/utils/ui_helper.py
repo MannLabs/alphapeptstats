@@ -114,5 +114,3 @@ class StateKeys:
     LLM_INPUT = "llm_input"
 
     LLM_INTEGRATION = "llm_integration"
-    MESSAGES = "messages"
-    ARTIFACTS = "artifacts"
