@@ -109,7 +109,7 @@ class LLMIntegration:
         if self.metadata is not None and self._gene_to_prot_id_map is not None:
             tools += (
                 *get_assistant_functions(
-                    gene_to_prot_id_dict=self._gene_to_prot_id_map,
+                    gene_to_prot_id_map=self._gene_to_prot_id_map,
                     metadata=self.metadata,
                     subgroups_for_each_group=get_subgroups_for_each_group(
                         self.metadata

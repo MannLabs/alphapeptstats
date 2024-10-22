@@ -123,7 +123,7 @@ def get_general_assistant_functions() -> List[Dict]:
 
 
 def get_assistant_functions(
-    gene_to_prot_id_dict: Dict,
+    gene_to_prot_id_map: Dict,
     metadata: pd.DataFrame,
     subgroups_for_each_group: Dict,
 ) -> List[Dict]:
@@ -132,13 +132,13 @@ def get_assistant_functions(
     For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
 
     Args:
-        gene_to_prot_id_dict (dict): A dictionary with gene names as keys and protein IDs as values.
+        gene_to_prot_id_map (dict): A dictionary with gene names as keys and protein IDs as values.
         metadata (pd.DataFrame): The metadata dataframe (which sample has which disease/treatment/condition/etc).
         subgroups_for_each_group (dict): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
     Returns:
         list[dict]: A list of assistant functions.
     """
-    gene_names = list(gene_to_prot_id_dict.keys())
+    gene_names = list(gene_to_prot_id_map.keys())
     groups = [str(col) for col in metadata.columns.to_list()]
     return [
         {
