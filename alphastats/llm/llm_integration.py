@@ -1,3 +1,5 @@
+"""Module to integrate different LLM APIs and handle chat interactions."""
+
 import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple
@@ -7,16 +9,18 @@ import plotly.io as pio
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 
-from alphastats.gui.utils.llm_helper import (
-    get_subgroups_for_each_group,
-)
+from alphastats.DataSet import DataSet
 from alphastats.llm.enrichment_analysis import get_enrichment_data
 from alphastats.llm.llm_functions import (
     get_assistant_functions,
     get_general_assistant_functions,
     perform_dimensionality_reduction,
 )
-from alphastats.llm.llm_utils import get_protein_id_for_gene_name
+from alphastats.llm.llm_utils import (
+    get_protein_id_for_gene_name,
+    get_subgroups_for_each_group,
+)
+from alphastats.llm.prompts import get_tool_call_message
 from alphastats.llm.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
@@ -28,24 +32,25 @@ class Models:
 
 
 class LLMIntegration:
-    """
-    A class to integrate different Language Model APIs and handle chat interactions.
+    """A class to integrate different LLM APIs and handle chat interactions.
 
     This class provides methods to interact with GPT and Ollama APIs, manage conversation
     history, handle function calls, and manage artifacts.
 
     Parameters
     ----------
-    api_type : str, optional
-        The type of API to use ('gpt' or 'ollama'), by default 'gpt'
+    api_type : str
+        The type of API to use, will be forwarded to the client.
+    system_message : str
+        The system message that should be given to the model.
     base_url : str, optional
         The base URL for the API, by default None
     api_key : str, optional
         The API key for authentication, by default None
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
-    metadata : Any, optional
-        Metadata associated with the dataset, by default None
+    gene_to_prot_id_map: optional
+        Mapping of gene names to protein IDs
 
     Attributes
     ----------
@@ -71,8 +76,8 @@ class LLMIntegration:
         system_message: str,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        dataset=None,
-        gene_to_prot_id_map=None,
+        dataset: Optional[DataSet] = None,
+        gene_to_prot_id_map: Optional[Dict[str, str]] = None,
     ):
         self._model = api_type
 
@@ -151,9 +156,11 @@ class LLMIntegration:
         Dict[str, Any]
             A dictionary containing the parsed content and tool calls
         """
-        return {
-            "content": response.choices[0].message.content,
-            "tool_calls": response.choices[0].message.tool_calls,
+        return {  # TODO refactor
+            "content": response.choices[0].message.content,  # str
+            "tool_calls": response.choices[
+                0
+            ].message.tool_calls,  # ChatCompletionMessageToolCall
         }
 
     def _execute_function(
@@ -241,12 +248,7 @@ class LLMIntegration:
         # TODO avoid infinite loops
         new_artifacts = {}
 
-        funcs_and_args = "\n".join(
-            [
-                f"Calling function: {tool_call.function.name} with arguments: {tool_call.function.arguments}"
-                for tool_call in tool_calls
-            ]
-        )
+        funcs_and_args = get_tool_call_message(tool_calls)
         self._messages.append(
             {"role": "assistant", "content": funcs_and_args, "tool_calls": tool_calls}
         )
@@ -324,11 +326,6 @@ class LLMIntegration:
         -------
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
-
-        Raises
-        ------
-        ArithmeticError
-            If there's an error in chat completion
         """
         self._messages.append({"role": role, "content": prompt})
         self._truncate_conversation_history()

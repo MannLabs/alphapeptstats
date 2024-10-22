@@ -1,9 +1,16 @@
-import os
+"""This module contains functions to generate prompts for the LLM model."""
 
+import os
+from typing import Any, Dict, List
+
+from openai.types.chat import ChatCompletionMessageToolCall
+
+from alphastats.DataSet import DataSet
 from alphastats.llm.llm_utils import get_subgroups_for_each_group
 
 
-def get_system_message(dataset):
+def get_system_message(dataset: DataSet) -> str:
+    """Get the system message for the LLM model."""
     subgroups = get_subgroups_for_each_group(dataset.metadata)
 
     return (
@@ -19,7 +26,12 @@ def get_system_message(dataset):
     )
 
 
-def get_initial_prompt(parameter_dict, upregulated_genes, downregulated_genes):
+def get_initial_prompt(
+    parameter_dict: Dict[str, Any],
+    upregulated_genes: List[str],
+    downregulated_genes: List[str],
+):
+    """Get the initial prompt for the LLM model."""
     group1 = parameter_dict["group1"]
     group2 = parameter_dict["group2"]
     column = parameter_dict["column"]
@@ -30,4 +42,15 @@ def get_initial_prompt(parameter_dict, upregulated_genes, downregulated_genes):
         f"Here is the list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
         f"Help us understand the potential connections between these proteins and how they might be contributing "
         f"to the differences. After that provide a high level summary"
+    )
+
+
+def get_tool_call_message(tool_calls: List[ChatCompletionMessageToolCall]) -> str:
+    """Get a string representation of the tool calls made by the LLM model."""
+    return "\n".join(
+        [
+            f"Calling function: {tool_call.function.name} "
+            f"with arguments: {tool_call.function.arguments}"
+            for tool_call in tool_calls
+        ]
     )

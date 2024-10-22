@@ -1,3 +1,5 @@
+"""Utility functions for the LLM module."""
+
 from typing import Dict
 
 import pandas as pd
@@ -31,6 +33,7 @@ def get_protein_id_for_gene_name(
 
     Args:
         gene_name (str): Gene id
+        gene_to_prot_id_map (Dict[str, str]): Gene name to protein id mapping.
 
     Returns:
         str: Protein id or gene id if not present in the mapping.

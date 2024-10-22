@@ -1,3 +1,5 @@
+"""Module for defining assistant functions for the ChatGPT model."""
+
 from typing import Dict, List
 
 import pandas as pd
@@ -6,6 +8,11 @@ from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 
 
 def get_general_assistant_functions() -> List[Dict]:
+    """Get a list of general assistant functions (independent of the underlying DataSet) for function calling by the LLM.
+
+    Returns:
+        List[Dict]: A list of dictionaries desscribing the assistant functions.
+    """
     return [
         {
             "type": "function",
@@ -68,7 +75,7 @@ def get_assistant_functions(
         metadata (pd.DataFrame): The metadata dataframe (which sample has which disease/treatment/condition/etc).
         subgroups_for_each_group (dict): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
     Returns:
-        list[dict]: A list of assistant functions.
+        List[Dict]: A list of dictionaries desscribing the assistant functions.
     """
     gene_names = list(gene_to_prot_id_map.keys())
     groups = [str(col) for col in metadata.columns.to_list()]
