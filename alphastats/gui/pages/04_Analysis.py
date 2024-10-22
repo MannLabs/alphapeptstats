@@ -88,7 +88,7 @@ def show_start_llm_button(method: str) -> None:
     """Show the button to start the LLM analysis."""
 
     msg = (
-        "(Note this will overwrite the existing LLM analysis!)"
+        "(this will overwrite the existing LLM analysis!)"
         if StateKeys.LLM_INTEGRATION in st.session_state
         else ""
     )
@@ -103,6 +103,7 @@ def show_start_llm_button(method: str) -> None:
             del st.session_state[StateKeys.LLM_INTEGRATION]
         st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
 
+        st.success("LLM analysis created!")
         st.page_link("pages/05_LLM.py", label="=> Go to LLM page..")
 
 

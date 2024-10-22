@@ -24,7 +24,7 @@ if StateKeys.DATASET not in st.session_state:
     st.stop()
 
 
-st.markdown("### LLM Analysis")
+st.markdown("### LLM")
 
 
 @st.fragment
@@ -45,10 +45,11 @@ def llm_config():
             st.info(f"Expecting Ollama API at {base_url}.")
 
 
+st.markdown("#### Configure LLM")
 llm_config()
 
-st.markdown("#### Analysis")
 
+st.markdown("#### Analysis Input")
 
 if StateKeys.LLM_INPUT not in st.session_state:
     st.info("Create a Volcano plot first using the 'Analysis' page.")
@@ -56,6 +57,7 @@ if StateKeys.LLM_INPUT not in st.session_state:
 
 volcano_plot, parameter_dict = st.session_state[StateKeys.LLM_INPUT]
 
+st.write(f"Parameters used for analysis: {parameter_dict}")
 c1, c2 = st.columns((1, 2))
 
 with c1:
@@ -64,13 +66,6 @@ with c1:
 
     gene_names_colname = st.session_state[StateKeys.LOADER].gene_names
     prot_ids_colname = st.session_state[StateKeys.LOADER].index_column
-
-    # st.session_state[StateKeys.PROT_ID_TO_GENE] = dict(
-    #     zip(
-    #         genes_of_interest_colored_df[prot_ids_colname].tolist(),
-    #         genes_of_interest_colored_df[gene_names_colname].tolist(),
-    #     )
-    # ) # TODO unused?
 
     gene_to_prot_id_map = dict(  # TODO move this logic to dataset
         zip(
@@ -87,7 +82,6 @@ with c1:
         st.text("No proteins of interest found.")
         st.stop()
 
-    # st.session_state["gene_functions"] = get_info(genes_of_interest_colored, organism)
     upregulated_genes = [
         key
         for key in genes_of_interest_colored
@@ -99,7 +93,7 @@ with c1:
         if genes_of_interest_colored[key] == "down"
     ]
 
-    st.subheader("Genes of interest")
+    st.markdown("##### Genes of interest")
     c1, c2 = st.columns((1, 2), gap="medium")
     with c1:
         st.write("Upregulated genes")
@@ -109,8 +103,7 @@ with c1:
         display_proteins([], downregulated_genes)
 
 
-st.subheader("Prompts generated based on gene functions")
-
+st.markdown("##### Prompts generated based on analysis input")
 
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
@@ -130,8 +123,10 @@ with st.expander("Initial prompt", expanded=True):
         disabled=StateKeys.LLM_INTEGRATION in st.session_state,
     )
 
-llm_submitted = st.button("Run LLM analysis ...")
 
+st.markdown("##### LLM Analysis")
+
+llm_submitted = st.button("Run LLM analysis ...")
 
 if StateKeys.LLM_INTEGRATION not in st.session_state:
     if not llm_submitted:
