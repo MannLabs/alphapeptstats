@@ -10,6 +10,7 @@ from openai import OpenAI
 from alphastats.gui.utils.enrichment_analysis import get_enrichment_data
 from alphastats.gui.utils.gpt_helper import (
     get_assistant_functions,
+    get_gene_to_prot_id_mapping,
     get_general_assistant_functions,
     get_subgroups_for_each_group,
     perform_dimensionality_reduction,
@@ -133,6 +134,7 @@ class LLMIntegration:
         """
         total_tokens = sum(len(m["content"].split()) for m in self.messages)
         while total_tokens > max_tokens and len(self.messages) > 1:
+            # TODO messages should still be displayed!
             removed_message = self.messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
 
@@ -179,24 +181,39 @@ class LLMIntegration:
             If the function is not implemented or the dataset is not available
         """
         try:
-            if function_name == "get_gene_function":
-                # TODO log whats going on
-                return get_gene_function(**function_args)
-            elif function_name == "get_enrichment_data":
-                return get_enrichment_data(**function_args)
-            elif function_name == "perform_dimensionality_reduction":
-                return perform_dimensionality_reduction(**function_args)
-            elif function_name.startswith("plot_") or function_name.startswith(
-                "perform_"
-            ):
+            # first try to find the function in the non-Dataset functions
+            if (
+                function := {
+                    "get_gene_function": get_gene_function,
+                    "get_enrichment_data": get_enrichment_data,
+                    "perform_dimensionality_reduction": perform_dimensionality_reduction,
+                }.get(function_name)
+            ) is not None:
+                return function(**function_args)
+
+            # special treatment for this one
+            elif function_name == "plot_intensity":
+                gene_name = function_args.pop("gene_name")
+                protein_id = get_gene_to_prot_id_mapping(
+                    gene_name, self._gene_to_prot_id_map
+                )
+                function_args["protein_id"] = protein_id
+
+                return self.dataset.plot_intensity(**function_args)
+
+            # fallback: try to find the function in the Dataset functions
+            else:
                 plot_function = getattr(
-                    self.dataset, function_name.split(".")[-1], None
+                    self.dataset,
+                    function_name.split(".")[-1],
+                    None,  # TODO why split?
                 )
                 if plot_function:
                     return plot_function(**function_args)
             raise ValueError(
                 f"Function {function_name} not implemented or dataset not available"
             )
+
         except Exception as e:
             return f"Error executing {function_name}: {str(e)}"
 
@@ -219,6 +236,7 @@ class LLMIntegration:
 
         """
         new_artifacts = {}
+
         funcs_and_args = "\n".join(
             [
                 f"Calling function: {tool_call.function.name} with arguments: {tool_call.function.arguments}"
@@ -231,7 +249,6 @@ class LLMIntegration:
 
         for tool_call in tool_calls:
             function_name = tool_call.function.name
-            print(f"Calling function: {function_name}")
             function_args = json.loads(tool_call.function.arguments)
 
             function_result = self.execute_function(function_name, function_args)
@@ -248,8 +265,10 @@ class LLMIntegration:
                     "tool_call_id": tool_call.id,
                 }
             )
+
         post_artefact_message_idx = len(self.messages)
         self.artifacts[post_artefact_message_idx] = new_artifacts.values()
+
         logger.info(
             f"Calling 'chat.completions.create' {self.messages=} {self.tools=} .."
         )
