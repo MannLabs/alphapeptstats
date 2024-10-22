@@ -165,15 +165,10 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
     alpha = st.number_input(
         label="alpha", min_value=0.001, max_value=0.050, value=0.050
     )
+    chosen_parameter_dict.update({"alpha": alpha})
 
     min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-
-    plotting_parameter_dict = {
-        "labels": labels,
-        "draw_line": draw_line,
-        "alpha": alpha,
-        "min_fc": min_fc,
-    }
+    chosen_parameter_dict.update({"min_fc": min_fc})
 
     if method == "sam":
         perm = st.number_input(
@@ -191,6 +186,12 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
         volcano_plot = gui_volcano_plot_differential_expression_analysis(
             chosen_parameter_dict
         )
+        plotting_parameter_dict = {
+            "labels": labels,
+            "draw_line": draw_line,
+            "alpha": alpha,
+            "min_fc": min_fc,
+        }
         volcano_plot._update(plotting_parameter_dict)
         volcano_plot._annotate_result_df()
         volcano_plot._plot()
