@@ -114,7 +114,10 @@ st.subheader("Prompts generated based on gene functions")
 
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
-        "", value=get_system_message(st.session_state[StateKeys.DATASET]), height=150
+        "",
+        value=get_system_message(st.session_state[StateKeys.DATASET]),
+        height=150,
+        disabled=StateKeys.LLM_INTEGRATION in st.session_state,
     )
 
 with st.expander("Initial prompt", expanded=True):
@@ -124,9 +127,10 @@ with st.expander("Initial prompt", expanded=True):
             parameter_dict, upregulated_genes, downregulated_genes
         ),
         height=200,
+        disabled=StateKeys.LLM_INTEGRATION in st.session_state,
     )
 
-llm_submitted = st.button("Run LLM analysis")
+llm_submitted = st.button("Run LLM analysis ...")
 
 
 if StateKeys.LLM_INTEGRATION not in st.session_state:
@@ -134,7 +138,7 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
         st.stop()
 
     try:
-        llm = LLMIntegration(
+        llm_integration = LLMIntegration(
             api_type=st.session_state[StateKeys.API_TYPE],
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
@@ -143,13 +147,14 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
             gene_to_prot_id_map=gene_to_prot_id_map,
         )
 
-        st.session_state[StateKeys.LLM_INTEGRATION] = llm
+        st.session_state[StateKeys.LLM_INTEGRATION] = llm_integration
 
         st.success(
-            f"{st.session_state[StateKeys.API_TYPE].upper()} integration initialized successfully!"
+            f"{st.session_state[StateKeys.API_TYPE]} integration initialized successfully!"
         )
 
-        llm.chat_completion(initial_prompt)
+        with st.spinner("Processing initial prompt..."):
+            llm_integration.chat_completion(initial_prompt)
 
     except AuthenticationError:
         st.warning(
@@ -157,19 +162,12 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
         )
         st.stop()
 
-show_all = st.checkbox(
-    "Show system messages",
-    key="show_system_messages",
-    help="Show all messages in the chat interface.",
-)
-
 
 @st.fragment
-def llm_chat(show_all: bool = False):
+def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     """The chat interface for the LLM analysis."""
-    llm = st.session_state[StateKeys.LLM_INTEGRATION]
 
-    for message in llm.get_print_view(show_all=show_all):
+    for message in llm_integration.get_print_view(show_all=show_all):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
             for artifact in message["artifacts"]:
@@ -182,8 +180,15 @@ def llm_chat(show_all: bool = False):
                     st.write(artifact)
 
     if prompt := st.chat_input("Say something"):
-        llm.chat_completion(prompt)
+        with st.spinner("Processing prompt..."):
+            llm_integration.chat_completion(prompt)
         st.rerun(scope="fragment")
 
 
-llm_chat(show_all)
+show_all = st.checkbox(
+    "Show system messages",
+    key="show_system_messages",
+    help="Show all messages in the chat interface.",
+)
+
+llm_chat(st.session_state[StateKeys.LLM_INTEGRATION], show_all)
