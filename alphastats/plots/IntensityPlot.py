@@ -8,7 +8,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scipy
 
-from alphastats.gui.utils.gpt_helper import get_gene_to_prot_id_mapping
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -54,7 +53,7 @@ class IntensityPlot(PlotUtils):
         self.intensity_column = intensity_column
         self.preprocessing_info = preprocessing_info
 
-        self.protein_id = get_gene_to_prot_id_mapping(protein_id)
+        self.protein_id = protein_id
         self.group = group
         self.subgroups = subgroups
         self.method = method
