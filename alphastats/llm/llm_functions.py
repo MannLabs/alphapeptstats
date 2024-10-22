@@ -1,76 +1,8 @@
 from typing import Dict, List
 
 import pandas as pd
-import streamlit as st
-from Bio import Entrez
 
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-
-Entrez.email = "lebedev_mikhail@outlook.com"  # Always provide your email address when using NCBI services.
-
-
-def get_subgroups_for_each_group(
-    metadata: pd.DataFrame,
-) -> Dict:
-    """
-    Get the unique values for each column in the metadata file.
-
-    Args:
-        metadata (pd.DataFrame, optional): The metadata dataframe (which sample has which disease/treatment/condition/etc).
-
-    Returns:
-        dict: A dictionary with the column names as keys and a list of unique values as values.
-    """
-    groups = [str(i) for i in metadata.columns.to_list()]
-    group_to_subgroup_values = {
-        group: get_unique_values_from_column(group, metadata=metadata)
-        for group in groups
-    }
-    return group_to_subgroup_values
-
-
-def get_unique_values_from_column(column: str, metadata: pd.DataFrame) -> List[str]:
-    """
-    Get the unique values from a column in the metadata file.
-
-    Args:
-        column (str): The name of the column in the metadata file.
-        metadata (pd.DataFrame, optional): The metadata dataframe (which sample has which disease/treatment/condition/etc).
-
-    Returns:
-        List[str]: A list of unique values from the column.
-    """
-    unique_values = metadata[column].unique().tolist()
-    return [str(i) for i in unique_values]
-
-
-def display_proteins(overexpressed: List[str], underexpressed: List[str]) -> None:
-    """
-    Display a list of overexpressed and underexpressed proteins in a Streamlit app.
-
-    Args:
-        overexpressed (list[str]): A list of overexpressed proteins.
-        underexpressed (list[str]): A list of underexpressed proteins.
-    """
-
-    # Start with the overexpressed proteins
-    link = "https://www.uniprot.org/uniprotkb?query="
-    overexpressed_html = "".join(
-        f'<a href = {link + protein}><li style="color: green;">{protein}</li></a>'
-        for protein in overexpressed
-    )
-    # Continue with the underexpressed proteins
-    underexpressed_html = "".join(
-        f'<a href = {link + protein}><li style="color: red;">{protein}</li></a>'
-        for protein in underexpressed
-    )
-
-    # Combine both lists into one HTML string
-    full_html = f"<ul>{overexpressed_html}{underexpressed_html}</ul>"
-
-    # Display in Streamlit
-    st.markdown(full_html, unsafe_allow_html=True)
 
 
 def get_general_assistant_functions() -> List[Dict]:
@@ -298,8 +230,7 @@ def get_assistant_functions(
     ]
 
 
-def perform_dimensionality_reduction(group, method, circle, **kwargs):
-    dataset = st.session_state[StateKeys.DATASET]
+def perform_dimensionality_reduction(dataset, group, method, circle, **kwargs):
     dr = DimensionalityReduction(
         mat=dataset.mat,
         metadate=dataset.metadata,
@@ -311,25 +242,3 @@ def perform_dimensionality_reduction(group, method, circle, **kwargs):
         **kwargs,
     )
     return dr.plot
-
-
-def get_protein_id_for_gene_name(
-    gene_name: str, gene_to_prot_id_map: Dict[str, str]
-) -> str:
-    """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
-    'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
-
-    Args:
-        gene_name (str): Gene id
-
-    Returns:
-        str: Protein id or gene id if not present in the mapping.
-    """
-    if gene_name in gene_to_prot_id_map:
-        return gene_to_prot_id_map[gene_name]
-
-    for gene, protein_id in gene_to_prot_id_map.items():
-        if gene_name in gene.split(";"):
-            return protein_id
-
-    return gene_name
