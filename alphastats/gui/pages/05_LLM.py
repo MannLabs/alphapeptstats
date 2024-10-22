@@ -157,13 +157,19 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
         )
         st.stop()
 
+show_all = st.checkbox(
+    "Show system messages",
+    key="show_system_messages",
+    help="Show all messages in the chat interface.",
+)
+
 
 @st.fragment
-def llm_chat():
+def llm_chat(show_all: bool = False):
     """The chat interface for the LLM analysis."""
     llm = st.session_state[StateKeys.LLM_INTEGRATION]
 
-    for message in llm.get_print_view(show_all=False):
+    for message in llm.get_print_view(show_all=show_all):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
             for artifact in message["artifacts"]:
@@ -180,4 +186,4 @@ def llm_chat():
         st.rerun(scope="fragment")
 
 
-llm_chat()
+llm_chat(show_all)
