@@ -268,7 +268,7 @@ class LLMIntegration:
         new_artifacts = {}
 
         tool_call_message = get_tool_call_message(tool_calls)
-        self._append_message("tool", tool_call_message, tool_calls=tool_calls)
+        self._append_message("assistant", tool_call_message, tool_calls=tool_calls)
 
         for tool_call in tool_calls:
             function_name = tool_call.function.name
@@ -336,7 +336,8 @@ class LLMIntegration:
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
         """
-        self._messages.append({"role": role, "content": prompt})
+        self._append_message(role, prompt)
+
         self._truncate_conversation_history()
 
         try:
@@ -350,25 +351,21 @@ class LLMIntegration:
             )
             logger.info(".. done")
 
-            parsed_response = self._parse_model_response(response)
-            new_artifacts = {}
+            content, tool_calls = self._parse_model_response(response)
 
-            if parsed_response["tool_calls"]:
-                parsed_response = self._handle_function_calls(
-                    parsed_response["tool_calls"]
-                )
-                new_artifacts = parsed_response.pop("new_artifacts", {})
+            if tool_calls:
+                if content:
+                    raise ValueError(
+                        f"Unexpected content {content} with tool calls {tool_calls}"
+                    )
 
-            self._messages.append(
-                {"role": "assistant", "content": parsed_response["content"]}
-            )
-            return parsed_response[
-                "content"
-            ], new_artifacts  # TODO response is not used
+                content, _ = self._handle_function_calls(tool_calls)
+
+            self._append_message("assistant", content)
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
-            self._messages.append({"role": "system", "content": error_message})
+            self._append_message("system", error_message)
             return error_message, {}
 
     # TODO this seems to be for notebooks?
