@@ -28,8 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 class Models:
-    GPT = "gpt-4o"
-    OLLAMA = "llama3.1:70b"
+    GPT4O = "gpt-4o"
+    OLLAMA_31_8B = "llama3.1:8b"
+    OLLAMA_31_70B = "llama3.1:70b"  # for testing only
 
 
 class LLMIntegration:
@@ -57,18 +58,19 @@ class LLMIntegration:
     def __init__(
         self,
         api_type: str,
-        system_message: str,
+        *,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        system_message: str = None,
         dataset: Optional[DataSet] = None,
         gene_to_prot_id_map: Optional[Dict[str, str]] = None,
     ):
         self._model = api_type
 
-        if api_type == Models.OLLAMA:
-            url = f"{base_url or 'http://localhost:11434'}/v1"
+        if api_type in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
+            url = f"{base_url}/v1"
             self._client = OpenAI(base_url=url, api_key="ollama")
-        elif api_type == Models.GPT:
+        elif api_type in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
         else:
             raise ValueError(f"Invalid API type: {api_type}")
