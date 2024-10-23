@@ -8,9 +8,9 @@ from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
 from alphastats.gui.utils.llm_helper import (
-    display_proteins,
+    get_display_proteins_html,
+    llm_connection_test,
     set_api_key,
-    test_llm_connection,
 )
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 from alphastats.llm.llm_integration import LLMIntegration, Models
@@ -58,10 +58,16 @@ def llm_config():
 
         test_connection = st.button("Test connection")
         if test_connection:
-            test_llm_connection(
-                api_type=st.session_state[StateKeys.API_TYPE],
-                api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                base_url=base_url,
+            with st.spinner(f"Testing connection to {api_type}.."):
+                error = llm_connection_test(
+                    api_type=st.session_state[StateKeys.API_TYPE],
+                    api_key=st.session_state[StateKeys.OPENAI_API_KEY],
+                    base_url=base_url,
+                )
+            st.success(
+                f"Connection to {api_type} successful!"
+            ) if error is None else st.error(
+                f"❌ Connection to {api_type} failed: {error}"
             )
 
         if model_before != st.session_state[StateKeys.API_TYPE]:
@@ -120,10 +126,16 @@ with c1:
     c1, c2 = st.columns((1, 2), gap="medium")
     with c1:
         st.write("Upregulated genes")
-        display_proteins(upregulated_genes, [])
+        st.markdown(
+            get_display_proteins_html(upregulated_genes, True), unsafe_allow_html=True
+        )
+
     with c2:
         st.write("Downregulated genes")
-        display_proteins([], downregulated_genes)
+        st.markdown(
+            get_display_proteins_html(downregulated_genes, False),
+            unsafe_allow_html=True,
+        )
 
 
 st.markdown("##### Prompts generated based on analysis input")

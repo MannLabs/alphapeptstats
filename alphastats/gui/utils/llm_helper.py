@@ -7,32 +7,24 @@ from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.llm.llm_integration import LLMIntegration
 
 
-def display_proteins(overexpressed: List[str], underexpressed: List[str]) -> None:
+def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> str:
     """
-    Display a list of overexpressed and underexpressed proteins in a Streamlit app.
+    Get HTML code for displaying a list of proteins, color according to expression.
 
     Args:
-        overexpressed (list[str]): A list of overexpressed proteins.
-        underexpressed (list[str]): A list of underexpressed proteins.
+        protein_ids (list[str]): a list of proteins.
+        is_upregulated (bool): whether the proteins are up- or down-regulated.
     """
 
-    # Start with the overexpressed proteins
-    link = "https://www.uniprot.org/uniprotkb?query="
-    overexpressed_html = "".join(
-        f'<a href = {link + protein}><li style="color: green;">{protein}</li></a>'
-        for protein in overexpressed
-    )
-    # Continue with the underexpressed proteins
-    underexpressed_html = "".join(
-        f'<a href = {link + protein}><li style="color: red;">{protein}</li></a>'
-        for protein in underexpressed
+    uniprot_url = "https://www.uniprot.org/uniprotkb?query="
+
+    color = "green" if is_upregulated else "red"
+    protein_ids_html = "".join(
+        f'<a href = {uniprot_url + protein}><li style="color: {color};">{protein}</li></a>'
+        for protein in protein_ids
     )
 
-    # Combine both lists into one HTML string
-    full_html = f"<ul>{overexpressed_html}{underexpressed_html}</ul>"
-
-    # Display in Streamlit
-    st.markdown(full_html, unsafe_allow_html=True)
+    return f"<ul>{protein_ids_html}</ul>"
 
 
 def set_api_key(api_key: str = None) -> None:
@@ -71,21 +63,16 @@ def set_api_key(api_key: str = None) -> None:
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
 
 
-def test_llm_connection(
+def llm_connection_test(
     api_type: str,
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
-):
-    """Test the connection to the LLM API."""
+) -> Optional[str]:
+    """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(api_type, base_url=base_url, api_key=api_key)
-
-        with st.spinner(f"Testing connection to {api_type} ..."):
-            llm.chat_completion("Hello, this is a test!")
-
-        st.success(f"Connection to {api_type} successful!")
-        return True
+        llm.chat_completion("Hello there!")
+        return None
 
     except Exception as e:
-        st.error(f"❌ Connection to {api_type} failed: {e}")
-        return False
+        return str(e)
