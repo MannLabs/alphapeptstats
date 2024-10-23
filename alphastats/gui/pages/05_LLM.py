@@ -128,12 +128,16 @@ with c1:
 
 st.markdown("##### Prompts generated based on analysis input")
 
+api_type = st.session_state[StateKeys.API_TYPE]
+llm_integration_set_for_model = (
+    st.session_state.get(StateKeys.LLM_INTEGRATION, {}).get(api_type, None) is not None
+)
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
         "",
         value=get_system_message(st.session_state[StateKeys.DATASET]),
         height=150,
-        disabled=StateKeys.LLM_INTEGRATION in st.session_state,
+        disabled=llm_integration_set_for_model,
     )
 
 with st.expander("Initial prompt", expanded=True):
@@ -143,21 +147,23 @@ with st.expander("Initial prompt", expanded=True):
             parameter_dict, upregulated_genes, downregulated_genes
         ),
         height=200,
-        disabled=StateKeys.LLM_INTEGRATION in st.session_state,
+        disabled=llm_integration_set_for_model,
     )
 
 
-st.markdown("##### LLM Analysis")
+st.markdown(f"##### LLM Analysis with {api_type}")
 
-llm_submitted = st.button("Run LLM analysis ...")
+llm_submitted = st.button(
+    "Run LLM analysis ...", disabled=llm_integration_set_for_model
+)
 
-if StateKeys.LLM_INTEGRATION not in st.session_state:
+if st.session_state[StateKeys.LLM_INTEGRATION].get(api_type) is None:
     if not llm_submitted:
         st.stop()
 
     try:
         llm_integration = LLMIntegration(
-            api_type=st.session_state[StateKeys.API_TYPE],
+            api_type=api_type,
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=OLLAMA_BASE_URL,
@@ -165,7 +171,7 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
             gene_to_prot_id_map=gene_to_prot_id_map,
         )
 
-        st.session_state[StateKeys.LLM_INTEGRATION] = llm_integration
+        st.session_state[StateKeys.LLM_INTEGRATION][api_type] = llm_integration
 
         st.success(
             f"{st.session_state[StateKeys.API_TYPE]} integration initialized successfully!"
@@ -174,6 +180,7 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
         with st.spinner("Processing initial prompt..."):
             llm_integration.chat_completion(initial_prompt)
 
+        st.rerun(scope="app")
     except AuthenticationError:
         st.warning(
             "Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX"
@@ -185,6 +192,11 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
 def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     """The chat interface for the LLM analysis."""
 
+    # TODO dump to file -> static file name, plus button to do so
+    # how to deal with binaries? base64 encode?
+    # "import chat" functionality?
+
+    # no. tokens spent
     for message in llm_integration.get_print_view(show_all=show_all):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -209,4 +221,4 @@ show_all = st.checkbox(
     help="Show all messages in the chat interface.",
 )
 
-llm_chat(st.session_state[StateKeys.LLM_INTEGRATION], show_all)
+llm_chat(st.session_state[StateKeys.LLM_INTEGRATION][api_type], show_all)
