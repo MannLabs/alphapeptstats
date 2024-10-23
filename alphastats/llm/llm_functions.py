@@ -3,8 +3,16 @@
 from typing import Dict, List
 
 import pandas as pd
+from DataSet import DataSet
 
+from alphastats.llm.enrichment_analysis import get_enrichment_data
+from alphastats.llm.uniprot_utils import get_gene_function
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
+
+GENERAL_FUNCTION_MAPPING = {
+    "get_gene_function": get_gene_function,
+    "get_enrichment_data": get_enrichment_data,
+}
 
 
 def get_general_assistant_functions() -> List[Dict]:
@@ -17,7 +25,7 @@ def get_general_assistant_functions() -> List[Dict]:
         {
             "type": "function",
             "function": {
-                "name": "get_gene_function",
+                "name": get_gene_function.__name__,
                 "description": "Get the gene function and description by UniProt lookup of gene identifier/name",
                 "parameters": {
                     "type": "object",
@@ -34,7 +42,7 @@ def get_general_assistant_functions() -> List[Dict]:
         {
             "type": "function",
             "function": {
-                "name": "get_enrichment_data",
+                "name": get_enrichment_data.__name__,
                 "description": "Get enrichment data for a list of differentially expressed genes",
                 "parameters": {
                     "type": "object",
@@ -83,7 +91,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "plot_intensity",
+                "name": DataSet.plot_intensity.__name__,
                 "description": "Create an intensity plot based on protein data and analytical methods.",
                 "parameters": {
                     "type": "object",
@@ -125,7 +133,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "perform_dimensionality_reduction",
+                "name": DataSet.perform_dimensionality_reduction.__name__,
                 "description": "Perform dimensionality reduction on a given dataset and generate a plot.",
                 "parameters": {
                     "type": "object",
@@ -152,7 +160,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "plot_sampledistribution",
+                "name": DataSet.plot_sampledistribution.__name__,
                 "description": "Generates a histogram plot for each sample in the dataset matrix.",
                 "parameters": {
                     "type": "object",
@@ -175,7 +183,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "plot_volcano",
+                "name": DataSet.plot_volcano.__name__,
                 "description": "Generates a volcano plot based on two subgroups of the same group",
                 "parameters": {
                     "type": "object",
