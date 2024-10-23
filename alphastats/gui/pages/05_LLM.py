@@ -169,9 +169,18 @@ with st.expander("Initial prompt", expanded=True):
 
 st.markdown(f"##### LLM Analysis with {model_name}")
 
-llm_submitted = st.button(
+c1, c2, _ = st.columns((0.2, 0.2, 0.6))
+llm_submitted = c1.button(
     "Run LLM analysis ...", disabled=llm_integration_set_for_model
 )
+
+llm_reset = c2.button(
+    "Reset LLM analysis ...", disabled=not llm_integration_set_for_model
+)
+if llm_reset:
+    del st.session_state[StateKeys.LLM_INTEGRATION]
+    st.rerun()
+
 
 if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
     if not llm_submitted:
