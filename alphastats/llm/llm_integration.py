@@ -11,18 +11,16 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.DataSet import DataSet
-from alphastats.llm.enrichment_analysis import get_enrichment_data
 from alphastats.llm.llm_functions import (
+    GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,
     get_general_assistant_functions,
-    perform_dimensionality_reduction,
 )
 from alphastats.llm.llm_utils import (
     get_protein_id_for_gene_name,
     get_subgroups_for_each_group,
 )
 from alphastats.llm.prompts import get_tool_call_message
-from alphastats.llm.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
 
@@ -192,22 +190,15 @@ class LLMIntegration:
         """
         try:
             # first try to find the function in the non-Dataset functions
-            if (
-                function := {
-                    "get_gene_function": get_gene_function,
-                    "get_enrichment_data": get_enrichment_data,
-                }.get(function_name)
-            ) is not None:
+            if (function := GENERAL_FUNCTION_MAPPING.get(function_name)) is not None:
                 return function(**function_args)
 
-            # special treatment for these functions
-            elif function_name == "perform_dimensionality_reduction":
-                # TODO add API in dataset
-                perform_dimensionality_reduction(self._dataset, **function_args)
-
+            # special treatment for this function
             elif function_name == "plot_intensity":
                 # TODO move this logic to dataset
-                gene_name = function_args.pop("gene_name")
+                gene_name = function_args.pop(
+                    "protein_id"
+                )  # no typo, the LLM sets "protein_id" to gene_name
                 protein_id = get_protein_id_for_gene_name(
                     gene_name, self._gene_to_prot_id_map
                 )
@@ -215,7 +206,7 @@ class LLMIntegration:
 
                 return self._dataset.plot_intensity(**function_args)
 
-            # fallback: try to find the function in the Dataset functions
+            # try to find the function in the Dataset functions
             else:
                 function = getattr(
                     self._dataset,

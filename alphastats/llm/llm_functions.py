@@ -7,7 +7,6 @@ from DataSet import DataSet
 
 from alphastats.llm.enrichment_analysis import get_enrichment_data
 from alphastats.llm.uniprot_utils import get_gene_function
-from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 
 GENERAL_FUNCTION_MAPPING = {
     "get_gene_function": get_gene_function,
@@ -96,7 +95,7 @@ def get_assistant_functions(
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "gene_name": {  # this will be mapped to "protein_id" when calling the function
+                        "protein_id": {  # LLM will provide gene_name, mapping to protein_id is done when calling the function
                             "type": "string",
                             "enum": gene_names,
                             "description": "Identifier for the gene of interest",
@@ -243,17 +242,3 @@ def get_assistant_functions(
         },
         # {"type": "code_interpreter"},
     ]
-
-
-def perform_dimensionality_reduction(dataset, group, method, circle, **kwargs):
-    dr = DimensionalityReduction(
-        mat=dataset.mat,
-        metadate=dataset.metadata,
-        sample=dataset.sample,
-        preprocessing_info=dataset.preprocessing_info,
-        group=group,
-        circle=circle,
-        method=method,
-        **kwargs,
-    )
-    return dr.plot
