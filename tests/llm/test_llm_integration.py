@@ -8,6 +8,7 @@ from openai.types.chat import (
     ChatCompletionMessage,
     ChatCompletionMessageToolCall,
 )
+from openai.types.chat.chat_completion_message_tool_call import Function
 
 from alphastats.llm.llm_integration import LLMIntegration, Models
 
@@ -350,3 +351,63 @@ def test_execute_function_without_dataset(mock_openai_client):
         match="Function dataset_function not implemented or dataset not available",
     ):
         llm._execute_function("dataset_function", {"param1": "value1"})
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._execute_function")
+def test_handle_function_calls(
+    mock_execute_function, mock_openai_client, mock_successful_completion
+):
+    """Test handling of function calls in the chat completion response."""
+    mock_execute_function.return_value = "some_function_result"
+
+    llm_integration = LLMIntegration(
+        api_type=Models.GPT4O,
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    tool_calls = [
+        ChatCompletionMessageToolCall(
+            id="test-id",
+            type="function",
+            function={"name": "test_function", "arguments": '{"arg1": "value1"}'},
+        )
+    ]
+
+    mock_openai_client.return_value.chat.completions.create.return_value = (
+        mock_successful_completion
+    )
+    result = llm_integration._handle_function_calls(tool_calls)
+
+    assert result == ("Test response", None)
+
+    mock_execute_function.assert_called_once_with("test_function", {"arg1": "value1"})
+
+    expected_messages = [
+        {"role": "system", "content": "Test system message"},
+        {
+            "role": "assistant",
+            "content": 'Calling function: test_function with arguments: {"arg1": "value1"}',
+            "tool_calls": [
+                ChatCompletionMessageToolCall(
+                    id="test-id",
+                    function=Function(
+                        arguments='{"arg1": "value1"}', name="test_function"
+                    ),
+                    type="function",
+                )
+            ],
+        },
+        {
+            "role": "tool",
+            "content": '{"result": "some_function_result", "artifact_id": "test_function_test-id"}',
+            "tool_call_id": "test-id",
+        },
+    ]
+    mock_openai_client.return_value.chat.completions.create.assert_called_once_with(
+        model="gpt-4o", messages=expected_messages, tools=llm_integration._tools
+    )
+
+    assert list(llm_integration._artifacts[3]) == ["some_function_result"]
+
+    assert llm_integration._messages == expected_messages
