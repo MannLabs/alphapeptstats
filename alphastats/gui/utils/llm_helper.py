@@ -70,7 +70,9 @@ def llm_connection_test(
 ) -> Optional[str]:
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
-        llm = LLMIntegration(api_type, base_url=base_url, api_key=api_key)
+        llm = LLMIntegration(
+            api_type, base_url=base_url, api_key=api_key, load_tools=False
+        )
         llm.chat_completion("Hello there!")
         return None
 

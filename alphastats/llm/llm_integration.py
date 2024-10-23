@@ -60,6 +60,7 @@ class LLMIntegration:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         system_message: str = None,
+        load_tools: bool = True,
         dataset: Optional[DataSet] = None,
         gene_to_prot_id_map: Optional[Dict[str, str]] = None,
     ):
@@ -77,12 +78,11 @@ class LLMIntegration:
         self._metadata = None if dataset is None else dataset.metadata
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
-        self._tools = self._get_tools()
+        self._tools = self._get_tools() if load_tools else None
 
+        self._artifacts = {}
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
-        self._artifacts = {}
-
         if system_message is not None:
             self._append_message("system", system_message)
 

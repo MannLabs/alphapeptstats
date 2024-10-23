@@ -64,11 +64,10 @@ def llm_config():
                     api_key=st.session_state[StateKeys.OPENAI_API_KEY],
                     base_url=base_url,
                 )
-            st.success(
-                f"Connection to {api_type} successful!"
-            ) if error is None else st.error(
-                f"❌ Connection to {api_type} failed: {error}"
-            )
+                if error is None:
+                    st.success(f"Connection to {api_type} successful!")
+                else:
+                    st.error(f"❌ Connection to {api_type} failed: {str(error)}")
 
         if model_before != st.session_state[StateKeys.API_TYPE]:
             st.rerun(scope="app")
