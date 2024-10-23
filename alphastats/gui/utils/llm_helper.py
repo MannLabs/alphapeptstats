@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.llm.llm_integration import LLMIntegration
 
 
 def display_proteins(overexpressed: List[str], underexpressed: List[str]) -> None:
@@ -68,3 +69,23 @@ def set_api_key(api_key: str = None) -> None:
             st.error(f"Error loading OpenAI API key: {e}.")
 
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
+
+
+def test_llm_connection(
+    api_type: str,
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+):
+    """Test the connection to the LLM API."""
+    try:
+        llm = LLMIntegration(api_type, base_url=base_url, api_key=api_key)
+
+        with st.spinner(f"Testing connection to {api_type} ..."):
+            llm.chat_completion("Hello, this is a test!")
+
+        st.success(f"Connection to {api_type} successful!")
+        return True
+
+    except Exception as e:
+        st.error(f"❌ Connection to {api_type} failed: {e}")
+        return False

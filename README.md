@@ -78,12 +78,19 @@ alphastats gui
 ```
 If you get an `AxiosError: Request failed with status code 403'` when uploading files, try running `DISABLE_XSRF=1 alphastats gui`.
 
-If you want to use local Large Language Models to help interpret the data,
-you need to download and install ollama (https://ollama.com/download). The url of the server can be set by the
-environmental variable `OLLAMA_BASE_URL` (defaults to `http://localhost:11434`)
-
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
+
+### LLM Support
+If you want to use local Large Language Models to help interpret the data,
+you need either a OpenAI API key (to use ChatGPT-4o)
+or provide a server running Ollama.
+
+For provisioning Ollama, first download and install the runtime (https://ollama.com/download).
+Then, pull the recommended model: `ollama pull llama3.1:70b`.
+
+By default, Ollama models are served at `http://localhost:11434`, which is also the default for AlphaPeptStats.
+You can overwrite the url of the server by the environmental variable `OLLAMA_BASE_URL`.
 
 
 ### One Click Installer
