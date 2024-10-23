@@ -411,3 +411,82 @@ def test_handle_function_calls(
     assert list(llm_integration._artifacts[3]) == ["some_function_result"]
 
     assert llm_integration._messages == expected_messages
+
+
+@pytest.fixture
+def llm_with_conversation(llm_integration):
+    """Setup LLM with a sample conversation history"""
+    # Add various message types to conversation history
+    llm_integration._all_messages = [
+        {"role": "system", "content": "System message"},
+        {"role": "user", "content": "User message 1"},
+        {"role": "assistant", "content": "Assistant message 1"},
+        {
+            "role": "assistant",
+            "content": "Assistant with tool calls",
+            "tool_calls": [
+                {"id": "123", "type": "function", "function": {"name": "test"}}
+            ],
+        },
+        {"role": "tool", "content": "Tool response"},
+        {"role": "user", "content": "User message 2"},
+        {"role": "assistant", "content": "Assistant message 2"},
+    ]
+
+    # Add some artifacts
+    llm_integration._artifacts = {
+        2: ["Artifact for message 2"],
+        4: ["Tool artifact 1", "Tool artifact 2"],
+        6: ["Artifact for message 6"],
+    }
+
+    return llm_integration
+
+
+def test_get_print_view_default(llm_with_conversation):
+    """Test get_print_view with default settings (show_all=False)"""
+    print_view = llm_with_conversation.get_print_view()
+
+    # Should only include user and assistant messages without tool_calls
+    assert print_view == [
+        {"artifacts": [], "content": "User message 1", "role": "user"},
+        {
+            "artifacts": ["Artifact for message 2"],
+            "content": "Assistant message 1",
+            "role": "assistant",
+        },
+        {"artifacts": [], "content": "User message 2", "role": "user"},
+        {
+            "artifacts": ["Artifact for message 6"],
+            "content": "Assistant message 2",
+            "role": "assistant",
+        },
+    ]
+
+
+def test_get_print_view_show_all(llm_with_conversation):
+    """Test get_print_view with default settings (show_all=True)"""
+    print_view = llm_with_conversation.get_print_view(show_all=True)
+
+    # Should only include user and assistant messages without tool_calls
+    assert print_view == [
+        {"artifacts": [], "content": "System message", "role": "system"},
+        {"artifacts": [], "content": "User message 1", "role": "user"},
+        {
+            "artifacts": ["Artifact for message 2"],
+            "content": "Assistant message 1",
+            "role": "assistant",
+        },
+        {"artifacts": [], "content": "Assistant with tool calls", "role": "assistant"},
+        {
+            "artifacts": ["Tool artifact 1", "Tool artifact 2"],
+            "content": "Tool response",
+            "role": "tool",
+        },
+        {"artifacts": [], "content": "User message 2", "role": "user"},
+        {
+            "artifacts": ["Artifact for message 6"],
+            "content": "Assistant message 2",
+            "role": "assistant",
+        },
+    ]
