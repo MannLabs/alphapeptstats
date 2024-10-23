@@ -83,7 +83,8 @@ class LLMIntegration:
         self._all_messages = []  # full conversation history for display
         self._artifacts = {}
 
-        self._append_message("system", system_message)
+        if system_message is not None:
+            self._append_message("system", system_message)
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """

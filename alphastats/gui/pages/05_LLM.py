@@ -10,10 +10,14 @@ from alphastats.gui.utils.analysis_helper import (
 from alphastats.gui.utils.llm_helper import (
     display_proteins,
     set_api_key,
+    test_llm_connection,
 )
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 from alphastats.llm.llm_integration import LLMIntegration, Models
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
 
 init_session_state()
 sidebar_info()
@@ -32,17 +36,36 @@ def llm_config():
     """Show the configuration options for the LLM analysis."""
     c1, _ = st.columns((1, 2))
     with c1:
+        model_before = st.session_state.get(StateKeys.API_TYPE, None)
+
         st.session_state[StateKeys.API_TYPE] = st.selectbox(
             "Select LLM",
-            [Models.GPT, Models.OLLAMA],
+            [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B],
         )
 
-        if st.session_state[StateKeys.API_TYPE] == Models.GPT:
-            api_key = st.text_input("Enter OpenAI API Key", type="password")
+        base_url = None
+        if st.session_state[StateKeys.API_TYPE] in [Models.GPT4O]:
+            api_key = st.text_input(
+                "Enter OpenAI API Key and press Enter", type="password"
+            )
             set_api_key(api_key)
-        else:
-            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        elif st.session_state[StateKeys.API_TYPE] in [
+            Models.OLLAMA_31_70B,
+            Models.OLLAMA_31_8B,
+        ]:
+            base_url = OLLAMA_BASE_URL
             st.info(f"Expecting Ollama API at {base_url}.")
+
+        test_connection = st.button("Test connection")
+        if test_connection:
+            test_llm_connection(
+                api_type=st.session_state[StateKeys.API_TYPE],
+                api_key=st.session_state[StateKeys.OPENAI_API_KEY],
+                base_url=base_url,
+            )
+
+        if model_before != st.session_state[StateKeys.API_TYPE]:
+            st.rerun(scope="app")
 
 
 st.markdown("#### Configure LLM")
@@ -137,7 +160,7 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
             api_type=st.session_state[StateKeys.API_TYPE],
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-            base_url=os.getenv("OLLAMA_BASE_URL", None),
+            base_url=OLLAMA_BASE_URL,
             dataset=st.session_state[StateKeys.DATASET],
             gene_to_prot_id_map=gene_to_prot_id_map,
         )
