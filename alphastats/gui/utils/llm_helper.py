@@ -64,14 +64,14 @@ def set_api_key(api_key: str = None) -> None:
 
 
 def llm_connection_test(
-    api_type: str,
+    model_name: str,
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> Optional[str]:
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(
-            api_type, base_url=base_url, api_key=api_key, load_tools=False
+            model_name, base_url=base_url, api_key=api_key, load_tools=False
         )
         llm.chat_completion("Hello there!")
         return None

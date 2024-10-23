@@ -36,20 +36,20 @@ def llm_config():
     """Show the configuration options for the LLM analysis."""
     c1, _ = st.columns((1, 2))
     with c1:
-        model_before = st.session_state.get(StateKeys.API_TYPE, None)
+        model_before = st.session_state.get(StateKeys.MODEL_NAME, None)
 
-        st.session_state[StateKeys.API_TYPE] = st.selectbox(
+        st.session_state[StateKeys.MODEL_NAME] = st.selectbox(
             "Select LLM",
             [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B],
         )
 
         base_url = None
-        if st.session_state[StateKeys.API_TYPE] in [Models.GPT4O]:
+        if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
             api_key = st.text_input(
                 "Enter OpenAI API Key and press Enter", type="password"
             )
             set_api_key(api_key)
-        elif st.session_state[StateKeys.API_TYPE] in [
+        elif st.session_state[StateKeys.MODEL_NAME] in [
             Models.OLLAMA_31_70B,
             Models.OLLAMA_31_8B,
         ]:
@@ -58,18 +58,18 @@ def llm_config():
 
         test_connection = st.button("Test connection")
         if test_connection:
-            with st.spinner(f"Testing connection to {api_type}.."):
+            with st.spinner(f"Testing connection to {model_name}.."):
                 error = llm_connection_test(
-                    api_type=st.session_state[StateKeys.API_TYPE],
+                    model_name=st.session_state[StateKeys.MODEL_NAME],
                     api_key=st.session_state[StateKeys.OPENAI_API_KEY],
                     base_url=base_url,
                 )
                 if error is None:
-                    st.success(f"Connection to {api_type} successful!")
+                    st.success(f"Connection to {model_name} successful!")
                 else:
-                    st.error(f"❌ Connection to {api_type} failed: {str(error)}")
+                    st.error(f"❌ Connection to {model_name} failed: {str(error)}")
 
-        if model_before != st.session_state[StateKeys.API_TYPE]:
+        if model_before != st.session_state[StateKeys.MODEL_NAME]:
             st.rerun(scope="app")
 
 
@@ -139,9 +139,10 @@ with c1:
 
 st.markdown("##### Prompts generated based on analysis input")
 
-api_type = st.session_state[StateKeys.API_TYPE]
+model_name = st.session_state[StateKeys.MODEL_NAME]
 llm_integration_set_for_model = (
-    st.session_state.get(StateKeys.LLM_INTEGRATION, {}).get(api_type, None) is not None
+    st.session_state.get(StateKeys.LLM_INTEGRATION, {}).get(model_name, None)
+    is not None
 )
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
@@ -162,19 +163,19 @@ with st.expander("Initial prompt", expanded=True):
     )
 
 
-st.markdown(f"##### LLM Analysis with {api_type}")
+st.markdown(f"##### LLM Analysis with {model_name}")
 
 llm_submitted = st.button(
     "Run LLM analysis ...", disabled=llm_integration_set_for_model
 )
 
-if st.session_state[StateKeys.LLM_INTEGRATION].get(api_type) is None:
+if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
     if not llm_submitted:
         st.stop()
 
     try:
         llm_integration = LLMIntegration(
-            api_type=api_type,
+            model_name=model_name,
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=OLLAMA_BASE_URL,
@@ -182,10 +183,10 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(api_type) is None:
             gene_to_prot_id_map=gene_to_prot_id_map,
         )
 
-        st.session_state[StateKeys.LLM_INTEGRATION][api_type] = llm_integration
+        st.session_state[StateKeys.LLM_INTEGRATION][model_name] = llm_integration
 
         st.success(
-            f"{st.session_state[StateKeys.API_TYPE]} integration initialized successfully!"
+            f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!"
         )
 
         with st.spinner("Processing initial prompt..."):
@@ -232,4 +233,4 @@ show_all = st.checkbox(
     help="Show all messages in the chat interface.",
 )
 
-llm_chat(st.session_state[StateKeys.LLM_INTEGRATION][api_type], show_all)
+llm_chat(st.session_state[StateKeys.LLM_INTEGRATION][model_name], show_all)

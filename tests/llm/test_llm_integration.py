@@ -27,7 +27,7 @@ def llm_integration(mock_openai_client):
     dataset.custom_function = Mock(return_value="Dataset function called")
     dataset.metadata = pd.DataFrame({"group1": ["A", "B"], "group2": ["C", "D"]})
     return LLMIntegration(
-        api_type=Models.GPT4O,
+        model_name=Models.GPT4O,
         api_key="test-key",  # pragma: allowlist secret
         system_message="Test system message",
         dataset=dataset,
@@ -113,7 +113,7 @@ def mock_general_function_mapping():
 def test_initialization_gpt4(mock_openai_client):
     """Test initialization with GPT-4 configuration"""
     LLMIntegration(
-        api_type=Models.GPT4O,
+        model_name=Models.GPT4O,
         api_key="test-key",  # pragma: allowlist secret
     )
 
@@ -125,7 +125,7 @@ def test_initialization_gpt4(mock_openai_client):
 def test_initialization_ollama(mock_openai_client):
     """Test initialization with Ollama configuration"""
     LLMIntegration(
-        api_type=Models.OLLAMA_31_8B,
+        model_name=Models.OLLAMA_31_8B,
         base_url="http://localhost:11434",
     )
 
@@ -137,8 +137,8 @@ def test_initialization_ollama(mock_openai_client):
 
 def test_initialization_invalid_model():
     """Test initialization with invalid model type"""
-    with pytest.raises(ValueError, match="Invalid API type"):
-        LLMIntegration(api_type="invalid-model")
+    with pytest.raises(ValueError, match="Invalid model name"):
+        LLMIntegration(model_name="invalid-model")
 
 
 def test_append_message(llm_integration):
@@ -353,7 +353,7 @@ def test_execute_function_with_error(llm_integration, mock_general_function_mapp
 
 def test_execute_function_without_dataset(mock_openai_client):
     """Test function execution when dataset is not available"""
-    llm = LLMIntegration(api_type=Models.GPT4O, api_key="test-key")
+    llm = LLMIntegration(model_name=Models.GPT4O, api_key="test-key")
 
     with pytest.raises(
         ValueError,
@@ -370,7 +370,7 @@ def test_handle_function_calls(
     mock_execute_function.return_value = "some_function_result"
 
     llm_integration = LLMIntegration(
-        api_type=Models.GPT4O,
+        model_name=Models.GPT4O,
         api_key="test-key",  # pragma: allowlist secret
         system_message="Test system message",
     )

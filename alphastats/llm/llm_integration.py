@@ -26,6 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 class Models:
+    """Names of the available models.
+
+    Note that this will be directly passed to the OpenAI client.
+    """
+
     GPT4O = "gpt-4o"
     OLLAMA_31_8B = "llama3.1:8b"
     OLLAMA_31_70B = "llama3.1:70b"  # for testing only
@@ -39,7 +44,7 @@ class LLMIntegration:
 
     Parameters
     ----------
-    api_type : str
+    model_name : str
         The type of API to use, will be forwarded to the client.
     system_message : str
         The system message that should be given to the model.
@@ -55,7 +60,7 @@ class LLMIntegration:
 
     def __init__(
         self,
-        api_type: str,
+        model_name: str,
         *,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
@@ -64,15 +69,15 @@ class LLMIntegration:
         dataset: Optional[DataSet] = None,
         gene_to_prot_id_map: Optional[Dict[str, str]] = None,
     ):
-        self._model = api_type
+        self._model = model_name
 
-        if api_type in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
+        if model_name in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
             url = f"{base_url}/v1"
             self._client = OpenAI(base_url=url, api_key="ollama")
-        elif api_type in [Models.GPT4O]:
+        elif model_name in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
         else:
-            raise ValueError(f"Invalid API type: {api_type}")
+            raise ValueError(f"Invalid model name: {model_name}")
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
