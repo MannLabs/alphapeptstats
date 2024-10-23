@@ -2,9 +2,9 @@ from pathlib import Path
 from typing import List, Optional
 
 import streamlit as st
-from llm.llm_integration import LLMIntegration
 
 from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.llm.llm_integration import LLMIntegration
 
 
 def display_proteins(overexpressed: List[str], underexpressed: List[str]) -> None:
