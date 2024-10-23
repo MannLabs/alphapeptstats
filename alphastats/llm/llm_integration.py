@@ -263,15 +263,20 @@ class LLMIntegration:
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]=} ..")
-        response = self._client.chat.completions.create(
+        response = self._chat_completion_create()
+
+        return self._parse_model_response(response)
+
+    def _chat_completion_create(self) -> ChatCompletion:
+        """Create a chat completion based on the current conversation history."""
+        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
+        result = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
             tools=self._tools,
         )
         logger.info(".. done")
-
-        return self._parse_model_response(response)
+        return result
 
     def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
         """Get a structured view of the conversation history for display purposes."""
@@ -311,13 +316,7 @@ class LLMIntegration:
         self._append_message(role, prompt)
 
         try:
-            logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-            response = self._client.chat.completions.create(
-                model=self._model,
-                messages=self._messages,
-                tools=self._tools,
-            )
-            logger.info(".. done")
+            response = self._chat_completion_create()
 
             content, tool_calls = self._parse_model_response(response)
 
