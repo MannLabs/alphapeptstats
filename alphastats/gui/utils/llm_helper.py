@@ -73,7 +73,9 @@ def llm_connection_test(
         llm = LLMIntegration(
             model_name, base_url=base_url, api_key=api_key, load_tools=False
         )
-        llm.chat_completion("Hello there!")
+        llm.chat_completion(
+            "This is a test. Simply respond 'yes' if you got this message."
+        )
         return None
 
     except Exception as e:
