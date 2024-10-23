@@ -36,11 +36,15 @@ def llm_config():
     """Show the configuration options for the LLM analysis."""
     c1, _ = st.columns((1, 2))
     with c1:
-        model_before = st.session_state.get(StateKeys.MODEL_NAME, None)
+        current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
 
+        models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
         st.session_state[StateKeys.MODEL_NAME] = st.selectbox(
             "Select LLM",
-            [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B],
+            models,
+            index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
+            if current_model is not None
+            else 0,
         )
 
         base_url = None
@@ -67,9 +71,9 @@ def llm_config():
                 if error is None:
                     st.success(f"Connection to {model_name} successful!")
                 else:
-                    st.error(f"❌ Connection to {model_name} failed: {str(error)}")
+                    st.error(f"Connection to {model_name} failed: {str(error)}")
 
-        if model_before != st.session_state[StateKeys.MODEL_NAME]:
+        if current_model != st.session_state[StateKeys.MODEL_NAME]:
             st.rerun(scope="app")
 
 
