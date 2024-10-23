@@ -188,40 +188,36 @@ class LLMIntegration:
         Any
             The result of the function execution
         """
-        try:
-            # first try to find the function in the non-Dataset functions
-            if (function := GENERAL_FUNCTION_MAPPING.get(function_name)) is not None:
+        # first try to find the function in the non-Dataset functions
+        if (function := GENERAL_FUNCTION_MAPPING.get(function_name)) is not None:
+            return function(**function_args)
+
+        # special treatment for this function
+        elif function_name == "plot_intensity":
+            # TODO move this logic to dataset
+            gene_name = function_args.pop(
+                "protein_id"
+            )  # no typo, the LLM sets "protein_id" to gene_name
+            protein_id = get_protein_id_for_gene_name(
+                gene_name, self._gene_to_prot_id_map
+            )
+            function_args["protein_id"] = protein_id
+
+            return self._dataset.plot_intensity(**function_args)
+
+        # look up the function in the DataSet class
+        else:
+            function = getattr(
+                self._dataset,
+                function_name.split(".")[-1],
+                None,  # TODO why split?
+            )
+            if function:
                 return function(**function_args)
 
-            # special treatment for this function
-            elif function_name == "plot_intensity":
-                # TODO move this logic to dataset
-                gene_name = function_args.pop(
-                    "protein_id"
-                )  # no typo, the LLM sets "protein_id" to gene_name
-                protein_id = get_protein_id_for_gene_name(
-                    gene_name, self._gene_to_prot_id_map
-                )
-                function_args["protein_id"] = protein_id
-
-                return self._dataset.plot_intensity(**function_args)
-
-            # try to find the function in the Dataset functions
-            else:
-                function = getattr(
-                    self._dataset,
-                    function_name.split(".")[-1],
-                    None,  # TODO why split?
-                )
-                if function:
-                    return function(**function_args)
-
-            raise ValueError(
-                f"Function {function_name} not implemented or dataset not available"
-            )
-
-        except Exception as e:
-            return f"Error executing {function_name}: {str(e)}"
+        raise ValueError(
+            f"Function {function_name} not implemented or dataset not available"
+        )
 
     def _handle_function_calls(
         self,
@@ -251,7 +247,11 @@ class LLMIntegration:
             function_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments)
 
-            function_result = self._execute_function(function_name, function_args)
+            try:
+                function_result = self._execute_function(function_name, function_args)
+            except Exception as e:
+                function_result = f"Error executing {function_name}: {str(e)}"
+
             artifact_id = f"{function_name}_{tool_call.id}"
             new_artifacts[artifact_id] = function_result
 
@@ -292,9 +292,7 @@ class LLMIntegration:
             )
         return print_view
 
-    def chat_completion(
-        self, prompt: str, role: str = "user"
-    ) -> Tuple[str, Dict[str, Any]]:
+    def chat_completion(self, prompt: str, role: str = "user") -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
 
@@ -336,7 +334,6 @@ class LLMIntegration:
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message("system", error_message)
-            return error_message, {}
 
     # TODO this seems to be for notebooks?
     # we need some "export mode" where everything is shown

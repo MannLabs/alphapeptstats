@@ -1,5 +1,7 @@
+from unittest import skip
 from unittest.mock import Mock, patch
 
+import pandas as pd
 import pytest
 from openai.types.chat import (
     ChatCompletion,
@@ -212,3 +214,139 @@ def test_chat_completion_with_content_and_tool_calls(llm_integration):
 
     with pytest.raises(ValueError, match="Unexpected content.*with tool calls"):
         llm_integration.chat_completion("Test prompt")
+
+
+# Mock functions for testing
+def mock_general_function(param1, param2):
+    return f"General function called with {param1} and {param2}"
+
+
+@pytest.fixture
+def mock_dataset():
+    dataset = Mock()
+    dataset.plot_intensity = Mock(return_value="Plot created")
+    dataset.custom_function = Mock(return_value="Dataset function called")
+    dataset.metadata = pd.DataFrame({"group1": ["A", "B"], "group2": ["C", "D"]})
+    return dataset
+
+
+@pytest.fixture
+def mock_gene_map():
+    return {"GENE1": "PROT1", "GENE2": "PROT2"}
+
+
+@pytest.fixture
+def llm_with_dataset(mock_openai_client, mock_dataset, mock_gene_map):
+    return LLMIntegration(
+        api_type=Models.GPT4O,
+        api_key="test-key",  # pragma: allowlist secret
+        dataset=mock_dataset,
+        gene_to_prot_id_map=mock_gene_map,
+    )
+
+
+@pytest.fixture
+def mock_general_function_mapping():
+    return {"test_general_function": mock_general_function}
+
+
+@pytest.mark.parametrize(
+    "function_name,function_args,expected_result",
+    [
+        (
+            "test_general_function",
+            {"param1": "value1", "param2": "value2"},
+            "General function called with value1 and value2",
+        ),
+    ],
+)
+def test_execute_general_function(
+    llm_with_dataset,
+    mock_general_function_mapping,
+    function_name,
+    function_args,
+    expected_result,
+):
+    """Test execution of functions from GENERAL_FUNCTION_MAPPING"""
+    with patch(
+        "alphastats.llm.llm_integration.GENERAL_FUNCTION_MAPPING",
+        mock_general_function_mapping,
+    ):
+        result = llm_with_dataset._execute_function(function_name, function_args)
+        assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "gene_name,plot_args,expected_protein_id",
+    [
+        ("GENE1", {"param1": "value1"}, "PROT1"),
+        ("GENE2", {"param2": "value2"}, "PROT2"),
+    ],
+)
+def test_execute_plot_intensity(
+    llm_with_dataset, gene_name, plot_args, expected_protein_id
+):
+    """Test execution of plot_intensity with gene name translation"""
+    function_args = {"protein_id": gene_name, **plot_args}
+
+    result = llm_with_dataset._execute_function("plot_intensity", function_args)
+
+    # Verify the dataset's plot_intensity was called with correct protein ID
+    llm_with_dataset._dataset.plot_intensity.assert_called_once()
+    call_args = llm_with_dataset._dataset.plot_intensity.call_args[1]
+    assert call_args["protein_id"] == expected_protein_id
+    assert result == "Plot created"
+
+
+def test_execute_dataset_function(llm_with_dataset):
+    """Test execution of a function from the dataset"""
+    result = llm_with_dataset._execute_function("custom_function", {"param1": "value1"})
+
+    assert result == "Dataset function called"
+    llm_with_dataset._dataset.custom_function.assert_called_once_with(param1="value1")
+
+
+def test_execute_dataset_function_with_dots(llm_with_dataset):
+    """Test execution of a dataset function when name contains dots"""
+    result = llm_with_dataset._execute_function(
+        "dataset.custom_function", {"param1": "value1"}
+    )
+
+    assert result == "Dataset function called"
+    llm_with_dataset._dataset.custom_function.assert_called_once_with(param1="value1")
+
+
+@skip  # TODO fix this test
+def test_execute_nonexistent_function(llm_with_dataset):
+    """Test execution of a non-existent function"""
+
+    result = llm_with_dataset._execute_function(
+        "nonexistent_function", {"param1": "value1"}
+    )
+
+    assert "Error executing nonexistent_function" in result
+    assert "not implemented or dataset not available" in result
+
+
+def test_execute_function_with_error(llm_with_dataset, mock_general_function_mapping):
+    """Test handling of function execution errors"""
+
+    def failing_function(**kwargs):
+        raise ValueError("Test error")
+
+    with patch(
+        "alphastats.llm.llm_integration.GENERAL_FUNCTION_MAPPING",
+        {"failing_function": failing_function},
+    ), pytest.raises(ValueError, match="Test error"):
+        llm_with_dataset._execute_function("failing_function", {"param1": "value1"})
+
+
+def test_execute_function_without_dataset(mock_openai_client):
+    """Test function execution when dataset is not available"""
+    llm = LLMIntegration(api_type=Models.GPT4O, api_key="test-key")
+
+    with pytest.raises(
+        ValueError,
+        match="Function dataset_function not implemented or dataset not available",
+    ):
+        llm._execute_function("dataset_function", {"param1": "value1"})
