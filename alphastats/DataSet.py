@@ -94,6 +94,17 @@ class DataSet:
         self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
+        self.gene_name_to_protein_id_map = (
+            dict(
+                zip(
+                    self.rawinput[self._gene_names].tolist(),
+                    self.rawinput[self.index_column].tolist(),
+                )
+            )
+            if self._gene_names
+            else {}
+        )
+
         print("DataSet has been created.")
 
     def _get_init_dataset(
@@ -403,9 +414,32 @@ class DataSet:
 
         return volcano_plot.plot
 
+    def _get_protein_id_for_gene_name(
+        self,
+        gene_name: str,
+    ) -> str:
+        """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
+        'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
+
+        Args:
+            gene_name (str): Gene name
+
+        Returns:
+            str: Protein id or gene name if not present in the mapping.
+        """
+        if gene_name in self.gene_name_to_protein_id_map:
+            return self.gene_name_to_protein_id_map[gene_name]
+
+        for gene, protein_id in self.gene_name_to_protein_id_map.items():
+            if gene_name in gene.split(";"):
+                return protein_id
+
+        return gene_name
+
     def plot_intensity(
         self,
-        protein_id: str,
+        protein_id: str = None,
+        gene_name: str = None,
         group: str = None,
         subgroups: list = None,
         method: str = "box",
@@ -416,7 +450,8 @@ class DataSet:
         """Plot Intensity of individual Protein/ProteinGroup
 
         Args:
-            protein_id (str): ProteinGroup ID
+            protein_id (str): ProteinGroup ID. Mutually exclusive with gene_name.
+            gene_name (str): Gene Name, will be mapped to a ProteinGroup ID. Mutually exclusive with protein_id.
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter" or "all". Defaults to "box".
@@ -433,6 +468,15 @@ class DataSet:
         #         func=IntensityPlot, params_for_func=params_for_func
         #     )
         #     return results
+
+        if gene_name is None and protein_id is not None:
+            pass
+        elif gene_name is not None and protein_id is None:
+            protein_id = self._get_protein_id_for_gene_name(gene_name)
+        else:
+            raise ValueError(
+                "Either protein_id or gene_name must be provided, but not both."
+            )
 
         intensity_plot = IntensityPlot(
             mat=self.mat,
