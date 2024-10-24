@@ -181,10 +181,10 @@ class DifferentialExpressionAnalysis:
         return df
 
     def _ttest(self) -> pd.DataFrame:
-        return self._generic_ttest(self, test_fun=scipy.stats.ttest_ind)
+        return self._generic_ttest(test_fun=scipy.stats.ttest_ind)
 
     def _pairedttest(self) -> pd.DataFrame:
-        return self._generic_ttest(self, test_fun=scipy.stats.ttest_rel)
+        return self._generic_ttest(test_fun=scipy.stats.ttest_rel)
 
     @staticmethod
     def calculate_foldchange(
