@@ -137,7 +137,7 @@ class VolcanoPlot(PlotUtils):
                 method=self.method,
             )
 
-        if self.method == "anova":
+        elif self.method == "anova":
             self._anova()
 
         elif self.method == "sam":
@@ -145,7 +145,7 @@ class VolcanoPlot(PlotUtils):
 
         else:
             raise ValueError(
-                f"{self.method} is not available."
+                f"{self.method} is not available. "
                 + "Please select from 'ttest', 'sam', 'paired-ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
 
@@ -380,7 +380,7 @@ class VolcanoPlot(PlotUtils):
             self.plot.add_trace(
                 go.Scatter(
                     x=fdr_line[mask].fc_s,
-                    y=-np.log10(self.fdr_line[mask].pvals),
+                    y=-np.log10(fdr_line[mask].pvals),
                     line_color="black",
                     line_shape="spline",
                     showlegend=False,
