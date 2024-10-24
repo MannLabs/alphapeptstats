@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Callable, Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -104,7 +104,7 @@ class DifferentialExpressionAnalysis:
 
         return column, "group1", "group2"
 
-    def _sam(self) -> pd.DataFrame:  # TODO duplicated?
+    def _sam(self) -> pd.DataFrame:  # TODO duplicated? DUP1
         from alphastats.multicova import multicova
 
         transposed = self.mat.transpose()
@@ -169,7 +169,7 @@ class DifferentialExpressionAnalysis:
         df = test.summary().rename(columns={"gene": self.index_column})
         return df
 
-    def _ttest(self) -> pd.DataFrame:
+    def _generic_ttest(self, test_fun: Callable) -> pd.DataFrame:
         group1_samples = self.metadata[self.metadata[self.column] == self.group1][
             self.sample
         ].tolist()
@@ -180,7 +180,7 @@ class DifferentialExpressionAnalysis:
         mat_transpose = self.mat.transpose()
 
         p_values = mat_transpose.apply(
-            lambda row: scipy.stats.ttest_ind(
+            lambda row: test_fun(
                 row[group1_samples].values.flatten(),
                 row[group2_samples].values.flatten(),
             )[1],
@@ -201,39 +201,12 @@ class DifferentialExpressionAnalysis:
             ],
         )
         return df
+
+    def _ttest(self) -> pd.DataFrame:
+        return self._generic_ttest(self, test_fun=scipy.stats.ttest_ind)
 
     def _pairedttest(self) -> pd.DataFrame:
-        group1_samples = self.metadata[self.metadata[self.column] == self.group1][
-            self.sample
-        ].tolist()
-        group2_samples = self.metadata[self.metadata[self.column] == self.group2][
-            self.sample
-        ].tolist()
-        # calculate fold change (if its is not logarithimic normalized)
-        mat_transpose = self.mat.transpose()
-
-        p_values = mat_transpose.apply(
-            lambda row: scipy.stats.ttest_rel(
-                row[group1_samples].values.flatten(),
-                row[group2_samples].values.flatten(),
-            )[1],
-            axis=1,
-        )
-
-        df = pd.DataFrame()
-        df[self.index_column], df["pval"] = (
-            p_values.index.tolist(),
-            p_values.values,
-        )
-        df["log2fc"] = self.calculate_foldchange(
-            mat_transpose=mat_transpose,
-            group1_samples=group1_samples,
-            group2_samples=group2_samples,
-            is_log2_transformed=self.preprocessing_info[
-                PreprocessingStateKeys.LOG2_TRANSFORMED
-            ],
-        )
-        return df
+        return self._generic_ttest(self, test_fun=scipy.stats.ttest_rel)
 
     @staticmethod
     def calculate_foldchange(
