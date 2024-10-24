@@ -119,7 +119,9 @@ def test_llm_connection_test_success(mock_llm):
     """Test successful LLM connection."""
     assert llm_connection_test("some_model") is None
 
-    mock_llm.assert_called_once_with("some_model", base_url=None, api_key=None)
+    mock_llm.assert_called_once_with(
+        "some_model", base_url=None, api_key=None, load_tools=False
+    )
 
 
 @patch("alphastats.gui.utils.llm_helper.LLMIntegration")
@@ -129,4 +131,6 @@ def test_llm_connection_test_failure(mock_llm, mock_streamlit):
 
     assert llm_connection_test("some_model") == "API Error"
 
-    mock_llm.assert_called_once_with("some_model", base_url=None, api_key=None)
+    mock_llm.assert_called_once_with(
+        "some_model", base_url=None, api_key=None, load_tools=False
+    )
