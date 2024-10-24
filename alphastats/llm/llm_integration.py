@@ -17,7 +17,6 @@ from alphastats.llm.llm_functions import (
     get_general_assistant_functions,
 )
 from alphastats.llm.llm_utils import (
-    get_protein_id_for_gene_name,
     get_subgroups_for_each_group,
 )
 from alphastats.llm.prompts import get_tool_call_message
@@ -54,8 +53,8 @@ class LLMIntegration:
         The API key for authentication, by default None
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
-    gene_to_prot_id_map: optional
-        Mapping of gene names to protein IDs
+    genes_of_interest: optional
+        List of regulated genes
     """
 
     def __init__(
@@ -67,7 +66,7 @@ class LLMIntegration:
         system_message: str = None,
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
-        gene_to_prot_id_map: Optional[Dict[str, str]] = None,
+        genes_of_interest: Optional[List[str]] = None,
     ):
         self._model = model_name
 
@@ -81,7 +80,7 @@ class LLMIntegration:
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
-        self._gene_to_prot_id_map = gene_to_prot_id_map
+        self._genes_of_interest = genes_of_interest
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -104,10 +103,10 @@ class LLMIntegration:
         tools = [
             *get_general_assistant_functions(),
         ]
-        if self._metadata is not None and self._gene_to_prot_id_map is not None:
+        if self._metadata is not None and self._genes_of_interest is not None:
             tools += (
                 *get_assistant_functions(
-                    gene_to_prot_id_map=self._gene_to_prot_id_map,
+                    genes_of_interest=self._genes_of_interest,
                     metadata=self._metadata,
                     subgroups_for_each_group=get_subgroups_for_each_group(
                         self._metadata
@@ -196,20 +195,6 @@ class LLMIntegration:
         # first try to find the function in the non-Dataset functions
         if (function := GENERAL_FUNCTION_MAPPING.get(function_name)) is not None:
             return function(**function_args)
-
-        # special treatment for this function
-        elif function_name == "plot_intensity":
-            # TODO move this logic to dataset
-            gene_name = function_args.pop(
-                "protein_id"
-            )  # no typo, the LLM sets "protein_id" to gene_name
-            protein_id = get_protein_id_for_gene_name(
-                gene_name, self._gene_to_prot_id_map
-            )
-            function_args["protein_id"] = protein_id
-
-            return self._dataset.plot_intensity(**function_args)
-
         # look up the function in the DataSet class
         else:
             function = getattr(

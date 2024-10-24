@@ -31,7 +31,7 @@ def llm_integration(mock_openai_client):
         api_key="test-key",  # pragma: allowlist secret
         system_message="Test system message",
         dataset=dataset,
-        gene_to_prot_id_map={"GENE1": "PROT1", "GENE2": "PROT2"},
+        genes_of_interest={"GENE1": "PROT1", "GENE2": "PROT2"},
     )
 
 

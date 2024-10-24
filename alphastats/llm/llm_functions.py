@@ -69,7 +69,7 @@ def get_general_assistant_functions() -> List[Dict]:
 
 
 def get_assistant_functions(
-    gene_to_prot_id_map: Dict,
+    genes_of_interest: List[str],
     metadata: pd.DataFrame,
     subgroups_for_each_group: Dict,
 ) -> List[Dict]:
@@ -78,13 +78,12 @@ def get_assistant_functions(
     For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
 
     Args:
-        gene_to_prot_id_map (dict): A dictionary with gene names as keys and protein IDs as values.
+        genes_of_interest (list): A list with gene names.
         metadata (pd.DataFrame): The metadata dataframe (which sample has which disease/treatment/condition/etc).
         subgroups_for_each_group (dict): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
     Returns:
         List[Dict]: A list of dictionaries desscribing the assistant functions.
     """
-    gene_names = list(gene_to_prot_id_map.keys())
     groups = [str(col) for col in metadata.columns.to_list()]
     return [
         {
@@ -95,9 +94,9 @@ def get_assistant_functions(
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "protein_id": {  # LLM will provide gene_name, mapping to protein_id is done when calling the function
+                        "gene_name": {
                             "type": "string",
-                            "enum": gene_names,
+                            "enum": genes_of_interest,
                             "description": "Identifier for the gene of interest",
                         },
                         "group": {
