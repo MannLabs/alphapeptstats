@@ -5,6 +5,7 @@ import pandas as pd
 import scipy
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+from alphastats.statistics.StatisticUtils import _add_metadata_column
 
 
 class DifferentialExpressionAnalysis:
@@ -15,34 +16,34 @@ class DifferentialExpressionAnalysis:
         sample: str,
         index_column: str,
         preprocessing_info: Dict,
-        # TODO move these to perform()?
         group1: Union[str, list],
         group2: Union[str, list],
         column: str = None,
+        # TODO move these to perform()?
         method: str = "ttest",
         perm: int = 10,
         fdr: float = 0.05,
     ):
         self.mat = mat
-        self.metadata = metadata
+
         self.sample = sample
         self.index_column = index_column
         self.preprocessing_info = preprocessing_info
 
-        self.group1 = group1
-        self.group2 = group2
-        self.column = column
         self.method = method
         self.perm = perm
         self.fdr = fdr
 
-    def _check_groups(self):
         if isinstance(self.group1, list) and isinstance(self.group2, list):
-            self.column, self.group1, self.group2 = self._add_metadata_column(
-                self.group1, self.group2
+            self.metadata, self.column = _add_metadata_column(
+                metadata, sample, group1, group2
             )
+            self.group1, self.group2 = "group1", "group2"
+        else:
+            self.metadata, self.column = metadata, column
+            self.group1, self.group2 = group1, group2
 
-        elif self.column is None:
+        if self.column is None:
             raise ValueError(
                 "Column containing group1 and group2 needs to be specified"
             )
@@ -80,29 +81,6 @@ class DifferentialExpressionAnalysis:
             dtype=reduced_matrix.values.dtype,
         )
         return anndata_data
-
-    def _add_metadata_column(self, group1_list: list, group2_list: list):
-        # create new column in metadata with defined groups
-        metadata = self.metadata
-
-        sample_names = metadata[self.sample].to_list()
-
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
-
-        column = "_comparison_column"
-        conditons = [
-            metadata[self.sample].isin(group1_list),
-            metadata[self.sample].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
-
-        return column, "group1", "group2"
 
     def _sam(self) -> pd.DataFrame:  # TODO duplicated? DUP1
         from alphastats.multicova import multicova

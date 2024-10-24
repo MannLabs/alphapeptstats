@@ -13,6 +13,7 @@ from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
 )
+from alphastats.statistics.StatisticUtils import _add_metadata_column
 from alphastats.utils import ignore_warning
 
 # TODO this is repeated and needs to go elsewhere!
@@ -84,15 +85,18 @@ class VolcanoPlot(PlotUtils):
         self.color_list = color_list
 
         if isinstance(group1, list) and isinstance(group2, list):
-            self.metadata, self.column = self._add_metadata_column(
-                metadata, group1, group2
+            self.metadata, self.column = _add_metadata_column(
+                metadata, sample, group1, group2
             )
             self.group1, self.group2 = "group1", "group2"
         else:
             self.metadata, self.column = metadata, column
             self.group1, self.group2 = group1, group2
 
-        self._check_input()
+        if self.column is None:
+            raise ValueError(
+                "Column containing group1 and group2 needs to be specified"
+            )
 
         self._statistics = Statistics(
             mat=self.mat,
@@ -107,35 +111,6 @@ class VolcanoPlot(PlotUtils):
             self._annotate_result_df()
             self._add_hover_data_columns()
             self._plot()
-
-    def _add_metadata_column(
-        self, metadata: pd.DataFrame, group1_list: list, group2_list: list
-    ):
-        # create new column in metadata with defined groups
-
-        sample_names = metadata[self.sample].to_list()
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
-
-        column = "_comparison_column"
-        conditons = [
-            metadata[self.sample].isin(group1_list),
-            metadata[self.sample].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-
-        return metadata, column
-
-    def _check_input(self):
-        """Check if self.column is set correctly."""
-        if self.column is None:
-            raise ValueError(
-                "Column containing group1 and group2 needs to be specified"
-            )
 
     # TODO revisit this
     def _update(self, updated_attributes):
