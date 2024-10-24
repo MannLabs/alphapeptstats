@@ -10,6 +10,9 @@ import plotly.graph_objects as go
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.statistics.DifferentialExpressionAnalysis import (
+    DifferentialExpressionAnalysis,
+)
 from alphastats.utils import ignore_warning
 
 # TODO this is repeated and needs to go elsewhere!
@@ -204,7 +207,7 @@ class VolcanoPlot(PlotUtils):
         )
 
     @lru_cache(maxsize=20)
-    def _sam(self):  # TODO duplicated?
+    def _sam(self):  # TODO duplicated? DUP1
         from alphastats.multicova import multicova
 
         print("Calculating t-test and permutation based FDR (SAM)... ")
@@ -299,20 +302,6 @@ class VolcanoPlot(PlotUtils):
         )
         self.pvalue_column = "pval"
 
-    def _calculate_foldchange(  # TODO duplicated
-        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
-    ) -> pd.DataFrame:
-        group1_values = mat_transpose[group1_samples].T.mean().values
-        group2_values = mat_transpose[group2_samples].T.mean().values
-        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            fc = group1_values - group2_values
-
-        else:
-            fc = group1_values / group2_values
-            fc = np.log2(fc)
-
-        return pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
-
     @lru_cache(maxsize=20)
     def _anova(self):
         print("Calculating ANOVA with follow-up tukey test...")
@@ -330,7 +319,14 @@ class VolcanoPlot(PlotUtils):
         ].tolist()
 
         mat_transpose = self.mat.transpose()
-        fc = self._calculate_foldchange(mat_transpose, group1_samples, group2_samples)
+
+        fc = DifferentialExpressionAnalysis.calculate_foldchange(
+            mat_transpose,
+            group1_samples,
+            group2_samples,
+            self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED],
+        )
+        fc_df = pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
 
         # check how column is ordered
         self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
@@ -338,7 +334,9 @@ class VolcanoPlot(PlotUtils):
         if self.pvalue_column not in result_df.columns:
             self.pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
-        self.res = result_df.reset_index().merge(fc.reset_index(), on=self.index_column)
+        self.res = result_df.reset_index().merge(
+            fc_df.reset_index(), on=self.index_column
+        )
 
     def _add_hover_data_columns(self):
         # additional labeling with gene names

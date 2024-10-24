@@ -187,17 +187,19 @@ class DifferentialExpressionAnalysis:
             axis=1,
         )
 
-        fc = self._calculate_foldchange(
-            mat_transpose=mat_transpose,
-            group1_samples=group1_samples,
-            group2_samples=group2_samples,
-        )
         df = pd.DataFrame()
         df[self.index_column], df["pval"] = (
             p_values.index.tolist(),
             p_values.values,
         )
-        df["log2fc"] = fc
+        df["log2fc"] = self.calculate_foldchange(
+            mat_transpose=mat_transpose,
+            group1_samples=group1_samples,
+            group2_samples=group2_samples,
+            is_log2_transformed=self.preprocessing_info[
+                PreprocessingStateKeys.LOG2_TRANSFORMED
+            ],
+        )
         return df
 
     def _pairedttest(self) -> pd.DataFrame:
@@ -218,25 +220,31 @@ class DifferentialExpressionAnalysis:
             axis=1,
         )
 
-        fc = self._calculate_foldchange(
-            mat_transpose=mat_transpose,
-            group1_samples=group1_samples,
-            group2_samples=group2_samples,
-        )
         df = pd.DataFrame()
         df[self.index_column], df["pval"] = (
             p_values.index.tolist(),
             p_values.values,
         )
-        df["log2fc"] = fc
+        df["log2fc"] = self.calculate_foldchange(
+            mat_transpose=mat_transpose,
+            group1_samples=group1_samples,
+            group2_samples=group2_samples,
+            is_log2_transformed=self.preprocessing_info[
+                PreprocessingStateKeys.LOG2_TRANSFORMED
+            ],
+        )
         return df
 
-    def _calculate_foldchange(  # TODO duplicated
-        self, mat_transpose: pd.DataFrame, group1_samples: list, group2_samples: list
+    @staticmethod
+    def calculate_foldchange(
+        mat_transpose: pd.DataFrame,
+        group1_samples: list,
+        group2_samples: list,
+        is_log2_transformed: bool,
     ):
         group1_values = mat_transpose[group1_samples].T.mean().values
         group2_values = mat_transpose[group2_samples].T.mean().values
-        if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+        if is_log2_transformed:
             fc = group1_values - group2_values
 
         else:
