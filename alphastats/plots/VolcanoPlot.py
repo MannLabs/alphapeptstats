@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.multicova import multicova
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
@@ -107,7 +108,6 @@ class VolcanoPlot(PlotUtils):
             self._add_hover_data_columns()
             self._plot()
 
-    # TODO this used to change the actual metadata .. was this intended?
     def _add_metadata_column(
         self, metadata: pd.DataFrame, group1_list: list, group2_list: list
     ):
@@ -175,9 +175,7 @@ class VolcanoPlot(PlotUtils):
             )
 
     def _sam_calculate_fdr_line(self):
-        from alphastats.multicova import multicova
-
-        self.fdr_line = multicova.get_fdr_line(
+        fdr_line = multicova.get_fdr_line(
             t_limit=self.tlim_ttest,
             s0=0.05,
             n_x=len(
@@ -202,6 +200,7 @@ class VolcanoPlot(PlotUtils):
             s_s=np.arange(0.005, 6, 0.0025),
             plot=False,
         )
+        return fdr_line
 
     def _sam(self):  # TODO duplicated? DUP1
         from alphastats.multicova import multicova
@@ -400,26 +399,18 @@ class VolcanoPlot(PlotUtils):
         """
         Draw fdr line if SAM was applied
         """
-        self._sam_calculate_fdr_line()
+        fdr_line = self._sam_calculate_fdr_line()
 
-        self.plot.add_trace(
-            go.Scatter(
-                x=self.fdr_line[self.fdr_line.fc_s > 0].fc_s,
-                y=-np.log10(self.fdr_line[self.fdr_line.fc_s > 0].pvals),
-                line_color="black",
-                line_shape="spline",
-                showlegend=False,
+        for mask in [(fdr_line.fc_s > 0), (fdr_line.fc_s < 0)]:
+            self.plot.add_trace(
+                go.Scatter(
+                    x=fdr_line[mask].fc_s,
+                    y=-np.log10(self.fdr_line[mask].pvals),
+                    line_color="black",
+                    line_shape="spline",
+                    showlegend=False,
+                )
             )
-        )
-        self.plot.add_trace(
-            go.Scatter(
-                x=self.fdr_line[self.fdr_line.fc_s < 0].fc_s,
-                y=-np.log10(self.fdr_line[self.fdr_line.fc_s < 0].pvals),
-                line_color="black",
-                line_shape="spline",
-                showlegend=False,
-            )
-        )
 
     def _color_data_points(self):
         # update coloring
