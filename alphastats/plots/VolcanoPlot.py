@@ -1,10 +1,11 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
+from DataSet import AbstractPlot
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
@@ -41,7 +42,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class VolcanoPlot(PlotUtils):
+class VolcanoPlot(PlotUtils, AbstractPlot):
     def __init__(
         self,
         *,
@@ -60,7 +61,6 @@ class VolcanoPlot(PlotUtils):
         min_fc=None,
         alpha=None,
         draw_line=None,
-        plot=True,
         perm=100,
         fdr=0.05,
         color_list=None,
@@ -82,8 +82,7 @@ class VolcanoPlot(PlotUtils):
         self.alpha = alpha
         self.draw_line = draw_line
         self.hover_data = None
-        self.res = None
-        self.pvalue_column = None
+
         self.perm = perm
         self.color_list = color_list
 
@@ -109,23 +108,27 @@ class VolcanoPlot(PlotUtils):
             preprocessing_info=self.preprocessing_info,
         )
 
-        if plot:
+        self.res, self.pvalue_column, self.tlim_ttest = (
             self._perform_differential_expression_analysis()
-            self._annotate_result_df()
-            self._add_hover_data_columns()
-            self._plot()
+        )
+        self._annotate_result_df()
+        self._add_hover_data_columns()
+        self._plot()
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
-    def _perform_differential_expression_analysis(self):
+    def _perform_differential_expression_analysis(
+        self,
+    ) -> Tuple[pd.DataFrame, str, float]:
         """Wrapper for differential expression analysis."""
 
+        tlim_ttest = None
+
         # Note: all the called methods were decorated with @lru_cache(maxsize=20), reimplement if there's performance issues
-
         if self.method in ["wald", "ttest", "welch-ttest", "paired-ttest"]:
-            self.pvalue_column = "qval" if self.method == "wald" else "pval"
+            pvalue_column = "qval" if self.method == "wald" else "pval"
 
-            self.res = self._statistics.diff_expression_analysis(
+            res = self._statistics.diff_expression_analysis(
                 column=self.column,
                 group1=self.group1,
                 group2=self.group2,
@@ -133,12 +136,12 @@ class VolcanoPlot(PlotUtils):
             )
 
         elif self.method == "anova":
-            self._anova()
+            res, pvalue_column = self._anova()
 
         elif self.method == "sam":
             # TODO this is a bit of a hack, but currently diff_expression_analysis() returns only the df, not the tlim_ttest
             #  To remedy, make it return (df, {}), the latter being a dictionary containing optional additional data.
-            df, tlim_ttest = DifferentialExpressionAnalysis(
+            res, tlim_ttest = DifferentialExpressionAnalysis(
                 mat=self.mat,
                 metadata=self.metadata,
                 index_column=self.index_column,
@@ -150,15 +153,15 @@ class VolcanoPlot(PlotUtils):
                 method="sam",
             ).sam()
 
-            self.res = df
-            self.tlim_ttest = tlim_ttest
-            self.pvalue_column = "pval"
+            pvalue_column = "pval"
 
         else:
             raise ValueError(
                 f"{self.method} is not available. "
                 + "Please select from 'ttest', 'sam', 'paired-ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
+
+        return res, pvalue_column, tlim_ttest
 
     def _sam_calculate_fdr_line(self):
         fdr_line = multicova.get_fdr_line(
@@ -188,7 +191,7 @@ class VolcanoPlot(PlotUtils):
         )
         return fdr_line
 
-    def _anova(self):
+    def _anova(self) -> Tuple[pd.DataFrame, str]:
         print("Calculating ANOVA with follow-up tukey test...")
 
         result_df = self._statistics.anova(
@@ -214,14 +217,14 @@ class VolcanoPlot(PlotUtils):
         fc_df = pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
 
         # check how column is ordered
-        self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
+        pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
 
-        if self.pvalue_column not in result_df.columns:
-            self.pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
+        if pvalue_column not in result_df.columns:
+            pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
-        self.res = result_df.reset_index().merge(
-            fc_df.reset_index(), on=self.index_column
-        )
+        res = result_df.reset_index().merge(fc_df.reset_index(), on=self.index_column)
+
+        return res, pvalue_column
 
     def _add_hover_data_columns(self):
         # additional labeling with gene names
