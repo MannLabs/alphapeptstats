@@ -34,7 +34,7 @@ class DifferentialExpressionAnalysis:
         self.perm = perm
         self.fdr = fdr
 
-        if isinstance(self.group1, list) and isinstance(self.group2, list):
+        if isinstance(group1, list) and isinstance(group2, list):
             self.metadata, self.column = _add_metadata_column(
                 metadata, sample, group1, group2
             )
@@ -205,8 +205,6 @@ class DifferentialExpressionAnalysis:
         return fc
 
     def perform(self) -> pd.DataFrame:
-        self._check_groups()
-
         if self.method == "wald":
             df = self._wald()
 
