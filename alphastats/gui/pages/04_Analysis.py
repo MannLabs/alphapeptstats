@@ -89,7 +89,7 @@ def show_start_llm_button(method: str) -> None:
 
     msg = (
         "(this will overwrite the existing LLM analysis!)"
-        if StateKeys.LLM_INTEGRATION in st.session_state
+        if st.session_state.get(StateKeys.LLM_INTEGRATION, {}) != {}
         else ""
     )
 
