@@ -1,10 +1,11 @@
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import scipy
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+from alphastats.multicova import multicova
 from alphastats.statistics.StatisticUtils import (
     add_metadata_column,
     calculate_foldchange,
@@ -85,9 +86,7 @@ class DifferentialExpressionAnalysis:
         )
         return anndata_data
 
-    def _sam(self) -> pd.DataFrame:  # TODO duplicated? DUP1
-        from alphastats.multicova import multicova
-
+    def sam(self) -> Tuple[pd.DataFrame, float]:
         transposed = self.mat.transpose()
 
         if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
@@ -97,7 +96,7 @@ class DifferentialExpressionAnalysis:
         transposed[self.index_column] = transposed.index
         transposed = transposed.reset_index(drop=True)
 
-        res, _ = multicova.perform_ttest_analysis(
+        res_ttest, tlim_ttest = multicova.perform_ttest_analysis(
             transposed,
             c1=list(
                 self.metadata[self.metadata[self.column] == self.group1][self.sample]
@@ -113,7 +112,7 @@ class DifferentialExpressionAnalysis:
         )
 
         fdr_column = "FDR" + str(int(self.fdr * 100)) + "%"
-        df = res[
+        df = res_ttest[
             [
                 self.index_column,
                 "fc",
@@ -124,10 +123,10 @@ class DifferentialExpressionAnalysis:
                 "qval",
             ]
         ]
-        df["log2fc"] = res["fc"]
-        df["FDR"] = res[fdr_column]
+        df["log2fc"] = res_ttest["fc"]
+        df["FDR"] = res_ttest[fdr_column]
 
-        return df
+        return df, tlim_ttest
 
     def _wald(self) -> pd.DataFrame:
         import diffxpy.api as de
@@ -200,7 +199,7 @@ class DifferentialExpressionAnalysis:
             df = self._welch_ttest()
 
         elif self.method == "sam":
-            df = self._sam()
+            df, _ = self.sam()
 
         elif self.method == "paired-ttest":
             df = self._pairedttest()

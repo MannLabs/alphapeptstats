@@ -10,6 +10,9 @@ from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.multicova import multicova
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.statistics.DifferentialExpressionAnalysis import (
+    DifferentialExpressionAnalysis,
+)
 from alphastats.statistics.StatisticUtils import (
     add_metadata_column,
     calculate_foldchange,
@@ -141,7 +144,23 @@ class VolcanoPlot(PlotUtils):
             self._anova()
 
         elif self.method == "sam":
-            self._sam()
+            # TODO this is a bit of a hack, but currently diff_expression_analysis() returns only the df, not the tlim_ttest
+            #  To remedy, make it return (df, {}), the latter being a dictionary containing optional additional data.
+            df, tlim_ttest = DifferentialExpressionAnalysis(
+                mat=self.mat,
+                metadata=self.metadata,
+                index_column=self.index_column,
+                sample=self.sample,
+                preprocessing_info=self.preprocessing_info,
+                group1=self.group1,
+                group2=self.group2,
+                column=self.column,
+                method="sam",
+            ).sam()
+
+            self.res = df
+            self.tlim_ttest = tlim_ttest
+            self.pvalue_column = "pval"
 
         else:
             raise ValueError(
@@ -176,52 +195,6 @@ class VolcanoPlot(PlotUtils):
             plot=False,
         )
         return fdr_line
-
-    def _sam(self):  # TODO duplicated? DUP1
-        from alphastats.multicova import multicova
-
-        print("Calculating t-test and permutation based FDR (SAM)... ")
-
-        transposed = self.mat.transpose()
-
-        if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            # needs to be lpog2 transformed for fold change calculations
-            transposed = transposed.transform(lambda x: np.log2(x))
-
-        transposed[self.index_column] = transposed.index
-        transposed = transposed.reset_index(drop=True)
-
-        res_ttest, tlim_ttest = multicova.perform_ttest_analysis(
-            transposed,
-            c1=list(
-                self.metadata[self.metadata[self.column] == self.group1][self.sample]
-            ),
-            c2=list(
-                self.metadata[self.metadata[self.column] == self.group2][self.sample]
-            ),
-            s0=0.05,
-            n_perm=self.perm,
-            fdr=self.fdr,
-            id_col=self.index_column,
-            parallelize=True,
-        )
-
-        fdr_column = "FDR" + str(int(self.fdr * 100)) + "%"
-        self.res = res_ttest[
-            [
-                self.index_column,
-                "fc",
-                "tval",
-                "pval",
-                "tval_s0",
-                "pval_s0",
-                "qval",
-            ]
-        ]
-        self.res["log2fc"] = res_ttest["fc"]
-        self.res["FDR"] = res_ttest[fdr_column]
-        self.tlim_ttest = tlim_ttest
-        self.pvalue_column = "pval"
 
     def _anova(self):
         print("Calculating ANOVA with follow-up tukey test...")
