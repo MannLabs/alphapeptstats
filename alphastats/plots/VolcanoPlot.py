@@ -10,10 +10,10 @@ from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.multicova import multicova
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
-from alphastats.statistics.DifferentialExpressionAnalysis import (
-    DifferentialExpressionAnalysis,
+from alphastats.statistics.StatisticUtils import (
+    add_metadata_column,
+    calculate_foldchange,
 )
-from alphastats.statistics.StatisticUtils import _add_metadata_column
 from alphastats.utils import ignore_warning
 
 # TODO this is repeated and needs to go elsewhere!
@@ -85,7 +85,7 @@ class VolcanoPlot(PlotUtils):
         self.color_list = color_list
 
         if isinstance(group1, list) and isinstance(group2, list):
-            self.metadata, self.column = _add_metadata_column(
+            self.metadata, self.column = add_metadata_column(
                 metadata, sample, group1, group2
             )
             self.group1, self.group2 = "group1", "group2"
@@ -240,7 +240,7 @@ class VolcanoPlot(PlotUtils):
 
         mat_transpose = self.mat.transpose()
 
-        fc = DifferentialExpressionAnalysis.calculate_foldchange(
+        fc = calculate_foldchange(
             mat_transpose,
             group1_samples,
             group2_samples,

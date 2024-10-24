@@ -5,7 +5,10 @@ import pandas as pd
 import scipy
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.statistics.StatisticUtils import _add_metadata_column
+from alphastats.statistics.StatisticUtils import (
+    add_metadata_column,
+    calculate_foldchange,
+)
 
 
 class DifferentialExpressionAnalysis:
@@ -35,7 +38,7 @@ class DifferentialExpressionAnalysis:
         self.fdr = fdr
 
         if isinstance(group1, list) and isinstance(group2, list):
-            self.metadata, self.column = _add_metadata_column(
+            self.metadata, self.column = add_metadata_column(
                 metadata, sample, group1, group2
             )
             self.group1, self.group2 = "group1", "group2"
@@ -170,7 +173,7 @@ class DifferentialExpressionAnalysis:
             p_values.index.tolist(),
             p_values.values,
         )
-        df["log2fc"] = self.calculate_foldchange(
+        df["log2fc"] = calculate_foldchange(
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
@@ -185,24 +188,6 @@ class DifferentialExpressionAnalysis:
 
     def _pairedttest(self) -> pd.DataFrame:
         return self._generic_ttest(test_fun=scipy.stats.ttest_rel)
-
-    @staticmethod
-    def calculate_foldchange(
-        mat_transpose: pd.DataFrame,
-        group1_samples: list,
-        group2_samples: list,
-        is_log2_transformed: bool,
-    ):
-        group1_values = mat_transpose[group1_samples].T.mean().values
-        group2_values = mat_transpose[group2_samples].T.mean().values
-        if is_log2_transformed:
-            fc = group1_values - group2_values
-
-        else:
-            fc = group1_values / group2_values
-            fc = np.log2(fc)
-
-        return fc
 
     def perform(self) -> pd.DataFrame:
         if self.method == "wald":

@@ -2,7 +2,25 @@ import numpy as np
 import pandas as pd
 
 
-def _add_metadata_column(
+def calculate_foldchange(
+    mat_transpose: pd.DataFrame,
+    group1_samples: list,
+    group2_samples: list,
+    is_log2_transformed: bool,
+):
+    group1_values = mat_transpose[group1_samples].T.mean().values
+    group2_values = mat_transpose[group2_samples].T.mean().values
+    if is_log2_transformed:
+        fc = group1_values - group2_values
+
+    else:
+        fc = group1_values / group2_values
+        fc = np.log2(fc)
+
+    return fc
+
+
+def add_metadata_column(
     metadata: pd.DataFrame, sample: str, group1_list: list, group2_list: list
 ):
     # create new column in metadata with defined groups
