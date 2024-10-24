@@ -199,16 +199,15 @@ def do_analysis(
         parameters = st_tsne_options(method_dict)
 
     elif method == "Differential Expression Analysis - T-test":
-        parameters = st_calculate_ttest(method=method, options_dict=options_dict)
+        parameters = helper_compare_two_groups()
+        parameters.update({"method": "ttest"})
 
     elif method == "Differential Expression Analysis - Wald-test":
-        parameters = st_calculate_waldtest(method=method, options_dict=options_dict)
+        parameters = helper_compare_two_groups()
+        parameters.update({"method": "wald"})
 
-    elif method == "PCA Plot":
-        parameters = st_plot_pca(method_dict)
-
-    elif method == "UMAP Plot":
-        parameters = st_plot_umap(method_dict)
+    elif method == "PCA Plot" or method == "UMAP Plot":
+        parameters = helper_plot_dimensionality_reduction(method_dict=method_dict)
 
     else:
         parameters = st_general(method_dict=method_dict)
@@ -220,32 +219,6 @@ def do_analysis(
             return method_dict["function"](**parameters), None, parameters
 
     return None, None, {}
-
-
-# TODO try to cover all those by st_general()
-def st_plot_pca(method_dict):
-    return helper_plot_dimensionality_reduction(method_dict=method_dict)
-
-
-def st_plot_umap(method_dict):
-    return helper_plot_dimensionality_reduction(method_dict=method_dict)
-
-
-def st_calculate_ttest(method, options_dict):
-    """
-    perform ttest in streamlit
-    """
-    chosen_parameter_dict = helper_compare_two_groups()
-    chosen_parameter_dict.update({"method": "ttest"})
-
-    return chosen_parameter_dict
-
-
-def st_calculate_waldtest(method, options_dict):
-    chosen_parameter_dict = helper_compare_two_groups()
-    chosen_parameter_dict.update({"method": "wald"})
-
-    return chosen_parameter_dict
 
 
 def helper_plot_dimensionality_reduction(method_dict):
