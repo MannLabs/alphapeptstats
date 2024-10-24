@@ -94,13 +94,17 @@ class DataSet:
         self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
-        self.gene_name_to_protein_id_map = (
-            dict(
-                zip(
-                    self.rawinput[self._gene_names].tolist(),
-                    self.rawinput[self.index_column].tolist(),
-                )
-            )
+        self._gene_name_to_protein_id_map = (
+            {
+                k: v
+                for k, v in dict(
+                    zip(
+                        self.rawinput[self._gene_names].tolist(),
+                        self.rawinput[self.index_column].tolist(),
+                    )
+                ).items()
+                if isinstance(k, str)  # avoid having NaN as key
+            }
             if self._gene_names
             else {}
         )
@@ -427,13 +431,12 @@ class DataSet:
         Returns:
             str: Protein id or gene name if not present in the mapping.
         """
-        if gene_name in self.gene_name_to_protein_id_map:
-            return self.gene_name_to_protein_id_map[gene_name]
+        if gene_name in self._gene_name_to_protein_id_map:
+            return self._gene_name_to_protein_id_map[gene_name]
 
-        for gene, protein_id in self.gene_name_to_protein_id_map.items():
+        for gene, protein_id in self._gene_name_to_protein_id_map.items():
             if gene_name in gene.split(";"):
                 return protein_id
-
         return gene_name
 
     def plot_intensity(
