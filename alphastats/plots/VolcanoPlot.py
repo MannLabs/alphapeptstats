@@ -389,34 +389,9 @@ class VolcanoPlot(PlotUtils):
                 "no_color",
             )
 
-    def get_colored_labels(self):
-        """
-        get dict of upregulated and downregulated genes in form of {gene_name: color}
-        """
-        if "label" not in self.res.columns:
-            if self.gene_names is not None:
-                label_column = self.gene_names
-            else:
-                label_column = self.index_column
-
-            self.res["label"] = np.where(
-                self.res.color != "non_sig", self.res[label_column], ""
-            )
-            # replace nas with empty string (can cause error when plotting with gene names)
-            self.res["label"] = self.res["label"].fillna("")
-            self.res = self.res[self.res["label"] != ""]
-        if "color" not in self.res.columns:
-            self._annotate_result_df()
-
-        labels = [
-            ";".join([i for i in j.split(";") if i]) for j in self.res["label"].tolist()
-        ]
-        self.res["label"] = labels
-        return dict(zip(labels, self.res["color"].tolist()))
-
     def get_colored_labels_df(self):
         """
-        get dataframe of upregulated and downregulated genes in form of {gene_name: color}
+        get dataframe of upregulated and downregulated genes in form of {gene_name: color},
         """
         if "label" not in self.res.columns:
             if self.gene_names is not None:
@@ -432,6 +407,7 @@ class VolcanoPlot(PlotUtils):
             self.res = self.res[self.res["label"] != ""]
         if "color" not in self.res.columns:
             self._annotate_result_df()
+
         return self.res
 
     def _add_labels_plot(self):

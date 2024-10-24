@@ -93,36 +93,35 @@ st.write(f"Parameters used for analysis: {parameter_dict}")
 c1, c2 = st.columns((1, 2))
 
 with c1:
-    # TODO move this to volcano anyway ?
-    genes_of_interest_colored_df = volcano_plot.get_colored_labels_df()
-
+    genes_of_interest_df = volcano_plot.get_colored_labels_df()
     gene_names_colname = st.session_state[StateKeys.LOADER].gene_names
     prot_ids_colname = st.session_state[StateKeys.LOADER].index_column
 
     gene_to_prot_id_map = dict(  # TODO move this logic to dataset
         zip(
-            genes_of_interest_colored_df[gene_names_colname].tolist(),
-            genes_of_interest_colored_df[prot_ids_colname].tolist(),
+            genes_of_interest_df[gene_names_colname].tolist(),
+            genes_of_interest_df[prot_ids_colname].tolist(),
         )
     )
 
     with c2:
         display_figure(volcano_plot.plot)
 
-    genes_of_interest_colored = volcano_plot.get_colored_labels()
-    if not genes_of_interest_colored:
-        st.text("No proteins of interest found.")
+    labels = [
+        ";".join([i for i in j.split(";") if i])
+        for j in genes_of_interest_df.res["label"].tolist()
+    ]
+    genes_of_interest = dict(zip(labels, genes_of_interest_df.res["color"].tolist()))
+
+    if not genes_of_interest:
+        st.text("No genes of interest found.")
         st.stop()
 
     upregulated_genes = [
-        key
-        for key in genes_of_interest_colored
-        if genes_of_interest_colored[key] == "up"
+        key for key in genes_of_interest if genes_of_interest[key] == "up"
     ]
     downregulated_genes = [
-        key
-        for key in genes_of_interest_colored
-        if genes_of_interest_colored[key] == "down"
+        key for key in genes_of_interest if genes_of_interest[key] == "down"
     ]
 
     st.markdown("##### Genes of interest")
