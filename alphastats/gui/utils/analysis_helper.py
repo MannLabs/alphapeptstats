@@ -123,26 +123,26 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
     Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
     analysis_object is the underlying object, parameters is a dictionary of the parameters used.
     """
-    chosen_parameter_dict = helper_compare_two_groups()
+    parameters = helper_compare_two_groups()
     method = st.selectbox(
         "Differential Analysis using:",
         options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
     )
-    chosen_parameter_dict.update({"method": method})
-
-    # TODO streamlit doesnt allow nested columns check for updates
+    parameters.update({"method": method})
 
     labels = st.checkbox("Add label")
+    parameters.update({"labels": labels})
 
     draw_line = st.checkbox("Draw line")
+    parameters.update({"draw_line": draw_line})
 
     alpha = st.number_input(
         label="alpha", min_value=0.001, max_value=0.050, value=0.050
     )
-    chosen_parameter_dict.update({"alpha": alpha})
+    parameters.update({"alpha": alpha})
 
     min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-    chosen_parameter_dict.update({"min_fc": min_fc})
+    parameters.update({"min_fc": min_fc})
 
     if method == "sam":
         perm = st.number_input(
@@ -151,14 +151,16 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
         fdr = st.number_input(
             label="FDR cut off", min_value=0.005, max_value=0.1, value=0.050
         )
-        chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
+        parameters.update({"perm": perm, "fdr": fdr})
 
     submitted = st.button("Run analysis ..")
 
     if submitted:
         dataset = st.session_state[StateKeys.DATASET]
-        # TODO this seems not be covered by unit test
 
+        # TODO currently there's no other way to obtain both the plot and the underlying data
+        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
+        #  One option could be to alyways return the whole analysis object.
         volcano_plot = VolcanoPlot(
             mat=dataset.mat,
             rawinput=dataset.rawinput,
@@ -167,13 +169,9 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
             index_column=dataset.index_column,
             gene_names=dataset._gene_names,
             preprocessing_info=dataset.preprocessing_info,
-            labels=labels,
-            draw_line=draw_line,
-            alpha=alpha,
-            min_fc=min_fc,
-            **chosen_parameter_dict,
+            **parameters,
         )
-        return volcano_plot.plot, volcano_plot, chosen_parameter_dict
+        return volcano_plot.plot, volcano_plot, parameters
 
     return None, None, None
 
