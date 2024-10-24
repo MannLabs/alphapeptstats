@@ -93,7 +93,9 @@ st.write(f"Parameters used for analysis: {parameter_dict}")
 c1, c2 = st.columns((1, 2))
 
 with c1:
-    genes_of_interest_df = volcano_plot.get_colored_labels_df()
+    genes_of_interest_df = volcano_plot.res
+    genes_of_interest_df = genes_of_interest_df[genes_of_interest_df["label"] != ""]
+
     gene_names_colname = st.session_state[StateKeys.LOADER].gene_names
     prot_ids_colname = st.session_state[StateKeys.LOADER].index_column
 
@@ -109,9 +111,9 @@ with c1:
 
     labels = [
         ";".join([i for i in j.split(";") if i])
-        for j in genes_of_interest_df.res["label"].tolist()
+        for j in genes_of_interest_df["label"].tolist()
     ]
-    genes_of_interest = dict(zip(labels, genes_of_interest_df.res["color"].tolist()))
+    genes_of_interest = dict(zip(labels, genes_of_interest_df["color"].tolist()))
 
     if not genes_of_interest:
         st.text("No genes of interest found.")

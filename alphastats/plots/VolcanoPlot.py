@@ -5,7 +5,6 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
-from DataSet import AbstractPlot
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
@@ -42,7 +41,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class VolcanoPlot(PlotUtils, AbstractPlot):
+class VolcanoPlot(PlotUtils):
     def __init__(
         self,
         *,
@@ -275,27 +274,6 @@ class VolcanoPlot(PlotUtils, AbstractPlot):
                 "no_color",
             )
 
-    def get_colored_labels_df(self):
-        """
-        get dataframe of upregulated and downregulated genes in form of {gene_name: color},
-        """
-        if "label" not in self.res.columns:
-            if self.gene_names is not None:
-                label_column = self.gene_names
-            else:
-                label_column = self.index_column
-
-            self.res["label"] = np.where(
-                self.res.color != "non_sig", self.res[label_column], ""
-            )
-            # replace nas with empty string (can cause error when plotting with gene names)
-            self.res["label"] = self.res["label"].fillna("")
-            self.res = self.res[self.res["label"] != ""]
-        if "color" not in self.res.columns:
-            self._annotate_result_df()
-
-        return self.res
-
     def _add_labels_plot(self):
         """
         add gene names as hover data if they are given
@@ -314,14 +292,15 @@ class VolcanoPlot(PlotUtils, AbstractPlot):
         self.res["label"] = [
             ";".join([i for i in j.split(";") if i]) for j in self.res["label"].tolist()
         ]
-        self.res = self.res[self.res["label"] != ""]
 
-        for x, y, label_column in self.res[
-            ["log2fc", "-log10(p-value)", "label"]
-        ].itertuples(index=False):
-            self.plot.add_annotation(
-                x=x, y=y, text=label_column, showarrow=False, yshift=10
-            )
+        if self.labels:
+            res = self.res[self.res["label"] != ""]
+            for x, y, label_column in res[
+                ["log2fc", "-log10(p-value)", "label"]
+            ].itertuples(index=False):
+                self.plot.add_annotation(
+                    x=x, y=y, text=label_column, showarrow=False, yshift=10
+                )
 
     def _draw_lines_plot(self):
         """
@@ -378,8 +357,7 @@ class VolcanoPlot(PlotUtils, AbstractPlot):
         # update coloring
         self._color_data_points()
 
-        if self.labels:
-            self._add_labels_plot()
+        self._add_labels_plot()
 
         if self.draw_line:
             if self.method == "sam":
