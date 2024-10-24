@@ -115,14 +115,6 @@ class VolcanoPlot(PlotUtils):
             self._add_hover_data_columns()
             self._plot()
 
-    # TODO revisit this
-    def _update(self, updated_attributes):
-        """
-        update attributes using dict
-        """
-        for key, value in updated_attributes.items():
-            setattr(self, key, value)
-
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _perform_differential_expression_analysis(self):

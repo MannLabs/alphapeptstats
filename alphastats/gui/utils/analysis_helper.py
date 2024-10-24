@@ -117,32 +117,6 @@ def st_general(method_dict):
     return chosen_parameter_dict
 
 
-# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict,
-):
-    """
-    initalize volcano plot object with differential expression analysis results
-    """
-    dataset = st.session_state[StateKeys.DATASET]
-
-    # TODO this is just a quickfix, a simple interface needs to be provided by DataSet
-    volcano_plot = VolcanoPlot(
-        mat=dataset.mat,
-        rawinput=dataset.rawinput,
-        metadata=dataset.metadata,
-        sample=dataset.sample,
-        index_column=dataset.index_column,
-        gene_names=dataset._gene_names,
-        preprocessing_info=dataset.preprocessing_info,
-        **chosen_parameter_dict,
-        plot=False,
-    )
-    volcano_plot._perform_differential_expression_analysis()
-    volcano_plot._add_hover_data_columns()
-    return volcano_plot
-
-
 def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
     """Draw Volcano Plot using the VolcanoPlot class.
 
@@ -182,19 +156,23 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
     submitted = st.button("Run analysis ..")
 
     if submitted:
+        dataset = st.session_state[StateKeys.DATASET]
         # TODO this seems not be covered by unit test
-        volcano_plot = gui_volcano_plot_differential_expression_analysis(
-            chosen_parameter_dict
+
+        volcano_plot = VolcanoPlot(
+            mat=dataset.mat,
+            rawinput=dataset.rawinput,
+            metadata=dataset.metadata,
+            sample=dataset.sample,
+            index_column=dataset.index_column,
+            gene_names=dataset._gene_names,
+            preprocessing_info=dataset.preprocessing_info,
+            labels=labels,
+            draw_line=draw_line,
+            alpha=alpha,
+            min_fc=min_fc,
+            **chosen_parameter_dict,
         )
-        plotting_parameter_dict = {
-            "labels": labels,
-            "draw_line": draw_line,
-            "alpha": alpha,
-            "min_fc": min_fc,
-        }
-        volcano_plot._update(plotting_parameter_dict)
-        volcano_plot._annotate_result_df()
-        volcano_plot._plot()
         return volcano_plot.plot, volcano_plot, chosen_parameter_dict
 
     return None, None, None
