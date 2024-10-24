@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import Dict, List, Union
 
 import numpy as np
@@ -149,23 +148,22 @@ class VolcanoPlot(PlotUtils):
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
     def _perform_differential_expression_analysis(self):
-        """
-        wrapper for diff analysis
-        """
-        if self.method == "wald":
-            self._wald()
+        """Wrapper for differential expression analysis."""
 
-        elif self.method == "ttest":
-            self._ttest()
+        # Note: all the called methods were decorated with @lru_cache(maxsize=20), reimplement if there's performance issues
 
-        elif self.method == "anova":
+        if self.method in ["wald", "ttest", "welch-ttest", "paired-ttest"]:
+            self.pvalue_column = "qval" if self.method == "wald" else "pval"
+
+            self.res = self._statistics.diff_expression_analysis(
+                column=self.column,
+                group1=self.group1,
+                group2=self.group2,
+                method=self.method,
+            )
+
+        if self.method == "anova":
             self._anova()
-
-        elif self.method == "welch-ttest":
-            self._welch_ttest()
-
-        elif self.method == "paired-ttest":
-            self._pairedttest()
 
         elif self.method == "sam":
             self._sam()
@@ -176,7 +174,6 @@ class VolcanoPlot(PlotUtils):
                 + "Please select from 'ttest', 'sam', 'paired-ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
 
-    @lru_cache(maxsize=20)
     def _sam_calculate_fdr_line(self):
         from alphastats.multicova import multicova
 
@@ -206,7 +203,6 @@ class VolcanoPlot(PlotUtils):
             plot=False,
         )
 
-    @lru_cache(maxsize=20)
     def _sam(self):  # TODO duplicated? DUP1
         from alphastats.multicova import multicova
 
@@ -253,56 +249,6 @@ class VolcanoPlot(PlotUtils):
         self.tlim_ttest = tlim_ttest
         self.pvalue_column = "pval"
 
-    @lru_cache(maxsize=20)
-    def _wald(self):
-        print(
-            "Calculating differential expression analysis using wald test. Fitting generalized linear model..."
-        )
-        self.res = self._statistics.diff_expression_analysis(
-            column=self.column,
-            group1=self.group1,
-            group2=self.group2,
-            method=self.method,
-        )
-        self.pvalue_column = "qval"
-
-    @lru_cache(maxsize=20)
-    def _welch_ttest(self):
-        print("Calculating Welchs t-test...")
-
-        self.res = self._statistics.diff_expression_analysis(
-            column=self.column,
-            group1=self.group1,
-            group2=self.group2,
-            method=self.method,
-        )
-        self.pvalue_column = "pval"
-
-    @lru_cache(maxsize=20)
-    def _ttest(self):
-        print("Calculating Students t-test...")
-
-        self.res = self._statistics.diff_expression_analysis(
-            column=self.column,
-            group1=self.group1,
-            group2=self.group2,
-            method=self.method,
-        )
-        self.pvalue_column = "pval"
-
-    @lru_cache(maxsize=20)
-    def _pairedttest(self):
-        print("Calculating paired t-test...")
-
-        self.res = self._statistics.diff_expression_analysis(
-            column=self.column,
-            group1=self.group1,
-            group2=self.group2,
-            method=self.method,
-        )
-        self.pvalue_column = "pval"
-
-    @lru_cache(maxsize=20)
     def _anova(self):
         print("Calculating ANOVA with follow-up tukey test...")
 
