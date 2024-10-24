@@ -776,6 +776,18 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         self.assertEqual(res.shape[1], 45)
 
+    def test_get_protein_id_for_gene_name(self):
+        self.assertEqual(
+            self.obj._get_protein_id_for_gene_name("MADE_UP_GENE"), "MADE_UP_GENE"
+        )
+        self.assertEqual(
+            self.obj._get_protein_id_for_gene_name("ALDOC"),
+            "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5",
+        )
+        self.assertEqual(
+            self.obj._get_protein_id_for_gene_name("FCGRT"), "P55899;M0R0A9;A0A024QZI2"
+        )
+
     # def test_perform_gsea(self):
     #     df = self.obj.perform_gsea(column="disease",
     #                             group1="healthy",

@@ -31,7 +31,7 @@ def llm_integration(mock_openai_client):
         api_key="test-key",  # pragma: allowlist secret
         system_message="Test system message",
         dataset=dataset,
-        gene_to_prot_id_map={"GENE1": "PROT1", "GENE2": "PROT2"},
+        genes_of_interest={"GENE1": "PROT1", "GENE2": "PROT2"},
     )
 
 
@@ -284,28 +284,6 @@ def test_execute_general_function(
     ):
         result = llm_integration._execute_function(function_name, function_args)
         assert result == expected_result
-
-
-@pytest.mark.parametrize(
-    "gene_name,plot_args,expected_protein_id",
-    [
-        ("GENE1", {"param1": "value1"}, "PROT1"),
-        ("GENE2", {"param2": "value2"}, "PROT2"),
-    ],
-)
-def test_execute_plot_intensity(
-    llm_integration, gene_name, plot_args, expected_protein_id
-):
-    """Test execution of plot_intensity with gene name translation"""
-    function_args = {"protein_id": gene_name, **plot_args}
-
-    result = llm_integration._execute_function("plot_intensity", function_args)
-
-    # Verify the dataset's plot_intensity was called with correct protein ID
-    llm_integration._dataset.plot_intensity.assert_called_once()
-    call_args = llm_integration._dataset.plot_intensity.call_args[1]
-    assert call_args["protein_id"] == expected_protein_id
-    assert result == "Plot created"
 
 
 def test_execute_dataset_function(llm_integration):
