@@ -41,6 +41,7 @@ class ClusterMap(PlotUtils):
         self.group = group
         self.subgroups = subgroups
 
+        self.prepared_df = None
         self._prepare_df()
         self._plot()
 
@@ -62,7 +63,7 @@ class ClusterMap(PlotUtils):
             significant_proteins = anova_df[anova_df["ANOVA_pvalue"] < 0.05][
                 self.index_column
             ].to_list()
-            df = df[significant_proteins]
+            df = df[significant_proteins]  # TODO bug?
 
         if self.label_bar is not None:
             self._create_label_bar(metadata_df)

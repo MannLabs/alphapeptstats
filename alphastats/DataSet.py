@@ -362,7 +362,7 @@ class DataSet:
             perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
             fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
             color_list (list): list with ProteinIDs that should be highlighted.
-            compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
+            #compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
 
 
         Returns:
