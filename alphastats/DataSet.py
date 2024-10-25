@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd
 import plotly
 import scipy
+from dataset_harmonizer import DataHarmonizer
 
 from alphastats import BaseLoader
 from alphastats.dataset_factory import DataSetFactory
@@ -64,9 +65,7 @@ class DataSet:
         self._check_loader(loader=loader)
 
         # fill data from loader
-        self.rawinput: pd.DataFrame = loader.rawinput.rename(
-            columns={loader.index_column: Cols.INDEX}
-        )
+        self.rawinput: pd.DataFrame = DataHarmonizer(loader).get_rawinput()
         self.filter_columns: List[str] = loader.filter_columns
 
         self.software: str = loader.software
