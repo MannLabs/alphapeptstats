@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.keys import Cols
 from alphastats.multicova import multicova
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 from alphastats.statistics.DifferentialExpressionAnalysis import (
@@ -49,7 +50,6 @@ class VolcanoPlot(PlotUtils):
         rawinput: pd.DataFrame,
         metadata: pd.DataFrame,
         sample: str,
-        index_column: str,
         gene_names: str,
         preprocessing_info: Dict,
         group1: Union[List[str], str],
@@ -70,7 +70,6 @@ class VolcanoPlot(PlotUtils):
         self.rawinput = rawinput
         self.metadata: pd.DataFrame = metadata
         self.sample: str = sample
-        self.index_column: str = index_column
         self.gene_names: str = gene_names
         self.preprocessing_info: Dict = preprocessing_info
 
@@ -103,7 +102,6 @@ class VolcanoPlot(PlotUtils):
             mat=self.mat,
             metadata=self.metadata,
             sample=self.sample,
-            index_column=self.index_column,
             preprocessing_info=self.preprocessing_info,
         )
 
@@ -143,7 +141,6 @@ class VolcanoPlot(PlotUtils):
             res, tlim_ttest = DifferentialExpressionAnalysis(
                 mat=self.mat,
                 metadata=self.metadata,
-                index_column=self.index_column,
                 sample=self.sample,
                 preprocessing_info=self.preprocessing_info,
                 group1=self.group1,
@@ -213,7 +210,7 @@ class VolcanoPlot(PlotUtils):
             group2_samples,
             self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED],
         )
-        fc_df = pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
+        fc_df = pd.DataFrame({"log2fc": fc, Cols.INDEX: mat_transpose.index})
 
         # check how column is ordered
         pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
@@ -221,19 +218,21 @@ class VolcanoPlot(PlotUtils):
         if pvalue_column not in result_df.columns:
             pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
-        res = result_df.reset_index().merge(fc_df.reset_index(), on=self.index_column)
+        res = result_df.reset_index().merge(fc_df.reset_index(), on=Cols.INDEX)
 
         return res, pvalue_column
 
     def _add_hover_data_columns(self):
         # additional labeling with gene names
-        self.hover_data = [self.index_column]
+        self.hover_data = [
+            Cols.INDEX
+        ]  # TODO this now shows the internal column name as description
 
         if self.gene_names is not None:
             self.res = pd.merge(
                 self.res,
-                self.rawinput[[self.gene_names, self.index_column]],
-                on=self.index_column,
+                self.rawinput[[self.gene_names, Cols.INDEX]],
+                on=Cols.INDEX,
                 how="left",
             )
             self.hover_data.append(self.gene_names)
@@ -269,7 +268,7 @@ class VolcanoPlot(PlotUtils):
 
         if len(self.color_list) > 0:
             self.res["color"] = np.where(
-                self.res[self.index_column].isin(self.color_list),
+                self.res[Cols.INDEX].isin(self.color_list),
                 "color",
                 "no_color",
             )
@@ -279,10 +278,7 @@ class VolcanoPlot(PlotUtils):
         add gene names as hover data if they are given
         """
 
-        if self.gene_names is not None:
-            label_column = self.gene_names
-        else:
-            label_column = self.index_column
+        label_column = self.gene_names if self.gene_names is not None else Cols.INDEX
 
         self.res["label"] = np.where(
             self.res.color != "non_sig", self.res[label_column], ""

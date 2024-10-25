@@ -5,6 +5,7 @@ import pandas as pd
 import scipy
 
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
+from alphastats.keys import Cols
 from alphastats.multicova import multicova
 from alphastats.statistics.StatisticUtils import (
     add_metadata_column,
@@ -18,7 +19,6 @@ class DifferentialExpressionAnalysis:
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
         sample: str,
-        index_column: str,
         preprocessing_info: Dict,
         group1: Union[str, list],
         group2: Union[str, list],
@@ -31,7 +31,6 @@ class DifferentialExpressionAnalysis:
         self.mat = mat
 
         self.sample = sample
-        self.index_column = index_column
         self.preprocessing_info = preprocessing_info
 
         self.method = method
@@ -93,7 +92,7 @@ class DifferentialExpressionAnalysis:
             # needs to be lpog2 transformed for fold change calculations
             transposed = transposed.transform(lambda x: np.log2(x))
 
-        transposed[self.index_column] = transposed.index
+        transposed[Cols.INDEX] = transposed.index
         transposed = transposed.reset_index(drop=True)
 
         res_ttest, tlim_ttest = multicova.perform_ttest_analysis(
@@ -107,14 +106,13 @@ class DifferentialExpressionAnalysis:
             s0=0.05,
             n_perm=self.perm,
             fdr=self.fdr,
-            id_col=self.index_column,
             parallelize=True,
         )
 
         fdr_column = "FDR" + str(int(self.fdr * 100)) + "%"
         df = res_ttest[
             [
-                self.index_column,
+                Cols.INDEX,
                 "fc",
                 "tval",
                 "pval",
@@ -137,7 +135,7 @@ class DifferentialExpressionAnalysis:
         test = de.test.wald(
             data=d, formula_loc=formula_loc, factor_loc_totest=self.column
         )
-        df = test.summary().rename(columns={"gene": self.index_column})
+        df = test.summary().rename(columns={"gene": Cols.INDEX})
         return df
 
     def _welch_ttest(self) -> pd.DataFrame:
@@ -146,7 +144,7 @@ class DifferentialExpressionAnalysis:
         d = self._prepare_anndata()
 
         test = de.test.t_test(data=d, grouping=self.column)
-        df = test.summary().rename(columns={"gene": self.index_column})
+        df = test.summary().rename(columns={"gene": Cols.INDEX})
         return df
 
     def _generic_ttest(self, test_fun: Callable) -> pd.DataFrame:
@@ -168,7 +166,7 @@ class DifferentialExpressionAnalysis:
         )
 
         df = pd.DataFrame()
-        df[self.index_column], df["pval"] = (
+        df[Cols.INDEX], df["pval"] = (
             p_values.index.tolist(),
             p_values.values,
         )

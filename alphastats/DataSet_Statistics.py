@@ -17,13 +17,11 @@ class Statistics:
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        index_column: str,
         sample: str,
         preprocessing_info: Dict,
     ):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.index_column: str = index_column
         self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
@@ -62,7 +60,6 @@ class Statistics:
         df = DifferentialExpressionAnalysis(
             mat=self.mat,
             metadata=self.metadata,
-            index_column=self.index_column,
             sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
@@ -93,7 +90,6 @@ class Statistics:
             mat=self.mat,
             metadata=self.metadata,
             sample=self.sample,
-            index_column=self.index_column,
             column=column,
             protein_ids=protein_ids,
             tukey=tukey,

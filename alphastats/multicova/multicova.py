@@ -354,8 +354,6 @@ def perform_ttest_analysis(
     s0=1,
     n_perm=2,
     fdr=0.01,
-    id_col="Genes",
-    plot_fdr_line=False,
     parallelize=False,
 ):
     """

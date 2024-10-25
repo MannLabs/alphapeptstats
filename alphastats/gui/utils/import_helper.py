@@ -132,6 +132,7 @@ def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
 
     Can be fragile when different settings are used or software is updated.
     """
+    # TODO this needs to go to the loader
 
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
@@ -241,7 +242,9 @@ def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
     """
     extract sample names from software
     """
-    if isinstance(loader.intensity_column, str):
+    if isinstance(
+        loader.intensity_column, str
+    ):  # TODO duplicated logic in MaxQuantLoader
         regex_find_intensity_columns = loader.intensity_column.replace("[sample]", ".*")
         df = loader.rawinput
         df = df.set_index(loader.index_column)

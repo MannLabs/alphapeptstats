@@ -9,6 +9,7 @@ import sklearn.impute
 import streamlit as st
 from sklearn.experimental import enable_iterative_imputer  # noqa
 
+from alphastats.keys import Cols
 from alphastats.utils import ignore_warning
 
 
@@ -45,7 +46,6 @@ class Preprocess:
         self,
         filter_columns: List[str],
         rawinput: pd.DataFrame,
-        index_column: str,
         sample: str,
         metadata: pd.DataFrame,
         preprocessing_info: Dict,
@@ -54,7 +54,6 @@ class Preprocess:
         self.filter_columns = filter_columns
 
         self.rawinput = rawinput
-        self.index_column = index_column
         self.sample = sample
 
         self.metadata = metadata
@@ -157,7 +156,7 @@ class Preprocess:
         # print column names with contamination
         protein_groups_to_remove = self.rawinput[
             self.rawinput[self.filter_columns].any(axis=1)
-        ][self.index_column].tolist()
+        ][Cols.INDEX].tolist()
 
         protein_groups_to_remove = list(
             set(protein_groups_to_remove) & set(self.mat.columns.to_list())

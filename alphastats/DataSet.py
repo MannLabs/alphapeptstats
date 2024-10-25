@@ -9,6 +9,7 @@ from alphastats.dataset_factory import DataSetFactory
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.keys import Cols
 from alphastats.plots.ClusterMap import ClusterMap
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.IntensityPlot import IntensityPlot
@@ -63,9 +64,11 @@ class DataSet:
         self._check_loader(loader=loader)
 
         # fill data from loader
-        self.rawinput: pd.DataFrame = loader.rawinput
+        self.rawinput: pd.DataFrame = loader.rawinput.rename(
+            columns={loader.index_column: Cols.INDEX}
+        )
         self.filter_columns: List[str] = loader.filter_columns
-        self.index_column: str = loader.index_column
+
         self.software: str = loader.software
         self._gene_names: str = loader.gene_names
 
@@ -81,7 +84,6 @@ class DataSet:
 
         self._dataset_factory = DataSetFactory(
             rawinput=self.rawinput,
-            index_column=self.index_column,
             intensity_column=self._intensity_column,
             metadata_path_or_df=metadata_path_or_df,
             sample_column=sample_column,
@@ -100,7 +102,7 @@ class DataSet:
                 for k, v in dict(
                     zip(
                         self.rawinput[self._gene_names].tolist(),
-                        self.rawinput[self.index_column].tolist(),
+                        self.rawinput[Cols.INDEX].tolist(),
                     )
                 ).items()
                 if isinstance(k, str)  # avoid having NaN as key
@@ -155,7 +157,6 @@ class DataSet:
         return Preprocess(
             self.filter_columns,
             self.rawinput,
-            self.index_column,
             self.sample,
             self.metadata,
             self.preprocessing_info,
@@ -206,7 +207,6 @@ class DataSet:
         return Statistics(
             mat=self.mat,
             metadata=self.metadata,
-            index_column=self.index_column,
             sample=self.sample,
             preprocessing_info=self.preprocessing_info,
         )
@@ -239,7 +239,6 @@ class DataSet:
             df,
             protein_id,
             group,
-            self.index_column,
         )
 
     def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
@@ -400,7 +399,6 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             sample=self.sample,
-            index_column=self.index_column,
             gene_names=self._gene_names,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
@@ -523,7 +521,6 @@ class DataSet:
             mat=self.mat,
             metadata=self.metadata,
             sample=self.sample,
-            index_column=self.index_column,
             preprocessing_info=self.preprocessing_info,
             label_bar=label_bar,
             only_significant=only_significant,

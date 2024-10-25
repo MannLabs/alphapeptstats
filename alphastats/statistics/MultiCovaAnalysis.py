@@ -3,10 +3,11 @@ import warnings
 import numpy as np
 import plotly.express as px
 
-from alphastats.statistics.StatisticUtils import StatisticUtils
+from alphastats.keys import Cols
 
 
-class MultiCovaAnalysis(StatisticUtils):
+# TODO unused
+class MultiCovaAnalysis:
     def __init__(
         self,
         dataset,
@@ -17,7 +18,7 @@ class MultiCovaAnalysis(StatisticUtils):
         subset: dict = None,
         plot: bool = False,
     ):
-        self.dataset = dataset
+        self.dataset = dataset  # TODO pass only .mat, .metadata and .sample
         self.covariates = covariates
         self.n_permutations = n_permutations
         self.fdr = fdr
@@ -98,7 +99,7 @@ class MultiCovaAnalysis(StatisticUtils):
 
     def _prepare_matrix(self):
         transposed = self.dataset.mat.transpose()
-        transposed[self.dataset.index_column] = transposed.index
+        transposed[Cols.INDEX] = transposed.index
         transposed = transposed.reset_index(drop=True)
         self.transposed = transposed[self.metadata[self.dataset.sample].to_list()]
 
@@ -111,7 +112,7 @@ class MultiCovaAnalysis(StatisticUtils):
             y=-np.log10(res_real[variable + "_" + "pval"]),
             color=res_real[sig_col],
             color_discrete_map={"sig": "#009599", "non_sig": "#404040"},
-            hover_name=res_real[self.dataset.index_column],
+            hover_name=res_real[Cols.INDEX],
             title=variable,
             labels=dict(x="beta value", y="-log10(p-value)", color=sig_level),
         )
@@ -134,7 +135,7 @@ class MultiCovaAnalysis(StatisticUtils):
             fdr=self.fdr,
             s0=self.s0,
         )
-        res[self.dataset.index_column] = self.dataset.mat.columns.to_list()
+        res[Cols.INDEX] = self.dataset.mat.columns.to_list()
         plot_list = []
 
         if self.plot:
