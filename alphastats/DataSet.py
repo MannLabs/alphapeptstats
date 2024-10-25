@@ -441,6 +441,7 @@ class DataSet:
 
     def plot_intensity(
         self,
+        *,
         protein_id: str = None,
         gene_name: str = None,
         group: str = None,
