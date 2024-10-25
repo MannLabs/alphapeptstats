@@ -39,13 +39,14 @@ def llm_config():
         current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
 
         models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
-        st.session_state[StateKeys.MODEL_NAME] = st.selectbox(
+        model_name = st.selectbox(
             "Select LLM",
             models,
             index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
             if current_model is not None
             else 0,
         )
+        st.session_state[StateKeys.MODEL_NAME] = model_name
 
         base_url = None
         if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
