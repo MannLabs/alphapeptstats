@@ -64,19 +64,20 @@ class DataSet:
         """
         self._check_loader(loader=loader)
 
+        self._data_harmonizer = DataHarmonizer(loader, sample_column)
+
         # fill data from loader
-        self.rawinput: pd.DataFrame = DataHarmonizer(loader).get_harmonized_rawinput(
+        self.rawinput: pd.DataFrame = self._data_harmonizer.get_harmonized_rawinput(
             loader.rawinput
         )
         self.filter_columns: List[str] = loader.filter_columns
-
         self.software: str = loader.software
-
         self._intensity_column: Union[str, list] = (
             loader._extract_sample_names(
-                metadata=self.metadata, sample_column=self.sample
+                metadata=self.metadata, sample_column=sample_column
             )
-            if loader == "Generic"
+            if loader
+            == "Generic"  # TODO is this ever the case? not rather instanceof(loader, GenericLoader)?
             else loader.intensity_column
         )
 
@@ -119,6 +120,7 @@ class DataSet:
         rawmat, mat = self._dataset_factory.create_matrix_from_rawinput()
 
         metadata = self._dataset_factory.create_metadata(mat)
+        metadata = self._data_harmonizer.get_harmonized_metadata(metadata)
 
         preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=mat.shape[0],
