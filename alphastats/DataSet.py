@@ -65,7 +65,9 @@ class DataSet:
         self._check_loader(loader=loader)
 
         # fill data from loader
-        self.rawinput: pd.DataFrame = DataHarmonizer(loader).get_rawinput()
+        self.rawinput: pd.DataFrame = DataHarmonizer(loader).get_harmonized_rawinput(
+            loader.rawinput
+        )
         self.filter_columns: List[str] = loader.filter_columns
 
         self.software: str = loader.software
