@@ -33,7 +33,7 @@ class MultiCovaAnalysis:
         self._prepare_matrix()
 
     def _subset_metadata(self):
-        columns_to_keep = self.covariates + [self.dataset.sample]
+        columns_to_keep = self.covariates + [Cols.SAMPLE]
         if self.subset is not None:
             # dict structure {"column_name": ["group1", "group2"]}
             subset_column = list(self.subset.keys())[0]
@@ -101,7 +101,7 @@ class MultiCovaAnalysis:
         transposed = self.dataset.mat.transpose()
         transposed[Cols.INDEX] = transposed.index
         transposed = transposed.reset_index(drop=True)
-        self.transposed = transposed[self.metadata[self.dataset.sample].to_list()]
+        self.transposed = transposed[self.metadata[Cols.SAMPLE].to_list()]
 
     def _plot_volcano_regression(self, res_real, variable):
         sig_col = res_real.filter(regex=variable + "_" + "FDR").columns[0]
