@@ -119,14 +119,13 @@ metadatafile_upload = st.file_uploader(
     "Upload metadata file with information about your samples",
 )
 
-if metadatafile_upload is None:
-    st.stop()
+metadatafile_df = None
+if metadatafile_upload is not None:
+    metadatafile_df = uploaded_file_to_df(metadatafile_upload)
 
-metadatafile_df = uploaded_file_to_df(metadatafile_upload)
-
-sample_column = show_select_sample_column_for_metadata(
-    metadatafile_df, software, loader
-)
+    sample_column = show_select_sample_column_for_metadata(
+        metadatafile_df, software, loader
+    )
 
 
 # ##########  Create dataset
