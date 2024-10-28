@@ -10,7 +10,10 @@ class DataHarmonizer:
     """Harmonize input data to a common format."""
 
     def __init__(self, loader: BaseLoader):
-        self._rename_dict = {loader.index_column: Cols.INDEX}
+        self._rename_dict = {
+            loader.index_column: Cols.INDEX,
+            loader.gene_names: Cols.GENE_NAMES,
+        }
 
     def get_harmonized_rawinput(self, rawinput: pd.DataFrame) -> pd.DataFrame:
         """Harmonize the rawinput data to a common format."""
@@ -22,5 +25,5 @@ class DataHarmonizer:
 
         return rawinput.rename(
             columns=self._rename_dict,
-            errors="raise",
+            errors="ignore",
         )

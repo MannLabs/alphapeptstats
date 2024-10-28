@@ -71,7 +71,6 @@ class DataSet:
         self.filter_columns: List[str] = loader.filter_columns
 
         self.software: str = loader.software
-        self._gene_names: str = loader.gene_names
 
         self._intensity_column: Union[str, list] = (
             loader._extract_sample_names(
@@ -102,13 +101,13 @@ class DataSet:
                 k: v
                 for k, v in dict(
                     zip(
-                        self.rawinput[self._gene_names].tolist(),
+                        self.rawinput[Cols.GENE_NAMES].tolist(),
                         self.rawinput[Cols.INDEX].tolist(),
                     )
                 ).items()
                 if isinstance(k, str)  # avoid having NaN as key
             }
-            if self._gene_names
+            if Cols.GENE_NAMES in self.rawinput.columns
             else {}
         )
 
@@ -400,7 +399,6 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             sample=self.sample,
-            gene_names=self._gene_names,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
