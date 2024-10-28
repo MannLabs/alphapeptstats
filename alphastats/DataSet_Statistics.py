@@ -3,8 +3,8 @@ from typing import Dict, Union
 
 import pandas as pd
 import pingouin
-from keys import Cols
 
+from alphastats.keys import Cols
 from alphastats.statistics.Anova import Anova
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,

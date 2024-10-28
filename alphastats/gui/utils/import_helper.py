@@ -9,6 +9,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
+from alphastats.keys import Cols
 from alphastats.loader.MaxQuantLoader import BaseLoader, MaxQuantLoader
 
 
@@ -96,13 +97,6 @@ def load_example_data():
     folder_to_load = os.path.join(_parent_directory, "sample_data")
 
     filepath = os.path.join(folder_to_load, "proteinGroups.txt")
-    metadatapath = os.path.join(folder_to_load, "metadata.xlsx")
-
-    loader = MaxQuantLoader(file=filepath)
-    # TODO why is this done twice?
-    dataset = DataSet(
-        loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
-    )
     metadatapath = (
         os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
         .replace("pages/", "")
@@ -116,7 +110,7 @@ def load_example_data():
 
     dataset.metadata = dataset.metadata[
         [
-            "sample",
+            Cols.SAMPLE,
             "disease",
             "Drug therapy (procedure) (416608005)",
             "Lipid-lowering therapy (134350008)",

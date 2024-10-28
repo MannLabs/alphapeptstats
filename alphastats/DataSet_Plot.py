@@ -6,8 +6,8 @@ import plotly.express as px
 import plotly.figure_factory
 import scipy
 import seaborn as sns
-from keys import Cols
 
+from alphastats.keys import Cols
 from alphastats.plots.PlotUtils import PlotUtils
 from alphastats.utils import check_for_missing_values
 

@@ -5,9 +5,9 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import sklearn
-from keys import Cols
 
 from alphastats.DataSet_Preprocess import Preprocess
+from alphastats.keys import Cols
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 
 # make own alphastats theme
