@@ -60,9 +60,9 @@ class SpectronautLoader(BaseLoader):
         )
 
         if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names = gene_names_column
+            self.gene_names_column = gene_names_column
         else:
-            self.gene_names = None
+            self.gene_names_column = None
         if sample_column in self.rawinput.columns.to_list():
             self.sample_column = sample_column
         else:
@@ -94,8 +94,8 @@ class SpectronautLoader(BaseLoader):
             + self.intensity_column
         )
         indexing_columns = [self.index_column]
-        if self.gene_names is not None:
-            indexing_columns.append(self.gene_names)
+        if self.gene_names_column is not None:
+            indexing_columns.append(self.gene_names_column)
 
         df = self.rawinput.pivot(
             columns="sample", index=indexing_columns, values=self.intensity_column

@@ -12,7 +12,7 @@ class DataHarmonizer:
     def __init__(self, loader: BaseLoader):
         self._rename_dict = {
             loader.index_column: Cols.INDEX,
-            loader.gene_names: Cols.GENE_NAMES,
+            loader.gene_names_column: Cols.GENE_NAMES,
         }
 
     def get_harmonized_rawinput(self, rawinput: pd.DataFrame) -> pd.DataFrame:
