@@ -130,7 +130,6 @@ class MultiCovaAnalysis:
             quant_data=self.transposed,
             annotation=self.metadata,
             covariates=self.covariates,
-            sample_column=self.dataset.sample,
             n_permutations=self.n_permutations,
             fdr=self.fdr,
             s0=self.s0,

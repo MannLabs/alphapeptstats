@@ -13,21 +13,18 @@ class DataHarmonizer:
 
     def __init__(self, loader: BaseLoader, sample_column: Optional[str] = None):
         # map column names to a tuple (new_name, is_mandatory)
-        rawinput_rename_dict = {
+        self._rawinput_rename_dict = {
             loader.index_column: (Cols.INDEX, True),
             loader.gene_names_column: (Cols.GENE_NAMES, False),
         }
 
-        shared_rename_dict = (
+        self._metadata_rename_dict = (
             {
                 sample_column: (Cols.SAMPLE, True),
             }
             if sample_column is not None
             else {}
         )
-
-        self._rawinput_rename_dict = {**rawinput_rename_dict, **shared_rename_dict}
-        self._metadata_rename_dict = shared_rename_dict
 
     def get_harmonized_rawinput(self, rawinput: pd.DataFrame) -> pd.DataFrame:
         """Harmonize the rawinput data to a common format."""
@@ -51,10 +48,10 @@ class DataHarmonizer:
         for source_name, (target_name, is_mandatory) in rename_dict.items():
             if target_name in input_df.columns:
                 raise ValueError(
-                    f"Column name {target_name} already exists. Please rename the column in your input data."
+                    f"Column name '{target_name}' already exists. Please rename the column in your input data."
                 )
             if is_mandatory and source_name not in input_df.columns:
-                raise ValueError(f"Column name {source_name} not found!")
+                raise ValueError(f"Column name '{source_name}' not found!")
 
         return input_df.rename(
             columns=rename_dict,
