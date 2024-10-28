@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from alphastats.dataset_harmonizer import DataHarmonizer
 from alphastats.keys import Cols
 
 
@@ -17,12 +18,12 @@ class DataSetFactory:
         rawinput: pd.DataFrame,
         intensity_column: Union[List[str], str],
         metadata_path_or_df: Union[str, pd.DataFrame],
-        sample_column: str,
+        data_harmonizer: DataHarmonizer,
     ):
         self.rawinput: pd.DataFrame = rawinput
-        self.sample_column: str = sample_column
         self.intensity_column: Union[List[str], str] = intensity_column
         self.metadata_path_or_df: Union[str, pd.DataFrame] = metadata_path_or_df
+        self._data_harmonizer = data_harmonizer
 
     def create_matrix_from_rawinput(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Creates a matrix: features (Proteins) as columns, samples as rows."""
@@ -62,23 +63,23 @@ class DataSetFactory:
         """Create metadata DataFrame from metadata file or DataFrame."""
 
         if self.metadata_path_or_df is not None:
-            sample = self.sample_column
             metadata = self._load_metadata(file_path=self.metadata_path_or_df)
-            metadata = self._remove_missing_samples_from_metadata(mat, metadata, sample)
+            metadata = self._data_harmonizer.get_harmonized_metadata(metadata)
+            metadata = self._remove_missing_samples_from_metadata(mat, metadata)
         else:
             metadata = pd.DataFrame({Cols.SAMPLE: list(mat.index)})
 
         return metadata
 
     def _remove_missing_samples_from_metadata(
-        self, mat: pd.DataFrame, metadata: pd.DataFrame, sample
+        self, mat: pd.DataFrame, metadata: pd.DataFrame
     ) -> pd.DataFrame:
         """Remove samples from metadata that are not in the protein data."""
         samples_matrix = mat.index.to_list()
-        samples_metadata = metadata[sample].to_list()
+        samples_metadata = metadata[Cols.SAMPLE].to_list()
         misc_samples = list(set(samples_metadata) - set(samples_matrix))
         if len(misc_samples) > 0:
-            metadata = metadata[~metadata[sample].isin(misc_samples)]
+            metadata = metadata[~metadata[Cols.SAMPLE].isin(misc_samples)]
             logging.warning(
                 f"{misc_samples} are not described in the protein data and"
                 "are removed from the metadata."
@@ -114,11 +115,6 @@ class DataSetFactory:
                 "WARNING: Metadata could not be read. \nMetadata has to be a .xslx, .tsv, .csv or .txt file"
             )
             return None
-
-        if df is not None and self.sample_column not in df.columns:
-            logging.error(
-                f"sample_column: {self.sample_column} not found in {file_path}"
-            )
 
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")

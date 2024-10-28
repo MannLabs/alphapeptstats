@@ -87,7 +87,7 @@ class DataSet:
             rawinput=self.rawinput,
             intensity_column=self._intensity_column,
             metadata_path_or_df=metadata_path_or_df,
-            sample_column=sample_column,
+            data_harmonizer=self._data_harmonizer,
         )
 
         rawmat, mat, metadata, preprocessing_info = self._get_init_dataset()
@@ -120,7 +120,6 @@ class DataSet:
         rawmat, mat = self._dataset_factory.create_matrix_from_rawinput()
 
         metadata = self._dataset_factory.create_metadata(mat)
-        metadata = self._data_harmonizer.get_harmonized_metadata(metadata)
 
         preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=mat.shape[0],
