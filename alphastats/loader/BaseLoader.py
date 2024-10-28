@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 from typing import Union
 
@@ -15,6 +14,7 @@ else:
     import importlib_resources
 
 
+# TODO make the child classes instantiated this class
 class BaseLoader:
     """Parent class of Loaders"""
 
@@ -65,6 +65,7 @@ class BaseLoader:
     def _read_all_column_names_as_string(self):
         self.rawinput.columns = self.rawinput.columns.astype(str)
 
+    # TODO unused
     def _check_if_indexcolumn_is_unique(self):
         duplicated_values = find_duplicates_in_list(
             self.rawinput[self.index_column].to_list()
@@ -75,10 +76,6 @@ class BaseLoader:
                 f"Column {self.index_column} contains duplicated values: "
                 + ", ".join(duplicated_values)
             )
-
-    def _check_if_file_exists(self, file):
-        if not os.path.isfile(file):
-            raise OSError(f"{file} does not exist.")
 
     def _add_contamination_column(self):
         # load df with potential contamination from fasta file

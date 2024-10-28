@@ -147,14 +147,6 @@ class SpectronautLoader(BaseLoader):
                     if bool(re.match(column_selection_regex, col))
                 ]
             ]
-            for column in df.columns:
-                try:
-                    if df[column].dtype == np.float64:
-                        continue
-                    df[column] = df[column].str.replace(",", ".").astype(float)
-                    print("converted", column, df[column].dtype)
-                except (ValueError, AttributeError):
-                    print("failed", column, df[column].dtype)
         else:
             df = pd.read_csv(
                 file,
@@ -162,13 +154,14 @@ class SpectronautLoader(BaseLoader):
                 low_memory=False,
                 usecols=lambda col: bool(re.match(column_selection_regex, col)),
             )
-            for column in df.columns:
-                try:
-                    if df[column].dtype == np.float64:
-                        continue
-                    df[column] = df[column].str.replace(",", ".").astype(float)
-                    print("converted", column, df[column].dtype)
-                except (ValueError, AttributeError):
-                    print("failed", column, df[column].dtype)
+
+        for column in df.columns:
+            try:
+                if df[column].dtype == np.float64:
+                    continue
+                df[column] = df[column].str.replace(",", ".").astype(float)
+                print("converted", column, df[column].dtype)
+            except (ValueError, AttributeError):
+                print("failed", column, df[column].dtype)
 
         return df

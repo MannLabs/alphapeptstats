@@ -56,12 +56,6 @@ class BaseTestLoader:
         # self.obj.check_if_indexcolumn_is_unique()
         # mock.assert_not_called()
 
-        def test_check_if_file_exists(self):
-            # check if error gets raised when file doesnt exist
-            with self.assertRaises(OSError):
-                wrong_file_path = "wrong/file/path"
-                self.obj._check_if_file_exists(file=wrong_file_path)
-
         def test_add_contaminantion_column(self):
             column_added = "contamination_library" in self.obj.rawinput
             self.assertTrue(column_added)
