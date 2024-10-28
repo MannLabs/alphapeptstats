@@ -3,10 +3,10 @@ from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd
 import plotly
 import scipy
-from dataset_harmonizer import DataHarmonizer
 
 from alphastats import BaseLoader
 from alphastats.dataset_factory import DataSetFactory
+from alphastats.dataset_harmonizer import DataHarmonizer
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics

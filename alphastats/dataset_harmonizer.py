@@ -1,9 +1,9 @@
 """Harmonize the input data to a common format."""
 
 import pandas as pd
-from keys import Cols
 
 from alphastats import BaseLoader
+from alphastats.keys import Cols
 
 
 class DataHarmonizer:
