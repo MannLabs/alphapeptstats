@@ -2,7 +2,6 @@ from typing import List
 
 import streamlit as st
 
-from alphastats import BaseLoader
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.import_helper import (
     load_example_data,
@@ -22,14 +21,10 @@ from alphastats.gui.utils.ui_helper import (
 
 
 def _finalize_data_loading(
-    loader: BaseLoader,
     metadata_columns: List[str],
     dataset: DataSet,
 ) -> None:
     """Finalize the data loading process."""
-    st.session_state[StateKeys.LOADER] = (
-        loader  # TODO: Figure out if we even need the loader here, as the dataset has the loader as an attribute.
-    )
     st.session_state[StateKeys.METADATA_COLUMNS] = metadata_columns
     st.session_state[StateKeys.DATASET] = dataset
 
@@ -56,9 +51,9 @@ if c1.button("Start new Session"):
 if c2.button("Start new Session with example DataSet", key="_load_example_data"):
     empty_session_state()
     init_session_state()
-    loader, metadata_columns, dataset = load_example_data()
+    metadata_columns, dataset = load_example_data()
 
-    _finalize_data_loading(loader, metadata_columns, dataset)
+    _finalize_data_loading(metadata_columns, dataset)
     st.stop()
 
 
@@ -164,4 +159,4 @@ if c1.button(
 
 if dataset is not None:
     st.info("DataSet has been created.")
-    _finalize_data_loading(loader, metadata_columns, dataset)
+    _finalize_data_loading(metadata_columns, dataset)

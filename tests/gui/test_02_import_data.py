@@ -55,10 +55,6 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
         str(type(at.session_state[StateKeys.DATASET]))
         == "<class 'alphastats.DataSet.DataSet'>"
     )
-    assert (
-        str(type(at.session_state[StateKeys.LOADER]))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
-    )
 
 
 @patch("streamlit.file_uploader")
@@ -113,7 +109,3 @@ def test_page_02_loads_maxquant_testfiles(
     assert dataset.rawmat.shape == (312, 2611)
     assert dataset.software == "MaxQuant"
     assert dataset.sample == "sample"
-    assert (
-        str(type(at.session_state[StateKeys.LOADER]))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
-    )

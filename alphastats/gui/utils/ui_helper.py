@@ -102,7 +102,7 @@ class StateKeys:
     # on sample run (function load_sample_data), removed on new session click
     DATASET = "dataset"  # functions upload_metadatafile
 
-    METADATA_COLUMNS = "metadata_columns"
+    METADATA_COLUMNS = "metadata_columns"  # TODO take this from dataset
     WORKFLOW = "workflow"
     PLOT_LIST = "plot_list"
 
