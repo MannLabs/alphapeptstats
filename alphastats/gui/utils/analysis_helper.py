@@ -165,7 +165,6 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
             mat=dataset.mat,
             rawinput=dataset.rawinput,
             metadata=dataset.metadata,
-            sample=dataset.sample,
             preprocessing_info=dataset.preprocessing_info,
             **parameters,
         )

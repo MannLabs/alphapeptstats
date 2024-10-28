@@ -117,7 +117,7 @@ def load_example_data():
         ]
     ]
     dataset.preprocess(subset=True)
-    return loader, dataset
+    return dataset
 
 
 def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
