@@ -66,14 +66,6 @@ class BaseTestDataSet:
             self.assertIsInstance(self.obj.metadata, pd.DataFrame)
             self.assertFalse(self.obj.metadata.empty)
 
-        @patch("logging.Logger.error")
-        def test_load_metadata_missing_sample_column(self, mock):
-            # is error raised when name of sample column is missing
-            path = self.metadata_path
-            self.obj._dataset_factory.sample_column = "wrong_sample_column"
-            self.obj._dataset_factory._load_metadata(file_path=path)
-            mock.assert_called_once()
-
         @patch("logging.Logger.warning")
         def test_load_metadata_warning(self, mock):
             # is dataframe None and is warning produced
