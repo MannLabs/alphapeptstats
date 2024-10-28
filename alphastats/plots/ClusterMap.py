@@ -15,7 +15,6 @@ class ClusterMap(PlotUtils):
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         preprocessing_info: Dict,
         label_bar,
         only_significant,
@@ -24,13 +23,11 @@ class ClusterMap(PlotUtils):
     ):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
         self._statistics = Statistics(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
         )
 
@@ -48,9 +45,9 @@ class ClusterMap(PlotUtils):
 
         if self.group is not None and self.subgroups is not None:
             metadata_df = self.metadata[
-                self.metadata[self.group].isin(self.subgroups + [self.sample])
+                self.metadata[self.group].isin(self.subgroups + [Cols.SAMPLE])
             ]
-            samples = metadata_df[self.sample]
+            samples = metadata_df[Cols.SAMPLE]
             df = df.filter(items=samples, axis=0)
 
         else:

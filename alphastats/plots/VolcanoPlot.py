@@ -49,7 +49,6 @@ class VolcanoPlot(PlotUtils):
         mat: pd.DataFrame,
         rawinput: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         preprocessing_info: Dict,
         group1: Union[List[str], str],
         group2: Union[List[str], str],
@@ -68,7 +67,6 @@ class VolcanoPlot(PlotUtils):
         self.mat: pd.DataFrame = mat
         self.rawinput = rawinput
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
         self.method = method
@@ -83,9 +81,7 @@ class VolcanoPlot(PlotUtils):
         self.color_list = color_list
 
         if isinstance(group1, list) and isinstance(group2, list):
-            self.metadata, self.column = add_metadata_column(
-                metadata, sample, group1, group2
-            )
+            self.metadata, self.column = add_metadata_column(metadata, group1, group2)
             self.group1, self.group2 = "group1", "group2"
         else:
             self.metadata, self.column = metadata, column
@@ -99,7 +95,6 @@ class VolcanoPlot(PlotUtils):
         self._statistics = Statistics(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
         )
 
@@ -139,7 +134,6 @@ class VolcanoPlot(PlotUtils):
             res, tlim_ttest = DifferentialExpressionAnalysis(
                 mat=self.mat,
                 metadata=self.metadata,
-                sample=self.sample,
                 preprocessing_info=self.preprocessing_info,
                 group1=self.group1,
                 group2=self.group2,
@@ -164,14 +158,14 @@ class VolcanoPlot(PlotUtils):
             n_x=len(
                 list(
                     self.metadata[self.metadata[self.column] == self.group1][
-                        self.sample
+                        Cols.SAMPLE
                     ]
                 )
             ),
             n_y=len(
                 list(
                     self.metadata[self.metadata[self.column] == self.group2][
-                        self.sample
+                        Cols.SAMPLE
                     ]
                 )
             ),
@@ -193,11 +187,11 @@ class VolcanoPlot(PlotUtils):
         )
 
         group1_samples = self.metadata[self.metadata[self.column] == self.group1][
-            self.sample
+            Cols.SAMPLE
         ].tolist()
 
         group2_samples = self.metadata[self.metadata[self.column] == self.group2][
-            self.sample
+            Cols.SAMPLE
         ].tolist()
 
         mat_transpose = self.mat.transpose()

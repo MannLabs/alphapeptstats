@@ -7,3 +7,5 @@ class Cols:
     INDEX = "index_"
 
     GENE_NAMES = "gene_names_"
+
+    SAMPLE = "sample_"

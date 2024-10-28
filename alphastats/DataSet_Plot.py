@@ -6,6 +6,7 @@ import plotly.express as px
 import plotly.figure_factory
 import scipy
 import seaborn as sns
+from keys import Cols
 
 from alphastats.plots.PlotUtils import PlotUtils
 from alphastats.utils import check_for_missing_values
@@ -50,13 +51,11 @@ class Plot(PlotUtils):
         mat: pd.DataFrame,
         rawmat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         preprocessing_info: Dict,
     ):
         self.mat: pd.DataFrame = mat
         self.rawmat: pd.DataFrame = rawmat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
     def plot_correlation_matrix(self, method: str = "pearson"):  # TODO unused
@@ -95,15 +94,15 @@ class Plot(PlotUtils):
         # create long df
         matrix = self.mat if not use_raw else self.rawmat
         df = matrix.unstack().reset_index()
-        df.rename(columns={"level_1": self.sample, 0: "Intensity"}, inplace=True)
+        df.rename(columns={"level_1": Cols.SAMPLE, 0: "Intensity"}, inplace=True)
 
         if color is not None:
-            df = df.merge(self.metadata, how="inner", on=[self.sample])
+            df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
 
         if method == "violin":
             fig = px.violin(
                 df,
-                x=self.sample,
+                x=Cols.SAMPLE,
                 y="Intensity",
                 color=color,
                 template="simple_white+alphastats_colors",
@@ -112,7 +111,7 @@ class Plot(PlotUtils):
         elif method == "box":
             fig = px.box(
                 df,
-                x=self.sample,
+                x=Cols.SAMPLE,
                 y="Intensity",
                 color=color,
                 template="simple_white+alphastats_colors",

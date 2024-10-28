@@ -18,7 +18,6 @@ class DifferentialExpressionAnalysis:
         self,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         preprocessing_info: Dict,
         group1: Union[str, list],
         group2: Union[str, list],
@@ -30,7 +29,6 @@ class DifferentialExpressionAnalysis:
     ):
         self.mat = mat
 
-        self.sample = sample
         self.preprocessing_info = preprocessing_info
 
         self.method = method
@@ -38,9 +36,7 @@ class DifferentialExpressionAnalysis:
         self.fdr = fdr
 
         if isinstance(group1, list) and isinstance(group2, list):
-            self.metadata, self.column = add_metadata_column(
-                metadata, sample, group1, group2
-            )
+            self.metadata, self.column = add_metadata_column(metadata, group1, group2)
             self.group1, self.group2 = "group1", "group2"
         else:
             self.metadata, self.column = metadata, column
@@ -57,7 +53,7 @@ class DifferentialExpressionAnalysis:
         group_samples = self.metadata[
             (self.metadata[self.column] == self.group1)
             | (self.metadata[self.column] == self.group2)
-        ][self.sample].tolist()
+        ][Cols.SAMPLE].tolist()
 
         # reduce matrix
         reduced_matrix = self.mat.loc[group_samples]
@@ -66,8 +62,8 @@ class DifferentialExpressionAnalysis:
         list_to_sort = reduced_matrix.index.to_list()
         # reduce metadata
         obs_metadata = (
-            self.metadata[self.metadata[self.sample].isin(group_samples)]
-            .set_index(self.sample)
+            self.metadata[self.metadata[Cols.SAMPLE].isin(group_samples)]
+            .set_index(Cols.SAMPLE)
             .loc[list_to_sort]
         )
 
@@ -98,10 +94,10 @@ class DifferentialExpressionAnalysis:
         res_ttest, tlim_ttest = multicova.perform_ttest_analysis(
             transposed,
             c1=list(
-                self.metadata[self.metadata[self.column] == self.group1][self.sample]
+                self.metadata[self.metadata[self.column] == self.group1][Cols.SAMPLE]
             ),
             c2=list(
-                self.metadata[self.metadata[self.column] == self.group2][self.sample]
+                self.metadata[self.metadata[self.column] == self.group2][Cols.SAMPLE]
             ),
             s0=0.05,
             n_perm=self.perm,
@@ -149,10 +145,10 @@ class DifferentialExpressionAnalysis:
 
     def _generic_ttest(self, test_fun: Callable) -> pd.DataFrame:
         group1_samples = self.metadata[self.metadata[self.column] == self.group1][
-            self.sample
+            Cols.SAMPLE
         ].tolist()
         group2_samples = self.metadata[self.metadata[self.column] == self.group2][
-            self.sample
+            Cols.SAMPLE
         ].tolist()
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.mat.transpose()

@@ -58,7 +58,7 @@ class DataSetFactory:
         if np.isinf(mat).values.sum() > 0:
             logging.warning("Data contains infinite values.")
 
-    def create_metadata(self, mat: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
+    def create_metadata(self, mat: pd.DataFrame) -> pd.DataFrame:
         """Create metadata DataFrame from metadata file or DataFrame."""
 
         if self.metadata_path_or_df is not None:
@@ -66,10 +66,9 @@ class DataSetFactory:
             metadata = self._load_metadata(file_path=self.metadata_path_or_df)
             metadata = self._remove_missing_samples_from_metadata(mat, metadata, sample)
         else:
-            sample = "sample"
-            metadata = pd.DataFrame({"sample": list(mat.index)})
+            metadata = pd.DataFrame({Cols.SAMPLE: list(mat.index)})
 
-        return metadata, sample
+        return metadata
 
     def _remove_missing_samples_from_metadata(
         self, mat: pd.DataFrame, metadata: pd.DataFrame, sample
