@@ -10,12 +10,13 @@ from alphastats.loader.mzTabLoader import mzTabLoader
 
 def get_plotting_options(state):
     dataset = state[StateKeys.DATASET]
+    metadata_options = [None] + dataset.mat.columns.to_list()
     plotting_options = {
         "Sampledistribution Plot": {
             "settings": {
                 "method": {"options": ["violin", "box"], "label": "Plot layout"},
                 "color": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Color according to",
                 },
             },
@@ -32,7 +33,7 @@ def get_plotting_options(state):
                     "label": "Plot layout",
                 },
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Color according to",
                 },
             },
@@ -41,7 +42,7 @@ def get_plotting_options(state):
         "PCA Plot": {
             "settings": {
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Color according to",
                 },
                 "circle": {"label": "Circle"},
@@ -51,7 +52,7 @@ def get_plotting_options(state):
         "UMAP Plot": {
             "settings": {
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Color according to",
                 },
                 "circle": {"label": "Circle"},
@@ -61,7 +62,7 @@ def get_plotting_options(state):
         "t-SNE Plot": {
             "settings": {
                 "group": {
-                    "options": [None] + state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Color according to",
                 },
                 "circle": {"label": "Circle"},
@@ -80,6 +81,7 @@ def get_plotting_options(state):
 
 def get_statistic_options(state):
     dataset = state[StateKeys.DATASET]
+    metadata_options = [None] + dataset.mat.columns.to_list()
     statistic_options = {
         "Differential Expression Analysis - T-test": {
             "between_two_groups": True,
@@ -96,7 +98,7 @@ def get_statistic_options(state):
                     "label": "ProteinID/ProteinGroup",
                 },
                 "group": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "A metadata variable to calculate pairwise tukey",
                 },
             },
@@ -105,7 +107,7 @@ def get_statistic_options(state):
         "ANOVA": {
             "settings": {
                 "column": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "A variable from the metadata to calculate ANOVA",
                 },
                 "protein_ids": {
@@ -123,11 +125,11 @@ def get_statistic_options(state):
                     "label": "Color according to",
                 },
                 "covar": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Name(s) of column(s) in metadata with the covariate.",
                 },
                 "between": {
-                    "options": state[StateKeys.METADATA_COLUMNS],
+                    "options": metadata_options,
                     "label": "Name of the column in the metadata with the between factor.",
                 },
             },
