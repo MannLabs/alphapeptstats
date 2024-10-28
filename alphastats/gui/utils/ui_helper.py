@@ -96,9 +96,8 @@ def init_session_state() -> None:
 class StateKeys:
     ## 02_Data Import
     # on 1st run
-    ORGANISM = "organism"
+    ORGANISM = "organism"  # TODO this is essentially a constant
     USER_SESSION_ID = "user_session_id"
-    LOADER = "loader"
     # on sample run (function load_sample_data), removed on new session click
     DATASET = "dataset"  # functions upload_metadatafile
 
