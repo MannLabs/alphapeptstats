@@ -416,6 +416,8 @@ class Preprocess:
             ]:
                 raise ValueError(f"Invalid keyword argument: {k}")
 
+        # TODO this is a stateful method as we change self.mat, self.metadata and self.processing_info
+        #  refactor such that it does not change self.mat etc but just return the latest result
         if remove_contaminations:
             self._filter()
 

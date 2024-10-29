@@ -8,9 +8,11 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
 
 
+# TODO get rid of the options dict: the calls to the functions should be done directly
+#  idea: per plot, have a `PlotWidget` class that knows what parameters to display and then calls the function
 def get_plotting_options(state):
     dataset = state[StateKeys.DATASET]
-    metadata_options = [None] + dataset.mat.columns.to_list()
+    metadata_options = [None] + dataset.metadata.columns.to_list()
     plotting_options = {
         "Sampledistribution Plot": {
             "settings": {
@@ -81,7 +83,7 @@ def get_plotting_options(state):
 
 def get_statistic_options(state):
     dataset = state[StateKeys.DATASET]
-    metadata_options = [None] + dataset.mat.columns.to_list()
+    metadata_options = dataset.metadata.columns.to_list()
     statistic_options = {
         "Differential Expression Analysis - T-test": {
             "between_two_groups": True,
