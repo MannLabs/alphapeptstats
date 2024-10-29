@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats import __version__
+from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -85,6 +86,13 @@ def init_session_state() -> None:
 
     if StateKeys.ORGANISM not in st.session_state:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
+
+    if StateKeys.WORKFLOW not in st.session_state:
+        st.session_state[StateKeys.WORKFLOW] = [
+            PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
+            PREPROCESSING_STEPS.SUBSET,
+            PREPROCESSING_STEPS.LOG2_TRANSFORM,
+        ]
 
     if StateKeys.PLOT_LIST not in st.session_state:
         st.session_state[StateKeys.PLOT_LIST] = []

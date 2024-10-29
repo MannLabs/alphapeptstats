@@ -1,7 +1,6 @@
 import streamlit as st
 
 from alphastats.gui.utils.preprocessing_helper import (
-    PREPROCESSING_STEPS,
     configure_preprocessing,
     display_preprocessing_info,
     draw_workflow,
@@ -14,12 +13,6 @@ from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sideba
 init_session_state()
 sidebar_info()
 
-if StateKeys.WORKFLOW not in st.session_state:
-    st.session_state[StateKeys.WORKFLOW] = [
-        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
-        PREPROCESSING_STEPS.SUBSET,
-        PREPROCESSING_STEPS.LOG2_TRANSFORM,
-    ]
 
 st.markdown("### Preprocessing")
 c1, c2 = st.columns([1, 1])
@@ -40,18 +33,16 @@ with c1:
         st.info("Import data first to configure and run preprocessing")
 
     else:
+        dataset = st.session_state[StateKeys.DATASET]
+
         c11, c12 = st.columns([1, 1])
         if c11.button("Run preprocessing", key="_run_preprocessing"):
-            run_preprocessing(settings, st.session_state[StateKeys.DATASET])
+            run_preprocessing(settings, dataset)
             # TODO show more info about the preprocessing steps
-            display_preprocessing_info(
-                st.session_state[StateKeys.DATASET].preprocessing_info
-            )
+            display_preprocessing_info(dataset.preprocessing_info)
 
         if c12.button("Reset all Preprocessing steps", key="_reset_preprocessing"):
-            reset_preprocessing(st.session_state[StateKeys.DATASET])
-            display_preprocessing_info(
-                st.session_state[StateKeys.DATASET].preprocessing_info
-            )
+            reset_preprocessing(dataset)
+            display_preprocessing_info(dataset.preprocessing_info)
 
 # TODO: Add comparison plot of intensity distribution before and after preprocessing
