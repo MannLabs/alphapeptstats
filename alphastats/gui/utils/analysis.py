@@ -31,32 +31,21 @@ class GroupCompareAnalysis(Analysis, ABC):
     """Abstract class for group comparison analysis widgets."""
 
     def show_widget(self):
-        """Gather paramrters to compare two group."""
+        """Gather parameters to compare two group."""
 
         metadata = self._dataset.metadata
 
-        chosen_parameter_dict = {}
-        default_option = "<select>"
-        group = st.selectbox(
+        default_option = "<None>"
+        grouping_variable = st.selectbox(
             "Grouping variable",
-            options=["disease", default_option] + metadata.columns.to_list(),
+            options=[default_option] + metadata.columns.to_list(),
         )
 
-        if group != default_option:
-            unique_values = metadata[group].unique().tolist()
+        if grouping_variable != default_option:
+            unique_values = metadata[grouping_variable].unique().tolist()
 
             group1 = st.selectbox("Group 1", options=unique_values)
-
             group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
-
-            chosen_parameter_dict.update(
-                {"column": group, "group1": group1, "group2": group2}
-            )
-
-            if group1 == group2:
-                st.error(
-                    "Group 1 and Group 2 can not be the same please select different group."
-                )
 
         else:
             group1 = st.multiselect(
@@ -70,16 +59,19 @@ class GroupCompareAnalysis(Analysis, ABC):
             )
 
             intersection_list = list(set(group1).intersection(set(group2)))
-
             if len(intersection_list) > 0:
                 st.warning(
                     "Group 1 and Group 2 contain same samples: "
                     + str(intersection_list)
                 )
 
-            chosen_parameter_dict.update({"group1": group1, "group2": group2})
+        if group1 == group2:
+            st.error(
+                "Group 1 and Group 2 can not be the same please select different group."
+            )
+            st.stop()
 
-        self._parameters.update(chosen_parameter_dict)
+        self._parameters.update({"group1": group1, "group2": group2})
 
 
 class VolcanoPlotAnalysis(GroupCompareAnalysis):
