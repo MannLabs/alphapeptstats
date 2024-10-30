@@ -2,8 +2,7 @@ import streamlit as st
 
 from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
-    display_plot,
-    display_statistical_analysis,
+    display_analysis_result_with_buttons,
     gather_parameters_and_do_analysis,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -61,20 +60,17 @@ with c1:
         analysis_result, analysis_object, parameters = (
             gather_parameters_and_do_analysis(analysis_method)
         )
-        show_plot = analysis_result is not None
 
     elif analysis_method in statistic_options:
         analysis_result, _, parameters = gather_parameters_and_do_analysis(
             analysis_method,
         )
-        show_df = analysis_result is not None
 
 with c2:
-    if show_plot:
-        display_plot(analysis_result, analysis_method, parameters)
-
-    if show_df:
-        display_statistical_analysis(analysis_result, analysis_method, parameters)
+    if analysis_result is not None:
+        display_analysis_result_with_buttons(
+            analysis_result, analysis_method, parameters
+        )
 
 
 @st.fragment

@@ -1,9 +1,7 @@
 import streamlit as st
 
-from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
-    display_plot,
-    display_statistical_analysis,
+    display_analysis_result_with_buttons,
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
@@ -35,11 +33,10 @@ for count, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]
         st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_analysis)
         st.rerun()
 
-    if method in PlottingOptions.get_values():
-        display_plot(
-            method, analysis_result, parameters, show_save_button=False, name=name
-        )
-    elif method in StatisticOptions.get_values():
-        display_statistical_analysis(
-            method, analysis_result, parameters, show_save_button=False, name=name
-        )
+    display_analysis_result_with_buttons(
+        analysis_result,
+        analysis_method=method,
+        parameters=parameters,
+        show_save_button=False,
+        name=name,
+    )

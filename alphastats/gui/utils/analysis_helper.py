@@ -4,32 +4,84 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.analysis import ANALYSIS_OPTIONS, PlottingOptions
+from alphastats.gui.utils.analysis import (
+    ANALYSIS_OPTIONS,
+    PlottingOptions,
+    StatisticOptions,
+)
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df_to_csv
 from alphastats.plots.PlotUtils import PlotlyObject
 
 
 @st.fragment
-def display_plot(
-    plot: PlotlyObject,
-    method: str,
+def display_analysis_result_with_buttons(
+    df: pd.DataFrame,
+    analysis_method: str,
     parameters: Optional[Dict],
-    show_save_button: bool = True,
+    show_save_button=True,
     name: str = None,
 ) -> None:
-    """A fragment to display a plot and download options."""
+    """A fragment to display a statistical analysis and download options."""
+
+    if analysis_method in PlottingOptions.get_values():
+        display_function = display_figure
+        download_function = _show_buttons_download_figure
+    elif analysis_method in StatisticOptions.get_values():
+        display_function = _display_df
+        download_function = _show_button_download_df
+    else:
+        raise ValueError(f"Analysis method {analysis_method} not found.")
+
     _display(
-        plot,
-        method=method,
+        df,
+        analysis_method=analysis_method,
         parameters=parameters,
         show_save_button=show_save_button,
         name=name,
-        display_method=display_figure,
-        save_method=_show_buttons_download_figure,
+        display_function=display_function,
+        download_function=download_function,
     )
 
 
-def display_figure(plot):
+def _display(
+    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    *,
+    analysis_method: str,
+    display_function: Callable,
+    download_function: Callable,
+    parameters: Dict,
+    name: str,
+    show_save_button: bool,
+) -> None:
+    """Display analysis results and download options."""
+    display_function(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
+    if name is None:
+        name = analysis_method
+
+    name_pretty = name.replace(" ", "_").lower()
+    with c1:
+        if show_save_button and st.button("Save to results page.."):
+            _save_analysis_to_session_state(
+                analysis_result, analysis_method, parameters
+            )
+            st.success("Saved to results page!")
+
+    with c2:
+        download_function(
+            analysis_result,
+            name_pretty,
+        )
+
+    with c3:
+        _show_button_download_analysis_and_preprocessing_info(
+            analysis_method, analysis_result, parameters, name_pretty
+        )
+
+
+def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
         st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
@@ -64,26 +116,6 @@ def _show_button_download_figure(
     )
 
 
-@st.fragment
-def display_statistical_analysis(
-    df: pd.DataFrame,
-    method: str,
-    parameters: Optional[Dict],
-    show_save_button=True,
-    name: str = None,
-) -> None:
-    """A fragment to display a statistical analysis and download options."""
-    _display(
-        df,
-        method=method,
-        parameters=parameters,
-        show_save_button=show_save_button,
-        name=name,
-        display_method=_display_df,
-        save_method=_show_button_download_df,
-    )
-
-
 def _display_df(df: pd.DataFrame) -> None:
     """Display a dataframe."""
     mask = df.applymap(type) != bool  # noqa: E721
@@ -104,39 +136,6 @@ def _show_button_download_df(
         "text/csv",
         key="download-csv",
     )
-
-
-def _display(
-    analysis_result: Union[PlotlyObject, pd.DataFrame],
-    *,
-    method: str,
-    display_method: Callable,
-    save_method: Callable,
-    parameters: Dict,
-    name: str,
-    show_save_button: bool,
-) -> None:
-    """Display analysis results and download options."""
-    display_method(analysis_result)
-
-    c1, c2, c3 = st.columns([1, 1, 1])
-
-    if name is None:
-        name = method
-
-    name_pretty = name.replace(" ", "_").lower()
-    with c1:
-        if show_save_button and st.button("Save to results page.."):
-            _save_analysis_to_session_state(analysis_result, method, parameters)
-            st.success("Saved to results page!")
-
-    with c2:
-        save_method(name_pretty, analysis_result)
-
-    with c3:
-        _show_button_download_analysis_and_preprocessing_info(
-            method, analysis_result, parameters, name_pretty
-        )
 
 
 def _show_button_download_analysis_and_preprocessing_info(
