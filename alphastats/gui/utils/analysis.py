@@ -54,7 +54,7 @@ class AbstractAnalysis(ABC):
         if not self._works_with_nans and self._dataset.mat.isnull().values.any():
             st.error("This analysis does not work with NaN values.")
             st.stop()
-        return self._do_analysis()
+        return *self._do_analysis(), dict(self._parameters)
 
     @abstractmethod
     def _do_analysis(self):
@@ -173,7 +173,7 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
             method=self._parameters["method"],
             group=self._parameters["group"],
         )
-        return intensity_plot, None, self._parameters
+        return intensity_plot, None
 
 
 class SampleDistributionPlot(AbstractIntensityPlot, ABC):
@@ -185,7 +185,7 @@ class SampleDistributionPlot(AbstractIntensityPlot, ABC):
             method=self._parameters["method"],
             color=self._parameters["group"],  # no typo
         )
-        return intensity_plot, None, self._parameters
+        return intensity_plot, None
 
 
 class PCAPlotAnalysis(AbstractDimensionReductionAnalysis):
@@ -198,7 +198,7 @@ class PCAPlotAnalysis(AbstractDimensionReductionAnalysis):
             group=self._parameters["group"],
             circle=self._parameters["circle"],
         )
-        return pca_plot, None, self._parameters
+        return pca_plot, None
 
 
 class UMAPPlotAnalysis(AbstractDimensionReductionAnalysis):
@@ -210,7 +210,7 @@ class UMAPPlotAnalysis(AbstractDimensionReductionAnalysis):
             group=self._parameters["group"],
             circle=self._parameters["circle"],
         )
-        return umap_plot, None, self._parameters
+        return umap_plot, None
 
 
 class TSNEPlotAnalysis(AbstractDimensionReductionAnalysis):
@@ -242,7 +242,7 @@ class TSNEPlotAnalysis(AbstractDimensionReductionAnalysis):
             perplexity=self._parameters["perplexity"],
             n_iter=self._parameters["n_iter"],
         )
-        return tsne_plot, None, self._parameters
+        return tsne_plot, None
 
 
 class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
@@ -308,7 +308,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             fdr=self._parameters["fdr"],
             color_list=self._parameters["color_list"],
         )
-        return volcano_plot.plot, volcano_plot, self._parameters
+        return volcano_plot.plot, volcano_plot
 
 
 class ClustermapAnalysis(AbstractAnalysis):
@@ -319,7 +319,7 @@ class ClustermapAnalysis(AbstractAnalysis):
     def _do_analysis(self):
         """Draw Clustermap using the Clustermap class."""
         clustermap = self._dataset.plot_clustermap()
-        return clustermap, None, self._parameters
+        return clustermap, None
 
 
 class DendrogramAnalysis(AbstractAnalysis):
@@ -330,7 +330,7 @@ class DendrogramAnalysis(AbstractAnalysis):
     def _do_analysis(self):
         """Draw Clustermap using the Clustermap class."""
         dendrogram = self._dataset.plot_dendrogram()
-        return dendrogram, None, self._parameters
+        return dendrogram, None
 
 
 class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
@@ -359,7 +359,7 @@ class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
             group2=self._parameters["group2"],
             column=self._parameters["column"],
         )
-        return diff_exp_analysis, None, self._parameters
+        return diff_exp_analysis, None
 
 
 class TukeyTestAnalysis(AbstractAnalysis):
@@ -384,7 +384,7 @@ class TukeyTestAnalysis(AbstractAnalysis):
             protein_id=self._parameters["protein_id"],
             group=self._parameters["group"],
         )
-        return tukey_test_analysis, None, self._parameters
+        return tukey_test_analysis, None
 
 
 class AnovaAnalysis(AbstractGroupCompareAnalysis):
@@ -415,7 +415,7 @@ class AnovaAnalysis(AbstractGroupCompareAnalysis):
             protein_ids=self._parameters["protein_ids"],
             tukey=self._parameters["tukey"],
         )
-        return anova_analysis, None, self._parameters
+        return anova_analysis, None
 
 
 class AncovaAnalysis(AbstractAnalysis):
@@ -448,7 +448,7 @@ class AncovaAnalysis(AbstractAnalysis):
             covar=self._parameters["covar"],
             between=self._parameters["between"],
         )
-        return ancova_analysis, None, self._parameters
+        return ancova_analysis, None
 
 
 ANALYSIS_OPTIONS = {

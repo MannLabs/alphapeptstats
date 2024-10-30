@@ -51,7 +51,7 @@ with c1:
     method = st.selectbox(
         "Analysis",
         options=["<select>"]
-        + ["------- plots -------"]
+        + ["------- plots ------------"]
         + plotting_options
         + ["------- statistics -------"]
         + statistic_options,
@@ -64,7 +64,7 @@ with c1:
         show_plot = analysis_result is not None
 
     elif method in statistic_options:
-        analysis_result, *_ = gather_parameters_and_do_analysis(
+        analysis_result, _, parameters = gather_parameters_and_do_analysis(
             method,
         )
         show_df = analysis_result is not None
@@ -72,7 +72,7 @@ with c1:
 with c2:
     # --- SHOW PLOT -------------------------------------------------------
     if show_plot:
-        display_plot(method, analysis_result)
+        display_plot(method, analysis_result, parameters)
 
     # --- SHOW STATISTICAL ANALYSIS -------------------------------------------------------
     elif show_df:

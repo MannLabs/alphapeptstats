@@ -18,22 +18,13 @@ def display_figure(plot):
         st.pyplot(plot)
 
 
-def save_plot_to_session_state(method, plot):
-    """
-    save plot with method to session state to retrieve old results
-    """
-    st.session_state[StateKeys.PLOT_LIST] += [(method, plot)]
-
-
-def display_df(df):
-    mask = df.applymap(type) != bool  # noqa: E721
-    d = {True: "TRUE", False: "FALSE"}
-    df = df.where(mask, df.replace(d))
-    st.dataframe(df)
-
-
 @st.fragment
-def display_plot(method, analysis_result, show_save_button=True) -> None:
+def display_plot(
+    method: str,
+    analysis_result: Any,
+    parameters: Optional[Dict] = None,
+    show_save_button=True,
+) -> None:
     """A fragment to display the plot and download options."""
     display_figure(analysis_result)
 
@@ -41,16 +32,21 @@ def display_plot(method, analysis_result, show_save_button=True) -> None:
 
     with c1:
         if show_save_button and st.button("Save to results page.."):
-            save_plot_to_session_state(method, analysis_result)
+            save_plot_to_session_state(method, analysis_result, parameters)
 
     with c2:
         download_figure(method, analysis_result, format="pdf")
         download_figure(method, analysis_result, format="svg")
 
     with c3:
-        download_preprocessing_info(
-            method, analysis_result
-        )  # TODO this should go elsewhere
+        download_analysis_and_preprocessing_info(method, analysis_result, parameters)
+
+
+def display_df(df):
+    mask = df.applymap(type) != bool  # noqa: E721
+    d = {True: "TRUE", False: "FALSE"}
+    df = df.where(mask, df.replace(d))
+    st.dataframe(df)
 
 
 def download_figure(method, plot, format):
@@ -70,22 +66,35 @@ def download_figure(method, plot, format):
     st.download_button(label="Download as " + format, data=buffer, file_name=filename)
 
 
-def download_preprocessing_info(method, plot):
-    preprocesing_dict = plot.preprocessing
-    df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + method + "preprocessing_info.csv"
+def download_analysis_and_preprocessing_info(method, plot, parameters):
+    parameters_pretty = {f"analysis_parameter__{k}": v for k, v in parameters.items()}
+    dict_to_save = {
+        **plot.preprocessing,
+        **parameters_pretty,
+    }  # TODO why is the preprocessing info saved in the plots?
+
+    df = pd.DataFrame(dict_to_save.items())
+
+    filename = "plot" + method + "analysis_info.csv"
     csv = convert_df(df)
     st.download_button(
-        "Download DataSet Info as .csv",
+        "Download Analysis info as .csv",
         csv,
         filename,
         "text/csv",
     )
 
 
+def save_plot_to_session_state(method, plot, parameters):
+    """
+    save plot with method to session state to retrieve old results
+    """
+    st.session_state[StateKeys.PLOT_LIST] += [(method, plot, parameters)]
+
+
 def gather_parameters_and_do_analysis(
     analysis_name: str,
-) -> Tuple[Optional[Any], Optional[Any], Dict[str, Any]]:
+) -> Tuple[Optional[Any], Optional[Any], Optional[Dict[str, Any]]]:
     """Extract plotting options and display.
 
     Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
