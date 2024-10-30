@@ -216,7 +216,9 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
             for artifact in message["artifacts"]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)
-                elif "plotly" in str(type(artifact)):
+                elif "plotly" in str(
+                    type(artifact)
+                ):  # TODO can there be non-plotly types here
                     st.plotly_chart(artifact)
                 elif not isinstance(artifact, str):
                     st.warning("Don't know how to display artifact:")

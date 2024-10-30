@@ -3,7 +3,7 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.gui.utils.ui_helper import StateKeys, convert_df
+from alphastats.gui.utils.ui_helper import StateKeys, convert_df_to_csv
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
@@ -57,7 +57,7 @@ def display_matrix():
     st.markdown(text)
 
     df = get_display_matrix()
-    csv = convert_df(st.session_state[StateKeys.DATASET].mat)
+    csv = convert_df_to_csv(st.session_state[StateKeys.DATASET].mat)
 
     st.dataframe(df)
 

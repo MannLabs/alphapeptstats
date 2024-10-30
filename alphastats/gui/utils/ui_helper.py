@@ -66,7 +66,7 @@ def img_to_bytes(img_path):
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def convert_df(df: pd.DataFrame) -> bytes:
+def convert_df_to_csv(df: pd.DataFrame) -> bytes:
     return df.to_csv().encode("utf-8")
 
 

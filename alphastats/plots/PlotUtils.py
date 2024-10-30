@@ -25,8 +25,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-# TODO rename to PlotlyObject
-class plotly_object(plotly.graph_objs._figure.Figure):
+class PlotlyObject(plotly.graph_objs._figure.Figure):
     plotting_data = None
     preprocessing = None
     method = None
@@ -56,7 +55,7 @@ class PlotUtils:
 
     def _update_figure_attributes(
         self,
-        figure_object: plotly_object,
+        figure_object: PlotlyObject,
         *,
         plotting_data: pd.DataFrame,
         preprocessing_info: Dict,

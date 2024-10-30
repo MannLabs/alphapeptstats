@@ -8,7 +8,6 @@ from alphastats.gui.utils.analysis_helper import (
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
-    convert_df,
     init_session_state,
     sidebar_info,
 )
@@ -44,11 +43,12 @@ show_plot = False
 show_df = False
 analysis_result = None
 
+
 c1, c2 = st.columns([0.33, 0.67])
 with c1:
     plotting_options = PlottingOptions.get_values()
     statistic_options = StatisticOptions.get_values()
-    method = st.selectbox(
+    analysis_method = st.selectbox(
         "Analysis",
         options=["<select>"]
         + ["------- plots ------------"]
@@ -57,37 +57,28 @@ with c1:
         + statistic_options,
     )
 
-    if method in plotting_options:
+    if analysis_method in plotting_options:
         analysis_result, analysis_object, parameters = (
-            gather_parameters_and_do_analysis(method)
+            gather_parameters_and_do_analysis(analysis_method)
         )
         show_plot = analysis_result is not None
 
-    elif method in statistic_options:
+    elif analysis_method in statistic_options:
         analysis_result, _, parameters = gather_parameters_and_do_analysis(
-            method,
+            analysis_method,
         )
         show_df = analysis_result is not None
 
 with c2:
-    # --- SHOW PLOT -------------------------------------------------------
     if show_plot:
-        display_plot(method, analysis_result, parameters)
+        display_plot(analysis_method, analysis_result, parameters)
 
-    # --- SHOW STATISTICAL ANALYSIS -------------------------------------------------------
-    elif show_df:
-        display_df(analysis_result)
-
-        csv = convert_df(analysis_result)
-
-        # TODO do we want to save statistical analysis to results page as well?
-        st.download_button(
-            "Download as .csv", csv, method + ".csv", "text/csv", key="download-csv"
-        )
+    if show_df:
+        display_df(analysis_method, analysis_result, parameters)
 
 
 @st.fragment
-def show_start_llm_button(method: str) -> None:
+def show_start_llm_button(analysis_method: str) -> None:
     """Show the button to start the LLM analysis."""
 
     msg = (
@@ -98,7 +89,7 @@ def show_start_llm_button(method: str) -> None:
 
     submitted = st.button(
         f"Analyse with LLM ... {msg}",
-        disabled=(method != "Volcano Plot"),
+        disabled=(analysis_method != PlottingOptions.VOLCANO_PLOT),
         help="Interpret the current analysis with an LLM (available for 'Volcano Plot' only).",
     )
     if submitted:
@@ -111,4 +102,4 @@ def show_start_llm_button(method: str) -> None:
 
 
 if analysis_result is not None:
-    show_start_llm_button(method)
+    show_start_llm_button(analysis_method)

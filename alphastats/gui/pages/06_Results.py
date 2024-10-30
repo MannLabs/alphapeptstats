@@ -1,6 +1,7 @@
 import streamlit as st
 
-from alphastats.gui.utils.analysis_helper import display_plot
+from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
+from alphastats.gui.utils.analysis_helper import display_df, display_plot
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
     init_session_state,
@@ -19,8 +20,8 @@ if not st.session_state[StateKeys.PLOT_LIST]:
 for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
     print("plot", type(saved_item), count)
 
-    method = saved_item[0]
-    plot = saved_item[1]
+    plot = saved_item[0]
+    method = saved_item[1]
     parameters = saved_item[2]
 
     st.markdown("\n\n\n")
@@ -31,4 +32,8 @@ for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
         st.session_state[StateKeys.PLOT_LIST].remove(saved_item)
         st.rerun()
 
-    display_plot(method + str(count), plot, show_save_button=False)
+    name = f"{method}_{count}"
+    if method in PlottingOptions.get_values():
+        display_plot(method, plot, parameters, show_save_button=False, name=name)
+    elif method in StatisticOptions.get_values():
+        display_df(method, plot, parameters, show_save_button=False, name=name)
