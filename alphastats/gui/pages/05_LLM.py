@@ -88,9 +88,9 @@ if StateKeys.LLM_INPUT not in st.session_state:
     st.info("Create a Volcano plot first using the 'Analysis' page.")
     st.stop()
 
-volcano_plot, parameter_dict = st.session_state[StateKeys.LLM_INPUT]
+volcano_plot, plot_parameters = st.session_state[StateKeys.LLM_INPUT]
 
-st.write(f"Parameters used for analysis: {parameter_dict}")
+st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 c1, c2 = st.columns((1, 2))
 
 with c2:
@@ -148,7 +148,7 @@ with st.expander("Initial prompt", expanded=True):
     initial_prompt = st.text_area(
         "",
         value=get_initial_prompt(
-            parameter_dict, upregulated_genes, downregulated_genes
+            plot_parameters, upregulated_genes, downregulated_genes
         ),
         height=200,
         disabled=llm_integration_set_for_model,

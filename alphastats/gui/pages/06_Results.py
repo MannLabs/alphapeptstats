@@ -27,7 +27,7 @@ for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
 
     st.markdown("\n\n\n")
     st.markdown(f"#### #{count}: {method}")
-    st.write(f"Parameters used for analysis: {parameters}")
+    st.markdown(f"Parameters used for analysis: `{parameters}`")
 
     name = f"{method}_{count}"
 
