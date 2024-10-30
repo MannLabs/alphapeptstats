@@ -13,6 +13,7 @@ from alphastats.gui.utils.analysis import (
     SampleDistributionPlot,
     StatisticOptions,
     TSNEPlotAnalysis,
+    TukeyTestAnalysis,
     UMAPPlotAnalysis,
     VolcanoPlotAnalysis,
 )
@@ -150,6 +151,7 @@ def do_analysis(
         PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
         # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
         StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
+        StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
     }
 
     if (analysis_class := options.get(method)) is not None:

@@ -39,6 +39,7 @@ class PlottingOptions(metaclass=ConstantsClass):
 
 class StatisticOptions(metaclass=ConstantsClass):
     DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
+    TUKEY_TEST = "Tukey-Test"
 
 
 class Analysis(ABC):
@@ -358,3 +359,28 @@ class DifferentialExpressionAnalysis(GroupCompareAnalysis):
             column=self._parameters["column"],
         )
         return diff_exp_analysis, None, self._parameters
+
+
+class TukeyTestAnalysis(Analysis):
+    """Widget for Tukey-Test analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+
+        protein_id = st.selectbox(
+            "ProteinID/ProteinGroup",
+            options=self._dataset.mat.columns.to_list(),
+        )
+        group = st.selectbox(
+            "A metadata variable to calculate a pairwise tukey test",
+            options=self._dataset.metadata.columns.to_list(),
+        )
+        self._parameters.update({"protein_id": protein_id, "group": group})
+
+    def _do_analysis(self):
+        """Perform Tukey-test analysis."""
+        tukey_test_analysis = self._dataset.tukey_test(
+            protein_id=self._parameters["protein_id"],
+            group=self._parameters["group"],
+        )
+        return tukey_test_analysis, None, self._parameters
