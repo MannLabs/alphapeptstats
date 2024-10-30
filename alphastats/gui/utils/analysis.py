@@ -432,7 +432,7 @@ class AncovaAnalysis(Analysis):
         covar = st.selectbox(
             "Name(s) of column(s) in metadata with the covariate.",
             options=self._dataset.metadata.columns.to_list(),
-        )
+        )  # TODO: why plural if only one can be selected?
         between = st.selectbox(
             "Name of the column in the metadata with the between factor.",
             options=self._dataset.metadata.columns.to_list(),
