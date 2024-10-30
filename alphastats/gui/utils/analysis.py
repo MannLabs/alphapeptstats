@@ -19,6 +19,7 @@ class PlottingOptions:
     VOLCANO_PLOT = "Volcano Plot"
     SAMPLE_DISTRIBUTION_PLOT = "Sampledistribution Plot"
     INTENSITY_PLOT = "Intensity Plot"
+    CLUSTERMAP = "Clustermap"
 
     @classmethod
     def get_values(cls):
@@ -33,22 +34,29 @@ class PlottingOptions:
 class Analysis(ABC):
     """Abstract class for analysis widgets."""
 
+    _works_with_nans = True
+
     def __init__(self, dataset):
         self._dataset: DataSet = dataset
         self._parameters = defaultdict(lambda: None)
 
-    @abstractmethod
-    def show_widget(self):
+    def show_widget(self):  # noqa: B027
         """Show the widget and gather parameters."""
         pass
 
-    @abstractmethod
     def do_analysis(self):
         """Perform the analysis.
 
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
         """
+        if not self._works_with_nans and self._dataset.mat.isnull().values.any():
+            st.error("This analysis does not work with NaN values.")
+            st.stop()
+        return self._do_analysis()
+
+    @abstractmethod
+    def _do_analysis(self):
         pass
 
 
@@ -157,7 +165,7 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
 
         self._parameters.update({"protein_id": protein_id})
 
-    def do_analysis(self):
+    def _do_analysis(self):
         """Draw Intensity Plot using the IntensityPlot class."""
         intensity_plot = self._dataset.plot_intensity(
             protein_id=self._parameters["protein_id"],
@@ -170,7 +178,7 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
 class SampleDistributionPlot(AbstractIntensityPlot, ABC):
     """Abstract class for sampledistribution_plot analysis widgets."""
 
-    def do_analysis(self):
+    def _do_analysis(self):
         """Draw Intensity Plot using the IntensityPlot class."""
         intensity_plot = self._dataset.plot_sampledistribution(
             method=self._parameters["method"],
@@ -182,7 +190,7 @@ class SampleDistributionPlot(AbstractIntensityPlot, ABC):
 class PCAPlotAnalysis(DimensionReductionAnalysis):
     """Widget for PCA Plot analysis."""
 
-    def do_analysis(self):
+    def _do_analysis(self):
         """Draw PCA Plot using the PCAPlot class."""
 
         pca_plot = self._dataset.plot_pca(
@@ -195,7 +203,7 @@ class PCAPlotAnalysis(DimensionReductionAnalysis):
 class UMAPPlotAnalysis(DimensionReductionAnalysis):
     """Widget for UMAP Plot analysis."""
 
-    def do_analysis(self):
+    def _do_analysis(self):
         """Draw PCA Plot using the PCAPlot class."""
         umap_plot = self._dataset.plot_umap(
             group=self._parameters["group"],
@@ -225,7 +233,7 @@ class TSNEPlotAnalysis(DimensionReductionAnalysis):
             }
         )
 
-    def do_analysis(self):
+    def _do_analysis(self):
         """Draw t-SNE Plot using the TSNEPlot class."""
         tsne_plot = self._dataset.plot_tsne(
             group=self._parameters["group"],
@@ -272,7 +280,7 @@ class VolcanoPlotAnalysis(GroupCompareAnalysis):
 
         self._parameters.update(parameters)
 
-    def do_analysis(self):
+    def _do_analysis(self):
         """Draw Volcano Plot using the VolcanoPlot class.
 
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
@@ -300,3 +308,14 @@ class VolcanoPlotAnalysis(GroupCompareAnalysis):
             color_list=self._parameters["color_list"],
         )
         return volcano_plot.plot, volcano_plot, self._parameters
+
+
+class ClustermapAnalysis(Analysis):
+    """Widget for Clustermap analysis."""
+
+    _works_with_nans = False
+
+    def _do_analysis(self):
+        """Draw Clustermap using the Clustermap class."""
+        clustermap = self._dataset.plot_clustermap()
+        return clustermap, None, self._parameters

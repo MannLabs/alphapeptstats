@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.analysis import (
+    ClustermapAnalysis,
     IntensityPlot,
     PCAPlotAnalysis,
     PlottingOptions,
@@ -144,6 +145,7 @@ def do_analysis(
         PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
         PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
         PlottingOptions.INTENSITY_PLOT: IntensityPlot,
+        PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
     }
 
     if (analysis_class := options.get(method)) is not None:
