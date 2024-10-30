@@ -18,13 +18,15 @@ if not st.session_state[StateKeys.ANALYSIS_LIST]:
     st.info("No analysis saved yet.")
     st.stop()
 
-for count, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
+for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
+    count = n + 1
+
     analysis_result = saved_analysis[0]
     method = saved_analysis[1]
     parameters = saved_analysis[2]
 
     st.markdown("\n\n\n")
-    st.markdown(f"#### {method}")
+    st.markdown(f"#### #{count}: {method}")
     st.write(f"Parameters used for analysis: {parameters}")
 
     name = f"{method}_{count}"

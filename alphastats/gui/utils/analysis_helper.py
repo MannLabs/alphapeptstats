@@ -134,7 +134,7 @@ def _show_button_download_df(
         csv,
         file_name + ".csv",
         "text/csv",
-        key="download-csv",
+        key=f"download-csv-{file_name}",
     )
 
 
