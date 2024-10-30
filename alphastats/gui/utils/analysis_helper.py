@@ -129,14 +129,6 @@ def do_analysis(
     Currently, analysis_object is only not-None for Volcano Plot.
     # TODO unify the API of all analysis methods
     """
-    # move plots to the right again
-    # save also dfs to result
-    # is none-resistant flag (-> optional: remove on the fly only for this analysis, show what was dropped)
-    # add label, draw line -> on by default
-    # generalize LLM to work with multiple analysis
-
-    # "lebedev_mikhail@outlook.com" is important
-    # truncatation value model specific
     method_dict = options_dict.get(method)
 
     if method == "Volcano Plot":
