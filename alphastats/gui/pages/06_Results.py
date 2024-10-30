@@ -1,7 +1,10 @@
 import streamlit as st
 
 from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
-from alphastats.gui.utils.analysis_helper import display_df, display_plot
+from alphastats.gui.utils.analysis_helper import (
+    display_plot,
+    display_statistical_analysis,
+)
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
     init_session_state,
@@ -37,6 +40,6 @@ for count, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]
             method, analysis_result, parameters, show_save_button=False, name=name
         )
     elif method in StatisticOptions.get_values():
-        display_df(
+        display_statistical_analysis(
             method, analysis_result, parameters, show_save_button=False, name=name
         )

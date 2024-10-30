@@ -2,8 +2,8 @@ import streamlit as st
 
 from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
-    display_df,
     display_plot,
+    display_statistical_analysis,
     gather_parameters_and_do_analysis,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -74,7 +74,7 @@ with c2:
         display_plot(analysis_method, analysis_result, parameters)
 
     if show_df:
-        display_df(analysis_method, analysis_result, parameters)
+        display_statistical_analysis(analysis_method, analysis_result, parameters)
 
 
 @st.fragment

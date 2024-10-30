@@ -17,6 +17,7 @@ def display_plot(
     show_save_button: bool = True,
     name: str = None,
 ) -> None:
+    """A fragment to display a plot and download options."""
     _display(
         method,
         plot,
@@ -24,7 +25,7 @@ def display_plot(
         show_save_button=show_save_button,
         name=name,
         display_method=display_figure,
-        save_method=_download_figure_pdf_svg,
+        save_method=_show_buttons_download_figure,
     )
 
 
@@ -36,15 +37,13 @@ def display_figure(plot):
         st.pyplot(plot)
 
 
-def _download_figure_pdf_svg(name_pretty, analysis_result):
-    _download_figure(name_pretty, analysis_result, file_format="pdf")
-    _download_figure(name_pretty, analysis_result, file_format="svg")
+def _show_buttons_download_figure(name_pretty, analysis_result):
+    _show_button_download_figure(name_pretty, analysis_result, file_format="pdf")
+    _show_button_download_figure(name_pretty, analysis_result, file_format="svg")
 
 
-def _download_figure(name: str, plot: PlotlyObject, file_format: str):
-    """
-    download plotly figure
-    """
+def _show_button_download_figure(name: str, plot: PlotlyObject, file_format: str):
+    """Download figure."""
 
     filename = name + "." + file_format
 
@@ -61,14 +60,14 @@ def _download_figure(name: str, plot: PlotlyObject, file_format: str):
 
 
 @st.fragment
-def display_df(
+def display_statistical_analysis(
     method: str,
     df: pd.DataFrame,
     parameters: Optional[Dict] = None,
     show_save_button=True,
     name: str = None,
 ) -> None:
-    """A fragment to display the statistical analysis and download options."""
+    """A fragment to display a statistical analysis and download options."""
     _display(
         method,
         df,
@@ -76,21 +75,25 @@ def display_df(
         show_save_button=show_save_button,
         name=name,
         display_method=_display_df,
-        save_method=_download_df,
+        save_method=_show_button_download_df,
     )
 
 
 def _display_df(df: pd.DataFrame) -> None:
+    """Display a dataframe."""
     mask = df.applymap(type) != bool  # noqa: E721
     df = df.where(mask, df.replace({True: "TRUE", False: "FALSE"}))
     st.dataframe(df)
 
 
-def _download_df(name_pretty, analysis_result):
+def _show_button_download_df(
+    name_pretty: str, analysis_result: pd.DataFrame, label="Download as .csv"
+) -> None:
+    """Download a dataframe as .csv."""
     csv = convert_df_to_csv(analysis_result)
 
     st.download_button(
-        "Download as .csv",
+        label,
         csv,
         name_pretty + ".csv",
         "text/csv",
@@ -126,17 +129,18 @@ def _display(
         save_method(name_pretty, analysis_result)
 
     with c3:
-        _download_analysis_and_preprocessing_info(
+        _show_button_download_analysis_and_preprocessing_info(
             method, analysis_result, parameters, name_pretty
         )
 
 
-def _download_analysis_and_preprocessing_info(
+def _show_button_download_analysis_and_preprocessing_info(
     method: str,
     analysis_result: Union[PlotlyObject, pd.DataFrame],
     parameters: Dict,
     name: str,
 ):
+    """Download analysis info (= analysis and preprocessing parameters and ) as .csv."""
     parameters_pretty = {f"analysis_parameter__{k}": v for k, v in parameters.items()}
 
     if method in PlottingOptions.get_values():
@@ -148,12 +152,9 @@ def _download_analysis_and_preprocessing_info(
         dict_to_save = parameters_pretty
 
     filename = f"analysis_info__{name}.csv"
-    csv = convert_df_to_csv(pd.DataFrame(dict_to_save.items()))
-    st.download_button(
-        "Download analysis info as .csv",
-        csv,
-        filename,
-        "text/csv",
+
+    _show_button_download_df(
+        filename, pd.DataFrame(dict_to_save.items()), "Download analysis info as .csv"
     )
 
 
@@ -162,7 +163,7 @@ def _save_analysis_to_session_state(
     method: str,
     parameters: Dict,
 ):
-    """Save analysis with method to session state to show on results page."""
+    """Save analysis with method and parameters to session state to show on results page."""
     st.session_state[StateKeys.ANALYSIS_LIST] += [
         (
             analysis_results,
