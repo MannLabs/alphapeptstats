@@ -245,25 +245,3 @@ def helper_compare_two_groups():
         chosen_parameter_dict.update({"group1": group1, "group2": group2})
 
     return chosen_parameter_dict
-
-
-def st_tsne_options(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    n_iter = st.select_slider(
-        "Maximum number of iterations for the optimization",
-        range(250, 2001),
-        value=1000,
-    )
-    perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
-
-    chosen_parameter_dict.update(
-        {
-            "n_iter": n_iter,
-            "perplexity": perplexity,
-        }
-    )
-
-    return chosen_parameter_dict
