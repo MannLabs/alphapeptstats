@@ -41,7 +41,7 @@ with c1:
             # TODO show more info about the preprocessing steps
             display_preprocessing_info(dataset.preprocessing_info)
 
-        if c12.button("Reset all Preprocessing steps", key="_reset_preprocessing"):
+        if c12.button("❌ Reset all Preprocessing steps", key="_reset_preprocessing"):
             reset_preprocessing(dataset)
             display_preprocessing_info(dataset.preprocessing_info)
 

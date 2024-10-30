@@ -163,7 +163,7 @@ llm_submitted = c1.button(
 )
 
 llm_reset = c2.button(
-    "Reset LLM analysis ...", disabled=not llm_integration_set_for_model
+    "❌ Reset LLM analysis ...", disabled=not llm_integration_set_for_model
 )
 if llm_reset:
     del st.session_state[StateKeys.LLM_INTEGRATION]

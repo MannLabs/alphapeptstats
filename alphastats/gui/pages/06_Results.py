@@ -31,7 +31,7 @@ for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
 
     name = f"{method}_{count}"
 
-    if st.button("x remove analysis", key=f"remove_{name}"):
+    if st.button(f"❌ Remove analysis #{count}", key=f"remove_{name}"):
         st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_analysis)
         st.rerun()
 
