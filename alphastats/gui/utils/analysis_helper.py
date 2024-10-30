@@ -133,7 +133,10 @@ def _show_button_download_analysis_and_preprocessing_info(
     name: str,
 ):
     """Download analysis info (= analysis and preprocessing parameters and ) as .csv."""
-    parameters_pretty = {f"analysis_parameter__{k}": v for k, v in parameters.items()}
+    parameters_pretty = {
+        f"analysis_parameter__{k}": "None" if v is None else v
+        for k, v in parameters.items()
+    }
 
     if method in PlottingOptions.get_values():
         dict_to_save = {
