@@ -165,16 +165,7 @@ def do_analysis(
     method_dict = options_dict.get(method)
 
     # old, to be refactored logic:
-    if method == "Differential Expression Analysis - T-test":
-        parameters = helper_compare_two_groups()
-        parameters.update({"method": "ttest"})
-
-    elif method == "Differential Expression Analysis - Wald-test":
-        parameters = helper_compare_two_groups()
-        parameters.update({"method": "wald"})
-
-    else:
-        parameters = st_general(method_dict=method_dict)
+    parameters = st_general(method_dict=method_dict)
 
     submitted = st.button("Run analysis ..")
 
