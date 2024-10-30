@@ -9,7 +9,10 @@ from alphastats.gui.utils.analysis import (
     PlottingOptions,
     StatisticOptions,
 )
-from alphastats.gui.utils.ui_helper import StateKeys, convert_df_to_csv
+from alphastats.gui.utils.ui_helper import (
+    StateKeys,
+    show_button_download_df,
+)
 from alphastats.plots.PlotUtils import PlotlyObject
 
 
@@ -28,7 +31,7 @@ def display_analysis_result_with_buttons(
         download_function = _show_buttons_download_figure
     elif analysis_method in StatisticOptions.get_values():
         display_function = _display_df
-        download_function = _show_button_download_df
+        download_function = show_button_download_df
     else:
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
@@ -123,21 +126,6 @@ def _display_df(df: pd.DataFrame) -> None:
     st.dataframe(df)
 
 
-def _show_button_download_df(
-    analysis_result: pd.DataFrame, file_name: str, label="Download as .csv"
-) -> None:
-    """Show a button to download a dataframe as .csv."""
-    csv = convert_df_to_csv(analysis_result)
-
-    st.download_button(
-        label,
-        csv,
-        file_name + ".csv",
-        "text/csv",
-        key=f"download-csv-{file_name}",
-    )
-
-
 def _show_button_download_analysis_and_preprocessing_info(
     method: str,
     analysis_result: Union[PlotlyObject, pd.DataFrame],
@@ -155,10 +143,10 @@ def _show_button_download_analysis_and_preprocessing_info(
     else:
         dict_to_save = parameters_pretty
 
-    _show_button_download_df(
+    show_button_download_df(
         pd.DataFrame(dict_to_save.items()),
-        f"analysis_info__{name}",
-        "Download analysis info as .csv",
+        file_name=f"analysis_info__{name}",
+        label="Download analysis info as .csv",
     )
 
 
