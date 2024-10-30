@@ -6,23 +6,8 @@ from collections import defaultdict
 import streamlit as st
 
 from alphastats.DataSet import DataSet
-from alphastats.keys import Cols
+from alphastats.keys import Cols, ConstantsClass
 from alphastats.plots.VolcanoPlot import VolcanoPlot
-
-
-class ConstantsClass(type):
-    """A metaclass for classes that should only contain string constants."""
-
-    def __setattr__(self, name, value):
-        raise TypeError("Constants class cannot be modified")
-
-    def get_values(cls):
-        """Get all user-defined string values of the class."""
-        return [
-            value
-            for key, value in cls.__dict__.items()
-            if not key.startswith("__") and isinstance(value, str)
-        ]
 
 
 class PlottingOptions(metaclass=ConstantsClass):

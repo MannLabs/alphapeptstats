@@ -6,6 +6,7 @@ import streamlit as st
 
 from alphastats import __version__
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
+from alphastats.keys import ConstantsClass
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -101,7 +102,7 @@ def init_session_state() -> None:
         st.session_state[StateKeys.LLM_INTEGRATION] = {}
 
 
-class StateKeys:
+class StateKeys(metaclass=ConstantsClass):
     ## 02_Data Import
     # on 1st run
     ORGANISM = "organism"  # TODO this is essentially a constant
