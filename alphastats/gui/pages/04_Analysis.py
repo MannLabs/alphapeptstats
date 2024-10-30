@@ -64,11 +64,11 @@ with c1:
     )
 
     if method in (
-        plotting_options := list(get_plotting_options(st.session_state).keys())
+        list((plot_options := get_plotting_options(st.session_state)).keys())
         + plotting_options
     ):
         analysis_result, analysis_object, parameters = do_analysis(
-            method, options_dict=plotting_options
+            method, options_dict=plot_options
         )
         show_plot = analysis_result is not None
 
