@@ -20,6 +20,7 @@ class PlottingOptions(metaclass=ConstantsClass):
     SAMPLE_DISTRIBUTION_PLOT = "Sampledistribution Plot"
     INTENSITY_PLOT = "Intensity Plot"
     CLUSTERMAP = "Clustermap"
+    DENDROGRAM = "Dendrogram"
 
 
 class StatisticOptions(metaclass=ConstantsClass):
@@ -321,6 +322,17 @@ class ClustermapAnalysis(AbstractAnalysis):
         return clustermap, None, self._parameters
 
 
+class DendrogramAnalysis(AbstractAnalysis):
+    """Widget for Dendrogram analysis."""
+
+    _works_with_nans = False
+
+    def _do_analysis(self):
+        """Draw Clustermap using the Clustermap class."""
+        dendrogram = self._dataset.plot_dendrogram()
+        return dendrogram, None, self._parameters
+
+
 class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
     """Widget for differential expression analysis."""
 
@@ -447,7 +459,7 @@ ANALYSIS_OPTIONS = {
     PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
     PlottingOptions.INTENSITY_PLOT: IntensityPlot,
     PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
-    # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
+    PlottingOptions.DENDROGRAM: DendrogramAnalysis,
     StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
     StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
     StatisticOptions.ANOVA: AnovaAnalysis,
