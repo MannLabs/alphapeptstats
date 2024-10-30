@@ -3,8 +3,8 @@ from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
-from gui.utils.analysis import ANALYSIS_OPTIONS
 
+from alphastats.gui.utils.analysis import ANALYSIS_OPTIONS
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 
 
@@ -98,6 +98,8 @@ def gather_parameters_and_do_analysis(
         analysis.show_widget()
         if st.button("Run analysis .."):
             with st.spinner("Running analysis .."):
-                return analysis.gather_parameters_and_do_analysis()
+                return analysis.do_analysis()
+        return None, None, None
 
-    raise ValueError(f"Analysis method {analysis_name} not found.")
+    else:
+        raise ValueError(f"Analysis method {analysis_name} not found.")

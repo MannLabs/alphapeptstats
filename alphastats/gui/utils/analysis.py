@@ -23,13 +23,15 @@ class PlottingOptions(metaclass=ConstantsClass):
 
 
 class StatisticOptions(metaclass=ConstantsClass):
+    """Keys for the statistical options."""
+
     DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
     TUKEY_TEST = "Tukey-Test"
     ANOVA = "ANOVA"
     ANCOVA = "ANCOVA"
 
 
-class Analysis(ABC):
+class AbstractAnalysis(ABC):
     """Abstract class for analysis widgets."""
 
     _works_with_nans = True
@@ -43,7 +45,7 @@ class Analysis(ABC):
         pass
 
     def do_analysis(self):
-        """Perform the analysis.
+        """Perform the analysis after an optional check for NaNs.
 
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
@@ -58,7 +60,7 @@ class Analysis(ABC):
         pass
 
 
-class GroupCompareAnalysis(Analysis, ABC):
+class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
     """Abstract class for group comparison analysis widgets."""
 
     def show_widget(self):
@@ -115,7 +117,7 @@ class GroupCompareAnalysis(Analysis, ABC):
             self._parameters["column"] = column
 
 
-class DimensionReductionAnalysis(Analysis, ABC):
+class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
     """Abstract class for dimension reduction analysis widgets."""
 
     def show_widget(self):
@@ -131,7 +133,7 @@ class DimensionReductionAnalysis(Analysis, ABC):
         self._parameters.update({"circle": circle, "group": group})
 
 
-class AbstractIntensityPlot(Analysis, ABC):
+class AbstractIntensityPlot(AbstractAnalysis, ABC):
     """Abstract class for intensity plot analysis widgets."""
 
     def show_widget(self):
@@ -185,7 +187,7 @@ class SampleDistributionPlot(AbstractIntensityPlot, ABC):
         return intensity_plot, None, self._parameters
 
 
-class PCAPlotAnalysis(DimensionReductionAnalysis):
+class PCAPlotAnalysis(AbstractDimensionReductionAnalysis):
     """Widget for PCA Plot analysis."""
 
     def _do_analysis(self):
@@ -198,7 +200,7 @@ class PCAPlotAnalysis(DimensionReductionAnalysis):
         return pca_plot, None, self._parameters
 
 
-class UMAPPlotAnalysis(DimensionReductionAnalysis):
+class UMAPPlotAnalysis(AbstractDimensionReductionAnalysis):
     """Widget for UMAP Plot analysis."""
 
     def _do_analysis(self):
@@ -210,7 +212,7 @@ class UMAPPlotAnalysis(DimensionReductionAnalysis):
         return umap_plot, None, self._parameters
 
 
-class TSNEPlotAnalysis(DimensionReductionAnalysis):
+class TSNEPlotAnalysis(AbstractDimensionReductionAnalysis):
     """Widget for t-SNE Plot analysis."""
 
     def show_widget(self):
@@ -242,7 +244,7 @@ class TSNEPlotAnalysis(DimensionReductionAnalysis):
         return tsne_plot, None, self._parameters
 
 
-class VolcanoPlotAnalysis(GroupCompareAnalysis):
+class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
     """Widget for Volcano Plot analysis."""
 
     def show_widget(self):
@@ -308,7 +310,7 @@ class VolcanoPlotAnalysis(GroupCompareAnalysis):
         return volcano_plot.plot, volcano_plot, self._parameters
 
 
-class ClustermapAnalysis(Analysis):
+class ClustermapAnalysis(AbstractAnalysis):
     """Widget for Clustermap analysis."""
 
     _works_with_nans = False
@@ -319,7 +321,7 @@ class ClustermapAnalysis(Analysis):
         return clustermap, None, self._parameters
 
 
-class DifferentialExpressionAnalysis(GroupCompareAnalysis):
+class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
     """Widget for differential expression analysis."""
 
     def show_widget(self):
@@ -348,7 +350,7 @@ class DifferentialExpressionAnalysis(GroupCompareAnalysis):
         return diff_exp_analysis, None, self._parameters
 
 
-class TukeyTestAnalysis(Analysis):
+class TukeyTestAnalysis(AbstractAnalysis):
     """Widget for Tukey-Test analysis."""
 
     def show_widget(self):
@@ -373,7 +375,7 @@ class TukeyTestAnalysis(Analysis):
         return tukey_test_analysis, None, self._parameters
 
 
-class AnovaAnalysis(GroupCompareAnalysis):
+class AnovaAnalysis(AbstractGroupCompareAnalysis):
     """Widget for ANOVA analysis."""
 
     def show_widget(self):
@@ -404,7 +406,7 @@ class AnovaAnalysis(GroupCompareAnalysis):
         return anova_analysis, None, self._parameters
 
 
-class AncovaAnalysis(Analysis):
+class AncovaAnalysis(AbstractAnalysis):
     """Widget for Ancova analysis."""
 
     def show_widget(self):
