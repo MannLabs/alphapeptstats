@@ -1,5 +1,5 @@
 import io
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
@@ -7,16 +7,6 @@ import streamlit as st
 from alphastats.gui.utils.analysis import ANALYSIS_OPTIONS, PlottingOptions
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df_to_csv
 from alphastats.plots.PlotUtils import PlotlyObject
-
-
-def display_figure(plot):
-    """
-    display plotly or seaborn figure
-    """
-    try:
-        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
-    except Exception:
-        st.pyplot(plot)
 
 
 @st.fragment
@@ -27,67 +17,31 @@ def display_plot(
     show_save_button: bool = True,
     name: str = None,
 ) -> None:
-    """A fragment to display the plot and download options."""
-    display_figure(plot)
-
-    c1, c2, c3 = st.columns([1, 1, 1])
-
-    if name is None:
-        name = method
-
-    name_pretty = name.replace(" ", "_").lower()
-    with c1:
-        if show_save_button and st.button("Save to results page.."):
-            save_analysis_to_session_state(plot, method, parameters)
-            st.info("Saved to results page!")
-
-    with c2:
-        download_figure(name_pretty, plot, file_format="pdf")
-        download_figure(name_pretty, plot, file_format="svg")
-
-    with c3:
-        download_analysis_and_preprocessing_info(method, plot, parameters, name_pretty)
+    _display(
+        method,
+        plot,
+        parameters=parameters,
+        show_save_button=show_save_button,
+        name=name,
+        display_method=display_figure,
+        save_method=_download_figure_pdf_svg,
+    )
 
 
-@st.fragment
-def display_df(
-    method: str,
-    df: pd.DataFrame,
-    parameters: Optional[Dict] = None,
-    show_save_button=True,
-    name: str = None,
-) -> None:
-    """A fragment to display the statistical analysis and download options."""
-
-    mask = df.applymap(type) != bool  # noqa: E721
-    df = df.where(mask, df.replace({True: "TRUE", False: "FALSE"}))
-
-    st.dataframe(df)
-
-    if name is None:
-        name = method
-    name_pretty = name.replace(" ", "_").lower()
-
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c1:
-        if show_save_button and st.button("Save to results page.."):
-            save_analysis_to_session_state(df, method, parameters)
-            st.info("Saved to results page!")
-    with c2:
-        csv = convert_df_to_csv(df)
-
-        st.download_button(
-            "Download as .csv",
-            csv,
-            name_pretty + ".csv",
-            "text/csv",
-            key="download-csv",
-        )
-    with c3:
-        download_analysis_and_preprocessing_info(method, df, parameters, name_pretty)
+def display_figure(plot):
+    """Display plotly or seaborn figure."""
+    try:
+        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
+    except Exception:
+        st.pyplot(plot)
 
 
-def download_figure(name: str, plot: PlotlyObject, file_format: str):
+def _download_figure_pdf_svg(name_pretty, analysis_result):
+    _download_figure(name_pretty, analysis_result, file_format="pdf")
+    _download_figure(name_pretty, analysis_result, file_format="svg")
+
+
+def _download_figure(name: str, plot: PlotlyObject, file_format: str):
     """
     download plotly figure
     """
@@ -106,7 +60,78 @@ def download_figure(name: str, plot: PlotlyObject, file_format: str):
     )
 
 
-def download_analysis_and_preprocessing_info(
+@st.fragment
+def display_df(
+    method: str,
+    df: pd.DataFrame,
+    parameters: Optional[Dict] = None,
+    show_save_button=True,
+    name: str = None,
+) -> None:
+    """A fragment to display the statistical analysis and download options."""
+    _display(
+        method,
+        df,
+        parameters=parameters,
+        show_save_button=show_save_button,
+        name=name,
+        display_method=_display_df,
+        save_method=_download_df,
+    )
+
+
+def _display_df(df: pd.DataFrame) -> None:
+    mask = df.applymap(type) != bool  # noqa: E721
+    df = df.where(mask, df.replace({True: "TRUE", False: "FALSE"}))
+    st.dataframe(df)
+
+
+def _download_df(name_pretty, analysis_result):
+    csv = convert_df_to_csv(analysis_result)
+
+    st.download_button(
+        "Download as .csv",
+        csv,
+        name_pretty + ".csv",
+        "text/csv",
+        key="download-csv",
+    )
+
+
+def _display(
+    method: str,
+    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    *,
+    display_method: Callable,
+    save_method: Callable,
+    parameters: Dict,
+    name: str,
+    show_save_button: bool,
+) -> None:
+    """Display analysis results and download options."""
+    display_method(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
+    if name is None:
+        name = method
+
+    name_pretty = name.replace(" ", "_").lower()
+    with c1:
+        if show_save_button and st.button("Save to results page.."):
+            _save_analysis_to_session_state(analysis_result, method, parameters)
+            st.success("Saved to results page!")
+
+    with c2:
+        save_method(name_pretty, analysis_result)
+
+    with c3:
+        _download_analysis_and_preprocessing_info(
+            method, analysis_result, parameters, name_pretty
+        )
+
+
+def _download_analysis_and_preprocessing_info(
     method: str,
     analysis_result: Union[PlotlyObject, pd.DataFrame],
     parameters: Dict,
@@ -132,7 +157,7 @@ def download_analysis_and_preprocessing_info(
     )
 
 
-def save_analysis_to_session_state(
+def _save_analysis_to_session_state(
     analysis_results: Union[PlotlyObject, pd.DataFrame],
     method: str,
     parameters: Dict,
@@ -164,7 +189,9 @@ def gather_parameters_and_do_analysis(
         analysis.show_widget()
         if st.button("Run analysis .."):
             with st.spinner("Running analysis .."):
-                return analysis.do_analysis()
+                result = analysis.do_analysis()
+            st.success("Analysis done!")
+            return result
         return None, None, None
 
     else:
