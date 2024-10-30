@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import streamlit as st
 
+from alphastats.DataSet import DataSet
 from alphastats.keys import Cols
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
@@ -13,7 +14,7 @@ class Analysis(ABC):
     """Abstract class for analysis widgets."""
 
     def __init__(self, dataset):
-        self._dataset = dataset
+        self._dataset: DataSet = dataset
         self._parameters = defaultdict(lambda: None)
 
     @abstractmethod
@@ -23,7 +24,11 @@ class Analysis(ABC):
 
     @abstractmethod
     def do_analysis(self):
-        """Perform the analysis."""
+        """Perform the analysis.
+
+        Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
+        analysis_object is the underlying object, parameters is a dictionary of the parameters used.
+        """
         pass
 
 
@@ -35,15 +40,23 @@ class GroupCompareAnalysis(Analysis, ABC):
 
         metadata = self._dataset.metadata
 
-        default_option = "<None>"
+        default_option = "<select>"
+        custom_group_option = "Custom group from samples .."
+
         grouping_variable = st.selectbox(
             "Grouping variable",
-            options=[default_option] + metadata.columns.to_list(),
+            options=[default_option]
+            + metadata.columns.to_list()
+            + [custom_group_option],
         )
 
-        if grouping_variable != default_option:
+        column = None
+        if grouping_variable == default_option:
+            st.stop()  # TODO: using stop here is not really great
+        elif grouping_variable != custom_group_option:
             unique_values = metadata[grouping_variable].unique().tolist()
 
+            column = grouping_variable
             group1 = st.selectbox("Group 1", options=unique_values)
             group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
 
@@ -67,11 +80,13 @@ class GroupCompareAnalysis(Analysis, ABC):
 
         if group1 == group2:
             st.error(
-                "Group 1 and Group 2 can not be the same please select different group."
+                "Group 1 and Group 2 can not be the same. Please select different groups."
             )
             st.stop()
 
         self._parameters.update({"group1": group1, "group2": group2})
+        if column is not None:
+            self._parameters["column"] = column
 
 
 class VolcanoPlotAnalysis(GroupCompareAnalysis):
