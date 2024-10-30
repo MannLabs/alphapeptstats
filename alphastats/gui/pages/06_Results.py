@@ -13,11 +13,11 @@ sidebar_info()
 
 st.markdown("### Results")
 
-if not st.session_state[StateKeys.PLOT_LIST]:
+if not st.session_state[StateKeys.ANALYSIS_LIST]:
     st.info("No analysis saved yet.")
     st.stop()
 
-for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
+for count, saved_item in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
     print("plot", type(saved_item), count)
 
     plot = saved_item[0]
@@ -29,7 +29,7 @@ for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
     st.write(f"Parameters used for analysis: {parameters}")
 
     if st.button("x remove analysis", key="remove" + method + str(count)):
-        st.session_state[StateKeys.PLOT_LIST].remove(saved_item)
+        st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_item)
         st.rerun()
 
     name = f"{method}_{count}"

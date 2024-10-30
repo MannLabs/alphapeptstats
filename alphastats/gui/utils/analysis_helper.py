@@ -138,7 +138,7 @@ def save_analysis_to_session_state(
     parameters: Dict,
 ):
     """Save analysis with method to session state to show on results page."""
-    st.session_state[StateKeys.PLOT_LIST] += [
+    st.session_state[StateKeys.ANALYSIS_LIST] += [
         (
             analysis_results,
             method,

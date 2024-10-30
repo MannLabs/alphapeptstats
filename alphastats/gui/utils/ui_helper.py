@@ -95,8 +95,8 @@ def init_session_state() -> None:
             PREPROCESSING_STEPS.LOG2_TRANSFORM,
         ]
 
-    if StateKeys.PLOT_LIST not in st.session_state:
-        st.session_state[StateKeys.PLOT_LIST] = []
+    if StateKeys.ANALYSIS_LIST not in st.session_state:
+        st.session_state[StateKeys.ANALYSIS_LIST] = []
 
     if StateKeys.LLM_INTEGRATION not in st.session_state:
         st.session_state[StateKeys.LLM_INTEGRATION] = {}
@@ -111,7 +111,7 @@ class StateKeys(metaclass=ConstantsClass):
     DATASET = "dataset"  # functions upload_metadatafile
 
     WORKFLOW = "workflow"
-    PLOT_LIST = "plot_list"
+    ANALYSIS_LIST = "analysis_list"
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
