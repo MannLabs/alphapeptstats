@@ -12,35 +12,7 @@ from alphastats.loader.mzTabLoader import mzTabLoader
 #  idea: per plot, have a `PlotWidget` class that knows what parameters to display and then calls the function
 def get_plotting_options(state):
     dataset = state[StateKeys.DATASET]
-    metadata_options = [None] + dataset.metadata.columns.to_list()
     plotting_options = {
-        "Sampledistribution Plot": {
-            "settings": {
-                "method": {"options": ["violin", "box"], "label": "Plot layout"},
-                "color": {
-                    "options": metadata_options,
-                    "label": "Color according to",
-                },
-            },
-            "function": dataset.plot_sampledistribution,
-        },
-        "Intensity Plot": {
-            "settings": {
-                "protein_id": {
-                    "options": dataset.mat.columns.to_list(),
-                    "label": "ProteinID/ProteinGroup",
-                },
-                "method": {
-                    "options": ["violin", "box", "scatter"],
-                    "label": "Plot layout",
-                },
-                "group": {
-                    "options": metadata_options,
-                    "label": "Color according to",
-                },
-            },
-            "function": dataset.plot_intensity,
-        },
         "Clustermap": {"function": dataset.plot_clustermap},
         # "Dendrogram": {"function": state[StateKeys.DATASET].plot_dendrogram},  # TODO why commented?
     }

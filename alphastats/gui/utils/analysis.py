@@ -17,6 +17,8 @@ class PlottingOptions:
     UMAP_PLOT = "UMAP Plot"
     TSNE_PLOT = "t-SNE Plot"
     VOLCANO_PLOT = "Volcano Plot"
+    SAMPLE_DISTRIBUTION_PLOT = "Sampledistribution Plot"
+    INTENSITY_PLOT = "Intensity Plot"
 
     @classmethod
     def get_values(cls):
@@ -121,6 +123,60 @@ class DimensionReductionAnalysis(Analysis, ABC):
         circle = st.checkbox("circle")
 
         self._parameters.update({"circle": circle, "group": group})
+
+
+class AbstractIntensityPlot(Analysis, ABC):
+    """Abstract class for intensity plot analysis widgets."""
+
+    def show_widget(self):
+        """Gather parameters for intensity plot analysis."""
+
+        group = st.selectbox(
+            "Color according to",
+            options=[None] + self._dataset.metadata.columns.to_list(),
+        )
+        method = st.selectbox(
+            "Plot layout",
+            options=["violin", "box", "scatter"],
+        )
+
+        self._parameters.update({"group": group, "method": method})
+
+
+class IntensityPlot(AbstractIntensityPlot, ABC):
+    """Abstract class for intensity plot analysis widgets."""
+
+    def show_widget(self):
+        """Gather parameters for intensity plot analysis."""
+        super().show_widget()
+
+        protein_id = st.selectbox(
+            "ProteinID/ProteinGroup",
+            options=self._dataset.mat.columns.to_list(),
+        )
+
+        self._parameters.update({"protein_id": protein_id})
+
+    def do_analysis(self):
+        """Draw Intensity Plot using the IntensityPlot class."""
+        intensity_plot = self._dataset.plot_intensity(
+            protein_id=self._parameters["protein_id"],
+            method=self._parameters["method"],
+            group=self._parameters["group"],
+        )
+        return intensity_plot, None, self._parameters
+
+
+class SampleDistributionPlot(AbstractIntensityPlot, ABC):
+    """Abstract class for sampledistribution_plot analysis widgets."""
+
+    def do_analysis(self):
+        """Draw Intensity Plot using the IntensityPlot class."""
+        intensity_plot = self._dataset.plot_sampledistribution(
+            method=self._parameters["method"],
+            color=self._parameters["group"],  # no typo
+        )
+        return intensity_plot, None, self._parameters
 
 
 class PCAPlotAnalysis(DimensionReductionAnalysis):

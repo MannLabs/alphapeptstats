@@ -5,8 +5,10 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.analysis import (
+    IntensityPlot,
     PCAPlotAnalysis,
     PlottingOptions,
+    SampleDistributionPlot,
     TSNEPlotAnalysis,
     UMAPPlotAnalysis,
     VolcanoPlotAnalysis,
@@ -140,6 +142,8 @@ def do_analysis(
         PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
         PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
         PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
+        PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
+        PlottingOptions.INTENSITY_PLOT: IntensityPlot,
     }
 
     if (analysis_class := options.get(method)) is not None:
