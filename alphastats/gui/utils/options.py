@@ -8,17 +8,6 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
 
 
-# TODO get rid of the options dict: the calls to the functions should be done directly
-#  idea: per plot, have a `PlotWidget` class that knows what parameters to display and then calls the function
-def get_plotting_options(state):
-    dataset = state[StateKeys.DATASET]
-    plotting_options = {
-        "Clustermap": {"function": dataset.plot_clustermap},
-        # "Dendrogram": {"function": state[StateKeys.DATASET].plot_dendrogram},  # TODO why commented?
-    }
-    return plotting_options
-
-
 def get_statistic_options(state):
     dataset = state[StateKeys.DATASET]
     metadata_options = dataset.metadata.columns.to_list()

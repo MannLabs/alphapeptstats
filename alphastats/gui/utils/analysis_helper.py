@@ -146,6 +146,7 @@ def do_analysis(
         PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
         PlottingOptions.INTENSITY_PLOT: IntensityPlot,
         PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
+        # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
     }
 
     if (analysis_class := options.get(method)) is not None:
