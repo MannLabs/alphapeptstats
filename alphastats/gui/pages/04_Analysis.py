@@ -6,9 +6,6 @@ from alphastats.gui.utils.analysis_helper import (
     display_plot,
     do_analysis,
 )
-from alphastats.gui.utils.options import (
-    get_statistic_options,
-)
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
     convert_df,
@@ -35,6 +32,8 @@ styl = """
     """
 st.markdown(styl, unsafe_allow_html=True)
 
+# TODO put everything in the session state for a given parameter set?
+# or is caching functionality the way to go here?
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import Data first")
@@ -55,12 +54,7 @@ with c1:
         + ["------- plots -------"]
         + plotting_options
         + ["------- statistics -------"]
-        + statistic_options
-        + [
-            k
-            for k in get_statistic_options(st.session_state)
-            if k not in statistic_options
-        ],
+        + statistic_options,
     )
 
     if method in plotting_options:
@@ -69,14 +63,10 @@ with c1:
         )
         show_plot = analysis_result is not None
 
-    elif (
-        method
-        in list((options := get_statistic_options(st.session_state)).keys())
-        + statistic_options
-    ):
+    elif method in statistic_options:
         analysis_result, *_ = do_analysis(
             method,
-            options_dict=options,
+            options_dict=None,
         )
         show_df = analysis_result is not None
 

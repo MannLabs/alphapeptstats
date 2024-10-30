@@ -40,6 +40,8 @@ class PlottingOptions(metaclass=ConstantsClass):
 class StatisticOptions(metaclass=ConstantsClass):
     DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
     TUKEY_TEST = "Tukey-Test"
+    ANOVA = "ANOVA"
+    ANCOVA = "ANCOVA"
 
 
 class Analysis(ABC):
@@ -384,3 +386,67 @@ class TukeyTestAnalysis(Analysis):
             group=self._parameters["group"],
         )
         return tukey_test_analysis, None, self._parameters
+
+
+class AnovaAnalysis(GroupCompareAnalysis):
+    """Widget for ANOVA analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+
+        column = st.selectbox(
+            "A variable from the metadata to calculate ANOVA",
+            options=self._dataset.metadata.columns.to_list(),
+        )
+        protein_ids = st.selectbox(
+            "All ProteinIDs/or specific ProteinID to perform ANOVA",
+            options=["all"] + self._dataset.mat.columns.to_list(),
+        )
+
+        tukey = st.checkbox("Follow-up Tukey")
+
+        self._parameters.update(
+            {"column": column, "protein_ids": protein_ids, "tukey": tukey}
+        )
+
+    def _do_analysis(self):
+        """Perform Anova analysis."""
+        anova_analysis = self._dataset.anova(
+            column=self._parameters["column"],
+            protein_ids=self._parameters["protein_ids"],
+            tukey=self._parameters["tukey"],
+        )
+        return anova_analysis, None, self._parameters
+
+
+class AncovaAnalysis(Analysis):
+    """Widget for Ancova analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+
+        protein_id = st.selectbox(
+            "ProteinID/ProteinGroup",
+            options=self._dataset.mat.columns.to_list(),
+        )
+        covar = st.selectbox(
+            "Name(s) of column(s) in metadata with the covariate.",
+            options=self._dataset.metadata.columns.to_list(),
+        )
+        between = st.selectbox(
+            "Name of the column in the metadata with the between factor.",
+            options=self._dataset.metadata.columns.to_list(),
+        )
+
+        self._parameters.update(
+            {"protein_id": protein_id, "covar": covar, "between": between}
+        )
+
+    def _do_analysis(self):
+        """Perform ANCOVA analysis."""
+        ancova_analysis = self._dataset.ancova(
+            protein_id=self._parameters["protein_id"],
+            covar=self._parameters["covar"],
+            between=self._parameters["between"],
+        )
+        return ancova_analysis, None, self._parameters

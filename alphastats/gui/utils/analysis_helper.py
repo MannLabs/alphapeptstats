@@ -5,6 +5,8 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.analysis import (
+    AncovaAnalysis,
+    AnovaAnalysis,
     ClustermapAnalysis,
     DifferentialExpressionAnalysis,
     IntensityPlot,
@@ -152,6 +154,8 @@ def do_analysis(
         # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
         StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
         StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
+        StatisticOptions.ANOVA: AnovaAnalysis,
+        StatisticOptions.ANCOVA: AncovaAnalysis,
     }
 
     if (analysis_class := options.get(method)) is not None:
