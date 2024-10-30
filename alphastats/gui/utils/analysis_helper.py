@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df
+from alphastats.keys import Cols
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -267,20 +268,12 @@ def helper_compare_two_groups():
     else:
         group1 = st.multiselect(
             "Group 1 samples:",
-            options=dataset.metadata[
-                st.session_state[StateKeys.DATASET].sample
-            ].to_list(),
+            options=dataset.metadata[Cols.SAMPLE].to_list(),
         )
 
         group2 = st.multiselect(
             "Group 2 samples:",
-            options=list(
-                reversed(
-                    dataset.metadata[
-                        st.session_state[StateKeys.DATASET].sample
-                    ].to_list()
-                )
-            ),
+            options=list(reversed(dataset.metadata[Cols.SAMPLE].to_list())),
         )
 
         intersection_list = list(set(group1).intersection(set(group2)))
