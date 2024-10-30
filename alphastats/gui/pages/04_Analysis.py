@@ -71,10 +71,10 @@ with c1:
 
 with c2:
     if show_plot:
-        display_plot(analysis_method, analysis_result, parameters)
+        display_plot(analysis_result, analysis_method, parameters)
 
     if show_df:
-        display_statistical_analysis(analysis_method, analysis_result, parameters)
+        display_statistical_analysis(analysis_result, analysis_method, parameters)
 
 
 @st.fragment

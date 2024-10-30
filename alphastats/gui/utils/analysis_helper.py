@@ -11,16 +11,16 @@ from alphastats.plots.PlotUtils import PlotlyObject
 
 @st.fragment
 def display_plot(
-    method: str,
     plot: PlotlyObject,
-    parameters: Optional[Dict] = None,
+    method: str,
+    parameters: Optional[Dict],
     show_save_button: bool = True,
     name: str = None,
 ) -> None:
     """A fragment to display a plot and download options."""
     _display(
-        method,
         plot,
+        method=method,
         parameters=parameters,
         show_save_button=show_save_button,
         name=name,
@@ -37,15 +37,18 @@ def display_figure(plot):
         st.pyplot(plot)
 
 
-def _show_buttons_download_figure(name_pretty, analysis_result):
-    _show_button_download_figure(name_pretty, analysis_result, file_format="pdf")
-    _show_button_download_figure(name_pretty, analysis_result, file_format="svg")
+def _show_buttons_download_figure(analysis_result: PlotlyObject, name: str) -> None:
+    """Show buttons to download figure as .pdf or .svg."""
+    _show_button_download_figure(analysis_result, name, "pdf")
+    _show_button_download_figure(analysis_result, name, "svg")
 
 
-def _show_button_download_figure(name: str, plot: PlotlyObject, file_format: str):
-    """Download figure."""
-
-    filename = name + "." + file_format
+def _show_button_download_figure(
+    plot: PlotlyObject,
+    file_name: str,
+    file_format: str,
+) -> None:
+    """Show a button to download a figure."""
 
     buffer = io.BytesIO()
 
@@ -55,22 +58,24 @@ def _show_button_download_figure(name: str, plot: PlotlyObject, file_format: str
         plot.savefig(buffer, format=file_format)
 
     st.download_button(
-        label="Download as ." + file_format, data=buffer, file_name=filename
+        label="Download as ." + file_format,
+        data=buffer,
+        file_name=file_name + "." + file_format,
     )
 
 
 @st.fragment
 def display_statistical_analysis(
-    method: str,
     df: pd.DataFrame,
-    parameters: Optional[Dict] = None,
+    method: str,
+    parameters: Optional[Dict],
     show_save_button=True,
     name: str = None,
 ) -> None:
     """A fragment to display a statistical analysis and download options."""
     _display(
-        method,
         df,
+        method=method,
         parameters=parameters,
         show_save_button=show_save_button,
         name=name,
@@ -87,24 +92,24 @@ def _display_df(df: pd.DataFrame) -> None:
 
 
 def _show_button_download_df(
-    name_pretty: str, analysis_result: pd.DataFrame, label="Download as .csv"
+    analysis_result: pd.DataFrame, file_name: str, label="Download as .csv"
 ) -> None:
-    """Download a dataframe as .csv."""
+    """Show a button to download a dataframe as .csv."""
     csv = convert_df_to_csv(analysis_result)
 
     st.download_button(
         label,
         csv,
-        name_pretty + ".csv",
+        file_name + ".csv",
         "text/csv",
         key="download-csv",
     )
 
 
 def _display(
-    method: str,
     analysis_result: Union[PlotlyObject, pd.DataFrame],
     *,
+    method: str,
     display_method: Callable,
     save_method: Callable,
     parameters: Dict,
@@ -151,10 +156,10 @@ def _show_button_download_analysis_and_preprocessing_info(
     else:
         dict_to_save = parameters_pretty
 
-    filename = f"analysis_info__{name}.csv"
-
     _show_button_download_df(
-        filename, pd.DataFrame(dict_to_save.items()), "Download analysis info as .csv"
+        pd.DataFrame(dict_to_save.items()),
+        f"analysis_info__{name}",
+        "Download analysis info as .csv",
     )
 
 
