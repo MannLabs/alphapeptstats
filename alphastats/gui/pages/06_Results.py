@@ -17,23 +17,26 @@ if not st.session_state[StateKeys.ANALYSIS_LIST]:
     st.info("No analysis saved yet.")
     st.stop()
 
-for count, saved_item in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
-    print("plot", type(saved_item), count)
-
-    plot = saved_item[0]
-    method = saved_item[1]
-    parameters = saved_item[2]
+for count, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
+    analysis_result = saved_analysis[0]
+    method = saved_analysis[1]
+    parameters = saved_analysis[2]
 
     st.markdown("\n\n\n")
     st.markdown(f"#### {method}")
     st.write(f"Parameters used for analysis: {parameters}")
 
-    if st.button("x remove analysis", key="remove" + method + str(count)):
-        st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_item)
+    name = f"{method}_{count}"
+
+    if st.button("x remove analysis", key=f"remove_{name}"):
+        st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_analysis)
         st.rerun()
 
-    name = f"{method}_{count}"
     if method in PlottingOptions.get_values():
-        display_plot(method, plot, parameters, show_save_button=False, name=name)
+        display_plot(
+            method, analysis_result, parameters, show_save_button=False, name=name
+        )
     elif method in StatisticOptions.get_values():
-        display_df(method, plot, parameters, show_save_button=False, name=name)
+        display_df(
+            method, analysis_result, parameters, show_save_button=False, name=name
+        )
