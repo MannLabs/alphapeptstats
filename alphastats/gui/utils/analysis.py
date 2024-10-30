@@ -450,3 +450,19 @@ class AncovaAnalysis(Analysis):
             between=self._parameters["between"],
         )
         return ancova_analysis, None, self._parameters
+
+
+ANALYSIS_OPTIONS = {
+    PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
+    PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
+    PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
+    PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
+    PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
+    PlottingOptions.INTENSITY_PLOT: IntensityPlot,
+    PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
+    # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
+    StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
+    StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
+    StatisticOptions.ANOVA: AnovaAnalysis,
+    StatisticOptions.ANCOVA: AncovaAnalysis,
+}

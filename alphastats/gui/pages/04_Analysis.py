@@ -4,7 +4,7 @@ from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
     display_df,
     display_plot,
-    do_analysis,
+    gather_parameters_and_do_analysis,
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
@@ -58,15 +58,14 @@ with c1:
     )
 
     if method in plotting_options:
-        analysis_result, analysis_object, parameters = do_analysis(
-            method, options_dict=None
+        analysis_result, analysis_object, parameters = (
+            gather_parameters_and_do_analysis(method)
         )
         show_plot = analysis_result is not None
 
     elif method in statistic_options:
-        analysis_result, *_ = do_analysis(
+        analysis_result, *_ = gather_parameters_and_do_analysis(
             method,
-            options_dict=None,
         )
         show_df = analysis_result is not None
 

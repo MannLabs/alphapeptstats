@@ -3,24 +3,9 @@ from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
+from gui.utils.analysis import ANALYSIS_OPTIONS
 
-from alphastats.gui.utils.analysis import (
-    AncovaAnalysis,
-    AnovaAnalysis,
-    ClustermapAnalysis,
-    DifferentialExpressionAnalysis,
-    IntensityPlot,
-    PCAPlotAnalysis,
-    PlottingOptions,
-    SampleDistributionPlot,
-    StatisticOptions,
-    TSNEPlotAnalysis,
-    TukeyTestAnalysis,
-    UMAPPlotAnalysis,
-    VolcanoPlotAnalysis,
-)
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df
-from alphastats.keys import Cols
 
 
 def display_figure(plot):
@@ -98,42 +83,8 @@ def download_preprocessing_info(method, plot):
     )
 
 
-def get_unique_values_from_column(column):
-    unique_values = (
-        st.session_state[StateKeys.DATASET].metadata[column].unique().tolist()
-    )
-    return unique_values
-
-
-def st_general(method_dict):
-    chosen_parameter_dict = {}
-
-    if "settings" not in method_dict:
-        # TODO: is this check really required here? If so, refactor to be part of plotting/statistic_options
-        if st.session_state[StateKeys.DATASET].mat.isna().values.any():
-            st.error(
-                "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
-            )
-            return None
-
-        st.info("No parameters to set.")
-
-    else:
-        for parameter, parameter_dict in method_dict["settings"].items():
-            if "options" in parameter_dict:
-                chosen_parameter = st.selectbox(
-                    parameter_dict.get("label"), options=parameter_dict.get("options")
-                )
-            else:
-                chosen_parameter = st.checkbox(parameter_dict.get("label"))
-
-            chosen_parameter_dict[parameter] = chosen_parameter
-
-    return chosen_parameter_dict
-
-
-def do_analysis(
-    method: str, options_dict: Dict[str, Any]
+def gather_parameters_and_do_analysis(
+    analysis_name: str,
 ) -> Tuple[Optional[Any], Optional[Any], Dict[str, Any]]:
     """Extract plotting options and display.
 
@@ -141,113 +92,12 @@ def do_analysis(
     analysis_object is the underlying object, parameters is a dictionary of the parameters used.
 
     Currently, analysis_object is only not-None for Volcano Plot.
-    # TODO unify the API of all analysis methods
     """
-    options = {
-        PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
-        PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
-        PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
-        PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
-        PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
-        PlottingOptions.INTENSITY_PLOT: IntensityPlot,
-        PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
-        # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
-        StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
-        StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
-        StatisticOptions.ANOVA: AnovaAnalysis,
-        StatisticOptions.ANCOVA: AncovaAnalysis,
-    }
-
-    if (analysis_class := options.get(method)) is not None:
+    if (analysis_class := ANALYSIS_OPTIONS.get(analysis_name)) is not None:
         analysis = analysis_class(st.session_state[StateKeys.DATASET])
         analysis.show_widget()
         if st.button("Run analysis .."):
             with st.spinner("Running analysis .."):
-                return analysis.do_analysis()
-        return None, None, {}
+                return analysis.gather_parameters_and_do_analysis()
 
-    method_dict = options_dict.get(method)
-
-    # old, to be refactored logic:
-    parameters = st_general(method_dict=method_dict)
-
-    submitted = st.button("Run analysis ..")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**parameters), None, parameters
-
-    return None, None, {}
-
-
-# TODO this can be deleted after all analysis adapted the new Pattern (cf. analysis.py:Analysis())
-def helper_plot_dimensionality_reduction(method_dict):
-    group = st.selectbox(
-        method_dict["settings"]["group"].get("label"),
-        options=method_dict["settings"]["group"].get("options"),
-    )
-
-    circle = False
-
-    if group is not None:
-        circle = st.checkbox("circle")
-
-    chosen_parameter_dict = {
-        "circle": circle,
-        "group": group,
-    }
-    return chosen_parameter_dict
-
-
-# TODO this can be deleted after all analysis adapted the new Pattern (cf. analysis.py:Analysis())
-def helper_compare_two_groups():
-    """
-    Helper function to compare two groups for example
-    Volcano Plot, Differential Expression Analysis and t-test
-    selectbox based on selected column
-    """
-    dataset = st.session_state[StateKeys.DATASET]
-    chosen_parameter_dict = {}
-    default_option = "<select>"
-    group = st.selectbox(
-        "Grouping variable",
-        options=[default_option] + dataset.metadata.columns.to_list(),
-    )
-
-    if group != default_option:
-        unique_values = dataset.metadata[group].unique().tolist()
-
-        group1 = st.selectbox("Group 1", options=unique_values)
-
-        group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
-
-        chosen_parameter_dict.update(
-            {"column": group, "group1": group1, "group2": group2}
-        )
-
-        if group1 == group2:
-            st.error(
-                "Group 1 and Group 2 can not be the same please select different group."
-            )
-
-    else:
-        group1 = st.multiselect(
-            "Group 1 samples:",
-            options=dataset.metadata[Cols.SAMPLE].to_list(),
-        )
-
-        group2 = st.multiselect(
-            "Group 2 samples:",
-            options=list(reversed(dataset.metadata[Cols.SAMPLE].to_list())),
-        )
-
-        intersection_list = list(set(group1).intersection(set(group2)))
-
-        if len(intersection_list) > 0:
-            st.warning(
-                "Group 1 and Group 2 contain same samples: " + str(intersection_list)
-            )
-
-        chosen_parameter_dict.update({"group1": group1, "group2": group2})
-
-    return chosen_parameter_dict
+    raise ValueError(f"Analysis method {analysis_name} not found.")
