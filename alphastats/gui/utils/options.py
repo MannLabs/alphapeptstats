@@ -71,10 +71,7 @@ def get_plotting_options(state):
             },
             "function": dataset.plot_tsne,
         },
-        "Volcano Plot": {
-            "between_two_groups": True,  # TODO: between_two_groups is never used anywhere
-            "function": dataset.plot_volcano,
-        },
+        "Volcano Plot": {},
         "Clustermap": {"function": dataset.plot_clustermap},
         # "Dendrogram": {"function": state[StateKeys.DATASET].plot_dendrogram},  # TODO why commented?
     }
