@@ -19,12 +19,12 @@ class PlottingOptions:
     VOLCANO_PLOT = "Volcano Plot"
 
     @classmethod
-    def get_all_values(cls):
-        """Get all values of the class."""
+    def get_values(cls):
+        """Get all user-defined string values of the class."""
         return [
             value
             for key, value in cls.__dict__.items()
-            if not key.startswith("__") and not callable(value)
+            if not key.startswith("__") and isinstance(value, str)
         ]
 
 

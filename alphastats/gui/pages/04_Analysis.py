@@ -48,7 +48,7 @@ analysis_result = None
 
 c1, c2 = st.columns([0.33, 0.67])
 with c1:
-    plotting_options = PlottingOptions.get_all_values()
+    plotting_options = PlottingOptions.get_values()
     method = st.selectbox(
         "Analysis",
         options=["<select>"]
