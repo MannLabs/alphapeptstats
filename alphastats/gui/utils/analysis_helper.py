@@ -6,10 +6,12 @@ import streamlit as st
 
 from alphastats.gui.utils.analysis import (
     ClustermapAnalysis,
+    DifferentialExpressionAnalysis,
     IntensityPlot,
     PCAPlotAnalysis,
     PlottingOptions,
     SampleDistributionPlot,
+    StatisticOptions,
     TSNEPlotAnalysis,
     UMAPPlotAnalysis,
     VolcanoPlotAnalysis,
@@ -147,6 +149,7 @@ def do_analysis(
         PlottingOptions.INTENSITY_PLOT: IntensityPlot,
         PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
         # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
+        StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
     }
 
     if (analysis_class := options.get(method)) is not None:
