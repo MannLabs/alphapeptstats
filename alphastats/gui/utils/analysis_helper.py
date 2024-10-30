@@ -135,8 +135,6 @@ def do_analysis(
     Currently, analysis_object is only not-None for Volcano Plot.
     # TODO unify the API of all analysis methods
     """
-    method_dict = options_dict.get(method)
-
     options = {
         PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
         PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
