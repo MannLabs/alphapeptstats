@@ -4,7 +4,13 @@ from typing import Any, Dict, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.analysis import VolcanoPlotAnalysis
+from alphastats.gui.utils.analysis import (
+    PCAPlotAnalysis,
+    PlottingOptions,
+    TSNEPlotAnalysis,
+    UMAPPlotAnalysis,
+    VolcanoPlotAnalysis,
+)
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 from alphastats.keys import Cols
 
@@ -131,18 +137,23 @@ def do_analysis(
     """
     method_dict = options_dict.get(method)
 
-    if method == "Volcano Plot":
-        analysis = VolcanoPlotAnalysis(st.session_state[StateKeys.DATASET])
-        analysis.show_widget()
+    options = {
+        PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
+        PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
+        PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
+        PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
+    }
 
+    if (analysis_class := options.get(method)) is not None:
+        analysis = analysis_class(st.session_state[StateKeys.DATASET])
+        analysis.show_widget()
         if st.button("Run analysis .."):
-            return analysis.do_analysis()
+            with st.spinner("Running analysis .."):
+                return analysis.do_analysis()
         return None, None, {}
 
-    elif method == "t-SNE Plot":
-        parameters = st_tsne_options(method_dict)
-
-    elif method == "Differential Expression Analysis - T-test":
+    # old, to be refactored logic:
+    if method == "Differential Expression Analysis - T-test":
         parameters = helper_compare_two_groups()
         parameters.update({"method": "ttest"})
 
@@ -150,10 +161,8 @@ def do_analysis(
         parameters = helper_compare_two_groups()
         parameters.update({"method": "wald"})
 
-    elif method == "PCA Plot" or method == "UMAP Plot":
-        parameters = helper_plot_dimensionality_reduction(method_dict=method_dict)
-
     else:
+        method_dict = options_dict.get(method)
         parameters = st_general(method_dict=method_dict)
 
     submitted = st.button("Run analysis ..")
@@ -165,6 +174,7 @@ def do_analysis(
     return None, None, {}
 
 
+# TODO this can be deleted after all analysis adapted the new Pattern (cf. analysis.py:Analysis())
 def helper_plot_dimensionality_reduction(method_dict):
     group = st.selectbox(
         method_dict["settings"]["group"].get("label"),

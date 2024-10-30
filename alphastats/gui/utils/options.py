@@ -41,37 +41,6 @@ def get_plotting_options(state):
             },
             "function": dataset.plot_intensity,
         },
-        "PCA Plot": {
-            "settings": {
-                "group": {
-                    "options": metadata_options,
-                    "label": "Color according to",
-                },
-                "circle": {"label": "Circle"},
-            },
-            "function": dataset.plot_pca,
-        },
-        "UMAP Plot": {
-            "settings": {
-                "group": {
-                    "options": metadata_options,
-                    "label": "Color according to",
-                },
-                "circle": {"label": "Circle"},
-            },
-            "function": dataset.plot_umap,
-        },
-        "t-SNE Plot": {
-            "settings": {
-                "group": {
-                    "options": metadata_options,
-                    "label": "Color according to",
-                },
-                "circle": {"label": "Circle"},
-            },
-            "function": dataset.plot_tsne,
-        },
-        "Volcano Plot": {},
         "Clustermap": {"function": dataset.plot_clustermap},
         # "Dendrogram": {"function": state[StateKeys.DATASET].plot_dendrogram},  # TODO why commented?
     }

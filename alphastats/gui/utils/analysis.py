@@ -10,6 +10,24 @@ from alphastats.keys import Cols
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
+class PlottingOptions:
+    """Keys for the plotting options."""
+
+    PCA_PLOT = "PCA Plot"
+    UMAP_PLOT = "UMAP Plot"
+    TSNE_PLOT = "t-SNE Plot"
+    VOLCANO_PLOT = "Volcano Plot"
+
+    @classmethod
+    def get_all_values(cls):
+        """Get all values of the class."""
+        return [
+            value
+            for key, value in cls.__dict__.items()
+            if not key.startswith("__") and not callable(value)
+        ]
+
+
 class Analysis(ABC):
     """Abstract class for analysis widgets."""
 

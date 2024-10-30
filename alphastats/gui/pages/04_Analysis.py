@@ -1,11 +1,15 @@
 import streamlit as st
 
+from alphastats.gui.utils.analysis import PlottingOptions
 from alphastats.gui.utils.analysis_helper import (
     display_df,
     display_plot,
     do_analysis,
 )
-from alphastats.gui.utils.options import get_plotting_options, get_statistic_options
+from alphastats.gui.utils.options import (
+    get_plotting_options,
+    get_statistic_options,
+)
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
     convert_df,
@@ -44,16 +48,25 @@ analysis_result = None
 
 c1, c2 = st.columns([0.33, 0.67])
 with c1:
+    plotting_options = PlottingOptions.get_all_values()
     method = st.selectbox(
         "Analysis",
         options=["<select>"]
         + ["------- plots -------"]
-        + list(get_plotting_options(st.session_state).keys())
+        + plotting_options
+        + [
+            key
+            for key in list(get_plotting_options(st.session_state).keys())
+            if key not in plotting_options
+        ]
         + ["------- statistics -------"]
         + list(get_statistic_options(st.session_state).keys()),
     )
 
-    if method in (plotting_options := get_plotting_options(st.session_state)):
+    if method in (
+        plotting_options := list(get_plotting_options(st.session_state).keys())
+        + plotting_options
+    ):
         analysis_result, analysis_object, parameters = do_analysis(
             method, options_dict=plotting_options
         )
