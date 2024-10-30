@@ -18,6 +18,8 @@ def run():
     os.system(
         f"python -m streamlit run AlphaPeptStats.py --global.developmentMode=false {extra_args}"
     )
+
+    # TODO why are we starting the app a second time here?
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
 

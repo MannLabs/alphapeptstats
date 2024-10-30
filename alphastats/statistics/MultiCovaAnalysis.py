@@ -18,7 +18,7 @@ class MultiCovaAnalysis:
         subset: dict = None,
         plot: bool = False,
     ):
-        self.dataset = dataset  # TODO pass only .mat, .metadata and .sample
+        self.dataset = dataset  # TODO pass only .mat, .metadata
         self.covariates = covariates
         self.n_permutations = n_permutations
         self.fdr = fdr
