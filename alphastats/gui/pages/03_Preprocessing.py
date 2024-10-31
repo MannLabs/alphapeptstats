@@ -1,6 +1,6 @@
 import streamlit as st
-from DataSet_Preprocess import PreprocessingStateKeys
 
+from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.gui.utils.preprocessing_helper import (
     configure_preprocessing,
     display_preprocessing_info,
