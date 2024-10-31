@@ -61,7 +61,6 @@ class AbstractAnalysis(ABC):
         """
         try:
             self._nan_check()
-
             self._pre_analysis_check()
         except ValueError as e:
             st.error(str(e))
@@ -317,10 +316,10 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
         """
-        # TODO currently there's no other way to obtain both the plot and the underlying data
-        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
-        #  One option could be to always return the whole analysis object.
-
+        # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
+        # thus overwriting the default values set therein.
+        # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
+        # or refactor it so that all default values are `None` and the class sets the defaults programmatically.
         volcano_plot = VolcanoPlot(
             mat=self._dataset.mat,
             rawinput=self._dataset.rawinput,
@@ -338,6 +337,10 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             fdr=self._parameters["fdr"],
             color_list=self._parameters["color_list"],
         )
+        # TODO currently there's no other way to obtain both the plot and the underlying data
+        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
+        #  One option could be to always return the whole analysis object.
+
         return volcano_plot.plot, volcano_plot
 
 
