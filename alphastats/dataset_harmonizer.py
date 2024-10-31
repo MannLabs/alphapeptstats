@@ -11,7 +11,7 @@ from alphastats.keys import Cols
 class DataHarmonizer:
     """Harmonize input data to a common format."""
 
-    def __init__(self, loader: BaseLoader, sample_column: Optional[str] = None):
+    def __init__(self, loader: BaseLoader, sample_column_name: Optional[str] = None):
         _rawinput_rename_dict = {
             loader.index_column: Cols.INDEX,
         }
@@ -22,9 +22,9 @@ class DataHarmonizer:
 
         self._metadata_rename_dict = (
             {
-                sample_column: Cols.SAMPLE,
+                sample_column_name: Cols.SAMPLE,
             }
-            if sample_column is not None
+            if sample_column_name is not None
             else {}
         )
 

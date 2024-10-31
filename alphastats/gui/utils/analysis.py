@@ -35,6 +35,7 @@ class StatisticOptions(metaclass=ConstantsClass):
     ANCOVA = "ANCOVA"
 
 
+# TODO rename to AnalysisComponent
 class AbstractAnalysis(ABC):
     """Abstract class for analysis widgets."""
 
