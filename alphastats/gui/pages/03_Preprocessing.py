@@ -10,11 +10,12 @@ from alphastats.gui.utils.preprocessing_helper import (
 )
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
 
-st.markdown("### Preprocessing")
+st.markdown("## Preprocessing")
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")

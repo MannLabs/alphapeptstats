@@ -94,7 +94,7 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
         metadata = self._dataset.metadata
 
         default_option = "<select>"
-        custom_group_option = "Custom group from samples .."
+        custom_group_option = "Custom groups from samples .."
 
         grouping_variable = st.selectbox(
             "Grouping variable",

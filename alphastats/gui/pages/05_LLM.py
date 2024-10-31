@@ -19,11 +19,12 @@ from alphastats.llm.prompts import get_initial_prompt, get_system_message
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
 
-st.markdown("### LLM")
+st.markdown("## LLM")
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")

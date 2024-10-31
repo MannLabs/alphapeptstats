@@ -9,18 +9,19 @@ from alphastats.gui.utils.overview_helper import (
 )
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
+
+st.markdown("## Data Overview")
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
 
-st.markdown("### DataSet Info")
-
 display_loaded_dataset(st.session_state[StateKeys.DATASET])
 
-st.markdown("## DataSet overview")
+st.markdown("### Intensities")
 
 c1, c2 = st.columns(2)
 

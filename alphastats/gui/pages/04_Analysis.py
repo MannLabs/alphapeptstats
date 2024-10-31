@@ -11,10 +11,11 @@ from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
-st.markdown("### Analysis")
+st.markdown("## Analysis")
 
 # set background to white so downloaded pngs dont have grey background
 styl = """
