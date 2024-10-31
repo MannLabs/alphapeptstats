@@ -1,4 +1,5 @@
 import streamlit as st
+from DataSet_Preprocess import PreprocessingStateKeys
 
 from alphastats.gui.utils.preprocessing_helper import (
     configure_preprocessing,
@@ -23,22 +24,42 @@ if StateKeys.DATASET not in st.session_state:
 
 c1, _, c2 = st.columns([0.3, 0.1, 0.45])
 
+
+@st.fragment
+def show_preprocessing_actions(dataset):
+    is_preprocessing_done = dataset.preprocessing_info[
+        PreprocessingStateKeys.PREPROCESSING_DONE
+    ]
+
+    if is_preprocessing_done:
+        st.success("Preprocessing finished successfully!", icon="✅")
+
+    c11, c12 = st.columns([1, 1])
+    if c11.button(
+        "Run preprocessing", key="_run_preprocessing", disabled=is_preprocessing_done
+    ):
+        run_preprocessing(settings, dataset)
+        st.rerun(scope="fragment")
+
+    if c12.button(
+        "❌ Reset preprocessing",
+        key="_reset_preprocessing",
+        disabled=not is_preprocessing_done,
+    ):
+        reset_preprocessing(dataset)
+        st.rerun(scope="fragment")
+
+
 dataset = st.session_state[StateKeys.DATASET]
-# TODO add help to steps
+
 with c1:
     st.write("##### Select preprocessing steps")
-    settings = configure_preprocessing(dataset=st.session_state[StateKeys.DATASET])
+    settings = configure_preprocessing(dataset=dataset)
     new_workflow = update_workflow(settings)
     if new_workflow != st.session_state[StateKeys.WORKFLOW]:
         st.session_state[StateKeys.WORKFLOW] = new_workflow
 
-    c11, c12 = st.columns([1, 1])
-    if c11.button("Run preprocessing", key="_run_preprocessing"):
-        run_preprocessing(settings, dataset)
-        # TODO show more info about the preprocessing steps
-
-    if c12.button("❌ Reset preprocessing", key="_reset_preprocessing"):
-        reset_preprocessing(dataset)
+    show_preprocessing_actions(dataset)
 
 with c2:
     selected_nodes = draw_workflow(st.session_state[StateKeys.WORKFLOW])
@@ -46,4 +67,5 @@ with c2:
     st.markdown("##### Current preprocessing status")
     display_preprocessing_info(dataset.preprocessing_info)
 
+# TODO add help to individual steps with more info
 # TODO: Add comparison plot of intensity distribution before and after preprocessing
