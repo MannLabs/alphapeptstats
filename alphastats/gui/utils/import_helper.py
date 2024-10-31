@@ -66,7 +66,7 @@ def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.Data
 
 def load_example_data():
     st.markdown("### Using Example Dataset")
-    st.info("Example dataset and metadata loaded")
+    st.toast("Example dataset loaded", icon="✅")
     st.write(
         """
     _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_

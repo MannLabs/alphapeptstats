@@ -264,11 +264,11 @@ def run_preprocessing(settings, dataset):
         None
     """
     dataset.preprocess(**settings)
-    st.success("Preprocessing finished successfully!")
+    st.toast("Preprocessing finished successfully!", icon="✅")
 
     if settings[PREPROCESSING_STEPS.BATCH]:
         dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH])
-        st.success("Batch correction finished successfully!")
+        st.toast("Batch correction finished successfully!", icon="✅")
 
 
 def display_preprocessing_info(preprocessing_info):
@@ -297,4 +297,4 @@ def reset_preprocessing(dataset: DataSet) -> None:
     """
 
     dataset.reset_preprocessing()
-    st.info("Preprocessing has been reset.")
+    st.toast("Preprocessing has been reset.", icon="✅")

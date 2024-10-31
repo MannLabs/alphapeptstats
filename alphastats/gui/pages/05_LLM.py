@@ -23,12 +23,11 @@ init_session_state()
 sidebar_info()
 
 
-if StateKeys.DATASET not in st.session_state:
-    st.info("Import Data first")
-    st.stop()
-
-
 st.markdown("### LLM")
+
+if StateKeys.DATASET not in st.session_state:
+    st.info("Import data first.")
+    st.stop()
 
 
 @st.fragment
@@ -186,8 +185,9 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
 
         st.session_state[StateKeys.LLM_INTEGRATION][model_name] = llm_integration
 
-        st.success(
-            f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!"
+        st.toast(
+            f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!",
+            icon="✅",
         )
 
         with st.spinner("Processing initial prompt..."):

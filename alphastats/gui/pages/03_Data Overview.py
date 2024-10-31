@@ -13,7 +13,7 @@ init_session_state()
 sidebar_info()
 
 if StateKeys.DATASET not in st.session_state:
-    st.info("Import Data first")
+    st.info("Import data first.")
     st.stop()
 
 st.markdown("### DataSet Info")

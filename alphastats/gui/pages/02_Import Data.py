@@ -150,5 +150,5 @@ if c1.button(
     )
 
 if dataset is not None:
-    st.info("DataSet has been created.")
+    st.toast(" DataSet has been created.", icon="✅")
     _finalize_data_loading(dataset)
