@@ -93,11 +93,11 @@ def load_example_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
     _parent_directory = os.path.dirname(_this_directory)
-    folder_to_load = os.path.join(_parent_directory, "sample_data")
+    folder_to_load = os.path.join(_parent_directory, "example_data")
 
     filepath = os.path.join(folder_to_load, "proteinGroups.txt")
     metadatapath = (
-        os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
+        os.path.join(_parent_directory, "example_data", "metadata.xlsx")
         .replace("pages/", "")
         .replace("pages\\", "")
     )
