@@ -2,8 +2,11 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from typing import Any, Dict, Optional, Tuple, Union
 
+import pandas as pd
 import streamlit as st
+from plots.PlotUtils import PlotlyObject
 
 from alphastats.DataSet import DataSet
 from alphastats.keys import Cols, ConstantsClass
@@ -46,16 +49,21 @@ class AbstractAnalysis(ABC):
         """Show the widget and gather parameters."""
         pass
 
-    def do_analysis(self):
+    def do_analysis(
+        self,
+    ) -> Tuple[
+        Union[PlotlyObject, pd.DataFrame], Optional[VolcanoPlot], Dict[str, Any]
+    ]:
         """Perform the analysis after an optional check for NaNs.
 
-        Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
-        analysis_object is the underlying object, parameters is a dictionary of the parameters used.
+        Returns a tuple(analysis, analysis_object, parameters) where 'analysis' is the plot or dataframe,
+        'analysis_object' is the underlying object, 'parameters' is a dictionary of the parameters used.
         """
         if not self._works_with_nans and self._dataset.mat.isnull().values.any():
             st.error("This analysis does not work with NaN values.")
             st.stop()
-        return *self._do_analysis(), dict(self._parameters)
+        analysis, analysis_object = self._do_analysis()
+        return analysis, analysis_object, dict(self._parameters)
 
     @abstractmethod
     def _do_analysis(self):
