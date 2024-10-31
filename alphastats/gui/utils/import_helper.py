@@ -9,7 +9,6 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.keys import Cols
 from alphastats.loader.MaxQuantLoader import BaseLoader, MaxQuantLoader
 
 
@@ -108,15 +107,6 @@ def load_example_data():
         loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
     )
 
-    dataset.metadata = dataset.metadata[
-        [
-            Cols.SAMPLE,
-            "disease",
-            "Drug therapy (procedure) (416608005)",
-            "Lipid-lowering therapy (134350008)",
-        ]
-    ]
-    dataset.preprocess(subset=True)
     return dataset
 
 

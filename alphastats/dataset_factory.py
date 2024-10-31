@@ -119,4 +119,10 @@ class DataSetFactory:
         # check whether sample labeling matches protein data
         #  warnings.warn("WARNING: Sample names do not match sample labelling in protein data")
         df.columns = df.columns.astype(str)
+
+        # TODO document this
+        df.drop(
+            columns=[c for c in df.columns if c.startswith("_IGNORE_")], inplace=True
+        )
+
         return df
