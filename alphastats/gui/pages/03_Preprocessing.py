@@ -25,8 +25,15 @@ if StateKeys.DATASET not in st.session_state:
 c1, _, c2 = st.columns([0.3, 0.1, 0.45])
 
 
-@st.fragment
-def show_preprocessing_actions(dataset):
+dataset = st.session_state[StateKeys.DATASET]
+
+with c1:
+    st.write("##### Select preprocessing steps")
+    settings = configure_preprocessing(dataset=dataset)
+    new_workflow = update_workflow(settings)
+    if new_workflow != st.session_state[StateKeys.WORKFLOW]:
+        st.session_state[StateKeys.WORKFLOW] = new_workflow
+
     is_preprocessing_done = dataset.preprocessing_info[
         PreprocessingStateKeys.PREPROCESSING_DONE
     ]
@@ -39,7 +46,7 @@ def show_preprocessing_actions(dataset):
         "Run preprocessing", key="_run_preprocessing", disabled=is_preprocessing_done
     ):
         run_preprocessing(settings, dataset)
-        st.rerun(scope="fragment")
+        st.rerun()
 
     if c12.button(
         "❌ Reset preprocessing",
@@ -47,19 +54,7 @@ def show_preprocessing_actions(dataset):
         disabled=not is_preprocessing_done,
     ):
         reset_preprocessing(dataset)
-        st.rerun(scope="fragment")
-
-
-dataset = st.session_state[StateKeys.DATASET]
-
-with c1:
-    st.write("##### Select preprocessing steps")
-    settings = configure_preprocessing(dataset=dataset)
-    new_workflow = update_workflow(settings)
-    if new_workflow != st.session_state[StateKeys.WORKFLOW]:
-        st.session_state[StateKeys.WORKFLOW] = new_workflow
-
-    show_preprocessing_actions(dataset)
+        st.rerun()
 
 with c2:
     selected_nodes = draw_workflow(st.session_state[StateKeys.WORKFLOW])
