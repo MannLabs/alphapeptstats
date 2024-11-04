@@ -6,10 +6,10 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
-from plots.PlotUtils import PlotlyObject
 
 from alphastats.DataSet import DataSet
 from alphastats.keys import Cols, ConstantsClass
+from alphastats.plots.PlotUtils import PlotlyObject
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
