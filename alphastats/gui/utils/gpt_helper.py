@@ -1,4 +1,3 @@
-import copy
 from typing import Dict, List
 
 import pandas as pd
@@ -124,26 +123,23 @@ def get_general_assistant_functions() -> List[Dict]:
 
 
 def get_assistant_functions(
-    gene_to_prot_id_dict: Dict,
+    gene_to_prot_id_map: Dict,
     metadata: pd.DataFrame,
     subgroups_for_each_group: Dict,
 ) -> List[Dict]:
     """
     Get a list of assistant functions for function calling in the ChatGPT model.
-    You can call this function with no arguments, arguments are given for clarity on what changes the behavior of the function.
     For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
 
     Args:
-        gene_to_prot_id_dict (dict, optional): A dictionary with gene names as keys and protein IDs as values.
-        metadata (pd.DataFrame, optional): The metadata dataframe (which sample has which disease/treatment/condition/etc).
-        subgroups_for_each_group (dict, optional): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
+        gene_to_prot_id_map (dict): A dictionary with gene names as keys and protein IDs as values.
+        metadata (pd.DataFrame): The metadata dataframe (which sample has which disease/treatment/condition/etc).
+        subgroups_for_each_group (dict): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
     Returns:
         list[dict]: A list of assistant functions.
     """
-    # TODO figure out how this relates to the parameter `subgroups_for_each_group`
-    subgroups_for_each_group_ = str(
-        get_subgroups_for_each_group(st.session_state[StateKeys.DATASET].metadata)
-    )
+    gene_names = list(gene_to_prot_id_map.keys())
+    groups = [str(col) for col in metadata.columns.to_list()]
     return [
         {
             "type": "function",
@@ -153,21 +149,21 @@ def get_assistant_functions(
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "protein_id": {
+                        "gene_name": {  # this will be mapped to "protein_id" when calling the function
                             "type": "string",
-                            "enum": [i for i in gene_to_prot_id_dict],
-                            "description": "Identifier for the protein of interest",
+                            "enum": gene_names,
+                            "description": "Identifier for the gene of interest",
                         },
                         "group": {
                             "type": "string",
-                            "enum": [str(i) for i in metadata.columns.to_list()],
+                            "enum": groups,
                             "description": "Column name in the dataset for the group variable",
                         },
                         "subgroups": {
                             "type": "array",
                             "items": {"type": "string"},
                             "description": f"Specific subgroups within the group to analyze. For each group you need to look up the subgroups in the dict"
-                            f" {subgroups_for_each_group_} or present user with them first if you are not sure what to choose",
+                            f" {subgroups_for_each_group} or present user with them first if you are not sure what to choose",
                         },
                         "method": {
                             "type": "string",
@@ -198,7 +194,7 @@ def get_assistant_functions(
                         "group": {
                             "type": "string",
                             "description": "The name of the group column in the dataset",
-                            "enum": [str(i) for i in metadata.columns.to_list()],
+                            "enum": groups,
                         },
                         "method": {
                             "type": "string",
@@ -225,7 +221,7 @@ def get_assistant_functions(
                         "color": {
                             "type": "string",
                             "description": "The name of the group column in the dataset to color the samples by",
-                            "enum": [str(i) for i in metadata.columns.to_list()],
+                            "enum": groups,
                         },
                         "method": {
                             "type": "string",
@@ -303,29 +299,37 @@ def get_assistant_functions(
 
 
 def perform_dimensionality_reduction(group, method, circle, **kwargs):
+    dataset = st.session_state[StateKeys.DATASET]
     dr = DimensionalityReduction(
-        st.session_state[StateKeys.DATASET], group, method, circle, **kwargs
+        mat=dataset.mat,
+        metadate=dataset.metadata,
+        sample=dataset.sample,
+        preprocessing_info=dataset.preprocessing_info,
+        group=group,
+        circle=circle,
+        method=method,
+        **kwargs,
     )
     return dr.plot
 
 
-def get_gene_to_prot_id_mapping(gene_id: str) -> str:
+def get_protein_id_for_gene_name(
+    gene_name: str, gene_to_prot_id_map: Dict[str, str]
+) -> str:
     """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
     'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
+
     Args:
-        gene_id (str): Gene id
+        gene_name (str): Gene id
 
     Returns:
         str: Protein id or gene id if not present in the mapping.
     """
-    import streamlit as st
+    if gene_name in gene_to_prot_id_map:
+        return gene_to_prot_id_map[gene_name]
 
-    session_state_copy = dict(copy.deepcopy(st.session_state))
-    if StateKeys.GENE_TO_PROT_ID not in session_state_copy:
-        session_state_copy[StateKeys.GENE_TO_PROT_ID] = {}
-    if gene_id in session_state_copy[StateKeys.GENE_TO_PROT_ID]:
-        return session_state_copy[StateKeys.GENE_TO_PROT_ID][gene_id]
-    for gene, prot_id in session_state_copy[StateKeys.GENE_TO_PROT_ID].items():
-        if gene_id in gene.split(";"):
-            return prot_id
-    return gene_id
+    for gene, protein_id in gene_to_prot_id_map.items():
+        if gene_name in gene.split(";"):
+            return protein_id
+
+    return gene_name
