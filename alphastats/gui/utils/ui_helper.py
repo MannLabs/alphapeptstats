@@ -89,6 +89,9 @@ def init_session_state() -> None:
     if StateKeys.PLOT_LIST not in st.session_state:
         st.session_state[StateKeys.PLOT_LIST] = []
 
+    if StateKeys.LLM_INTEGRATION not in st.session_state:
+        st.session_state[StateKeys.LLM_INTEGRATION] = {}
+
 
 class StateKeys:
     ## 02_Data Import
