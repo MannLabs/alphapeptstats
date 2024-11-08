@@ -186,22 +186,3 @@ SOFTWARE_OPTIONS = {
         "loader_function": mzTabLoader,
     },
 }
-
-
-# TODO merge with get_plotting_options (add key "llm_support"=True)
-def get_interpretation_options(state):
-    dataset = state[StateKeys.DATASET]
-    return {
-        "Volcano Plot": {
-            "between_two_groups": True,
-            "function": dataset.plot_volcano,
-        },
-        "Differential Expression Analysis - T-test": {
-            "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
-        },
-        "Differential Expression Analysis - Wald-test": {
-            "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
-        },
-    }
