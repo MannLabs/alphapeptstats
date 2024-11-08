@@ -89,6 +89,9 @@ def init_session_state() -> None:
     if StateKeys.ORGANISM not in st.session_state:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
 
+    if StateKeys.PLOT_LIST not in st.session_state:
+        st.session_state[StateKeys.PLOT_LIST] = []
+
 
 class StateKeys:
     ## 02_Data Import
