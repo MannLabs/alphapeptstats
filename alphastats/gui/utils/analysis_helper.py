@@ -25,7 +25,7 @@ def display_figure(plot):
     """
     try:
         st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
-    except:
+    except Exception:
         st.pyplot(plot)
 
 
@@ -37,7 +37,7 @@ def save_plot_to_session_state(plot, method):
 
 
 def display_df(df):
-    mask = df.applymap(type) != bool
+    mask = df.applymap(type) != bool  # noqa: E721
     d = {True: "TRUE", False: "FALSE"}
     df = df.where(mask, df.replace(d))
     st.dataframe(df)
@@ -214,7 +214,7 @@ def get_analysis_options_from_dict(method, options_dict):
         return st_plot_umap(method_dict)
 
     elif "settings" not in method_dict:
-        if st.session_state[StateKeys.DATASET].mat.isna().values.any() == True:
+        if st.session_state[StateKeys.DATASET].mat.isna().values.any():
             st.error(
                 "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
             )

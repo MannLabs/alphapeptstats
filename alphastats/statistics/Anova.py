@@ -54,7 +54,7 @@ class Anova:
         return anova_df
 
     def _prepare_data(self):
-        #  generated list of list with samples
+        # generated list of list with samples
         subgroup = self.metadata[self.column].unique().tolist()
         self.all_groups = []
         for sub in subgroup:
@@ -66,7 +66,7 @@ class Anova:
         self.mat_transpose = self.mat[self.protein_ids_list].transpose()
 
     def _create_tukey_df(self, anova_df: pd.DataFrame) -> pd.DataFrame:
-        #  combine tukey results with anova results
+        # combine tukey results with anova results
         df = (
             self.mat[self.protein_ids_list]
             .reset_index()
