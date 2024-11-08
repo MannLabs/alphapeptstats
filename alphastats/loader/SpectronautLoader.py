@@ -9,11 +9,6 @@ from alphastats.loader.BaseLoader import BaseLoader
 
 SPECTRONAUT_COLUMN_DELIM = "."
 
-import numpy as np
-import pandas as pd
-
-from alphastats.loader.BaseLoader import BaseLoader
-
 
 class SpectronautLoader(BaseLoader):
     """Loader for Spectronaut outputfiles"""
@@ -158,7 +153,7 @@ class SpectronautLoader(BaseLoader):
                         continue
                     df[column] = df[column].str.replace(",", ".").astype(float)
                     print("converted", column, df[column].dtype)
-                except (ValueError, AttributeError) as e:
+                except (ValueError, AttributeError):
                     print("failed", column, df[column].dtype)
         else:
             df = pd.read_csv(
@@ -173,7 +168,7 @@ class SpectronautLoader(BaseLoader):
                         continue
                     df[column] = df[column].str.replace(",", ".").astype(float)
                     print("converted", column, df[column].dtype)
-                except (ValueError, AttributeError) as e:
+                except (ValueError, AttributeError):
                     print("failed", column, df[column].dtype)
 
         return df

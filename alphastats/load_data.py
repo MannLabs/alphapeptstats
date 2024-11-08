@@ -1,10 +1,10 @@
+from alphastats import MaxQuantLoader
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.MaxQuantLoader import *
 
 
-# TODO: Currenlty only used by tests, but should maybe be used more widely
+# TODO: Currently only used by tests, but should maybe be used more widely
 def load_data(file, type, **kwargs):
     type = type.lower()
     if type == "maxquant":

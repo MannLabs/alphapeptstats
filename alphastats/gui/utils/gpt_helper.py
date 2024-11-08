@@ -3,10 +3,8 @@ import json
 from typing import Dict, List, Union
 
 import pandas as pd
-import requests
 import streamlit as st
 from Bio import Entrez
-from gprofiler import GProfiler
 
 from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
