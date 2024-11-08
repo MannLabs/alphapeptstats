@@ -6,7 +6,6 @@ from alphastats import BaseLoader
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.import_helper import (
     load_example_data,
-    load_options,
     load_proteomics_data,
     show_button_download_metadata_template_file,
     show_loader_columns_selection,
@@ -34,7 +33,6 @@ def _finalize_data_loading(
     st.session_state[StateKeys.METADATA_COLUMNS] = metadata_columns
     st.session_state[StateKeys.DATASET] = dataset
 
-    load_options()
     sidebar_info()
 
     st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")

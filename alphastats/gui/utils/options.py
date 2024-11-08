@@ -8,7 +8,7 @@ from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
 
 
-def plotting_options(state):
+def get_plotting_options(state):
     dataset = state[StateKeys.DATASET]
     plotting_options = {
         "Sampledistribution Plot": {
@@ -69,7 +69,7 @@ def plotting_options(state):
             "function": dataset.plot_tsne,
         },
         "Volcano Plot": {
-            "between_two_groups": True,
+            "between_two_groups": True,  # TODO: between_two_groups is never used anywhere
             "function": dataset.plot_volcano,
         },
         "Clustermap": {"function": dataset.plot_clustermap},
@@ -78,7 +78,7 @@ def plotting_options(state):
     return plotting_options
 
 
-def statistic_options(state):
+def get_statistic_options(state):
     dataset = state[StateKeys.DATASET]
     statistic_options = {
         "Differential Expression Analysis - T-test": {
@@ -188,8 +188,8 @@ SOFTWARE_OPTIONS = {
 }
 
 
-# TODO unused
-def interpretation_options(state):
+# TODO merge with get_plotting_options (add key "llm_support"=True)
+def get_interpretation_options(state):
     dataset = state[StateKeys.DATASET]
     return {
         "Volcano Plot": {

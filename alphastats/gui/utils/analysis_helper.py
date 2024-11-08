@@ -7,18 +7,6 @@ from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
-def check_if_options_are_loaded(f):
-    # decorator to check for missing values
-    # TODO remove this
-    def inner(*args, **kwargs):
-        if hasattr(st.session_state, StateKeys.PLOTTING_OPTIONS) is False:
-            load_options()
-
-        return f(*args, **kwargs)
-
-    return inner
-
-
 def display_figure(plot):
     """
     display plotly or seaborn figure
@@ -385,16 +373,3 @@ def st_tsne_options(method_dict):
     if submitted:
         with st.spinner("Calculating..."):
             return method_dict["function"](**chosen_parameter_dict)
-
-
-def load_options():
-    from alphastats.gui.utils.options import (
-        plotting_options,
-        statistic_options,
-        # interpretation_options,
-    )
-
-    st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
-    st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
-    # TODO: Check if this should be reintroduced or removed
-    # st.session_state["interpretation_options"] = interpretation_options
