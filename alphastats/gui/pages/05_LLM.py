@@ -7,13 +7,13 @@ from openai import AuthenticationError
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
-from alphastats.gui.utils.gpt_helper import (
+from alphastats.gui.utils.llm_helper import (
     display_proteins,
-    get_subgroups_for_each_group,
+    set_api_key,
 )
-from alphastats.gui.utils.ollama_utils import LLMIntegration, Models
-from alphastats.gui.utils.openai_utils import set_api_key
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
+from alphastats.llm.llm_integration import LLMIntegration, Models
+from alphastats.llm.prompts import get_initial_prompt, get_system_message
 
 init_session_state()
 sidebar_info()
@@ -111,36 +111,24 @@ with c1:
 
 st.subheader("Prompts generated based on gene functions")
 
-subgroups = get_subgroups_for_each_group(st.session_state[StateKeys.DATASET].metadata)
-system_message = (
-    f"You are an expert biologist and have extensive experience in molecular biology, medicine and biochemistry.{os.linesep}"
-    "A user will present you with data regarding proteins upregulated in certain cells "
-    "sourced from UniProt and abstracts from scientific publications. They seek your "
-    "expertise in understanding the connections between these proteins and their potential role "
-    f"in disease genesis. {os.linesep}Provide a detailed and insightful, yet concise response based on the given information. Use formatting to make your response more human readable."
-    f"The data you have has following groups and respective subgroups: {str(subgroups)}."
-    "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that. If the data coming to"
-    " you from a function has references to the literature (for example, PubMed), always quote the references in your response."
-)
-user_prompt = (
-    f"We've recently identified several proteins that appear to be differently regulated in cells "
-    f"when comparing {parameter_dict['group1']} and {parameter_dict['group2']} in the {parameter_dict['column']} group. "
-    f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(upregulated_genes)}.{os.linesep}{os.linesep}"
-    f"Here is the list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
-    f"Help us understand the potential connections between these proteins and how they might be contributing "
-    f"to the differences. After that provide a high level summary"
-)
 
 with st.expander("System message", expanded=False):
-    system_message = st.text_area("", value=system_message, height=150)
+    system_message = st.text_area(
+        "", value=get_system_message(st.session_state[StateKeys.DATASET]), height=150
+    )
 
-with st.expander("User prompt", expanded=True):
-    user_prompt = st.text_area("", value=user_prompt, height=200)
+with st.expander("Initial prompt", expanded=True):
+    initial_prompt = st.text_area(
+        "",
+        value=get_initial_prompt(
+            parameter_dict, upregulated_genes, downregulated_genes
+        ),
+        height=200,
+    )
 
 llm_submitted = st.button("Run LLM analysis")
 
 
-# creating new assistant only once TODO: add a button to create new assistant
 if StateKeys.LLM_INTEGRATION not in st.session_state:
     if not llm_submitted:
         st.stop()
@@ -148,22 +136,20 @@ if StateKeys.LLM_INTEGRATION not in st.session_state:
     try:
         llm = LLMIntegration(
             api_type=st.session_state[StateKeys.API_TYPE],
+            system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=os.getenv("OLLAMA_BASE_URL", None),
             dataset=st.session_state[StateKeys.DATASET],
             gene_to_prot_id_map=gene_to_prot_id_map,
         )
 
-        # Set instructions and update tools
-
-        llm.messages = [{"role": "system", "content": system_message}]
-
         st.session_state[StateKeys.LLM_INTEGRATION] = llm
+
         st.success(
             f"{st.session_state[StateKeys.API_TYPE].upper()} integration initialized successfully!"
         )
 
-        llm.chat_completion(user_prompt)
+        llm.chat_completion(initial_prompt)
 
     except AuthenticationError:
         st.warning(

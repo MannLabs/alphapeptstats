@@ -1,8 +1,37 @@
 from pathlib import Path
+from typing import List
 
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys
+
+
+def display_proteins(overexpressed: List[str], underexpressed: List[str]) -> None:
+    """
+    Display a list of overexpressed and underexpressed proteins in a Streamlit app.
+
+    Args:
+        overexpressed (list[str]): A list of overexpressed proteins.
+        underexpressed (list[str]): A list of underexpressed proteins.
+    """
+
+    # Start with the overexpressed proteins
+    link = "https://www.uniprot.org/uniprotkb?query="
+    overexpressed_html = "".join(
+        f'<a href = {link + protein}><li style="color: green;">{protein}</li></a>'
+        for protein in overexpressed
+    )
+    # Continue with the underexpressed proteins
+    underexpressed_html = "".join(
+        f'<a href = {link + protein}><li style="color: red;">{protein}</li></a>'
+        for protein in underexpressed
+    )
+
+    # Combine both lists into one HTML string
+    full_html = f"<ul>{overexpressed_html}{underexpressed_html}</ul>"
+
+    # Display in Streamlit
+    st.markdown(full_html, unsafe_allow_html=True)
 
 
 def set_api_key(api_key: str = None) -> None:
