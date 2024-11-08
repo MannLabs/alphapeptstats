@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.io as pio
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
+from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.DataSet import DataSet
 from alphastats.llm.enrichment_analysis import get_enrichment_data
@@ -51,23 +52,6 @@ class LLMIntegration:
         The dataset to be used in the conversation, by default None
     gene_to_prot_id_map: optional
         Mapping of gene names to protein IDs
-
-    Attributes
-    ----------
-    _client : OpenAI
-        The OpenAI client instance
-    _model : str
-        The name of the language model being used
-    _messages : List[Dict[str, Any]]
-        The conversation history
-    _dataset : Any
-        The dataset being used
-    _metadata : Any
-        Metadata associated with the dataset
-    _tools : List[Dict[str, Any]]
-        List of available tools or functions
-    _artifacts : Dict[str, Any]
-        Dictionary to store conversation artifacts
     """
 
     def __init__(
@@ -94,8 +78,12 @@ class LLMIntegration:
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
         self._tools = self._get_tools()
-        self._messages = [{"role": "system", "content": system_message}]
+
+        self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
+        self._all_messages = []  # full conversation history for display
         self._artifacts = {}
+
+        self._append_message("system", system_message)
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -123,6 +111,31 @@ class LLMIntegration:
 
         return tools
 
+    def _append_message(
+        self,
+        role: str,
+        content: str,
+        *,
+        tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
+        tool_call_id: Optional[str] = None,
+    ) -> None:
+        """Construct a message and append it to the conversation history."""
+        message = {
+            "role": role,
+            "content": content,
+        }
+
+        if tool_calls is not None:
+            message["tool_calls"] = tool_calls
+
+        if tool_call_id is not None:
+            message["tool_call_id"] = tool_call_id
+
+        self._messages.append(message)
+        self._all_messages.append(message)
+
+        self._truncate_conversation_history()
+
     def _truncate_conversation_history(self, max_tokens: int = 100000):
         """
         Truncate the conversation history to stay within token limits.
@@ -131,37 +144,30 @@ class LLMIntegration:
         ----------
         max_tokens : int, optional
             The maximum number of tokens to keep in history, by default 100000
-
-        Returns
-        -------
-        None
         """
-        total_tokens = sum(len(m["content"].split()) for m in self._messages)
+        total_tokens = sum(
+            len(message["content"].split()) for message in self._messages
+        )
         while total_tokens > max_tokens and len(self._messages) > 1:
-            # TODO messages should still be displayed!
             removed_message = self._messages.pop(0)
             total_tokens -= len(removed_message["content"].split())
 
-    def _parse_model_response(self, response: Any) -> Dict[str, Any]:
-        """
-        Parse the response from the language model.
+    def _parse_model_response(
+        self, response: ChatCompletion
+    ) -> Tuple[str, List[ChatCompletionMessageToolCall]]:
+        """Parse the response from the language model.
 
         Parameters
         ----------
-        response : Any
+        response : ChatCompletion
             The raw response from the language model
 
         Returns
         -------
-        Dict[str, Any]
-            A dictionary containing the parsed content and tool calls
+        Message content and list of tool calls
         """
-        return {  # TODO refactor
-            "content": response.choices[0].message.content,  # str
-            "tool_calls": response.choices[
-                0
-            ].message.tool_calls,  # ChatCompletionMessageToolCall
-        }
+        message = response.choices[0].message
+        return message.content, message.tool_calls
 
     def _execute_function(
         self, function_name: str, function_args: Dict[str, Any]
@@ -180,11 +186,6 @@ class LLMIntegration:
         -------
         Any
             The result of the function execution
-
-        Raises
-        ------
-        ValueError
-            If the function is not implemented or the dataset is not available
         """
         try:
             # first try to find the function in the non-Dataset functions
@@ -213,13 +214,14 @@ class LLMIntegration:
 
             # fallback: try to find the function in the Dataset functions
             else:
-                plot_function = getattr(
+                function = getattr(
                     self._dataset,
                     function_name.split(".")[-1],
                     None,  # TODO why split?
                 )
-                if plot_function:
-                    return plot_function(**function_args)
+                if function:
+                    return function(**function_args)
+
             raise ValueError(
                 f"Function {function_name} not implemented or dataset not available"
             )
@@ -229,8 +231,8 @@ class LLMIntegration:
 
     def _handle_function_calls(
         self,
-        tool_calls: List[Any],
-    ) -> Dict[str, Any]:
+        tool_calls: List[ChatCompletionMessageToolCall],
+    ) -> Tuple[str, List[ChatCompletionMessageToolCall]]:
         """
         Handle function calls from the language model and manage resulting artifacts.
 
@@ -248,10 +250,8 @@ class LLMIntegration:
         # TODO avoid infinite loops
         new_artifacts = {}
 
-        funcs_and_args = get_tool_call_message(tool_calls)
-        self._messages.append(
-            {"role": "assistant", "content": funcs_and_args, "tool_calls": tool_calls}
-        )
+        tool_call_message = get_tool_call_message(tool_calls)
+        self._append_message("assistant", tool_call_message, tool_calls=tool_calls)
 
         for tool_call in tool_calls:
             function_name = tool_call.function.name
@@ -259,25 +259,17 @@ class LLMIntegration:
 
             function_result = self._execute_function(function_name, function_args)
             artifact_id = f"{function_name}_{tool_call.id}"
-
             new_artifacts[artifact_id] = function_result
 
-            self._messages.append(
-                {
-                    "role": "tool",
-                    "content": json.dumps(
-                        {"result": str(function_result), "artifact_id": artifact_id}
-                    ),
-                    "tool_call_id": tool_call.id,
-                }
+            content = json.dumps(
+                {"result": str(function_result), "artifact_id": artifact_id}
             )
+            self._append_message("tool", content, tool_call_id=tool_call.id)
 
-        post_artifact_message_idx = len(self._messages)
+        post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        logger.info(
-            f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
-        )
+        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]=} ..")
         response = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
@@ -285,16 +277,13 @@ class LLMIntegration:
         )
         logger.info(".. done")
 
-        parsed_response = self._parse_model_response(response)
-        parsed_response["new_artifacts"] = new_artifacts
-
-        return parsed_response
+        return self._parse_model_response(response)
 
     def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
-        for num, role_content_dict in enumerate(self._messages):
+        for message_idx, role_content_dict in enumerate(self._all_messages):
             if not show_all and (role_content_dict["role"] in ["tool", "system"]):
                 continue
             if not show_all and "tool_calls" in role_content_dict:
@@ -304,7 +293,7 @@ class LLMIntegration:
                 {
                     "role": role_content_dict["role"],
                     "content": role_content_dict["content"],
-                    "artifacts": self._artifacts.get(num, []),
+                    "artifacts": self._artifacts.get(message_idx, []),
                 }
             )
         return print_view
@@ -327,13 +316,10 @@ class LLMIntegration:
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
         """
-        self._messages.append({"role": role, "content": prompt})
-        self._truncate_conversation_history()
+        self._append_message(role, prompt)
 
         try:
-            logger.info(
-                f"Calling 'chat.completions.create' {self._messages=} {self._tools=} .."
-            )
+            logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
             response = self._client.chat.completions.create(
                 model=self._model,
                 messages=self._messages,
@@ -341,25 +327,21 @@ class LLMIntegration:
             )
             logger.info(".. done")
 
-            parsed_response = self._parse_model_response(response)
-            new_artifacts = {}
+            content, tool_calls = self._parse_model_response(response)
 
-            if parsed_response["tool_calls"]:
-                parsed_response = self._handle_function_calls(
-                    parsed_response["tool_calls"]
-                )
-                new_artifacts = parsed_response.pop("new_artifacts", {})
+            if tool_calls:
+                if content:
+                    raise ValueError(
+                        f"Unexpected content {content} with tool calls {tool_calls}."
+                    )
 
-            self._messages.append(
-                {"role": "assistant", "content": parsed_response["content"]}
-            )
-            return parsed_response[
-                "content"
-            ], new_artifacts  # TODO response is not used
+                content, _ = self._handle_function_calls(tool_calls)
+
+            self._append_message("assistant", content)
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
-            self._messages.append({"role": "system", "content": error_message})
+            self._append_message("system", error_message)
             return error_message, {}
 
     # TODO this seems to be for notebooks?
