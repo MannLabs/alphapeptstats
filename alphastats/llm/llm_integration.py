@@ -11,23 +11,26 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.DataSet import DataSet
-from alphastats.llm.enrichment_analysis import get_enrichment_data
 from alphastats.llm.llm_functions import (
+    GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,
     get_general_assistant_functions,
-    perform_dimensionality_reduction,
 )
 from alphastats.llm.llm_utils import (
     get_protein_id_for_gene_name,
     get_subgroups_for_each_group,
 )
 from alphastats.llm.prompts import get_tool_call_message
-from alphastats.llm.uniprot_utils import get_gene_function
 
 logger = logging.getLogger(__name__)
 
 
 class Models:
+    """Names of the available models.
+
+    Note that this will be directly passed to the OpenAI client.
+    """
+
     GPT4O = "gpt-4o"
     OLLAMA_31_8B = "llama3.1:8b"
     OLLAMA_31_70B = "llama3.1:70b"  # for testing only
@@ -41,7 +44,7 @@ class LLMIntegration:
 
     Parameters
     ----------
-    api_type : str
+    model_name : str
         The type of API to use, will be forwarded to the client.
     system_message : str
         The system message that should be given to the model.
@@ -57,34 +60,34 @@ class LLMIntegration:
 
     def __init__(
         self,
-        api_type: str,
+        model_name: str,
         *,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         system_message: str = None,
+        load_tools: bool = True,
         dataset: Optional[DataSet] = None,
         gene_to_prot_id_map: Optional[Dict[str, str]] = None,
     ):
-        self._model = api_type
+        self._model = model_name
 
-        if api_type in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
+        if model_name in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
             url = f"{base_url}/v1"
             self._client = OpenAI(base_url=url, api_key="ollama")
-        elif api_type in [Models.GPT4O]:
+        elif model_name in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
         else:
-            raise ValueError(f"Invalid API type: {api_type}")
+            raise ValueError(f"Invalid model name: {model_name}")
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
         self._gene_to_prot_id_map = gene_to_prot_id_map
 
-        self._tools = self._get_tools()
+        self._tools = self._get_tools() if load_tools else None
 
+        self._artifacts = {}
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
-        self._artifacts = {}
-
         if system_message is not None:
             self._append_message("system", system_message)
 
@@ -190,47 +193,36 @@ class LLMIntegration:
         Any
             The result of the function execution
         """
-        try:
-            # first try to find the function in the non-Dataset functions
-            if (
-                function := {
-                    "get_gene_function": get_gene_function,
-                    "get_enrichment_data": get_enrichment_data,
-                }.get(function_name)
-            ) is not None:
+        # first try to find the function in the non-Dataset functions
+        if (function := GENERAL_FUNCTION_MAPPING.get(function_name)) is not None:
+            return function(**function_args)
+
+        # special treatment for this function
+        elif function_name == "plot_intensity":
+            # TODO move this logic to dataset
+            gene_name = function_args.pop(
+                "protein_id"
+            )  # no typo, the LLM sets "protein_id" to gene_name
+            protein_id = get_protein_id_for_gene_name(
+                gene_name, self._gene_to_prot_id_map
+            )
+            function_args["protein_id"] = protein_id
+
+            return self._dataset.plot_intensity(**function_args)
+
+        # look up the function in the DataSet class
+        else:
+            function = getattr(
+                self._dataset,
+                function_name.split(".")[-1],
+                None,  # TODO why split?
+            )
+            if function:
                 return function(**function_args)
 
-            # special treatment for these functions
-            elif function_name == "perform_dimensionality_reduction":
-                # TODO add API in dataset
-                perform_dimensionality_reduction(self._dataset, **function_args)
-
-            elif function_name == "plot_intensity":
-                # TODO move this logic to dataset
-                gene_name = function_args.pop("gene_name")
-                protein_id = get_protein_id_for_gene_name(
-                    gene_name, self._gene_to_prot_id_map
-                )
-                function_args["protein_id"] = protein_id
-
-                return self._dataset.plot_intensity(**function_args)
-
-            # fallback: try to find the function in the Dataset functions
-            else:
-                function = getattr(
-                    self._dataset,
-                    function_name.split(".")[-1],
-                    None,  # TODO why split?
-                )
-                if function:
-                    return function(**function_args)
-
-            raise ValueError(
-                f"Function {function_name} not implemented or dataset not available"
-            )
-
-        except Exception as e:
-            return f"Error executing {function_name}: {str(e)}"
+        raise ValueError(
+            f"Function {function_name} not implemented or dataset not available"
+        )
 
     def _handle_function_calls(
         self,
@@ -260,7 +252,11 @@ class LLMIntegration:
             function_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments)
 
-            function_result = self._execute_function(function_name, function_args)
+            try:
+                function_result = self._execute_function(function_name, function_args)
+            except Exception as e:
+                function_result = f"Error executing {function_name}: {str(e)}"
+
             artifact_id = f"{function_name}_{tool_call.id}"
             new_artifacts[artifact_id] = function_result
 
@@ -272,15 +268,20 @@ class LLMIntegration:
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]=} ..")
-        response = self._client.chat.completions.create(
+        response = self._chat_completion_create()
+
+        return self._parse_model_response(response)
+
+    def _chat_completion_create(self) -> ChatCompletion:
+        """Create a chat completion based on the current conversation history."""
+        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
+        result = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
             tools=self._tools,
         )
         logger.info(".. done")
-
-        return self._parse_model_response(response)
+        return result
 
     def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
         """Get a structured view of the conversation history for display purposes."""
@@ -301,9 +302,7 @@ class LLMIntegration:
             )
         return print_view
 
-    def chat_completion(
-        self, prompt: str, role: str = "user"
-    ) -> Tuple[str, Dict[str, Any]]:
+    def chat_completion(self, prompt: str, role: str = "user") -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
 
@@ -322,13 +321,7 @@ class LLMIntegration:
         self._append_message(role, prompt)
 
         try:
-            logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-            response = self._client.chat.completions.create(
-                model=self._model,
-                messages=self._messages,
-                tools=self._tools,
-            )
-            logger.info(".. done")
+            response = self._chat_completion_create()
 
             content, tool_calls = self._parse_model_response(response)
 
@@ -345,7 +338,6 @@ class LLMIntegration:
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message("system", error_message)
-            return error_message, {}
 
     # TODO this seems to be for notebooks?
     # we need some "export mode" where everything is shown

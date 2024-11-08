@@ -4,7 +4,14 @@ from typing import Dict, List
 
 import pandas as pd
 
-from alphastats.plots.DimensionalityReduction import DimensionalityReduction
+from alphastats.DataSet import DataSet
+from alphastats.llm.enrichment_analysis import get_enrichment_data
+from alphastats.llm.uniprot_utils import get_gene_function
+
+GENERAL_FUNCTION_MAPPING = {
+    "get_gene_function": get_gene_function,
+    "get_enrichment_data": get_enrichment_data,
+}
 
 
 def get_general_assistant_functions() -> List[Dict]:
@@ -17,7 +24,7 @@ def get_general_assistant_functions() -> List[Dict]:
         {
             "type": "function",
             "function": {
-                "name": "get_gene_function",
+                "name": get_gene_function.__name__,
                 "description": "Get the gene function and description by UniProt lookup of gene identifier/name",
                 "parameters": {
                     "type": "object",
@@ -34,7 +41,7 @@ def get_general_assistant_functions() -> List[Dict]:
         {
             "type": "function",
             "function": {
-                "name": "get_enrichment_data",
+                "name": get_enrichment_data.__name__,
                 "description": "Get enrichment data for a list of differentially expressed genes",
                 "parameters": {
                     "type": "object",
@@ -83,12 +90,12 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "plot_intensity",
+                "name": DataSet.plot_intensity.__name__,
                 "description": "Create an intensity plot based on protein data and analytical methods.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "gene_name": {  # this will be mapped to "protein_id" when calling the function
+                        "protein_id": {  # LLM will provide gene_name, mapping to protein_id is done when calling the function
                             "type": "string",
                             "enum": gene_names,
                             "description": "Identifier for the gene of interest",
@@ -125,7 +132,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "perform_dimensionality_reduction",
+                "name": DataSet.perform_dimensionality_reduction.__name__,
                 "description": "Perform dimensionality reduction on a given dataset and generate a plot.",
                 "parameters": {
                     "type": "object",
@@ -152,7 +159,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "plot_sampledistribution",
+                "name": DataSet.plot_sampledistribution.__name__,
                 "description": "Generates a histogram plot for each sample in the dataset matrix.",
                 "parameters": {
                     "type": "object",
@@ -175,7 +182,7 @@ def get_assistant_functions(
         {
             "type": "function",
             "function": {
-                "name": "plot_volcano",
+                "name": DataSet.plot_volcano.__name__,
                 "description": "Generates a volcano plot based on two subgroups of the same group",
                 "parameters": {
                     "type": "object",
@@ -235,17 +242,3 @@ def get_assistant_functions(
         },
         # {"type": "code_interpreter"},
     ]
-
-
-def perform_dimensionality_reduction(dataset, group, method, circle, **kwargs):
-    dr = DimensionalityReduction(
-        mat=dataset.mat,
-        metadate=dataset.metadata,
-        sample=dataset.sample,
-        preprocessing_info=dataset.preprocessing_info,
-        group=group,
-        circle=circle,
-        method=method,
-        **kwargs,
-    )
-    return dr.plot

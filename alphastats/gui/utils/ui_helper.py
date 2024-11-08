@@ -108,7 +108,7 @@ class StateKeys:
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
-    API_TYPE = "api_type"
+    MODEL_NAME = "model_name"
 
     LLM_INPUT = "llm_input"
 

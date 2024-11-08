@@ -311,6 +311,27 @@ class DataSet:
         )
         return dimensionality_reduction.plot
 
+    def perform_dimensionality_reduction(
+        self, method: str, group: Optional[str] = None, circle: bool = False
+    ):
+        """Generic wrapper for dimensionality reduction methods to be used by LLM.
+
+        Args:
+            method (str): "pca", "tsne", "umap"
+            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+            circle (bool, optional): draw circle around each group. Defaults to False.
+        """
+
+        result = {
+            "pca": self.plot_pca,
+            "tsne": self.plot_tsne,
+            "umap": self.plot_umap,
+        }.get(method)
+        if result is None:
+            raise ValueError(f"Invalid method: {method}")
+
+        return result(group=group, circle=circle)
+
     @ignore_warning(RuntimeWarning)
     def plot_volcano(
         self,
