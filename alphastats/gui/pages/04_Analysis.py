@@ -42,7 +42,7 @@ show_plot = False
 show_df = False
 analysis_result = None
 
-c1, *_ = st.columns([1, 1, 1])
+c1, c2 = st.columns([0.33, 0.67])
 with c1:
     method = st.selectbox(
         "Analysis",
@@ -66,21 +66,21 @@ with c1:
         )
         show_df = analysis_result is not None
 
+with c2:
+    # --- SHOW PLOT -------------------------------------------------------
+    if show_plot:
+        display_plot(method, analysis_result)
 
-# --- SHOW PLOT -------------------------------------------------------
-if show_plot:
-    display_plot(method, analysis_result)
+    # --- SHOW STATISTICAL ANALYSIS -------------------------------------------------------
+    elif show_df:
+        display_df(analysis_result)
 
-# --- SHOW STATISTICAL ANALYSIS -------------------------------------------------------
-elif show_df:
-    display_df(analysis_result)
+        csv = convert_df(analysis_result)
 
-    csv = convert_df(analysis_result)
-
-    # TODO do we want to save statistical analysis to results page as well?
-    st.download_button(
-        "Download as .csv", csv, method + ".csv", "text/csv", key="download-csv"
-    )
+        # TODO do we want to save statistical analysis to results page as well?
+        st.download_button(
+            "Download as .csv", csv, method + ".csv", "text/csv", key="download-csv"
+        )
 
 
 @st.fragment

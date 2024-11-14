@@ -4,9 +4,9 @@ from typing import Any, Dict, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
+from alphastats.gui.utils.analysis import VolcanoPlotAnalysis
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 from alphastats.keys import Cols
-from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
 def display_figure(plot):
@@ -118,62 +118,6 @@ def st_general(method_dict):
     return chosen_parameter_dict
 
 
-def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
-    """Draw Volcano Plot using the VolcanoPlot class.
-
-    Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
-    analysis_object is the underlying object, parameters is a dictionary of the parameters used.
-    """
-    parameters = helper_compare_two_groups()
-    method = st.selectbox(
-        "Differential Analysis using:",
-        options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
-    )
-    parameters.update({"method": method})
-
-    labels = st.checkbox("Add label")
-    parameters.update({"labels": labels})
-
-    draw_line = st.checkbox("Draw line")
-    parameters.update({"draw_line": draw_line})
-
-    alpha = st.number_input(
-        label="alpha", min_value=0.001, max_value=0.050, value=0.050
-    )
-    parameters.update({"alpha": alpha})
-
-    min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-    parameters.update({"min_fc": min_fc})
-
-    if method == "sam":
-        perm = st.number_input(
-            label="Number of Permutations", min_value=1, max_value=1000, value=10
-        )
-        fdr = st.number_input(
-            label="FDR cut off", min_value=0.005, max_value=0.1, value=0.050
-        )
-        parameters.update({"perm": perm, "fdr": fdr})
-
-    submitted = st.button("Run analysis ..")
-
-    if submitted:
-        dataset = st.session_state[StateKeys.DATASET]
-
-        # TODO currently there's no other way to obtain both the plot and the underlying data
-        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
-        #  One option could be to alyways return the whole analysis object.
-        volcano_plot = VolcanoPlot(
-            mat=dataset.mat,
-            rawinput=dataset.rawinput,
-            metadata=dataset.metadata,
-            preprocessing_info=dataset.preprocessing_info,
-            **parameters,
-        )
-        return volcano_plot.plot, volcano_plot, parameters
-
-    return None, None, None
-
-
 def do_analysis(
     method: str, options_dict: Dict[str, Any]
 ) -> Tuple[Optional[Any], Optional[Any], Dict[str, Any]]:
@@ -185,11 +129,15 @@ def do_analysis(
     Currently, analysis_object is only not-None for Volcano Plot.
     # TODO unify the API of all analysis methods
     """
-
     method_dict = options_dict.get(method)
 
     if method == "Volcano Plot":
-        return gui_volcano_plot()
+        analysis = VolcanoPlotAnalysis(st.session_state[StateKeys.DATASET])
+        analysis.show_widget()
+
+        if st.button("Run analysis .."):
+            return analysis.do_analysis()
+        return None, None, {}
 
     elif method == "t-SNE Plot":
         parameters = st_tsne_options(method_dict)
@@ -235,6 +183,7 @@ def helper_plot_dimensionality_reduction(method_dict):
     return chosen_parameter_dict
 
 
+# TODO this can be deleted after all analysis adapted the new Pattern (cf. analysis.py:Analysis())
 def helper_compare_two_groups():
     """
     Helper function to compare two groups for example
