@@ -39,13 +39,14 @@ def llm_config():
         current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
 
         models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
-        st.session_state[StateKeys.MODEL_NAME] = st.selectbox(
+        model_name = st.selectbox(
             "Select LLM",
             models,
             index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
             if current_model is not None
             else 0,
         )
+        st.session_state[StateKeys.MODEL_NAME] = model_name
 
         base_url = None
         if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
@@ -92,49 +93,35 @@ volcano_plot, parameter_dict = st.session_state[StateKeys.LLM_INPUT]
 st.write(f"Parameters used for analysis: {parameter_dict}")
 c1, c2 = st.columns((1, 2))
 
+with c2:
+    display_figure(volcano_plot.plot)
+
 with c1:
-    genes_of_interest_df = volcano_plot.res
-    genes_of_interest_df = genes_of_interest_df[genes_of_interest_df["label"] != ""]
-
-    gene_names_colname = st.session_state[StateKeys.LOADER].gene_names
-    prot_ids_colname = st.session_state[StateKeys.LOADER].index_column
-
-    gene_to_prot_id_map = dict(  # TODO move this logic to dataset
-        zip(
-            genes_of_interest_df[gene_names_colname].tolist(),
-            genes_of_interest_df[prot_ids_colname].tolist(),
-        )
+    regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
+    regulated_genes_dict = dict(
+        zip(regulated_genes_df["label"], regulated_genes_df["color"].tolist())
     )
 
-    with c2:
-        display_figure(volcano_plot.plot)
-
-    labels = [
-        ";".join([i for i in j.split(";") if i])
-        for j in genes_of_interest_df["label"].tolist()
-    ]
-    genes_of_interest = dict(zip(labels, genes_of_interest_df["color"].tolist()))
-
-    if not genes_of_interest:
+    if not regulated_genes_dict:
         st.text("No genes of interest found.")
         st.stop()
 
     upregulated_genes = [
-        key for key in genes_of_interest if genes_of_interest[key] == "up"
+        key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
     ]
     downregulated_genes = [
-        key for key in genes_of_interest if genes_of_interest[key] == "down"
+        key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
     ]
 
     st.markdown("##### Genes of interest")
-    c1, c2 = st.columns((1, 2), gap="medium")
-    with c1:
+    c11, c12 = st.columns((1, 2), gap="medium")
+    with c11:
         st.write("Upregulated genes")
         st.markdown(
             get_display_proteins_html(upregulated_genes, True), unsafe_allow_html=True
         )
 
-    with c2:
+    with c12:
         st.write("Downregulated genes")
         st.markdown(
             get_display_proteins_html(downregulated_genes, False),
@@ -194,7 +181,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=OLLAMA_BASE_URL,
             dataset=st.session_state[StateKeys.DATASET],
-            gene_to_prot_id_map=gene_to_prot_id_map,
+            genes_of_interest=list(regulated_genes_dict.keys()),
         )
 
         st.session_state[StateKeys.LLM_INTEGRATION][model_name] = llm_integration
