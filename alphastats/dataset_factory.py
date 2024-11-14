@@ -5,6 +5,8 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from alphastats.keys import Cols
+
 
 class DataSetFactory:
     """Create all 'heavy' data structures of a DataSet."""
@@ -13,14 +15,12 @@ class DataSetFactory:
         self,
         *,
         rawinput: pd.DataFrame,
-        index_column: str,
         intensity_column: Union[List[str], str],
         metadata_path_or_df: Union[str, pd.DataFrame],
         sample_column: str,
     ):
         self.rawinput: pd.DataFrame = rawinput
         self.sample_column: str = sample_column
-        self.index_column: str = index_column
         self.intensity_column: Union[List[str], str] = intensity_column
         self.metadata_path_or_df: Union[str, pd.DataFrame] = metadata_path_or_df
 
@@ -28,7 +28,7 @@ class DataSetFactory:
         """Creates a matrix: features (Proteins) as columns, samples as rows."""
 
         df = self.rawinput
-        df = df.set_index(self.index_column)
+        df = df.set_index(Cols.INDEX)
 
         if isinstance(self.intensity_column, str):
             regex_find_intensity_columns = self.intensity_column.replace(

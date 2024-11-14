@@ -5,6 +5,7 @@ import pandas as pd
 import seaborn as sns
 
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.keys import Cols
 from alphastats.plots.PlotUtils import PlotUtils
 
 
@@ -15,7 +16,6 @@ class ClusterMap(PlotUtils):
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
         sample: str,
-        index_column: str,
         preprocessing_info: Dict,
         label_bar,
         only_significant,
@@ -25,13 +25,11 @@ class ClusterMap(PlotUtils):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
         self.sample: str = sample
-        self.index_column: str = index_column
         self.preprocessing_info: Dict = preprocessing_info
 
         self._statistics = Statistics(
             mat=self.mat,
             metadata=self.metadata,
-            index_column=self.index_column,
             sample=self.sample,
             preprocessing_info=self.preprocessing_info,
         )
@@ -61,7 +59,7 @@ class ClusterMap(PlotUtils):
         if self.only_significant and self.group is not None:
             anova_df = self._statistics.anova(column=self.group, tukey=False)
             significant_proteins = anova_df[anova_df["ANOVA_pvalue"] < 0.05][
-                self.index_column
+                Cols.INDEX
             ].to_list()
             df = df[significant_proteins]  # TODO bug?
 
