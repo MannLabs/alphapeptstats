@@ -10,6 +10,24 @@ from alphastats.keys import Cols
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
+class PlottingOptions:
+    """Keys for the plotting options."""
+
+    PCA_PLOT = "PCA Plot"
+    UMAP_PLOT = "UMAP Plot"
+    TSNE_PLOT = "t-SNE Plot"
+    VOLCANO_PLOT = "Volcano Plot"
+
+    @classmethod
+    def get_values(cls):
+        """Get all user-defined string values of the class."""
+        return [
+            value
+            for key, value in cls.__dict__.items()
+            if not key.startswith("__") and isinstance(value, str)
+        ]
+
+
 class Analysis(ABC):
     """Abstract class for analysis widgets."""
 
@@ -87,6 +105,79 @@ class GroupCompareAnalysis(Analysis, ABC):
         self._parameters.update({"group1": group1, "group2": group2})
         if column is not None:
             self._parameters["column"] = column
+
+
+class DimensionReductionAnalysis(Analysis, ABC):
+    """Abstract class for dimension reduction analysis widgets."""
+
+    def show_widget(self):
+        """Gather parameters for dimension reduction analysis."""
+
+        group = st.selectbox(
+            "Color according to",
+            options=[None] + self._dataset.metadata.columns.to_list(),
+        )
+
+        circle = st.checkbox("circle")
+
+        self._parameters.update({"circle": circle, "group": group})
+
+
+class PCAPlotAnalysis(DimensionReductionAnalysis):
+    """Widget for PCA Plot analysis."""
+
+    def do_analysis(self):
+        """Draw PCA Plot using the PCAPlot class."""
+
+        pca_plot = self._dataset.plot_pca(
+            group=self._parameters["group"],
+            circle=self._parameters["circle"],
+        )
+        return pca_plot, None, self._parameters
+
+
+class UMAPPlotAnalysis(DimensionReductionAnalysis):
+    """Widget for UMAP Plot analysis."""
+
+    def do_analysis(self):
+        """Draw PCA Plot using the PCAPlot class."""
+        umap_plot = self._dataset.plot_umap(
+            group=self._parameters["group"],
+            circle=self._parameters["circle"],
+        )
+        return umap_plot, None, self._parameters
+
+
+class TSNEPlotAnalysis(DimensionReductionAnalysis):
+    """Widget for t-SNE Plot analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+        super().show_widget()
+
+        n_iter = st.select_slider(
+            "Maximum number of iterations for the optimization",
+            range(250, 2001),
+            value=1000,
+        )
+        perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
+
+        self._parameters.update(
+            {
+                "n_iter": n_iter,
+                "perplexity": perplexity,
+            }
+        )
+
+    def do_analysis(self):
+        """Draw t-SNE Plot using the TSNEPlot class."""
+        tsne_plot = self._dataset.plot_tsne(
+            group=self._parameters["group"],
+            circle=self._parameters["circle"],
+            perplexity=self._parameters["perplexity"],
+            n_iter=self._parameters["n_iter"],
+        )
+        return tsne_plot, None, self._parameters
 
 
 class VolcanoPlotAnalysis(GroupCompareAnalysis):

@@ -4,7 +4,13 @@ from typing import Any, Dict, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.analysis import VolcanoPlotAnalysis
+from alphastats.gui.utils.analysis import (
+    PCAPlotAnalysis,
+    PlottingOptions,
+    TSNEPlotAnalysis,
+    UMAPPlotAnalysis,
+    VolcanoPlotAnalysis,
+)
 from alphastats.gui.utils.ui_helper import StateKeys, convert_df
 from alphastats.keys import Cols
 
@@ -129,29 +135,31 @@ def do_analysis(
     Currently, analysis_object is only not-None for Volcano Plot.
     # TODO unify the API of all analysis methods
     """
-    method_dict = options_dict.get(method)
+    options = {
+        PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
+        PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
+        PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
+        PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
+    }
 
-    if method == "Volcano Plot":
-        analysis = VolcanoPlotAnalysis(st.session_state[StateKeys.DATASET])
+    if (analysis_class := options.get(method)) is not None:
+        analysis = analysis_class(st.session_state[StateKeys.DATASET])
         analysis.show_widget()
-
         if st.button("Run analysis .."):
-            return analysis.do_analysis()
+            with st.spinner("Running analysis .."):
+                return analysis.do_analysis()
         return None, None, {}
 
-    elif method == "t-SNE Plot":
-        parameters = st_tsne_options(method_dict)
+    method_dict = options_dict.get(method)
 
-    elif method == "Differential Expression Analysis - T-test":
+    # old, to be refactored logic:
+    if method == "Differential Expression Analysis - T-test":
         parameters = helper_compare_two_groups()
         parameters.update({"method": "ttest"})
 
     elif method == "Differential Expression Analysis - Wald-test":
         parameters = helper_compare_two_groups()
         parameters.update({"method": "wald"})
-
-    elif method == "PCA Plot" or method == "UMAP Plot":
-        parameters = helper_plot_dimensionality_reduction(method_dict=method_dict)
 
     else:
         parameters = st_general(method_dict=method_dict)
@@ -165,6 +173,7 @@ def do_analysis(
     return None, None, {}
 
 
+# TODO this can be deleted after all analysis adapted the new Pattern (cf. analysis.py:Analysis())
 def helper_plot_dimensionality_reduction(method_dict):
     group = st.selectbox(
         method_dict["settings"]["group"].get("label"),
@@ -233,27 +242,5 @@ def helper_compare_two_groups():
             )
 
         chosen_parameter_dict.update({"group1": group1, "group2": group2})
-
-    return chosen_parameter_dict
-
-
-def st_tsne_options(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    n_iter = st.select_slider(
-        "Maximum number of iterations for the optimization",
-        range(250, 2001),
-        value=1000,
-    )
-    perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
-
-    chosen_parameter_dict.update(
-        {
-            "n_iter": n_iter,
-            "perplexity": perplexity,
-        }
-    )
 
     return chosen_parameter_dict
