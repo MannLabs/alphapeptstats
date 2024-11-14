@@ -50,7 +50,6 @@ class VolcanoPlot(PlotUtils):
         rawinput: pd.DataFrame,
         metadata: pd.DataFrame,
         sample: str,
-        gene_names: str,
         preprocessing_info: Dict,
         group1: Union[List[str], str],
         group2: Union[List[str], str],
@@ -70,7 +69,6 @@ class VolcanoPlot(PlotUtils):
         self.rawinput = rawinput
         self.metadata: pd.DataFrame = metadata
         self.sample: str = sample
-        self.gene_names: str = gene_names
         self.preprocessing_info: Dict = preprocessing_info
 
         self.method = method
@@ -228,14 +226,14 @@ class VolcanoPlot(PlotUtils):
             Cols.INDEX
         ]  # TODO this now shows the internal column name as description
 
-        if self.gene_names is not None:
+        if Cols.GENE_NAMES in self.rawinput.columns:
             self.res = pd.merge(
                 self.res,
-                self.rawinput[[self.gene_names, Cols.INDEX]],
+                self.rawinput[[Cols.GENE_NAMES, Cols.INDEX]],
                 on=Cols.INDEX,
                 how="left",
             )
-            self.hover_data.append(self.gene_names)
+            self.hover_data.append(Cols.GENE_NAMES)
 
     def _annotate_result_df(self):
         """
@@ -278,7 +276,9 @@ class VolcanoPlot(PlotUtils):
         add gene names as hover data if they are given
         """
 
-        label_column = self.gene_names if self.gene_names is not None else Cols.INDEX
+        label_column = (
+            Cols.GENE_NAMES if Cols.GENE_NAMES in self.res.columns else Cols.INDEX
+        )
 
         self.res["label"] = np.where(
             self.res.color != "non_sig", self.res[label_column], ""

@@ -46,7 +46,7 @@ class MaxQuantLoader(BaseLoader):
         self._read_all_column_names_as_string()
 
         if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names = gene_names_column
+            self.gene_names_column = gene_names_column
 
         if evidence_file is not None:
             self._load_evidence(evidence_file=evidence_file)
