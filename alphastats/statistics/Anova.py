@@ -13,14 +13,12 @@ class Anova:
         self,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         column: str,
         protein_ids: Union[str, List[str]],
         tukey: bool,
     ):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
 
         # TODO move these to perform()?
         self.column: str = column
@@ -58,7 +56,7 @@ class Anova:
         self.all_groups = []
         for sub in subgroup:
             group_list = self.metadata[self.metadata[self.column] == sub][
-                self.sample
+                Cols.SAMPLE
             ].tolist()
             self.all_groups.append(group_list)
 
@@ -69,9 +67,9 @@ class Anova:
         df = (
             self.mat[self.protein_ids_list]
             .reset_index()
-            .rename(columns={"index": self.sample})
+            .rename(columns={"index": Cols.SAMPLE})
         )
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
+        df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
         tukey_df_list = []
         for protein_id in tqdm(self.protein_ids_list):
             tukey_df_list.append(

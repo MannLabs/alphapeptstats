@@ -45,8 +45,8 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
 
     assert not at.exception
 
-    assert at.session_state[StateKeys.METADATA_COLUMNS] == [
-        "sample",
+    assert at.session_state[StateKeys.DATASET].metadata.columns.to_list() == [
+        "sample_",
         "disease",
         "Drug therapy (procedure) (416608005)",
         "Lipid-lowering therapy (134350008)",
@@ -54,10 +54,6 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
     assert (
         str(type(at.session_state[StateKeys.DATASET]))
         == "<class 'alphastats.DataSet.DataSet'>"
-    )
-    assert (
-        str(type(at.session_state[StateKeys.LOADER]))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
     )
 
 
@@ -112,8 +108,3 @@ def test_page_02_loads_maxquant_testfiles(
     assert dataset._intensity_column == "LFQ intensity [sample]"
     assert dataset.rawmat.shape == (312, 2611)
     assert dataset.software == "MaxQuant"
-    assert dataset.sample == "sample"
-    assert (
-        str(type(at.session_state[StateKeys.LOADER]))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
-    )

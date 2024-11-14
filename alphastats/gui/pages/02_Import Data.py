@@ -1,8 +1,5 @@
-from typing import List
-
 import streamlit as st
 
-from alphastats import BaseLoader
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.import_helper import (
     load_example_data,
@@ -22,15 +19,9 @@ from alphastats.gui.utils.ui_helper import (
 
 
 def _finalize_data_loading(
-    loader: BaseLoader,
-    metadata_columns: List[str],
     dataset: DataSet,
 ) -> None:
     """Finalize the data loading process."""
-    st.session_state[StateKeys.LOADER] = (
-        loader  # TODO: Figure out if we even need the loader here, as the dataset has the loader as an attribute.
-    )
-    st.session_state[StateKeys.METADATA_COLUMNS] = metadata_columns
     st.session_state[StateKeys.DATASET] = dataset
 
     sidebar_info()
@@ -56,9 +47,9 @@ if c1.button("Start new Session"):
 if c2.button("Start new Session with example DataSet", key="_load_example_data"):
     empty_session_state()
     init_session_state()
-    loader, metadata_columns, dataset = load_example_data()
+    dataset = load_example_data()
 
-    _finalize_data_loading(loader, metadata_columns, dataset)
+    _finalize_data_loading(dataset)
     st.stop()
 
 
@@ -124,26 +115,23 @@ metadatafile_upload = st.file_uploader(
     "Upload metadata file with information about your samples",
 )
 
-if metadatafile_upload is None:
-    st.stop()
+metadatafile_df = None
+if metadatafile_upload is not None:
+    metadatafile_df = uploaded_file_to_df(metadatafile_upload)
 
-metadatafile_df = uploaded_file_to_df(metadatafile_upload)
-
-sample_column = show_select_sample_column_for_metadata(
-    metadatafile_df, software, loader
-)
+    sample_column = show_select_sample_column_for_metadata(
+        metadatafile_df, software, loader
+    )
 
 
 # ##########  Create dataset
 st.markdown("##### 4. Create DataSet")
 
 dataset = None
-metadata_columns = []
 c1, c2 = st.columns(2)
 
 if c2.button("Create DataSet without metadata"):
     dataset = DataSet(loader=loader)
-    metadata_columns = ["sample"]
 
 if c1.button(
     "Create DataSet with metadata",
@@ -160,8 +148,7 @@ if c1.button(
         metadata_path_or_df=metadatafile_df,
         sample_column=sample_column,
     )
-    metadata_columns = metadatafile_df.columns.to_list()
 
 if dataset is not None:
     st.info("DataSet has been created.")
-    _finalize_data_loading(loader, metadata_columns, dataset)
+    _finalize_data_loading(dataset)

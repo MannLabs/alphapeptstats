@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scipy
 
+from alphastats.keys import Cols
 from alphastats.plots.PlotUtils import PlotUtils, plotly_object
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -37,7 +38,6 @@ class IntensityPlot(PlotUtils):
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         intensity_column: str,
         preprocessing_info: Dict,
         protein_id,
@@ -49,7 +49,6 @@ class IntensityPlot(PlotUtils):
     ) -> None:
         self.mat = mat
         self.metadata = metadata
-        self.sample = sample
         self.intensity_column = intensity_column
         self.preprocessing_info = preprocessing_info
 
@@ -140,9 +139,9 @@ class IntensityPlot(PlotUtils):
         df = (
             self.mat[[self.protein_id]]
             .reset_index()
-            .rename(columns={"index": self.sample})
+            .rename(columns={"index": Cols.SAMPLE})
         )
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
+        df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
 
         if self.subgroups is not None:
             df = df[df[self.group].isin(self.subgroups)]

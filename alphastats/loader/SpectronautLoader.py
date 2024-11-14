@@ -88,7 +88,7 @@ class SpectronautLoader(BaseLoader):
         other proteomics softwares use a wide format (column for each sample)
         reshape to a wider format
         """
-        self.rawinput["sample"] = (
+        self.rawinput["tmp_sample"] = (
             self.rawinput[self.sample_column]
             + SPECTRONAUT_COLUMN_DELIM
             + self.intensity_column
@@ -98,9 +98,11 @@ class SpectronautLoader(BaseLoader):
             indexing_columns.append(self.gene_names_column)
 
         df = self.rawinput.pivot(
-            columns="sample", index=indexing_columns, values=self.intensity_column
+            columns="tmp_sample", index=indexing_columns, values=self.intensity_column
         )
         df.reset_index(inplace=True)
+        # get rid of tmp_sample again, which can cause troubles when working with indices downstream
+        df.rename_axis(columns=None, inplace=True)
 
         return df
 

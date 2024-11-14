@@ -64,19 +64,20 @@ class DataSet:
         """
         self._check_loader(loader=loader)
 
+        self._data_harmonizer = DataHarmonizer(loader, sample_column)
+
         # fill data from loader
-        self.rawinput: pd.DataFrame = DataHarmonizer(loader).get_harmonized_rawinput(
+        self.rawinput: pd.DataFrame = self._data_harmonizer.get_harmonized_rawinput(
             loader.rawinput
         )
         self.filter_columns: List[str] = loader.filter_columns
-
         self.software: str = loader.software
-
         self._intensity_column: Union[str, list] = (
             loader._extract_sample_names(
-                metadata=self.metadata, sample_column=self.sample
+                metadata=self.metadata, sample_column=sample_column
             )
-            if loader == "Generic"
+            if loader
+            == "Generic"  # TODO is this ever the case? not rather instanceof(loader, GenericLoader)?
             else loader.intensity_column
         )
 
@@ -86,14 +87,13 @@ class DataSet:
             rawinput=self.rawinput,
             intensity_column=self._intensity_column,
             metadata_path_or_df=metadata_path_or_df,
-            sample_column=sample_column,
+            data_harmonizer=self._data_harmonizer,
         )
 
-        rawmat, mat, metadata, sample, preprocessing_info = self._get_init_dataset()
+        rawmat, mat, metadata, preprocessing_info = self._get_init_dataset()
         self.rawmat: pd.DataFrame = rawmat
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
         self._gene_name_to_protein_id_map = (
@@ -115,11 +115,11 @@ class DataSet:
 
     def _get_init_dataset(
         self,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str, Dict]:
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict]:
         """Get the initial data structure for the DataSet."""
         rawmat, mat = self._dataset_factory.create_matrix_from_rawinput()
 
-        metadata, sample = self._dataset_factory.create_metadata(mat)
+        metadata = self._dataset_factory.create_metadata(mat)
 
         preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=mat.shape[0],
@@ -128,7 +128,7 @@ class DataSet:
             filter_columns=self.filter_columns,
         )
 
-        return rawmat, mat, metadata, sample, preprocessing_info
+        return rawmat, mat, metadata, preprocessing_info
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -157,7 +157,6 @@ class DataSet:
         return Preprocess(
             self.filter_columns,
             self.rawinput,
-            self.sample,
             self.metadata,
             self.preprocessing_info,
             self.mat,
@@ -194,7 +193,6 @@ class DataSet:
             self.rawmat,
             self.mat,
             self.metadata,
-            self.sample,
             self.preprocessing_info,
         ) = self._get_init_dataset()
 
@@ -207,7 +205,6 @@ class DataSet:
         return Statistics(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
         )
 
@@ -232,8 +229,8 @@ class DataSet:
 
     def tukey_test(self, protein_id: str, group: str) -> pd.DataFrame:
         """A wrapper for tukey_test.tukey_test(), see documentation there."""
-        df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
+        df = self.mat[[protein_id]].reset_index().rename(columns={"index": Cols.SAMPLE})
+        df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
 
         return tukey_test(
             df,
@@ -265,7 +262,6 @@ class DataSet:
         dimensionality_reduction = DimensionalityReduction(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group=group,
             circle=circle,
@@ -293,7 +289,6 @@ class DataSet:
         dimensionality_reduction = DimensionalityReduction(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group=group,
             method="tsne",
@@ -317,7 +312,6 @@ class DataSet:
         dimensionality_reduction = DimensionalityReduction(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group=group,
             method="umap",
@@ -398,7 +392,6 @@ class DataSet:
             mat=self.mat,
             rawinput=self.rawinput,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
@@ -482,7 +475,6 @@ class DataSet:
         intensity_plot = IntensityPlot(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
@@ -519,7 +511,6 @@ class DataSet:
         clustermap = ClusterMap(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             label_bar=label_bar,
             only_significant=only_significant,
@@ -542,7 +533,6 @@ class DataSet:
             self.mat,
             self.rawmat,
             self.metadata,
-            self.sample,
             self.preprocessing_info,
         )
 

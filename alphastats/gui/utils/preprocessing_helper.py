@@ -5,6 +5,7 @@ import streamlit as st
 from st_cytoscape import cytoscape
 
 from alphastats.DataSet import DataSet
+from alphastats.keys import Cols
 
 CYTOSCAPE_STYLESHEET = [
     {
@@ -190,7 +191,7 @@ def configure_preprocessing(dataset):
     # TODO: value of this widget does not persist across dataset reset (likely because the metadata is reset)
     remove_samples = st.multiselect(
         "Remove samples from analysis",
-        options=dataset.metadata[dataset.sample].to_list(),
+        options=dataset.metadata[Cols.SAMPLE].to_list(),
     )
     remove_samples = remove_samples if len(remove_samples) != 0 else None
 

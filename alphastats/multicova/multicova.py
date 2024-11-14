@@ -15,6 +15,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.multitest import multipletests
 
+from alphastats.keys import Cols
+
 # code taken from Isabel Bludau - multicova
 
 
@@ -638,13 +640,12 @@ def full_regression_analysis(
     quant_data,
     annotation,
     covariates,
-    sample_column="sample_name",
     n_permutations=4,
     fdr=0.05,
     s0=0.05,
     seed=42,
 ):
-    data_cols = annotation[sample_column].values
+    data_cols = annotation[Cols.SAMPLE].values
     quant_data = quant_data.dropna().reset_index(drop=True)
     y = quant_data[data_cols].to_numpy().astype("float")
     # @ToDo make sure that columns are sorted correctly!!!
@@ -745,7 +746,6 @@ def evaluate_seed_and_perm(
     covariates,
     perms,
     seeds,
-    sample_column="sample_name",
     fdr=0.05,
     s0=0.05,
 ):
@@ -763,7 +763,6 @@ def evaluate_seed_and_perm(
             annotation=annotation,
             covariates=covariates,
             n_permutations=resDF.permutations[i],
-            sample_column=sample_column,
             fdr=fdr,
             s0=s0,
             seed=resDF.seed[i],
@@ -797,7 +796,6 @@ def evaluate_s0s(
     annotation,
     covariates,
     s0s,
-    sample_column="sample_name",
     n_permutations=5,
     seed=42,
     fdr=0.01,
@@ -810,7 +808,6 @@ def evaluate_s0s(
             quant_data=quant_data,
             annotation=annotation,
             covariates=covariates,
-            sample_column=sample_column,
             n_permutations=n_permutations,
             fdr=fdr,
             s0=resDF.s0[i],

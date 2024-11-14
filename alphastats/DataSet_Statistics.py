@@ -4,6 +4,7 @@ from typing import Dict, Union
 import pandas as pd
 import pingouin
 
+from alphastats.keys import Cols
 from alphastats.statistics.Anova import Anova
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
@@ -17,12 +18,10 @@ class Statistics:
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         preprocessing_info: Dict,
     ):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
     @ignore_warning(RuntimeWarning)
@@ -60,7 +59,6 @@ class Statistics:
         df = DifferentialExpressionAnalysis(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
@@ -89,7 +87,6 @@ class Statistics:
         return Anova(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             column=column,
             protein_ids=protein_ids,
             tukey=tukey,
@@ -119,8 +116,8 @@ class Statistics:
             * ``'p-unc'``: Uncorrected p-values
             * ``'np2'``: Partial eta-squared
         """
-        df = self.mat[protein_id].reset_index().rename(columns={"index": self.sample})
-        df = self.metadata.merge(df, how="inner", on=[self.sample])
+        df = self.mat[protein_id].reset_index().rename(columns={"index": Cols.SAMPLE})
+        df = self.metadata.merge(df, how="inner", on=[Cols.SAMPLE])
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
 

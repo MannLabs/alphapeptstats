@@ -2,10 +2,7 @@ import logging
 import unittest
 from unittest.mock import MagicMock, patch
 
-import streamlit as st
-
 from alphastats.DataSet import DataSet
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.llm.uniprot_utils import extract_data, get_uniprot_data
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 
@@ -25,7 +22,6 @@ class TestGPT(unittest.TestCase):
         self.matrix_dim = (312, 2596)
         self.matrix_dim_filtered = (312, 2397)
         self.comparison_column = "disease"
-        st.session_state[StateKeys.METADATA_COLUMNS] = [self.comparison_column]
 
 
 class TestGetUniProtData(unittest.TestCase):
