@@ -117,58 +117,32 @@ def st_general(method_dict):
     return chosen_parameter_dict
 
 
-# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict,
-):
-    """
-    initalize volcano plot object with differential expression analysis results
-    """
-    dataset = st.session_state[StateKeys.DATASET]
-
-    # TODO this is just a quickfix, a simple interface needs to be provided by DataSet
-    volcano_plot = VolcanoPlot(
-        mat=dataset.mat,
-        rawinput=dataset.rawinput,
-        metadata=dataset.metadata,
-        sample=dataset.sample,
-        index_column=dataset.index_column,
-        gene_names=dataset._gene_names,
-        preprocessing_info=dataset.preprocessing_info,
-        **chosen_parameter_dict,
-        plot=False,
-    )
-    volcano_plot._perform_differential_expression_analysis()
-    volcano_plot._add_hover_data_columns()
-    return volcano_plot
-
-
 def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
     """Draw Volcano Plot using the VolcanoPlot class.
 
     Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
     analysis_object is the underlying object, parameters is a dictionary of the parameters used.
     """
-    chosen_parameter_dict = helper_compare_two_groups()
+    parameters = helper_compare_two_groups()
     method = st.selectbox(
         "Differential Analysis using:",
         options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
     )
-    chosen_parameter_dict.update({"method": method})
-
-    # TODO streamlit doesnt allow nested columns check for updates
+    parameters.update({"method": method})
 
     labels = st.checkbox("Add label")
+    parameters.update({"labels": labels})
 
     draw_line = st.checkbox("Draw line")
+    parameters.update({"draw_line": draw_line})
 
     alpha = st.number_input(
         label="alpha", min_value=0.001, max_value=0.050, value=0.050
     )
-    chosen_parameter_dict.update({"alpha": alpha})
+    parameters.update({"alpha": alpha})
 
     min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-    chosen_parameter_dict.update({"min_fc": min_fc})
+    parameters.update({"min_fc": min_fc})
 
     if method == "sam":
         perm = st.number_input(
@@ -177,25 +151,27 @@ def gui_volcano_plot() -> Tuple[Optional[Any], Optional[Any], Optional[Dict]]:
         fdr = st.number_input(
             label="FDR cut off", min_value=0.005, max_value=0.1, value=0.050
         )
-        chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
+        parameters.update({"perm": perm, "fdr": fdr})
 
     submitted = st.button("Run analysis ..")
 
     if submitted:
-        # TODO this seems not be covered by unit test
-        volcano_plot = gui_volcano_plot_differential_expression_analysis(
-            chosen_parameter_dict
+        dataset = st.session_state[StateKeys.DATASET]
+
+        # TODO currently there's no other way to obtain both the plot and the underlying data
+        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
+        #  One option could be to alyways return the whole analysis object.
+        volcano_plot = VolcanoPlot(
+            mat=dataset.mat,
+            rawinput=dataset.rawinput,
+            metadata=dataset.metadata,
+            sample=dataset.sample,
+            index_column=dataset.index_column,
+            gene_names=dataset._gene_names,
+            preprocessing_info=dataset.preprocessing_info,
+            **parameters,
         )
-        plotting_parameter_dict = {
-            "labels": labels,
-            "draw_line": draw_line,
-            "alpha": alpha,
-            "min_fc": min_fc,
-        }
-        volcano_plot._update(plotting_parameter_dict)
-        volcano_plot._annotate_result_df()
-        volcano_plot._plot()
-        return volcano_plot.plot, volcano_plot, chosen_parameter_dict
+        return volcano_plot.plot, volcano_plot, parameters
 
     return None, None, None
 
@@ -221,16 +197,15 @@ def do_analysis(
         parameters = st_tsne_options(method_dict)
 
     elif method == "Differential Expression Analysis - T-test":
-        parameters = st_calculate_ttest(method=method, options_dict=options_dict)
+        parameters = helper_compare_two_groups()
+        parameters.update({"method": "ttest"})
 
     elif method == "Differential Expression Analysis - Wald-test":
-        parameters = st_calculate_waldtest(method=method, options_dict=options_dict)
+        parameters = helper_compare_two_groups()
+        parameters.update({"method": "wald"})
 
-    elif method == "PCA Plot":
-        parameters = st_plot_pca(method_dict)
-
-    elif method == "UMAP Plot":
-        parameters = st_plot_umap(method_dict)
+    elif method == "PCA Plot" or method == "UMAP Plot":
+        parameters = helper_plot_dimensionality_reduction(method_dict=method_dict)
 
     else:
         parameters = st_general(method_dict=method_dict)
@@ -242,32 +217,6 @@ def do_analysis(
             return method_dict["function"](**parameters), None, parameters
 
     return None, None, {}
-
-
-# TODO try to cover all those by st_general()
-def st_plot_pca(method_dict):
-    return helper_plot_dimensionality_reduction(method_dict=method_dict)
-
-
-def st_plot_umap(method_dict):
-    return helper_plot_dimensionality_reduction(method_dict=method_dict)
-
-
-def st_calculate_ttest(method, options_dict):
-    """
-    perform ttest in streamlit
-    """
-    chosen_parameter_dict = helper_compare_two_groups()
-    chosen_parameter_dict.update({"method": "ttest"})
-
-    return chosen_parameter_dict
-
-
-def st_calculate_waldtest(method, options_dict):
-    chosen_parameter_dict = helper_compare_two_groups()
-    chosen_parameter_dict.update({"method": "wald"})
-
-    return chosen_parameter_dict
 
 
 def helper_plot_dimensionality_reduction(method_dict):

@@ -60,6 +60,7 @@ class IntensityPlot(PlotUtils):
         self.add_significance = add_significance
         self.log_scale = log_scale
 
+        self.prepared_df = None
         self._prepare_data()
         self._plot()
 

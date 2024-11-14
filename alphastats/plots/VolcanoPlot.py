@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -60,7 +60,6 @@ class VolcanoPlot(PlotUtils):
         min_fc=None,
         alpha=None,
         draw_line=None,
-        plot=True,
         perm=100,
         fdr=0.05,
         color_list=None,
@@ -82,8 +81,7 @@ class VolcanoPlot(PlotUtils):
         self.alpha = alpha
         self.draw_line = draw_line
         self.hover_data = None
-        self.res = None
-        self.pvalue_column = None
+
         self.perm = perm
         self.color_list = color_list
 
@@ -109,31 +107,27 @@ class VolcanoPlot(PlotUtils):
             preprocessing_info=self.preprocessing_info,
         )
 
-        if plot:
+        self.res, self.pvalue_column, self.tlim_ttest = (
             self._perform_differential_expression_analysis()
-            self._annotate_result_df()
-            self._add_hover_data_columns()
-            self._plot()
-
-    # TODO revisit this
-    def _update(self, updated_attributes):
-        """
-        update attributes using dict
-        """
-        for key, value in updated_attributes.items():
-            setattr(self, key, value)
+        )
+        self._annotate_result_df()
+        self._add_hover_data_columns()
+        self._plot()
 
     @ignore_warning(UserWarning)
     @ignore_warning(RuntimeWarning)
-    def _perform_differential_expression_analysis(self):
+    def _perform_differential_expression_analysis(
+        self,
+    ) -> Tuple[pd.DataFrame, str, float]:
         """Wrapper for differential expression analysis."""
 
+        tlim_ttest = None
+
         # Note: all the called methods were decorated with @lru_cache(maxsize=20), reimplement if there's performance issues
-
         if self.method in ["wald", "ttest", "welch-ttest", "paired-ttest"]:
-            self.pvalue_column = "qval" if self.method == "wald" else "pval"
+            pvalue_column = "qval" if self.method == "wald" else "pval"
 
-            self.res = self._statistics.diff_expression_analysis(
+            res = self._statistics.diff_expression_analysis(
                 column=self.column,
                 group1=self.group1,
                 group2=self.group2,
@@ -141,12 +135,12 @@ class VolcanoPlot(PlotUtils):
             )
 
         elif self.method == "anova":
-            self._anova()
+            res, pvalue_column = self._anova()
 
         elif self.method == "sam":
             # TODO this is a bit of a hack, but currently diff_expression_analysis() returns only the df, not the tlim_ttest
             #  To remedy, make it return (df, {}), the latter being a dictionary containing optional additional data.
-            df, tlim_ttest = DifferentialExpressionAnalysis(
+            res, tlim_ttest = DifferentialExpressionAnalysis(
                 mat=self.mat,
                 metadata=self.metadata,
                 index_column=self.index_column,
@@ -158,15 +152,15 @@ class VolcanoPlot(PlotUtils):
                 method="sam",
             ).sam()
 
-            self.res = df
-            self.tlim_ttest = tlim_ttest
-            self.pvalue_column = "pval"
+            pvalue_column = "pval"
 
         else:
             raise ValueError(
                 f"{self.method} is not available. "
                 + "Please select from 'ttest', 'sam', 'paired-ttest' or 'anova' for anova with follow up tukey or 'wald' for wald-test."
             )
+
+        return res, pvalue_column, tlim_ttest
 
     def _sam_calculate_fdr_line(self):
         fdr_line = multicova.get_fdr_line(
@@ -196,7 +190,7 @@ class VolcanoPlot(PlotUtils):
         )
         return fdr_line
 
-    def _anova(self):
+    def _anova(self) -> Tuple[pd.DataFrame, str]:
         print("Calculating ANOVA with follow-up tukey test...")
 
         result_df = self._statistics.anova(
@@ -222,14 +216,14 @@ class VolcanoPlot(PlotUtils):
         fc_df = pd.DataFrame({"log2fc": fc, self.index_column: mat_transpose.index})
 
         # check how column is ordered
-        self.pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
+        pvalue_column = self.group1 + " vs. " + self.group2 + " Tukey Test"
 
-        if self.pvalue_column not in result_df.columns:
-            self.pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
+        if pvalue_column not in result_df.columns:
+            pvalue_column = self.group2 + " vs. " + self.group1 + " Tukey Test"
 
-        self.res = result_df.reset_index().merge(
-            fc_df.reset_index(), on=self.index_column
-        )
+        res = result_df.reset_index().merge(fc_df.reset_index(), on=self.index_column)
+
+        return res, pvalue_column
 
     def _add_hover_data_columns(self):
         # additional labeling with gene names
@@ -280,27 +274,6 @@ class VolcanoPlot(PlotUtils):
                 "no_color",
             )
 
-    def get_colored_labels_df(self):
-        """
-        get dataframe of upregulated and downregulated genes in form of {gene_name: color},
-        """
-        if "label" not in self.res.columns:
-            if self.gene_names is not None:
-                label_column = self.gene_names
-            else:
-                label_column = self.index_column
-
-            self.res["label"] = np.where(
-                self.res.color != "non_sig", self.res[label_column], ""
-            )
-            # replace nas with empty string (can cause error when plotting with gene names)
-            self.res["label"] = self.res["label"].fillna("")
-            self.res = self.res[self.res["label"] != ""]
-        if "color" not in self.res.columns:
-            self._annotate_result_df()
-
-        return self.res
-
     def _add_labels_plot(self):
         """
         add gene names as hover data if they are given
@@ -319,14 +292,15 @@ class VolcanoPlot(PlotUtils):
         self.res["label"] = [
             ";".join([i for i in j.split(";") if i]) for j in self.res["label"].tolist()
         ]
-        self.res = self.res[self.res["label"] != ""]
 
-        for x, y, label_column in self.res[
-            ["log2fc", "-log10(p-value)", "label"]
-        ].itertuples(index=False):
-            self.plot.add_annotation(
-                x=x, y=y, text=label_column, showarrow=False, yshift=10
-            )
+        if self.labels:
+            res = self.res[self.res["label"] != ""]
+            for x, y, label_column in res[
+                ["log2fc", "-log10(p-value)", "label"]
+            ].itertuples(index=False):
+                self.plot.add_annotation(
+                    x=x, y=y, text=label_column, showarrow=False, yshift=10
+                )
 
     def _draw_lines_plot(self):
         """
@@ -383,8 +357,7 @@ class VolcanoPlot(PlotUtils):
         # update coloring
         self._color_data_points()
 
-        if self.labels:
-            self._add_labels_plot()
+        self._add_labels_plot()
 
         if self.draw_line:
             if self.method == "sam":
