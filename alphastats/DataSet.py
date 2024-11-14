@@ -436,7 +436,7 @@ class DataSet:
         gene_name: str = None,
         group: str = None,
         subgroups: list = None,
-        method: str = "box",
+        method: str = "box",  # TODO rename
         add_significance: bool = False,
         log_scale: bool = False,
         # compare_preprocessing_modes: bool = False, TODO reimplement
@@ -543,7 +543,7 @@ class DataSet:
     def plot_sampledistribution(
         self,
         method: str = "violin",
-        color: str = None,
+        color: str = None,  # TODO rename to group
         log_scale: bool = False,
         use_raw: bool = False,
     ):

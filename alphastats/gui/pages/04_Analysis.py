@@ -7,7 +7,6 @@ from alphastats.gui.utils.analysis_helper import (
     do_analysis,
 )
 from alphastats.gui.utils.options import (
-    get_plotting_options,
     get_statistic_options,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -54,21 +53,13 @@ with c1:
         options=["<select>"]
         + ["------- plots -------"]
         + plotting_options
-        + [
-            key
-            for key in list(get_plotting_options(st.session_state).keys())
-            if key not in plotting_options
-        ]
         + ["------- statistics -------"]
         + list(get_statistic_options(st.session_state).keys()),
     )
 
-    if method in (
-        list((plot_options := get_plotting_options(st.session_state)).keys())
-        + plotting_options
-    ):
+    if method in (plotting_options):
         analysis_result, analysis_object, parameters = do_analysis(
-            method, options_dict=plot_options
+            method, options_dict=None
         )
         show_plot = analysis_result is not None
 
