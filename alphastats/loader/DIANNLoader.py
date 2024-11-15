@@ -1,5 +1,3 @@
-import pandas as pd
-
 from alphastats.loader.BaseLoader import BaseLoader
 
 
@@ -27,7 +25,7 @@ class DIANNLoader(BaseLoader):
         """
 
         super().__init__(file, intensity_column, index_column, sep)
-        self.gene_names = gene_names_column
+        self.gene_names_column = gene_names_column
         self.software = "DIANN"
         self.no_sample_column = [
             "PG.Q.value",

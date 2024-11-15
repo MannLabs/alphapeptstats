@@ -42,7 +42,7 @@ class BaseTestDataSet:
             df = self.obj.go_abundance_correction(
                 fg_sample=self.fg_sample, bg_sample=self.bg_sample
             )
-            plot = df.plot_scatter()
+            df.plot_scatter()
 
         @unittest.skip("TODO: decouple this from the GO API!")
         def test_go_characterize_foreground(self):

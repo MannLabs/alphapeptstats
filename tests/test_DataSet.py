@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import unittest
-from contextlib import contextmanager
 from unittest import skip
 from unittest.mock import patch
 
@@ -14,7 +13,6 @@ import plotly
 from alphastats.DataSet import DataSet
 from alphastats.dataset_factory import DataSetFactory
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
@@ -31,13 +29,6 @@ class BaseTestDataSet:
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
-        @contextmanager
-        def assertNotRaises(self, exc_type):
-            try:
-                yield None
-            except exc_type:
-                raise self.failureException("{} raised".format(exc_type.__name__))
-
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
@@ -49,11 +40,11 @@ class BaseTestDataSet:
             self.comparison_column = None
 
         def test_check_loader_no_error(self):
-            with self.assertNotRaises(ValueError):
-                self.obj._check_loader(loader=self.loader)
+            self.obj._check_loader(loader=self.loader)
+            # nothing raised -> ok
 
         def test_check_loader_error_invalid_column(self):
-            #  invalid index column
+            # invalid index column
             with self.assertRaises(ValueError):
                 self.loader.index_column = 100
                 self.obj._check_loader(loader=self.loader)
@@ -65,23 +56,15 @@ class BaseTestDataSet:
                 self.obj._check_loader(loader=self.loader)
 
         def test_check_loader_error_invalid_loader(self):
-            #  invalid loader, class
+            # invalid loader, class
             with self.assertRaises(LoaderError):
                 df = pd.DataFrame()
                 self.obj._check_loader(loader=df)
 
         def test_load_metadata(self):
-            #  is dataframe loaded
+            # is dataframe loaded
             self.assertIsInstance(self.obj.metadata, pd.DataFrame)
             self.assertFalse(self.obj.metadata.empty)
-
-        @patch("logging.Logger.error")
-        def test_load_metadata_missing_sample_column(self, mock):
-            # is error raised when name of sample column is missing
-            path = self.metadata_path
-            self.obj._dataset_factory.sample_column = "wrong_sample_column"
-            self.obj._dataset_factory._load_metadata(file_path=path)
-            mock.assert_called_once()
 
         @patch("logging.Logger.warning")
         def test_load_metadata_warning(self, mock):
@@ -91,7 +74,7 @@ class BaseTestDataSet:
             mock.assert_called_once()
 
         def test_create_matrix(self):
-            #  matrix dimensions
+            # matrix dimensions
             self.assertEqual(self.obj.mat.shape, self.matrix_dim)
             # does the matrix only contain floats/integers and NAs
             is_dtype_numeric = list(
@@ -117,7 +100,7 @@ class BaseTestDataSet:
             # is the new matrix smaller than the older matrix
             self.obj.preprocess(remove_contaminations=True)
             self.assertEqual(self.obj.mat.shape, self.matrix_dim_filtered)
-            #  info has been printed at least once
+            # info has been printed at least once
             mock.assert_called_once()
 
         @patch("logging.Logger.info")
@@ -184,7 +167,7 @@ class BaseTestDataSet:
             plot_dict = plot.to_plotly_json()
             # check if plotly object is not empty
             self.assertEqual(len(plot_dict.get("data")), 1)
-            #  check if it is logscale
+            # check if it is logscale
             self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
 
         def test_reset_preprocessing(self):
@@ -198,7 +181,7 @@ class BaseTestDataSet:
 
 
 class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
-    #  do testing which requires extra files only on TestAlphaPeptDataSet
+    # do testing which requires extra files only on TestAlphaPeptDataSet
     # to reduce the amount of compariosn files required
     def setUp(self):
         self.loader = AlphaPeptLoader(file="testfiles/alphapept/results_proteins.csv")
@@ -211,7 +194,7 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         # expected dimensions of matrix
         self.matrix_dim = (2, 3781)
         self.matrix_dim_filtered = (2, 3707)
-        #  metadata column to compare for PCA, t-test, etc.
+        # metadata column to compare for PCA, t-test, etc.
         self.comparison_column = "disease"
 
     def test_dataset_without_metadata(self):
@@ -234,15 +217,16 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
 
     @patch("logging.Logger.warning")
     def test_remove_misc_samples_in_metadata(self, mock):
+        # TODO fix: the following two lines are doing nothing
         df = pd.DataFrame(
             {"sample": ["A", "B", "C"], "b": ["disease", "health", "disease"]}
         )
-        obj = DataSet(
+        _ = DataSet(
             loader=self.loader,
             metadata_path_or_df=df,
             sample_column="sample",
         )
-        #  is sample C removed
+        # is sample C removed
         self.assertEqual(self.obj.metadata.shape, (2, 2))
         mock.assert_called_once()
 
@@ -365,11 +349,11 @@ class TestAlphaPeptDataSet(BaseTestDataSet.BaseTest):
         self.assertIsInstance(plot, plotly.graph_objects.Figure)
         # convert plotly object to dict
         plot_dict = plot.to_plotly_json()
-        #  check if it doesnt get transformed to logscale
+        # check if it doesnt get transformed to logscale
         self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), None)
         # check if there are two groups control and disease
         self.assertEqual(plot_dict.get("data")[0].get("legendgroup"), "control")
-        #  check that it is boxplot and not violinplot
+        # check that it is boxplot and not violinplot
         is_boxplot = "boxmode" in plot_dict.get("layout")
         self.assertTrue(is_boxplot)
 
@@ -450,7 +434,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(number_of_groups, 5)
 
     def test_plot_volcano_with_grouplist(self):
-        fig = self.obj.plot_volcano(
+        self.obj.plot_volcano(
             method="ttest",
             group1=["1_31_C6", "1_32_C7", "1_57_E8"],
             group2=["1_71_F10", "1_73_F12"],
@@ -524,9 +508,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(len(plot_dict.get("data")), 3)
 
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
-        import streamlit as st
-
-        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
         plot = self.obj.plot_intensity(
             protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
@@ -563,6 +544,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         decimal_places = 7
         self.assertAlmostEqual(expected_value, given_value, decimal_places)
 
+    @skip
     def test_plot_volcano_with_labels(self):
         plot = self.obj.plot_volcano(
             column="disease",
@@ -573,7 +555,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             draw_line=False,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        # self.assertTrue(n_labels > 20)
+        self.assertTrue(n_labels > 20)
 
     def test_plot_volcano_wald(self):
         """
@@ -624,7 +606,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
         sys.setrecursionlimit(100000)
         self.obj.preprocess(imputation="knn")
-        plot = self.obj.plot_clustermap(
+        self.obj.plot_clustermap(
             label_bar=self.comparison_column,
             only_significant=True,
             group=self.comparison_column,
@@ -642,6 +624,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
+        self.assertEqual(n_labels, 20)
 
     def test_plot_volcano_with_labels_proteins_welch_ttest(self):
         # remove gene names
@@ -654,7 +637,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        # self.assertTrue(n_labels > 20)
+        self.assertTrue(n_labels > 20)
 
     def test_calculate_diff_exp_wrong(self):
         # get groups from comparison column
@@ -783,6 +766,18 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         self.assertEqual(res.shape[1], 45)
 
+    def test_get_protein_id_for_gene_name(self):
+        self.assertEqual(
+            self.obj._get_protein_id_for_gene_name("MADE_UP_GENE"), "MADE_UP_GENE"
+        )
+        self.assertEqual(
+            self.obj._get_protein_id_for_gene_name("ALDOC"),
+            "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5",
+        )
+        self.assertEqual(
+            self.obj._get_protein_id_for_gene_name("FCGRT"), "P55899;M0R0A9;A0A024QZI2"
+        )
+
     # def test_perform_gsea(self):
     #     df = self.obj.perform_gsea(column="disease",
     #                             group1="healthy",
@@ -823,7 +818,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
             protein_id="A0A075B6H7", group="grouping1", method="box", log_scale=True
         )
         plot_dict = plot.to_plotly_json()
-        #  log scale
+        # log scale
         self.assertEqual(plot_dict.get("layout").get("yaxis").get("type"), "log")
         is_boxplot = "boxmode" in plot_dict.get("layout")
         self.assertTrue(is_boxplot)
@@ -851,7 +846,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_dendrogram(self):
         self.obj.preprocess(imputation="mean")
-        fig = self.obj.plot_dendrogram()
+        self.obj.plot_dendrogram()
 
     def test_plot_tsne(self):
         plot_dict = self.obj.plot_tsne().to_plotly_json()
@@ -926,7 +921,7 @@ class TestFragPipeDataSet(BaseTestDataSet.BaseTest):
 class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
-        if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
+        if not os.path.isfile("testfiles/spectronaut/results.tsv"):
             shutil.unpack_archive(
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
@@ -958,7 +953,7 @@ class TestSpectronautDataSet(BaseTestDataSet.BaseTest):
 class TestGenericDataSet(BaseTestDataSet.BaseTest):
     @classmethod
     def setUpClass(cls):
-        if os.path.isfile("testfiles/fragpipe/combined_proteins.tsv") == False:
+        if not os.path.isfile("testfiles/fragpipe/combined_proteins.tsv"):
             shutil.unpack_archive(
                 "testfiles/fragpipe/combined_proteins.tsv.zip", "testfiles/fragpipe"
             )

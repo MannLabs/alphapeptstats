@@ -7,7 +7,8 @@ import plotly.graph_objects as go
 import sklearn
 
 from alphastats.DataSet_Preprocess import Preprocess
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.keys import Cols
+from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -37,7 +38,6 @@ class DimensionalityReduction(PlotUtils):
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         preprocessing_info: Dict,
         group: Optional[str],
         circle: bool,
@@ -46,7 +46,6 @@ class DimensionalityReduction(PlotUtils):
     ) -> None:
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
         self.method = method
@@ -96,12 +95,10 @@ class DimensionalityReduction(PlotUtils):
             # TODO This is only needed in the DimensionalityReduction class and only if the step was not run during preprocessing.
             #  idea: replace the step in DimensionalityReduction with something like:
             #  mat = self.data.mat.loc[sample_names,:] after creating sample_names.
-            mat = Preprocess.subset(
-                self.mat, self.metadata, self.sample, self.preprocessing_info
-            )
+            mat = Preprocess.subset(self.mat, self.metadata, self.preprocessing_info)
             self.metadata[self.group] = self.metadata[self.group].apply(str)
             group_color = self.metadata[self.group]
-            sample_names = self.metadata[self.sample].to_list()
+            sample_names = self.metadata[Cols.SAMPLE].to_list()
 
         else:
             mat = self.mat
@@ -122,7 +119,7 @@ class DimensionalityReduction(PlotUtils):
         }
 
     def _tsne(self, **kwargs):
-        tsne = sklearn.manifold.TSNE(n_components=2, verbose=1, **kwargs)
+        tsne = sklearn.manifold._t_sne.TSNE(n_components=2, verbose=1, **kwargs)
         self.components = tsne.fit_transform(self.prepared_df)
         self.labels = {
             "0": "Dimension 1",
@@ -145,7 +142,7 @@ class DimensionalityReduction(PlotUtils):
 
     def _plot(self, sample_names, group_color):
         components = pd.DataFrame(self.components)
-        components[self.sample] = sample_names
+        components[Cols.SAMPLE] = sample_names
 
         fig = px.scatter(
             components,
@@ -153,7 +150,7 @@ class DimensionalityReduction(PlotUtils):
             y=1,
             labels=self.labels,
             color=group_color,
-            hover_data=[components[self.sample]],
+            hover_data=[components[Cols.SAMPLE]],
             template="simple_white+alphastats_colors",
         )
 
@@ -166,8 +163,8 @@ class DimensionalityReduction(PlotUtils):
             fig_dict["data"][count]["hovertemplate"] = hover
         fig = go.Figure(fig_dict)
 
-        #  save plotting data in figure object
-        fig = plotly_object(fig)
+        # save plotting data in figure object
+        fig = PlotlyObject(fig)
         self._update_figure_attributes(
             fig,
             plotting_data=pd.DataFrame(components),

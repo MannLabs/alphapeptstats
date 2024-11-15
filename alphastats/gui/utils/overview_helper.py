@@ -2,8 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.DataSet import DataSet
-from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.gui.utils.ui_helper import StateKeys, convert_df
+from alphastats.gui.utils.ui_helper import StateKeys, show_button_download_df
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
@@ -21,49 +20,19 @@ def get_intensity_distribution_processed():
     return st.session_state[StateKeys.DATASET].plot_sampledistribution()
 
 
-# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def get_display_matrix():
-    processed_df = pd.DataFrame(
-        st.session_state[StateKeys.DATASET].mat.values,
-        index=st.session_state[StateKeys.DATASET].mat.index.to_list(),
-    ).head(10)
-
-    return processed_df
-
-
 def display_matrix():
-    text = (
-        "Normalization: "
-        + str(
-            st.session_state[StateKeys.DATASET].preprocessing_info[
-                PreprocessingStateKeys.NORMALIZATION
-            ]
-        )
-        + ", Imputation: "
-        + str(
-            st.session_state[StateKeys.DATASET].preprocessing_info[
-                PreprocessingStateKeys.IMPUTATION
-            ]
-        )
-        + ", Log2-transformed: "
-        + str(
-            st.session_state[StateKeys.DATASET].preprocessing_info[
-                PreprocessingStateKeys.LOG2_TRANSFORMED
-            ]
-        )
-    )
-
     st.markdown("**DataFrame used for analysis** *preview*")
-    st.markdown(text)
 
-    df = get_display_matrix()
-    csv = convert_df(st.session_state[StateKeys.DATASET].mat)
+    # TODO why not use the actual matrix here?
+    mat = st.session_state[StateKeys.DATASET].mat
+    df = pd.DataFrame(
+        mat.values,
+        index=mat.index.to_list(),
+    ).head(10)
 
     st.dataframe(df)
 
-    st.download_button(
-        "Download as .csv", csv, "analysis_matrix.csv", "text/csv", key="download-csv"
-    )
+    show_button_download_df(mat, file_name="analysis_matrix")
 
 
 def display_loaded_dataset(dataset: DataSet) -> None:

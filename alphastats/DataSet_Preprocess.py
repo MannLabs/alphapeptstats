@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -9,10 +9,11 @@ import sklearn.impute
 import streamlit as st
 from sklearn.experimental import enable_iterative_imputer  # noqa
 
+from alphastats.keys import Cols, ConstantsClass
 from alphastats.utils import ignore_warning
 
 
-class PreprocessingStateKeys:
+class PreprocessingStateKeys(metaclass=ConstantsClass):
     """Keys for accessing the dictionary holding the information about preprocessing."""
 
     # TODO disentangle these keys from the human-readably display strings
@@ -45,8 +46,6 @@ class Preprocess:
         self,
         filter_columns: List[str],
         rawinput: pd.DataFrame,
-        index_column: str,
-        sample: str,
         metadata: pd.DataFrame,
         preprocessing_info: Dict,
         mat: pd.DataFrame,
@@ -54,8 +53,6 @@ class Preprocess:
         self.filter_columns = filter_columns
 
         self.rawinput = rawinput
-        self.index_column = index_column
-        self.sample = sample
 
         self.metadata = metadata
         self.preprocessing_info = preprocessing_info
@@ -89,17 +86,17 @@ class Preprocess:
     def _remove_samples(self, sample_list: list):
         # exclude samples for analysis
         self.mat = self.mat.drop(sample_list)
-        self.metadata = self.metadata[~self.metadata[self.sample].isin(sample_list)]
+        self.metadata = self.metadata[~self.metadata[Cols.SAMPLE].isin(sample_list)]
 
     @staticmethod
     def subset(
-        mat: pd.DataFrame, metadata: pd.DataFrame, sample: str, preprocessing_info: Dict
+        mat: pd.DataFrame, metadata: pd.DataFrame, preprocessing_info: Dict
     ) -> pd.DataFrame:
         """Filter matrix so only samples that are described in metadata are also found in matrix."""
         preprocessing_info.update(
             {PreprocessingStateKeys.NUM_SAMPLES: metadata.shape[0]}
         )
-        return mat[mat.index.isin(metadata[sample].tolist())]
+        return mat[mat.index.isin(metadata[Cols.SAMPLE].tolist())]
 
     def _remove_na_values(self, cut_off):
         if (
@@ -154,10 +151,10 @@ class Preprocess:
             logging.info("Contaminatons have already been filtered.")
             return
 
-        #  print column names with contamination
+        # print column names with contamination
         protein_groups_to_remove = self.rawinput[
             self.rawinput[self.filter_columns].any(axis=1)
-        ][self.index_column].tolist()
+        ][Cols.INDEX].tolist()
 
         protein_groups_to_remove = list(
             set(protein_groups_to_remove) & set(self.mat.columns.to_list())
@@ -351,7 +348,7 @@ class Preprocess:
         from combat.pycombat import pycombat
 
         data = self.mat.transpose()
-        series_of_batches = self.metadata.set_index(self.sample).reindex(
+        series_of_batches = self.metadata.set_index(Cols.SAMPLE).reindex(
             data.columns.to_list()
         )[batch]
 
@@ -419,6 +416,8 @@ class Preprocess:
             ]:
                 raise ValueError(f"Invalid keyword argument: {k}")
 
+        # TODO this is a stateful method as we change self.mat, self.metadata and self.processing_info
+        #  refactor such that it does not change self.mat etc but just return the latest result
         if remove_contaminations:
             self._filter()
 
@@ -426,9 +425,7 @@ class Preprocess:
             self._remove_samples(sample_list=remove_samples)
 
         if subset:
-            self.mat = self.subset(
-                self.mat, self.metadata, self.sample, self.preprocessing_info
-            )
+            self.mat = self.subset(self.mat, self.metadata, self.preprocessing_info)
 
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)

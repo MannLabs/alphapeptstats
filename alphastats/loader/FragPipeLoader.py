@@ -25,7 +25,7 @@ class FragPipeLoader(BaseLoader):
         super().__init__(file, intensity_column, index_column, sep)
 
         if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names = gene_names_column
+            self.gene_names_column = gene_names_column
 
         self.confidence_column = confidence_column
         self.software = "MSFragger_Philosopher"
@@ -36,10 +36,10 @@ class FragPipeLoader(BaseLoader):
 """
 # https://github.com/Nesvilab/MSFragger/wiki/Interpreting-MSFragger-Output
 
-#  SAMPLE
+# SAMPLE
 # columm Spectrum
 
 # https://fragpipe.nesvilab.org/docs/tutorial_fragpipe_outputs.html#combined_proteintsv
 # Frag pipe
 # https://github.com/Nesvilab/philosopher/wiki/Combined-protein-reports
-#  ProteinProphet: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5863791/
+# ProteinProphet: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5863791/

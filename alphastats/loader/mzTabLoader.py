@@ -18,12 +18,12 @@ class mzTabLoader(BaseLoader):
             index_column (str, optional): column indicating the protein groups.  Defaults to "accession".
         """
         self.filter_columns = []
-        self.gene_names = None
+        self.gene_names_column = None
         self.intensity_column = intensity_column
         self.index_column = index_column
         self.confidence_column = None
         self.evidence_df = None
-        self.gene_names = None
+        self.gene_names_column = None
         self._load_protein_table(file=file)
         self._add_contamination_column()
 

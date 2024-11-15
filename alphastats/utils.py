@@ -57,8 +57,8 @@ def check_internetconnection():
     try:
         connection.request("HEAD", "/")
         return True
-    except Exception:
-        raise ConnectionError("No internet connection available.")
+    except Exception as e:
+        raise ConnectionError("No internet connection available.") from e
     finally:
         connection.close()
 
@@ -73,6 +73,7 @@ def check_if_df_empty(f):
     return inner
 
 
+# TODO: unused
 def list_to_tuple(function):
     """
     list are not hashable not suitable for caching
@@ -80,27 +81,28 @@ def list_to_tuple(function):
     """
 
     def wrapper(*args):
-        args = [tuple(x) if type(x) == list else x for x in args]
+        args = [tuple(x) if isinstance(x, list) else x for x in args]
         result = function(*args)
-        result = tuple(result) if type(result) == list else result
+        result = tuple(result) if isinstance(result, list) else result
         return result
 
     return wrapper
 
 
-def find_duplicates_in_list(l: list) -> list:
-    """Find duplicates in a list
+# TODO: replace with https://pandas.pydata.org/docs/reference/api/pandas.Index.has_duplicates.html#pandas.Index.has_duplicates
+def find_duplicates_in_list(input_list: list) -> list:
+    """Find duplicates in a list.
 
     Args:
-        l (list): list
+        input_list (list): list
 
     Returns:
         list: list with duplicated values
     """
     duplicates = []
-    ys = sorted(l)
+    ys = sorted(input_list)
 
-    for n in range(1, len(l)):
+    for n in range(1, len(input_list)):
         if ys[n] == ys[n - 1]:
             duplicates.append(ys[n])
     return duplicates

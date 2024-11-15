@@ -9,11 +9,6 @@ from alphastats.loader.BaseLoader import BaseLoader
 
 SPECTRONAUT_COLUMN_DELIM = "."
 
-import numpy as np
-import pandas as pd
-
-from alphastats.loader.BaseLoader import BaseLoader
-
 
 class SpectronautLoader(BaseLoader):
     """Loader for Spectronaut outputfiles"""
@@ -65,9 +60,9 @@ class SpectronautLoader(BaseLoader):
         )
 
         if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names = gene_names_column
+            self.gene_names_column = gene_names_column
         else:
-            self.gene_names = None
+            self.gene_names_column = None
         if sample_column in self.rawinput.columns.to_list():
             self.sample_column = sample_column
         else:
@@ -93,19 +88,21 @@ class SpectronautLoader(BaseLoader):
         other proteomics softwares use a wide format (column for each sample)
         reshape to a wider format
         """
-        self.rawinput["sample"] = (
+        self.rawinput["tmp_sample"] = (
             self.rawinput[self.sample_column]
             + SPECTRONAUT_COLUMN_DELIM
             + self.intensity_column
         )
         indexing_columns = [self.index_column]
-        if self.gene_names is not None:
-            indexing_columns.append(self.gene_names)
+        if self.gene_names_column is not None:
+            indexing_columns.append(self.gene_names_column)
 
         df = self.rawinput.pivot(
-            columns="sample", index=indexing_columns, values=self.intensity_column
+            columns="tmp_sample", index=indexing_columns, values=self.intensity_column
         )
         df.reset_index(inplace=True)
+        # get rid of tmp_sample again, which can cause troubles when working with indices downstream
+        df.rename_axis(columns=None, inplace=True)
 
         return df
 
@@ -152,14 +149,6 @@ class SpectronautLoader(BaseLoader):
                     if bool(re.match(column_selection_regex, col))
                 ]
             ]
-            for column in df.columns:
-                try:
-                    if df[column].dtype == np.float64:
-                        continue
-                    df[column] = df[column].str.replace(",", ".").astype(float)
-                    print("converted", column, df[column].dtype)
-                except (ValueError, AttributeError) as e:
-                    print("failed", column, df[column].dtype)
         else:
             df = pd.read_csv(
                 file,
@@ -167,13 +156,14 @@ class SpectronautLoader(BaseLoader):
                 low_memory=False,
                 usecols=lambda col: bool(re.match(column_selection_regex, col)),
             )
-            for column in df.columns:
-                try:
-                    if df[column].dtype == np.float64:
-                        continue
-                    df[column] = df[column].str.replace(",", ".").astype(float)
-                    print("converted", column, df[column].dtype)
-                except (ValueError, AttributeError) as e:
-                    print("failed", column, df[column].dtype)
+
+        for column in df.columns:
+            try:
+                if df[column].dtype == np.float64:
+                    continue
+                df[column] = df[column].str.replace(",", ".").astype(float)
+                print("converted", column, df[column].dtype)
+            except (ValueError, AttributeError):
+                print("failed", column, df[column].dtype)
 
         return df

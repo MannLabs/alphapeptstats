@@ -9,16 +9,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.MaxQuantLoader import BaseLoader, MaxQuantLoader
-
-
-def load_options():
-    # TODO move import to top
-    from alphastats.gui.utils.options import plotting_options, statistic_options
-
-    st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
-    st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
@@ -74,7 +65,7 @@ def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.Data
 
 def load_example_data():
     st.markdown("### Using Example Dataset")
-    st.info("Example dataset and metadata loaded")
+    st.toast("Example dataset loaded", icon="✅")
     st.write(
         """
     _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_
@@ -102,18 +93,11 @@ def load_example_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
     _parent_directory = os.path.dirname(_this_directory)
-    folder_to_load = os.path.join(_parent_directory, "sample_data")
+    folder_to_load = os.path.join(_parent_directory, "example_data")
 
     filepath = os.path.join(folder_to_load, "proteinGroups.txt")
-    metadatapath = os.path.join(folder_to_load, "metadata.xlsx")
-
-    loader = MaxQuantLoader(file=filepath)
-    # TODO why is this done twice?
-    dataset = DataSet(
-        loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
-    )
     metadatapath = (
-        os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
+        os.path.join(_parent_directory, "example_data", "metadata.xlsx")
         .replace("pages/", "")
         .replace("pages\\", "")
     )
@@ -123,17 +107,7 @@ def load_example_data():
         loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
     )
 
-    dataset.metadata = dataset.metadata[
-        [
-            "sample",
-            "disease",
-            "Drug therapy (procedure) (416608005)",
-            "Lipid-lowering therapy (134350008)",
-        ]
-    ]
-    dataset.preprocess(subset=True)
-    metadata_columns = dataset.metadata.columns.to_list()
-    return loader, metadata_columns, dataset
+    return dataset
 
 
 def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
@@ -141,6 +115,7 @@ def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
 
     Can be fragile when different settings are used or software is updated.
     """
+    # TODO this needs to go to the loader
 
     if software == "MaxQuant":
         expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
@@ -250,7 +225,9 @@ def get_sample_names_from_software_file(loader: BaseLoader) -> List[str]:
     """
     extract sample names from software
     """
-    if isinstance(loader.intensity_column, str):
+    if isinstance(
+        loader.intensity_column, str
+    ):  # TODO duplicated logic in MaxQuantLoader
         regex_find_intensity_columns = loader.intensity_column.replace("[sample]", ".*")
         df = loader.rawinput
         df = df.set_index(loader.index_column)

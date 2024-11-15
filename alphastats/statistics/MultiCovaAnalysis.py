@@ -1,10 +1,12 @@
 import warnings
 
 import numpy as np
-import pandas as pd
 import plotly.express as px
 
+from alphastats.keys import Cols
 
+
+# TODO unused
 class MultiCovaAnalysis:
     def __init__(
         self,
@@ -41,7 +43,7 @@ class MultiCovaAnalysis:
         self._prepare_matrix()
 
     def _subset_metadata(self):
-        columns_to_keep = self.covariates + [self.sample]
+        columns_to_keep = self.covariates + [Cols.SAMPLE]
         if self.subset is not None:
             # dict structure {"column_name": ["group1", "group2"]}
             subset_column = list(self.subset.keys())[0]
@@ -67,8 +69,7 @@ class MultiCovaAnalysis:
             if self.metadata_ori[covariate].isna().any():
                 self.covariates.remove(covariate)
                 warnings.warn(
-                    f"Covariate: {covariate} contains missing values"
-                    + f"in metadata and will not be used for analysis."
+                    f"Covariate: {covariate} contains missing values in metadata and will not be used for analysis."
                 )
 
     def _convert_string_to_binary(self):
@@ -107,10 +108,10 @@ class MultiCovaAnalysis:
                     self.covariates.remove(col)
 
     def _prepare_matrix(self):
-        transposed = self.mat.transpose()
-        transposed[self.index_column] = transposed.index
+        transposed = self.dataset.mat.transpose()
+        transposed[Cols.INDEX] = transposed.index
         transposed = transposed.reset_index(drop=True)
-        self.transposed = transposed[self.metadata[self.sample].to_list()]
+        self.transposed = transposed[self.metadata[Cols.SAMPLE].to_list()]
 
     def _plot_volcano_regression(self, res_real, variable):
         sig_col = res_real.filter(regex=variable + "_" + "FDR").columns[0]
@@ -121,7 +122,7 @@ class MultiCovaAnalysis:
             y=-np.log10(res_real[variable + "_" + "pval"]),
             color=res_real[sig_col],
             color_discrete_map={"sig": "#009599", "non_sig": "#404040"},
-            hover_name=res_real[self.index_column],
+            hover_name=res_real[Cols.INDEX],
             title=variable,
             labels=dict(x="beta value", y="-log10(p-value)", color=sig_level),
         )
@@ -139,12 +140,11 @@ class MultiCovaAnalysis:
             quant_data=self.transposed,
             annotation=self.metadata,
             covariates=self.covariates,
-            sample_column=self.sample,
             n_permutations=self.n_permutations,
             fdr=self.fdr,
             s0=self.s0,
         )
-        res[self.index_column] = self.mat.columns.to_list()
+        res[Cols.INDEX] = self.dataset.mat.columns.to_list()
         plot_list = []
 
         if self.plot:

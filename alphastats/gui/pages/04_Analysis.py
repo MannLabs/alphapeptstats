@@ -1,142 +1,101 @@
 import streamlit as st
 
+from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
-    display_df,
-    display_figure,
-    download_figure,
-    download_preprocessing_info,
-    get_analysis,
-    load_options,
-    save_plot_to_session_state,
+    display_analysis_result_with_buttons,
+    gather_parameters_and_do_analysis,
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
-    convert_df,
     init_session_state,
     sidebar_info,
 )
 
-
-def select_analysis():
-    """
-    select box
-    loads keys from option dicts
-    """
-    load_options()
-    method = st.selectbox(
-        "Analysis",
-        options=list(st.session_state[StateKeys.PLOTTING_OPTIONS].keys())
-        + list(st.session_state[StateKeys.STATISTIC_OPTIONS].keys()),
-    )
-    return method
-
-
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
-st.markdown("### Analysis")
+st.markdown("## Analysis")
 
 # set background to white so downloaded pngs dont have grey background
-styl = f"""
+styl = """
     <style>
-        .css-jc5rf5 {{
+        .css-jc5rf5 {
             position: absolute;
             background: rgb(255, 255, 255);
             color: rgb(48, 46, 48);
             inset: 0px;
             overflow: hidden;
-        }}
+        }
     </style>
     """
 st.markdown(styl, unsafe_allow_html=True)
 
+# TODO use caching functionality for all analysis (not: plot creation)
 
-if StateKeys.PLOT_LIST not in st.session_state:
-    st.session_state[StateKeys.PLOT_LIST] = []
+if StateKeys.DATASET not in st.session_state:
+    st.info("Import data first.")
+    st.stop()
+
+# --- SELECTION -------------------------------------------------------
+show_plot = False
+show_df = False
+analysis_result = None
 
 
-if StateKeys.DATASET in st.session_state:
-    c1, c2 = st.columns((1, 2))
+c1, c2 = st.columns([0.33, 0.67])
+with c1:
+    plotting_options = PlottingOptions.get_values()
+    statistic_options = StatisticOptions.get_values()
+    analysis_method = st.selectbox(
+        "Analysis",
+        options=["<select>"]
+        + ["------- plots ------------"]
+        + plotting_options
+        + ["------- statistics -------"]
+        + statistic_options,
+    )
 
-    plot_to_display = False
-    df_to_display = False
-    method_plot = None
+    if analysis_method in plotting_options:
+        analysis_result, analysis_object, parameters = (
+            gather_parameters_and_do_analysis(analysis_method)
+        )
 
-    with c1:
-        method = select_analysis()
+    elif analysis_method in statistic_options:
+        analysis_result, _, parameters = gather_parameters_and_do_analysis(
+            analysis_method,
+        )
 
-        if method in st.session_state[StateKeys.PLOTTING_OPTIONS]:
-            analysis_result = get_analysis(
-                method=method, options_dict=st.session_state[StateKeys.PLOTTING_OPTIONS]
-            )
-            plot_to_display = True
-
-        elif method in st.session_state[StateKeys.STATISTIC_OPTIONS]:
-            analysis_result = get_analysis(
-                method=method,
-                options_dict=st.session_state[StateKeys.STATISTIC_OPTIONS],
-            )
-            df_to_display = True
-
-        st.markdown("")
-        st.markdown("")
-        st.markdown("")
-        st.markdown("")
-
-    with c2:
-        # --- Plot -------------------------------------------------------
-
-        if analysis_result is not None and method != "Clustermap" and plot_to_display:
-            display_figure(analysis_result)
-
-            save_plot_to_session_state(analysis_result, method)
-
-            method_plot = [method, analysis_result]
-
-        elif method == "Clustermap":
-            st.write("Download Figure to see full size.")
-
-            display_figure(analysis_result)
-
-            save_plot_to_session_state(analysis_result, method)
-
-        # --- STATISTICAL ANALYSIS -------------------------------------------------------
-
-        elif analysis_result is not None and df_to_display:
-            display_df(analysis_result)
-
-            filename = method + ".csv"
-            csv = convert_df(analysis_result)
-
-    if analysis_result is not None and method != "Clustermap" and plot_to_display:
-        col1, col2, col3 = st.columns([1, 1, 1])
-
-        with col1:
-            download_figure(method_plot, format="pdf")
-
-        with col2:
-            download_figure(method_plot, format="svg")
-
-        with col3:
-            download_preprocessing_info(method_plot)
-
-    elif analysis_result is not None and df_to_display and method_plot:
-        col1, col2, col3 = st.columns([1, 1, 1])
-
-        with col1:
-            download_figure(method_plot, format="pdf", plotting_library="seaborn")
-
-        with col2:
-            download_figure(method_plot, format="svg", plotting_library="seaborn")
-
-        with col3:
-            download_preprocessing_info(method_plot)
-
-    elif analysis_result is not None and df_to_display:
-        st.download_button(
-            "Download as .csv", csv, filename, "text/csv", key="download-csv"
+with c2:
+    if analysis_result is not None:
+        display_analysis_result_with_buttons(
+            analysis_result, analysis_method, parameters
         )
 
 
-else:
-    st.info("Import Data first")
+@st.fragment
+def show_start_llm_button(analysis_method: str) -> None:
+    """Show the button to start the LLM analysis."""
+
+    msg = (
+        "(this will overwrite the existing LLM analysis!)"
+        if st.session_state.get(StateKeys.LLM_INTEGRATION, {}) != {}
+        else ""
+    )
+
+    submitted = st.button(
+        f"Analyse with LLM ... {msg}",
+        disabled=(analysis_method != PlottingOptions.VOLCANO_PLOT),
+        help="Interpret the current analysis with an LLM (available for 'Volcano Plot' only).",
+    )
+    if submitted:
+        if StateKeys.LLM_INTEGRATION in st.session_state:
+            del st.session_state[StateKeys.LLM_INTEGRATION]
+        st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
+
+        st.toast("LLM analysis created!", icon="✅")
+        st.page_link("pages/05_LLM.py", label="=> Go to LLM page..")
+
+
+if analysis_result is not None:
+    show_start_llm_button(analysis_method)

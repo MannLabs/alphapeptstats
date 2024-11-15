@@ -4,11 +4,11 @@ from typing import Dict, Tuple, Union
 import pandas as pd
 import pingouin
 
+from alphastats.keys import Cols
 from alphastats.statistics.Anova import Anova
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
 )
-from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 from alphastats.utils import ignore_warning
 
 
@@ -18,14 +18,10 @@ class Statistics:
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        index_column: str,
-        sample: str,
         preprocessing_info: Dict,
     ):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.index_column: str = index_column
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
 
     @ignore_warning(RuntimeWarning)
@@ -63,8 +59,6 @@ class Statistics:
         df = DifferentialExpressionAnalysis(
             mat=self.mat,
             metadata=self.metadata,
-            index_column=self.index_column,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
@@ -93,8 +87,6 @@ class Statistics:
         return Anova(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
-            index_column=self.index_column,
             column=column,
             protein_ids=protein_ids,
             tukey=tukey,
@@ -124,8 +116,8 @@ class Statistics:
             * ``'p-unc'``: Uncorrected p-values
             * ``'np2'``: Partial eta-squared
         """
-        df = self.mat[protein_id].reset_index().rename(columns={"index": self.sample})
-        df = self.metadata.merge(df, how="inner", on=[self.sample])
+        df = self.mat[protein_id].reset_index().rename(columns={"index": Cols.SAMPLE})
+        df = self.metadata.merge(df, how="inner", on=[Cols.SAMPLE])
         ancova_df = pingouin.ancova(df, dv=protein_id, covar=covar, between=between)
         return ancova_df
 

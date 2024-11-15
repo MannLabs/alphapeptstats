@@ -29,9 +29,7 @@ _this_file = os.path.abspath(__file__)
 _this_directory = os.path.dirname(_this_file)
 icon = os.path.join(_this_directory, "alphapeptstats_logo.png")
 
-header_html = img_center + "<img src='data:image/png;base64,{}'>".format(
-    img_to_bytes(icon)
-)
+header_html = img_center + f"<img src='data:image/png;base64,{img_to_bytes(icon)}'>"
 
 st.markdown(
     header_html,
@@ -60,4 +58,4 @@ sidebar_info()
 # https://discuss.streamlit.io/t/icons-for-the-multi-app-page-menu-in-the-sidebar-other-than-emojis/27222
 # https://icons.getbootstrap.com/
 # https://medium.com/codex/create-a-multi-page-app-with-the-new-streamlit-option-menu-component-3e3edaf7e7ad
-#  https://lightrun.com/answers/streamlit-streamlit-set-multipage-app-emoji-in-stpage_config-not-filename
+# https://lightrun.com/answers/streamlit-streamlit-set-multipage-app-emoji-in-stpage_config-not-filename

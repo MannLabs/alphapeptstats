@@ -5,6 +5,7 @@ import streamlit as st
 from st_cytoscape import cytoscape
 
 from alphastats.DataSet import DataSet
+from alphastats.keys import Cols
 
 CYTOSCAPE_STYLESHEET = [
     {
@@ -190,12 +191,12 @@ def configure_preprocessing(dataset):
     # TODO: value of this widget does not persist across dataset reset (likely because the metadata is reset)
     remove_samples = st.multiselect(
         "Remove samples from analysis",
-        options=dataset.metadata[dataset.sample].to_list(),
+        options=dataset.metadata[Cols.SAMPLE].to_list(),
     )
     remove_samples = remove_samples if len(remove_samples) != 0 else None
 
     data_completeness = st.number_input(
-        f"Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
+        "Data completeness across samples cut-off \n(0.7 -> protein has to be detected in at least 70% of the samples)",
         value=0.0,
         min_value=0.0,
         max_value=1.0,
@@ -263,11 +264,11 @@ def run_preprocessing(settings, dataset):
         None
     """
     dataset.preprocess(**settings)
-    st.success("Preprocessing finished successfully!")
+    st.toast("Preprocessing finished successfully!", icon="✅")
 
     if settings[PREPROCESSING_STEPS.BATCH]:
         dataset.batch_correction(batch=settings[PREPROCESSING_STEPS.BATCH])
-        st.success("Batch correction finished successfully!")
+        st.toast("Batch correction finished successfully!", icon="✅")
 
 
 def display_preprocessing_info(preprocessing_info):
@@ -296,4 +297,4 @@ def reset_preprocessing(dataset: DataSet) -> None:
     """
 
     dataset.reset_preprocessing()
-    st.info("Preprocessing has been reset.")
+    st.toast("Preprocessing has been reset.", icon="✅")
