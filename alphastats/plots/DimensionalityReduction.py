@@ -9,7 +9,7 @@ from sklearn.manifold._t_sne import TSNE
 
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.keys import Cols
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
@@ -165,7 +165,7 @@ class DimensionalityReduction(PlotUtils):
         fig = go.Figure(fig_dict)
 
         # save plotting data in figure object
-        fig = plotly_object(fig)
+        fig = PlotlyObject(fig)
         self._update_figure_attributes(
             fig,
             plotting_data=pd.DataFrame(components),

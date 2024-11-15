@@ -11,7 +11,7 @@ from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
 class PlottingOptions(metaclass=ConstantsClass):
-    """Keys for the plotting options."""
+    """Keys for the plotting options, the order determines order in UI."""
 
     PCA_PLOT = "PCA Plot"
     UMAP_PLOT = "UMAP Plot"
@@ -24,7 +24,7 @@ class PlottingOptions(metaclass=ConstantsClass):
 
 
 class StatisticOptions(metaclass=ConstantsClass):
-    """Keys for the statistical options."""
+    """Keys for the statistical options, the order determines order in UI."""
 
     DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
     TUKEY_TEST = "Tukey-Test"
@@ -39,6 +39,7 @@ class AbstractAnalysis(ABC):
 
     def __init__(self, dataset):
         self._dataset: DataSet = dataset
+        # Note: parameters that are accessed but are not present are added to the dict with value "None"
         self._parameters = defaultdict(lambda: None)
 
     def show_widget(self):  # noqa: B027

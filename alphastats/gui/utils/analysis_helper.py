@@ -1,100 +1,178 @@
 import io
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.analysis import ANALYSIS_OPTIONS
-from alphastats.gui.utils.ui_helper import StateKeys, convert_df
+from alphastats.gui.utils.analysis import (
+    ANALYSIS_OPTIONS,
+    PlottingOptions,
+    StatisticOptions,
+)
+from alphastats.gui.utils.ui_helper import (
+    StateKeys,
+    show_button_download_df,
+)
+from alphastats.plots.PlotUtils import PlotlyObject
 
 
-def display_figure(plot):
-    """
-    display plotly or seaborn figure
-    """
+@st.fragment
+def display_analysis_result_with_buttons(
+    df: pd.DataFrame,
+    analysis_method: str,
+    parameters: Optional[Dict],
+    show_save_button=True,
+    name: str = None,
+) -> None:
+    """A fragment to display a statistical analysis and download options."""
+
+    if analysis_method in PlottingOptions.get_values():
+        display_function = display_figure
+        download_function = _show_buttons_download_figure
+    elif analysis_method in StatisticOptions.get_values():
+        display_function = _display_df
+        download_function = show_button_download_df
+    else:
+        raise ValueError(f"Analysis method {analysis_method} not found.")
+
+    _display(
+        df,
+        analysis_method=analysis_method,
+        parameters=parameters,
+        show_save_button=show_save_button,
+        name=name,
+        display_function=display_function,
+        download_function=download_function,
+    )
+
+
+def _display(
+    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    *,
+    analysis_method: str,
+    display_function: Callable,
+    download_function: Callable,
+    parameters: Dict,
+    name: str,
+    show_save_button: bool,
+) -> None:
+    """Display analysis results and download options."""
+    display_function(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
+    if name is None:
+        name = analysis_method
+
+    name_pretty = name.replace(" ", "_").lower()
+    with c1:
+        if show_save_button and st.button("Save to results page.."):
+            _save_analysis_to_session_state(
+                analysis_result, analysis_method, parameters
+            )
+            st.success("Saved to results page!")
+
+    with c2:
+        download_function(
+            analysis_result,
+            name_pretty,
+        )
+
+    with c3:
+        _show_button_download_analysis_and_preprocessing_info(
+            analysis_method, analysis_result, parameters, name_pretty
+        )
+
+
+def display_figure(plot: PlotlyObject) -> None:
+    """Display plotly or seaborn figure."""
     try:
         st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
     except Exception:
         st.pyplot(plot)
 
 
-@st.fragment
-def display_plot(
-    method: str,
-    analysis_result: Any,
-    parameters: Optional[Dict] = None,
-    show_save_button=True,
+def _show_buttons_download_figure(analysis_result: PlotlyObject, name: str) -> None:
+    """Show buttons to download figure as .pdf or .svg."""
+    _show_button_download_figure(analysis_result, name, "pdf")
+    _show_button_download_figure(analysis_result, name, "svg")
+
+
+def _show_button_download_figure(
+    plot: PlotlyObject,
+    file_name: str,
+    file_format: str,
 ) -> None:
-    """A fragment to display the plot and download options."""
-    display_figure(analysis_result)
-
-    c1, c2, c3 = st.columns([1, 1, 1])
-
-    with c1:
-        if show_save_button and st.button("Save to results page.."):
-            save_plot_to_session_state(method, analysis_result, parameters)
-
-    with c2:
-        download_figure(method, analysis_result, format="pdf")
-        download_figure(method, analysis_result, format="svg")
-
-    with c3:
-        download_analysis_and_preprocessing_info(method, analysis_result, parameters)
-
-
-def display_df(df):
-    mask = df.applymap(type) != bool  # noqa: E721
-    d = {True: "TRUE", False: "FALSE"}
-    df = df.where(mask, df.replace(d))
-    st.dataframe(df)
-
-
-def download_figure(method, plot, format):
-    """
-    download plotly figure
-    """
-
-    filename = method + "." + format
+    """Show a button to download a figure."""
 
     buffer = io.BytesIO()
 
     try:  # plotly
-        plot.write_image(file=buffer, format=format)
-    except AttributeError:
-        plot.savefig(buffer, format=format)
+        plot.write_image(file=buffer, format=file_format)
+    except AttributeError:  # TODO figure out what else "plot" can be
+        plot.savefig(buffer, format=file_format)
 
-    st.download_button(label="Download as " + format, data=buffer, file_name=filename)
-
-
-def download_analysis_and_preprocessing_info(method, plot, parameters):
-    parameters_pretty = {f"analysis_parameter__{k}": v for k, v in parameters.items()}
-    dict_to_save = {
-        **plot.preprocessing,
-        **parameters_pretty,
-    }  # TODO why is the preprocessing info saved in the plots?
-
-    df = pd.DataFrame(dict_to_save.items())
-
-    filename = "plot" + method + "analysis_info.csv"
-    csv = convert_df(df)
     st.download_button(
-        "Download Analysis info as .csv",
-        csv,
-        filename,
-        "text/csv",
+        label="Download as ." + file_format,
+        data=buffer,
+        file_name=file_name + "." + file_format,
     )
 
 
-def save_plot_to_session_state(method, plot, parameters):
-    """
-    save plot with method to session state to retrieve old results
-    """
-    st.session_state[StateKeys.PLOT_LIST] += [(method, plot, parameters)]
+def _display_df(df: pd.DataFrame) -> None:
+    """Display a dataframe."""
+    mask = df.applymap(type) != bool  # noqa: E721
+    df = df.where(mask, df.replace({True: "TRUE", False: "FALSE"}))
+    st.dataframe(df)
+
+
+def _show_button_download_analysis_and_preprocessing_info(
+    method: str,
+    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    parameters: Dict,
+    name: str,
+):
+    """Download analysis info (= analysis and preprocessing parameters and ) as .csv."""
+    parameters_pretty = {
+        f"analysis_parameter__{k}": "None" if v is None else v
+        for k, v in parameters.items()
+    }
+
+    if method in PlottingOptions.get_values():
+        dict_to_save = {
+            **analysis_result.preprocessing,
+            **parameters_pretty,
+        }  # TODO why is the preprocessing info saved in the plots?
+    else:
+        dict_to_save = parameters_pretty
+
+    show_button_download_df(
+        pd.DataFrame(dict_to_save.items()),
+        file_name=f"analysis_info__{name}",
+        label="Download analysis info as .csv",
+    )
+
+
+def _save_analysis_to_session_state(
+    analysis_results: Union[PlotlyObject, pd.DataFrame],
+    method: str,
+    parameters: Dict,
+):
+    """Save analysis with method and parameters to session state to show on results page."""
+    st.session_state[StateKeys.ANALYSIS_LIST] += [
+        (
+            analysis_results,
+            method,
+            parameters,
+        )
+    ]
 
 
 def gather_parameters_and_do_analysis(
-    analysis_name: str,
-) -> Tuple[Optional[Any], Optional[Any], Optional[Dict[str, Any]]]:
+    analysis_method: str,
+) -> Tuple[
+    Optional[Union[PlotlyObject, pd.DataFrame]], Optional[Any], Optional[Dict[str, Any]]
+]:
     """Extract plotting options and display.
 
     Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
@@ -102,13 +180,15 @@ def gather_parameters_and_do_analysis(
 
     Currently, analysis_object is only not-None for Volcano Plot.
     """
-    if (analysis_class := ANALYSIS_OPTIONS.get(analysis_name)) is not None:
+    if (analysis_class := ANALYSIS_OPTIONS.get(analysis_method)) is not None:
         analysis = analysis_class(st.session_state[StateKeys.DATASET])
         analysis.show_widget()
         if st.button("Run analysis .."):
             with st.spinner("Running analysis .."):
-                return analysis.do_analysis()
+                result = analysis.do_analysis()
+            st.success("Analysis done!")
+            return result
         return None, None, None
 
     else:
-        raise ValueError(f"Analysis method {analysis_name} not found.")
+        raise ValueError(f"Analysis method {analysis_method} not found.")

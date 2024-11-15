@@ -66,8 +66,23 @@ def img_to_bytes(img_path):
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def convert_df(df: pd.DataFrame) -> bytes:
+def _convert_df_to_csv(df: pd.DataFrame) -> bytes:
     return df.to_csv().encode("utf-8")
+
+
+def show_button_download_df(
+    df: pd.DataFrame, file_name: str, label="Download as .csv"
+) -> None:
+    """Show a button to download a dataframe as .csv."""
+    csv = _convert_df_to_csv(df)
+
+    st.download_button(
+        label,
+        csv,
+        file_name + ".csv",
+        "text/csv",
+        key=f"download-csv-{file_name}",
+    )
 
 
 def empty_session_state():
@@ -95,8 +110,8 @@ def init_session_state() -> None:
             PREPROCESSING_STEPS.LOG2_TRANSFORM,
         ]
 
-    if StateKeys.PLOT_LIST not in st.session_state:
-        st.session_state[StateKeys.PLOT_LIST] = []
+    if StateKeys.ANALYSIS_LIST not in st.session_state:
+        st.session_state[StateKeys.ANALYSIS_LIST] = []
 
     if StateKeys.LLM_INTEGRATION not in st.session_state:
         st.session_state[StateKeys.LLM_INTEGRATION] = {}
@@ -111,7 +126,7 @@ class StateKeys(metaclass=ConstantsClass):
     DATASET = "dataset"  # functions upload_metadatafile
 
     WORKFLOW = "workflow"
-    PLOT_LIST = "plot_list"
+    ANALYSIS_LIST = "analysis_list"
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret

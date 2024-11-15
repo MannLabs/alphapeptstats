@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import scipy
 
 from alphastats.keys import Cols
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
@@ -206,7 +206,7 @@ class IntensityPlot(PlotUtils):
         if self.add_significance:
             fig = self._add_significance(fig)
 
-        fig = plotly_object(fig)
+        fig = PlotlyObject(fig)
         self._update_figure_attributes(
             fig,
             plotting_data=self.prepared_df,

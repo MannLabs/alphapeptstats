@@ -10,7 +10,7 @@ from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.keys import Cols
 from alphastats.multicova import multicova
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
 )
@@ -359,7 +359,7 @@ class VolcanoPlot(PlotUtils):
         self.plot.update_layout(width=600, height=700)
 
         # save plotting data in figure object
-        self.plot = plotly_object(self.plot)
+        self.plot = PlotlyObject(self.plot)
         self._update_figure_attributes(
             self.plot,
             plotting_data=self.res,
