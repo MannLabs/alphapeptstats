@@ -5,7 +5,6 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import sklearn
-from sklearn.manifold._t_sne import TSNE
 
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.keys import Cols
@@ -120,7 +119,7 @@ class DimensionalityReduction(PlotUtils):
         }
 
     def _tsne(self, **kwargs):
-        tsne = TSNE(n_components=2, verbose=1, **kwargs)
+        tsne = sklearn.manifold._t_sne.TSNE(n_components=2, verbose=1, **kwargs)
         self.components = tsne.fit_transform(self.prepared_df)
         self.labels = {
             "0": "Dimension 1",

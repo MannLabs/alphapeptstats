@@ -1,7 +1,4 @@
 import os
-import sys
-
-from streamlit.web import cli as stcli
 
 
 def run():
@@ -20,22 +17,22 @@ def run():
     )
 
     # TODO why are we starting the app a second time here?
-    _this_file = os.path.abspath(__file__)
-    _this_directory = os.path.dirname(_this_file)
-
-    file_path = os.path.join(_this_directory, "AlphaPeptStats.py")
-
-    HOME = os.path.expanduser("~")
-    ST_PATH = os.path.join(HOME, ".streamlit")
-
-    for folder in [ST_PATH]:
-        if not os.path.isdir(folder):
-            os.mkdir(folder)
-
-    print(f"Starting AlphaPeptStats from {file_path}")
-
-    args = ["streamlit", "run", file_path, "--global.developmentMode=false"]
-
-    sys.argv = args
-
-    sys.exit(stcli.main())
+    # _this_file = os.path.abspath(__file__)
+    # _this_directory = os.path.dirname(_this_file)
+    #
+    # file_path = os.path.join(_this_directory, "AlphaPeptStats.py")
+    #
+    # HOME = os.path.expanduser("~")
+    # ST_PATH = os.path.join(HOME, ".streamlit")
+    #
+    # for folder in [ST_PATH]:
+    #     if not os.path.isdir(folder):
+    #         os.mkdir(folder)
+    #
+    # print(f"Starting AlphaPeptStats from {file_path}")
+    #
+    # args = ["streamlit", "run", file_path, "--global.developmentMode=false"]
+    #
+    # sys.argv = args
+    #
+    # sys.exit(stcli.main())

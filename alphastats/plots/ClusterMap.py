@@ -58,7 +58,7 @@ class ClusterMap(PlotUtils):
             significant_proteins = anova_df[anova_df["ANOVA_pvalue"] < 0.05][
                 Cols.INDEX
             ].to_list()
-            df = df[significant_proteins]  # TODO bug?
+            df = df[significant_proteins]  # TODO bug? df is not used again
 
         if self.label_bar is not None:
             self._create_label_bar(metadata_df)

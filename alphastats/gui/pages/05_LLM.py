@@ -207,8 +207,9 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     """The chat interface for the LLM analysis."""
 
     # TODO dump to file -> static file name, plus button to do so
-    # how to deal with binaries? base64 encode?
-    # "import chat" functionality?
+    # Ideas: save chat as txt, without encoding objects, just put a replacement string.
+    # Offer bulk download of zip with all figures (via plotly download as svg.).
+    # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
 
     # no. tokens spent
     for message in llm_integration.get_print_view(show_all=show_all):

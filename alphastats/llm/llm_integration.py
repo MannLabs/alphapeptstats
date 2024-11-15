@@ -31,8 +31,8 @@ class Models:
     """
 
     GPT4O = "gpt-4o"
-    OLLAMA_31_8B = "llama3.1:8b"
-    OLLAMA_31_70B = "llama3.1:70b"  # for testing only
+    OLLAMA_31_70B = "llama3.1:70b"
+    OLLAMA_31_8B = "llama3.1:8b"  # for testing only
 
 
 class LLMIntegration:
@@ -71,7 +71,7 @@ class LLMIntegration:
         self._model = model_name
 
         if model_name in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
-            url = f"{base_url}/v1"
+            url = f"{base_url}/v1"  # TODO: enable to configure this per model
             self._client = OpenAI(base_url=url, api_key="ollama")
         elif model_name in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
@@ -150,6 +150,7 @@ class LLMIntegration:
         max_tokens : int, optional
             The maximum number of tokens to keep in history, by default 100000
         """
+        # TODO: avoid important messages being removed (e.g. facts about genes)
         total_tokens = sum(
             len(message["content"].split()) for message in self._messages
         )

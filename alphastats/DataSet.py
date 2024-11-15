@@ -64,7 +64,9 @@ class DataSet:
         """
         self._check_loader(loader=loader)
 
-        self._data_harmonizer = DataHarmonizer(loader, sample_column)
+        self._data_harmonizer = DataHarmonizer(
+            loader, sample_column
+        )  # TODO should be moved to the loaders
 
         # fill data from loader
         self.rawinput: pd.DataFrame = self._data_harmonizer.get_harmonized_rawinput(
@@ -110,6 +112,8 @@ class DataSet:
             if Cols.GENE_NAMES in self.rawinput.columns
             else {}
         )
+        # TODO This is not necessarily unique, and should ideally raise an error in some of our test-data sets that
+        #  contain isoform ids. E.g. TPM1 occurs 5 times in testfiles/maxquant/proteinGroups.txt with different base Protein IDs.
 
         print("DataSet has been created.")
 

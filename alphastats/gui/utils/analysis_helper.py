@@ -87,13 +87,16 @@ def _display(
 def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
-        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
+        st.plotly_chart()
     except Exception:
         st.pyplot(plot)
 
 
 def _show_buttons_download_figure(analysis_result: PlotlyObject, name: str) -> None:
     """Show buttons to download figure as .pdf or .svg."""
+    # TODO We have to check for all scatter plotly figures, which renderer they use.
+    #  Default is webgl, which is good for browser performance, but looks horrendous in svg download
+    #  rerendering with svg as renderer could be a method of PlotlyObject to invoke prior to saving as svg
     _show_button_download_figure(analysis_result, name, "pdf")
     _show_button_download_figure(analysis_result, name, "svg")
 
@@ -109,7 +112,7 @@ def _show_button_download_figure(
 
     try:  # plotly
         plot.write_image(file=buffer, format=file_format)
-    except AttributeError:  # TODO figure out what else "plot" can be
+    except AttributeError:  # seaborn
         plot.savefig(buffer, format=file_format)
 
     st.download_button(
@@ -119,6 +122,7 @@ def _show_button_download_figure(
     )
 
 
+# TODO: use pandas stylers, rather than changing the data
 def _display_df(df: pd.DataFrame) -> None:
     """Display a dataframe."""
     mask = df.applymap(type) != bool  # noqa: E721
@@ -132,7 +136,7 @@ def _show_button_download_analysis_and_preprocessing_info(
     parameters: Dict,
     name: str,
 ):
-    """Download analysis info (= analysis and preprocessing parameters and ) as .csv."""
+    """Download analysis info (= analysis and preprocessing parameters) as .csv."""
     parameters_pretty = {
         f"analysis_parameter__{k}": "None" if v is None else v
         for k, v in parameters.items()

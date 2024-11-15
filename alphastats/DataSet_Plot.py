@@ -94,6 +94,9 @@ class Plot(PlotUtils):
         # create long df
         matrix = self.mat if not use_raw else self.rawmat
         df = matrix.unstack().reset_index()
+        # TODO replace intensity either with the more generic term abundance,
+        #  or use what was actually the original name.
+        #  Intensity or LFQ intensity, or even SILAC ratio makes a bit difference
         df.rename(columns={"level_1": Cols.SAMPLE, 0: "Intensity"}, inplace=True)
 
         if color is not None:

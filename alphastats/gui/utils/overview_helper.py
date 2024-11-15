@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.DataSet import DataSet
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import StateKeys, show_button_download_df
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
@@ -24,12 +24,15 @@ def display_matrix():
     st.markdown("**DataFrame used for analysis** *preview*")
 
     # TODO why not use the actual matrix here?
+    mat = st.session_state[StateKeys.DATASET].mat
     df = pd.DataFrame(
-        st.session_state[StateKeys.DATASET].mat.values,
-        index=st.session_state[StateKeys.DATASET].mat.index.to_list(),
+        mat.values,
+        index=mat.index.to_list(),
     ).head(10)
 
     st.dataframe(df)
+
+    show_button_download_df(mat, file_name="analysis_matrix")
 
 
 def display_loaded_dataset(dataset: DataSet) -> None:
