@@ -21,9 +21,11 @@ for count, saved_item in enumerate(st.session_state[StateKeys.PLOT_LIST]):
 
     method = saved_item[0]
     plot = saved_item[1]
+    parameters = saved_item[2]
 
     st.markdown("\n\n\n")
     st.markdown(f"#### {method}")
+    st.write(f"Parameters used for analysis: {parameters}")
 
     if st.button("x remove analysis", key="remove" + method + str(count)):
         st.session_state[StateKeys.PLOT_LIST].remove(saved_item)

@@ -4,7 +4,7 @@ from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
     display_df,
     display_plot,
-    do_analysis,
+    gather_parameters_and_do_analysis,
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
@@ -51,29 +51,28 @@ with c1:
     method = st.selectbox(
         "Analysis",
         options=["<select>"]
-        + ["------- plots -------"]
+        + ["------- plots ------------"]
         + plotting_options
         + ["------- statistics -------"]
         + statistic_options,
     )
 
     if method in plotting_options:
-        analysis_result, analysis_object, parameters = do_analysis(
-            method, options_dict=None
+        analysis_result, analysis_object, parameters = (
+            gather_parameters_and_do_analysis(method)
         )
         show_plot = analysis_result is not None
 
     elif method in statistic_options:
-        analysis_result, *_ = do_analysis(
+        analysis_result, _, parameters = gather_parameters_and_do_analysis(
             method,
-            options_dict=None,
         )
         show_df = analysis_result is not None
 
 with c2:
     # --- SHOW PLOT -------------------------------------------------------
     if show_plot:
-        display_plot(method, analysis_result)
+        display_plot(method, analysis_result, parameters)
 
     # --- SHOW STATISTICAL ANALYSIS -------------------------------------------------------
     elif show_df:

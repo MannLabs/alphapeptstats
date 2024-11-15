@@ -6,23 +6,8 @@ from collections import defaultdict
 import streamlit as st
 
 from alphastats.DataSet import DataSet
-from alphastats.keys import Cols
+from alphastats.keys import Cols, ConstantsClass
 from alphastats.plots.VolcanoPlot import VolcanoPlot
-
-
-class ConstantsClass(type):
-    """A metaclass for classes that should only contain string constants."""
-
-    def __setattr__(self, name, value):
-        raise TypeError("Constants class cannot be modified")
-
-    def get_values(cls):
-        """Get all user-defined string values of the class."""
-        return [
-            value
-            for key, value in cls.__dict__.items()
-            if not key.startswith("__") and isinstance(value, str)
-        ]
 
 
 class PlottingOptions(metaclass=ConstantsClass):
@@ -35,16 +20,19 @@ class PlottingOptions(metaclass=ConstantsClass):
     SAMPLE_DISTRIBUTION_PLOT = "Sampledistribution Plot"
     INTENSITY_PLOT = "Intensity Plot"
     CLUSTERMAP = "Clustermap"
+    DENDROGRAM = "Dendrogram"
 
 
 class StatisticOptions(metaclass=ConstantsClass):
+    """Keys for the statistical options."""
+
     DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
     TUKEY_TEST = "Tukey-Test"
     ANOVA = "ANOVA"
     ANCOVA = "ANCOVA"
 
 
-class Analysis(ABC):
+class AbstractAnalysis(ABC):
     """Abstract class for analysis widgets."""
 
     _works_with_nans = True
@@ -58,7 +46,7 @@ class Analysis(ABC):
         pass
 
     def do_analysis(self):
-        """Perform the analysis.
+        """Perform the analysis after an optional check for NaNs.
 
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
@@ -66,14 +54,14 @@ class Analysis(ABC):
         if not self._works_with_nans and self._dataset.mat.isnull().values.any():
             st.error("This analysis does not work with NaN values.")
             st.stop()
-        return self._do_analysis()
+        return *self._do_analysis(), dict(self._parameters)
 
     @abstractmethod
     def _do_analysis(self):
         pass
 
 
-class GroupCompareAnalysis(Analysis, ABC):
+class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
     """Abstract class for group comparison analysis widgets."""
 
     def show_widget(self):
@@ -130,7 +118,7 @@ class GroupCompareAnalysis(Analysis, ABC):
             self._parameters["column"] = column
 
 
-class DimensionReductionAnalysis(Analysis, ABC):
+class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
     """Abstract class for dimension reduction analysis widgets."""
 
     def show_widget(self):
@@ -146,7 +134,7 @@ class DimensionReductionAnalysis(Analysis, ABC):
         self._parameters.update({"circle": circle, "group": group})
 
 
-class AbstractIntensityPlot(Analysis, ABC):
+class AbstractIntensityPlot(AbstractAnalysis, ABC):
     """Abstract class for intensity plot analysis widgets."""
 
     def show_widget(self):
@@ -185,7 +173,7 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
             method=self._parameters["method"],
             group=self._parameters["group"],
         )
-        return intensity_plot, None, self._parameters
+        return intensity_plot, None
 
 
 class SampleDistributionPlot(AbstractIntensityPlot, ABC):
@@ -197,10 +185,10 @@ class SampleDistributionPlot(AbstractIntensityPlot, ABC):
             method=self._parameters["method"],
             color=self._parameters["group"],  # no typo
         )
-        return intensity_plot, None, self._parameters
+        return intensity_plot, None
 
 
-class PCAPlotAnalysis(DimensionReductionAnalysis):
+class PCAPlotAnalysis(AbstractDimensionReductionAnalysis):
     """Widget for PCA Plot analysis."""
 
     def _do_analysis(self):
@@ -210,10 +198,10 @@ class PCAPlotAnalysis(DimensionReductionAnalysis):
             group=self._parameters["group"],
             circle=self._parameters["circle"],
         )
-        return pca_plot, None, self._parameters
+        return pca_plot, None
 
 
-class UMAPPlotAnalysis(DimensionReductionAnalysis):
+class UMAPPlotAnalysis(AbstractDimensionReductionAnalysis):
     """Widget for UMAP Plot analysis."""
 
     def _do_analysis(self):
@@ -222,10 +210,10 @@ class UMAPPlotAnalysis(DimensionReductionAnalysis):
             group=self._parameters["group"],
             circle=self._parameters["circle"],
         )
-        return umap_plot, None, self._parameters
+        return umap_plot, None
 
 
-class TSNEPlotAnalysis(DimensionReductionAnalysis):
+class TSNEPlotAnalysis(AbstractDimensionReductionAnalysis):
     """Widget for t-SNE Plot analysis."""
 
     def show_widget(self):
@@ -254,10 +242,10 @@ class TSNEPlotAnalysis(DimensionReductionAnalysis):
             perplexity=self._parameters["perplexity"],
             n_iter=self._parameters["n_iter"],
         )
-        return tsne_plot, None, self._parameters
+        return tsne_plot, None
 
 
-class VolcanoPlotAnalysis(GroupCompareAnalysis):
+class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
     """Widget for Volcano Plot analysis."""
 
     def show_widget(self):
@@ -320,10 +308,10 @@ class VolcanoPlotAnalysis(GroupCompareAnalysis):
             fdr=self._parameters["fdr"],
             color_list=self._parameters["color_list"],
         )
-        return volcano_plot.plot, volcano_plot, self._parameters
+        return volcano_plot.plot, volcano_plot
 
 
-class ClustermapAnalysis(Analysis):
+class ClustermapAnalysis(AbstractAnalysis):
     """Widget for Clustermap analysis."""
 
     _works_with_nans = False
@@ -331,10 +319,21 @@ class ClustermapAnalysis(Analysis):
     def _do_analysis(self):
         """Draw Clustermap using the Clustermap class."""
         clustermap = self._dataset.plot_clustermap()
-        return clustermap, None, self._parameters
+        return clustermap, None
 
 
-class DifferentialExpressionAnalysis(GroupCompareAnalysis):
+class DendrogramAnalysis(AbstractAnalysis):
+    """Widget for Dendrogram analysis."""
+
+    _works_with_nans = False
+
+    def _do_analysis(self):
+        """Draw Clustermap using the Clustermap class."""
+        dendrogram = self._dataset.plot_dendrogram()
+        return dendrogram, None
+
+
+class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
     """Widget for differential expression analysis."""
 
     def show_widget(self):
@@ -360,10 +359,10 @@ class DifferentialExpressionAnalysis(GroupCompareAnalysis):
             group2=self._parameters["group2"],
             column=self._parameters["column"],
         )
-        return diff_exp_analysis, None, self._parameters
+        return diff_exp_analysis, None
 
 
-class TukeyTestAnalysis(Analysis):
+class TukeyTestAnalysis(AbstractAnalysis):
     """Widget for Tukey-Test analysis."""
 
     def show_widget(self):
@@ -385,10 +384,10 @@ class TukeyTestAnalysis(Analysis):
             protein_id=self._parameters["protein_id"],
             group=self._parameters["group"],
         )
-        return tukey_test_analysis, None, self._parameters
+        return tukey_test_analysis, None
 
 
-class AnovaAnalysis(GroupCompareAnalysis):
+class AnovaAnalysis(AbstractGroupCompareAnalysis):
     """Widget for ANOVA analysis."""
 
     def show_widget(self):
@@ -416,10 +415,10 @@ class AnovaAnalysis(GroupCompareAnalysis):
             protein_ids=self._parameters["protein_ids"],
             tukey=self._parameters["tukey"],
         )
-        return anova_analysis, None, self._parameters
+        return anova_analysis, None
 
 
-class AncovaAnalysis(Analysis):
+class AncovaAnalysis(AbstractAnalysis):
     """Widget for Ancova analysis."""
 
     def show_widget(self):
@@ -449,4 +448,20 @@ class AncovaAnalysis(Analysis):
             covar=self._parameters["covar"],
             between=self._parameters["between"],
         )
-        return ancova_analysis, None, self._parameters
+        return ancova_analysis, None
+
+
+ANALYSIS_OPTIONS = {
+    PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
+    PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
+    PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
+    PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
+    PlottingOptions.SAMPLE_DISTRIBUTION_PLOT: SampleDistributionPlot,
+    PlottingOptions.INTENSITY_PLOT: IntensityPlot,
+    PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
+    PlottingOptions.DENDROGRAM: DendrogramAnalysis,
+    StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
+    StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
+    StatisticOptions.ANOVA: AnovaAnalysis,
+    StatisticOptions.ANCOVA: AncovaAnalysis,
+}

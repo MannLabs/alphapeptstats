@@ -9,11 +9,11 @@ import sklearn.impute
 import streamlit as st
 from sklearn.experimental import enable_iterative_imputer  # noqa
 
-from alphastats.keys import Cols
+from alphastats.keys import Cols, ConstantsClass
 from alphastats.utils import ignore_warning
 
 
-class PreprocessingStateKeys:
+class PreprocessingStateKeys(metaclass=ConstantsClass):
     """Keys for accessing the dictionary holding the information about preprocessing."""
 
     # TODO disentangle these keys from the human-readably display strings
