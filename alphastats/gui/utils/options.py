@@ -12,27 +12,6 @@ def get_statistic_options(state):
     dataset = state[StateKeys.DATASET]
     metadata_options = dataset.metadata.columns.to_list()
     statistic_options = {
-        "Differential Expression Analysis - T-test": {
-            "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
-        },
-        "Differential Expression Analysis - Wald-test": {
-            "between_two_groups": True,
-            "function": dataset.diff_expression_analysis,
-        },
-        "Tukey - Test": {
-            "settings": {
-                "protein_id": {
-                    "options": dataset.mat.columns.to_list(),
-                    "label": "ProteinID/ProteinGroup",
-                },
-                "group": {
-                    "options": metadata_options,
-                    "label": "A metadata variable to calculate pairwise tukey",
-                },
-            },
-            "function": dataset.tukey_test,
-        },
         "ANOVA": {
             "settings": {
                 "column": {

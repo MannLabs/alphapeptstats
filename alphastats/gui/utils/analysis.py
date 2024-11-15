@@ -10,7 +10,22 @@ from alphastats.keys import Cols
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
-class PlottingOptions:
+class ConstantsClass(type):
+    """A metaclass for classes that should only contain string constants."""
+
+    def __setattr__(self, name, value):
+        raise TypeError("Constants class cannot be modified")
+
+    def get_values(cls):
+        """Get all user-defined string values of the class."""
+        return [
+            value
+            for key, value in cls.__dict__.items()
+            if not key.startswith("__") and isinstance(value, str)
+        ]
+
+
+class PlottingOptions(metaclass=ConstantsClass):
     """Keys for the plotting options."""
 
     PCA_PLOT = "PCA Plot"
@@ -21,14 +36,10 @@ class PlottingOptions:
     INTENSITY_PLOT = "Intensity Plot"
     CLUSTERMAP = "Clustermap"
 
-    @classmethod
-    def get_values(cls):
-        """Get all user-defined string values of the class."""
-        return [
-            value
-            for key, value in cls.__dict__.items()
-            if not key.startswith("__") and isinstance(value, str)
-        ]
+
+class StatisticOptions(metaclass=ConstantsClass):
+    DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
+    TUKEY_TEST = "Tukey-Test"
 
 
 class Analysis(ABC):
@@ -319,3 +330,57 @@ class ClustermapAnalysis(Analysis):
         """Draw Clustermap using the Clustermap class."""
         clustermap = self._dataset.plot_clustermap()
         return clustermap, None, self._parameters
+
+
+class DifferentialExpressionAnalysis(GroupCompareAnalysis):
+    """Widget for differential expression analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+
+        method = st.selectbox(
+            "Differential Analysis using:",
+            options=["ttest", "wald"],
+        )
+
+        if method == "wald":
+            self._works_with_nans = False
+
+        super().show_widget()
+
+        self._parameters.update({"method": method})
+
+    def _do_analysis(self):
+        """Perform T-test analysis."""
+        diff_exp_analysis = self._dataset.diff_expression_analysis(
+            method=self._parameters["method"],
+            group1=self._parameters["group1"],
+            group2=self._parameters["group2"],
+            column=self._parameters["column"],
+        )
+        return diff_exp_analysis, None, self._parameters
+
+
+class TukeyTestAnalysis(Analysis):
+    """Widget for Tukey-Test analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+
+        protein_id = st.selectbox(
+            "ProteinID/ProteinGroup",
+            options=self._dataset.mat.columns.to_list(),
+        )
+        group = st.selectbox(
+            "A metadata variable to calculate a pairwise tukey test",
+            options=self._dataset.metadata.columns.to_list(),
+        )
+        self._parameters.update({"protein_id": protein_id, "group": group})
+
+    def _do_analysis(self):
+        """Perform Tukey-test analysis."""
+        tukey_test_analysis = self._dataset.tukey_test(
+            protein_id=self._parameters["protein_id"],
+            group=self._parameters["group"],
+        )
+        return tukey_test_analysis, None, self._parameters

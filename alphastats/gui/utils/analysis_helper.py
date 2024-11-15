@@ -6,11 +6,14 @@ import streamlit as st
 
 from alphastats.gui.utils.analysis import (
     ClustermapAnalysis,
+    DifferentialExpressionAnalysis,
     IntensityPlot,
     PCAPlotAnalysis,
     PlottingOptions,
     SampleDistributionPlot,
+    StatisticOptions,
     TSNEPlotAnalysis,
+    TukeyTestAnalysis,
     UMAPPlotAnalysis,
     VolcanoPlotAnalysis,
 )
@@ -147,6 +150,8 @@ def do_analysis(
         PlottingOptions.INTENSITY_PLOT: IntensityPlot,
         PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
         # "Dendrogram": dataet.plot_dendrogram},  # TODO this was commented out in the original code?
+        StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
+        StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
     }
 
     if (analysis_class := options.get(method)) is not None:
@@ -160,16 +165,7 @@ def do_analysis(
     method_dict = options_dict.get(method)
 
     # old, to be refactored logic:
-    if method == "Differential Expression Analysis - T-test":
-        parameters = helper_compare_two_groups()
-        parameters.update({"method": "ttest"})
-
-    elif method == "Differential Expression Analysis - Wald-test":
-        parameters = helper_compare_two_groups()
-        parameters.update({"method": "wald"})
-
-    else:
-        parameters = st_general(method_dict=method_dict)
+    parameters = st_general(method_dict=method_dict)
 
     submitted = st.button("Run analysis ..")
 

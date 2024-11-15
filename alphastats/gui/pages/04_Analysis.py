@@ -1,6 +1,6 @@
 import streamlit as st
 
-from alphastats.gui.utils.analysis import PlottingOptions
+from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
     display_df,
     display_plot,
@@ -48,25 +48,35 @@ analysis_result = None
 c1, c2 = st.columns([0.33, 0.67])
 with c1:
     plotting_options = PlottingOptions.get_values()
+    statistic_options = StatisticOptions.get_values()
     method = st.selectbox(
         "Analysis",
         options=["<select>"]
         + ["------- plots -------"]
         + plotting_options
         + ["------- statistics -------"]
-        + list(get_statistic_options(st.session_state).keys()),
+        + statistic_options
+        + [
+            k
+            for k in get_statistic_options(st.session_state)
+            if k not in statistic_options
+        ],
     )
 
-    if method in (plotting_options):
+    if method in plotting_options:
         analysis_result, analysis_object, parameters = do_analysis(
             method, options_dict=None
         )
         show_plot = analysis_result is not None
 
-    elif method in (statistic_options := get_statistic_options(st.session_state)):
+    elif (
+        method
+        in list((options := get_statistic_options(st.session_state)).keys())
+        + statistic_options
+    ):
         analysis_result, *_ = do_analysis(
             method,
-            options_dict=statistic_options,
+            options_dict=options,
         )
         show_df = analysis_result is not None
 
