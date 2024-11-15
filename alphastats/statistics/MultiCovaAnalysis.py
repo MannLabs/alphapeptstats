@@ -14,8 +14,6 @@ class MultiCovaAnalysis:
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
-        index_column: str,
         covariates: list,
         n_permutations: int = 3,
         fdr: float = 0.05,
@@ -23,10 +21,8 @@ class MultiCovaAnalysis:
         subset: dict = None,
         plot: bool = False,
     ):
-        self.sample = sample
         self.metadata_ori = metadata
         self.mat = mat
-        self.index_column = index_column
 
         self.metadata = None  # TODO check if the distinction between metadata and metadata_ori is necessary
 

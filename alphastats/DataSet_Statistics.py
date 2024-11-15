@@ -9,6 +9,7 @@ from alphastats.statistics.Anova import Anova
 from alphastats.statistics.DifferentialExpressionAnalysis import (
     DifferentialExpressionAnalysis,
 )
+from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
 from alphastats.utils import ignore_warning
 
 
@@ -147,8 +148,6 @@ class Statistics:
         res, plot_list = MultiCovaAnalysis(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
-            index_column=self.index_column,
             covariates=covariates,
             n_permutations=n_permutations,
             fdr=fdr,
