@@ -1,51 +1,10 @@
 from alphastats import SpectronautLoader
-from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
 from alphastats.loader.DIANNLoader import DIANNLoader
 from alphastats.loader.FragPipeLoader import FragPipeLoader
 from alphastats.loader.GenericLoader import GenericLoader
 from alphastats.loader.MaxQuantLoader import MaxQuantLoader
 from alphastats.loader.mzTabLoader import mzTabLoader
-
-
-def get_statistic_options(state):
-    dataset = state[StateKeys.DATASET]
-    metadata_options = dataset.metadata.columns.to_list()
-    statistic_options = {
-        "ANOVA": {
-            "settings": {
-                "column": {
-                    "options": metadata_options,
-                    "label": "A variable from the metadata to calculate ANOVA",
-                },
-                "protein_ids": {
-                    "options": ["all"] + dataset.mat.columns.to_list(),
-                    "label": "All ProteinIDs/or specific ProteinID to perform ANOVA",
-                },
-                "tukey": {"label": "Follow-up Tukey"},
-            },
-            "function": dataset.anova,
-        },
-        "ANCOVA": {
-            "settings": {
-                "protein_id": {
-                    "options": [None] + dataset.mat.columns.to_list(),
-                    "label": "Color according to",
-                },
-                "covar": {
-                    "options": metadata_options,
-                    "label": "Name(s) of column(s) in metadata with the covariate.",
-                },
-                "between": {
-                    "options": metadata_options,
-                    "label": "Name of the column in the metadata with the between factor.",
-                },
-            },
-            "function": dataset.ancova,
-        },
-    }
-    return statistic_options
-
 
 SOFTWARE_OPTIONS = {
     "MaxQuant": {
