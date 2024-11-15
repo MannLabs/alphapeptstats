@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
 
 from alphastats.keys import Cols
@@ -108,7 +109,7 @@ class MultiCovaAnalysis:
                     self.covariates.remove(col)
 
     def _prepare_matrix(self):
-        transposed = self.dataset.mat.transpose()
+        transposed = self.mat.transpose()
         transposed[Cols.INDEX] = transposed.index
         transposed = transposed.reset_index(drop=True)
         self.transposed = transposed[self.metadata[Cols.SAMPLE].to_list()]
@@ -144,7 +145,7 @@ class MultiCovaAnalysis:
             fdr=self.fdr,
             s0=self.s0,
         )
-        res[Cols.INDEX] = self.dataset.mat.columns.to_list()
+        res[Cols.INDEX] = self.mat.columns.to_list()
         plot_list = []
 
         if self.plot:
