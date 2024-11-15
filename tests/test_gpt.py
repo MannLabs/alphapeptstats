@@ -79,7 +79,7 @@ class TestGetUniProtData(unittest.TestCase):
 
 class TestExtractData(unittest.TestCase):
     def setUp(self):
-        self.sample_data = {
+        self.example_data = {
             "entryType": "protein",
             "primaryAccession": "P12345",
             "organism": {
@@ -160,7 +160,7 @@ class TestExtractData(unittest.TestCase):
         }
 
     def test_extract_data_success(self):
-        result = extract_data(self.sample_data)
+        result = extract_data(self.example_data)
 
         # Verify the top-level data extraction
         self.assertEqual(result["entryType"], "protein")

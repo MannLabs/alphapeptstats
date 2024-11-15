@@ -66,7 +66,7 @@ def create_pip_wheel():
             "alphastats.data",
             "alphastats.gui.pages",
             "alphastats.gui",
-            "alphastats.gui.sample_data",
+            "alphastats.gui.example_data",
             "alphastats.gui.utils",
             "alphastats.loader",
         ],

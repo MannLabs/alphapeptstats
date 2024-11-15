@@ -118,20 +118,17 @@ def init_session_state() -> None:
 
 
 class StateKeys(metaclass=ConstantsClass):
-    ## 02_Data Import
-    # on 1st run
-    ORGANISM = "organism"  # TODO this is essentially a constant
     USER_SESSION_ID = "user_session_id"
-    # on sample run (function load_sample_data), removed on new session click
-    DATASET = "dataset"  # functions upload_metadatafile
+    DATASET = "dataset"
 
     WORKFLOW = "workflow"
+
     ANALYSIS_LIST = "analysis_list"
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
     MODEL_NAME = "model_name"
-
     LLM_INPUT = "llm_input"
-
     LLM_INTEGRATION = "llm_integration"
+
+    ORGANISM = "organism"  # TODO this is essentially a constant

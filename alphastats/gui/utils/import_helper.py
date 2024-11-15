@@ -9,7 +9,6 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.DataSet import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.keys import Cols
 from alphastats.loader.MaxQuantLoader import BaseLoader, MaxQuantLoader
 
 
@@ -66,7 +65,7 @@ def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.Data
 
 def load_example_data():
     st.markdown("### Using Example Dataset")
-    st.info("Example dataset and metadata loaded")
+    st.toast("Example dataset loaded", icon="✅")
     st.write(
         """
     _Plasma proteome profiling discovers novel proteins associated with non-alcoholic fatty liver disease_
@@ -94,11 +93,11 @@ def load_example_data():
     _this_file = os.path.abspath(__file__)
     _this_directory = os.path.dirname(_this_file)
     _parent_directory = os.path.dirname(_this_directory)
-    folder_to_load = os.path.join(_parent_directory, "sample_data")
+    folder_to_load = os.path.join(_parent_directory, "example_data")
 
     filepath = os.path.join(folder_to_load, "proteinGroups.txt")
     metadatapath = (
-        os.path.join(_parent_directory, "sample_data", "metadata.xlsx")
+        os.path.join(_parent_directory, "example_data", "metadata.xlsx")
         .replace("pages/", "")
         .replace("pages\\", "")
     )
@@ -108,15 +107,6 @@ def load_example_data():
         loader=loader, metadata_path_or_df=metadatapath, sample_column="sample"
     )
 
-    dataset.metadata = dataset.metadata[
-        [
-            Cols.SAMPLE,
-            "disease",
-            "Drug therapy (procedure) (416608005)",
-            "Lipid-lowering therapy (134350008)",
-        ]
-    ]
-    dataset.preprocess(subset=True)
     return dataset
 
 

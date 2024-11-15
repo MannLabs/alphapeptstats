@@ -29,8 +29,12 @@ def _finalize_data_loading(
     st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
 
 
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
+
+st.markdown("## Import Data")
+
 
 st.markdown("### Start a new session")
 st.write(
@@ -150,5 +154,5 @@ if c1.button(
     )
 
 if dataset is not None:
-    st.info("DataSet has been created.")
+    st.toast(" DataSet has been created.", icon="✅")
     _finalize_data_loading(dataset)

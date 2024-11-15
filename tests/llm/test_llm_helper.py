@@ -16,12 +16,13 @@ def mock_streamlit():
     with patch("streamlit.info") as mock_info, patch(
         "streamlit.error"
     ) as mock_error, patch("streamlit.success") as mock_success, patch(
-        "streamlit.session_state", {}
-    ) as mock_session_state:
+        "streamlit.toast"
+    ) as mock_toast, patch("streamlit.session_state", {}) as mock_session_state:
         yield {
             "info": mock_info,
             "error": mock_error,
             "success": mock_success,
+            "toast": mock_toast,
             "session_state": mock_session_state,
         }
 
@@ -92,8 +93,8 @@ def test_set_api_key_from_secrets(mock_exists, mock_st_secrets, mock_streamlit):
 
     set_api_key()
 
-    mock_streamlit["info"].assert_called_with(
-        "OpenAI API key loaded from secrets.toml."
+    mock_streamlit["toast"].assert_called_with(
+        "OpenAI API key loaded from secrets.toml.", icon="✅"
     )
     assert (
         mock_streamlit["session_state"][StateKeys.OPENAI_API_KEY]

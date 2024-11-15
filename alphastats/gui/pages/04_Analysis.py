@@ -11,10 +11,11 @@ from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
-st.markdown("### Analysis")
+st.markdown("## Analysis")
 
 # set background to white so downloaded pngs dont have grey background
 styl = """
@@ -34,7 +35,7 @@ st.markdown(styl, unsafe_allow_html=True)
 # or is caching functionality the way to go here?
 
 if StateKeys.DATASET not in st.session_state:
-    st.info("Import Data first")
+    st.info("Import data first.")
     st.stop()
 
 # --- SELECTION -------------------------------------------------------
@@ -93,7 +94,7 @@ def show_start_llm_button(analysis_method: str) -> None:
             del st.session_state[StateKeys.LLM_INTEGRATION]
         st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
 
-        st.success("LLM analysis created!")
+        st.toast("LLM analysis created!", icon="✅")
         st.page_link("pages/05_LLM.py", label="=> Go to LLM page..")
 
 

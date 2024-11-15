@@ -2,11 +2,14 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from typing import Any, Dict, Optional, Tuple, Union
 
+import pandas as pd
 import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.keys import Cols, ConstantsClass
+from alphastats.plots.PlotUtils import PlotlyObject
 from alphastats.plots.VolcanoPlot import VolcanoPlot
 
 
@@ -32,6 +35,7 @@ class StatisticOptions(metaclass=ConstantsClass):
     ANCOVA = "ANCOVA"
 
 
+# TODO rename to AnalysisComponent
 class AbstractAnalysis(ABC):
     """Abstract class for analysis widgets."""
 
@@ -46,19 +50,39 @@ class AbstractAnalysis(ABC):
         """Show the widget and gather parameters."""
         pass
 
-    def do_analysis(self):
+    def do_analysis(
+        self,
+    ) -> Tuple[
+        Union[PlotlyObject, pd.DataFrame], Optional[VolcanoPlot], Dict[str, Any]
+    ]:
         """Perform the analysis after an optional check for NaNs.
 
-        Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
-        analysis_object is the underlying object, parameters is a dictionary of the parameters used.
+        Returns a tuple(analysis, analysis_object, parameters) where 'analysis' is the plot or dataframe,
+        'analysis_object' is the underlying object, 'parameters' is a dictionary of the parameters used.
         """
-        if not self._works_with_nans and self._dataset.mat.isnull().values.any():
-            st.error("This analysis does not work with NaN values.")
+        try:
+            self._nan_check()
+            self._pre_analysis_check()
+        except ValueError as e:
+            st.error(str(e))
             st.stop()
-        return *self._do_analysis(), dict(self._parameters)
+
+        analysis, analysis_object = self._do_analysis()
+        return analysis, analysis_object, dict(self._parameters)
 
     @abstractmethod
-    def _do_analysis(self):
+    def _do_analysis(
+        self,
+    ) -> Tuple[Union[PlotlyObject, pd.DataFrame], Optional[VolcanoPlot]]:
+        pass
+
+    def _nan_check(self) -> None:  # noqa: B027
+        """Raise ValueError for methods that do not tolerate NaNs if there are any."""
+        if not self._works_with_nans and self._dataset.mat.isnull().values.any():
+            raise ValueError("This analysis does not work with NaN values.")
+
+    def _pre_analysis_check(self) -> None:  # noqa: B027
+        """Perform pre-analysis check, raise ValueError on fail."""
         pass
 
 
@@ -71,7 +95,7 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
         metadata = self._dataset.metadata
 
         default_option = "<select>"
-        custom_group_option = "Custom group from samples .."
+        custom_group_option = "Custom groups from samples .."
 
         grouping_variable = st.selectbox(
             "Grouping variable",
@@ -82,7 +106,9 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
 
         column = None
         if grouping_variable == default_option:
-            st.stop()  # TODO: using stop here is not really great
+            group1 = st.selectbox("Group 1", options=[])
+            group2 = st.selectbox("Group 2", options=[])
+
         elif grouping_variable != custom_group_option:
             unique_values = metadata[grouping_variable].unique().tolist()
 
@@ -108,15 +134,18 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
                     + str(intersection_list)
                 )
 
-        if group1 == group2:
-            st.error(
-                "Group 1 and Group 2 can not be the same. Please select different groups."
-            )
-            st.stop()
-
         self._parameters.update({"group1": group1, "group2": group2})
         if column is not None:
             self._parameters["column"] = column
+
+    def _pre_analysis_check(self):
+        """Raise if selected groups are different."""
+        if self._parameters["group1"] == self._parameters["group2"]:
+            raise (
+                ValueError(
+                    "Group 1 and Group 2 can not be the same. Please select different groups."
+                )
+            )
 
 
 class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
@@ -288,10 +317,10 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
         """
-        # TODO currently there's no other way to obtain both the plot and the underlying data
-        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
-        #  One option could be to always return the whole analysis object.
-
+        # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
+        # thus overwriting the default values set therein.
+        # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
+        # or refactor it so that all default values are `None` and the class sets the defaults programmatically.
         volcano_plot = VolcanoPlot(
             mat=self._dataset.mat,
             rawinput=self._dataset.rawinput,
@@ -309,6 +338,10 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             fdr=self._parameters["fdr"],
             color_list=self._parameters["color_list"],
         )
+        # TODO currently there's no other way to obtain both the plot and the underlying data
+        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
+        #  One option could be to always return the whole analysis object.
+
         return volcano_plot.plot, volcano_plot
 
 

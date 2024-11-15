@@ -70,7 +70,7 @@ def _display(
             _save_analysis_to_session_state(
                 analysis_result, analysis_method, parameters
             )
-            st.success("Saved to results page!")
+            st.toast("Saved to results page!", icon="✅")
 
     with c2:
         download_function(
@@ -186,7 +186,7 @@ def gather_parameters_and_do_analysis(
         if st.button("Run analysis .."):
             with st.spinner("Running analysis .."):
                 result = analysis.do_analysis()
-            st.success("Analysis done!")
+            st.toast("Analysis done!", icon="✅")
             return result
         return None, None, None
 

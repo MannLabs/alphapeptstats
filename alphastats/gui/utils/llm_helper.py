@@ -48,7 +48,7 @@ def set_api_key(api_key: str = None) -> None:
         try:
             if Path("./.streamlit/secrets.toml").exists():
                 api_key = st.secrets["openai_api_key"]
-                st.info("OpenAI API key loaded from secrets.toml.")
+                st.toast("OpenAI API key loaded from secrets.toml.", icon="✅")
             else:
                 st.info(
                     "Please enter an OpenAI key or provide it in a secrets.toml file in the "
