@@ -45,12 +45,9 @@ class DataSetFactory:
         rawmat = df.transpose()
         rawmat.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-        # remove proteins with only zero  # TODO this is re-done in preprocessing
-        mat_no_zeros = rawmat.loc[:, (rawmat != 0).any(axis=0)].astype(float)
+        self._check_matrix_values(rawmat)
 
-        self._check_matrix_values(mat_no_zeros)
-
-        return rawmat, mat_no_zeros
+        return rawmat, rawmat
 
     @staticmethod
     def _check_matrix_values(mat: pd.DataFrame) -> None:

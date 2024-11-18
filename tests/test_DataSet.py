@@ -1006,5 +1006,48 @@ class TestGenericDataSet(BaseTestDataSet.BaseTest):
             shutil.rmtree("testfiles/fragpipe/__MACOSX")
 
 
+class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        cls.cls_loader = GenericLoader(
+            file="testfiles/synthetic/preprocessing_pentests.csv",
+            intensity_column="Intensity [sample]",
+            index_column="Protein IDs",
+        )
+        cls.cls_metadata_path = (
+            "testfiles/synthetic/preprocessing_pentests_metadata.csv"
+        )
+        cls.cls_obj = DataSet(
+            loader=cls.cls_loader,
+            metadata_path_or_df=cls.cls_metadata_path,
+            sample_column="sample",
+        )
+
+    def setUp(self):
+        self.loader = copy.deepcopy(self.cls_loader)
+        self.metadata_path = copy.deepcopy(self.cls_metadata_path)
+        self.obj = copy.deepcopy(self.cls_obj)
+        self.matrix_dim = (4, 20)
+        self.matrix_dim_filtered = (4, 20)
+        self.comparison_column = "groups"
+
+    def test_preprocess_do_nothing(self):
+        """No preprocessing"""
+        self.obj.preprocess()
+        self.assertEqual(self.obj.mat.shape, self.matrix_dim)
+        self.assertEqual(np.isnan(self.obj.mat.values.flatten()).sum(), 8)
+
+    def test_preprocess_drop_unmeasured_features(self):
+        """Remove one completely empty row"""
+        self.obj.preprocess(drop_unmeasured_features=True)
+        self.assertEqual(self.obj.mat.shape[1], 19)
+
+    def test_preprocess_replace_zero(self):
+        """Replace zeros with NaNs, remove two rows, leave 8 nans"""
+        self.obj.preprocess(replace_zero=True, drop_unmeasured_features=True)
+        self.assertEqual(self.obj.mat.shape[1], 18)
+        self.assertEqual(np.isnan(self.obj.mat.values.flatten()).sum(), 8)
+
+
 if __name__ == "__main__":
     unittest.main()
