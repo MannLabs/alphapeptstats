@@ -149,6 +149,9 @@ class DifferentialExpressionAnalysis:
 
         If the data was not already log transformed during preprocessing, it will be log2 transformed here. > Log2-transformed data will be used for the t-test
 
+        Parameters:
+            test_fun (Callable): A function that performs a t-test, e.g. scipy.stats.ttest_ind or scipy.stats.ttest_rel
+
         Returns:
             pd.DataFrame: DataFrame with index_column, p-value and log2 fold change.
         """
