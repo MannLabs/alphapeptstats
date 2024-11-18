@@ -173,7 +173,7 @@ class DifferentialExpressionAnalysis:
         """
         Perform a t-test between two groups, assuming log-normally distributed data.
 
-        If the data was not already log transformed during preprocessing, it will be log2 transformed here.
+        If the data was not already log transformed during preprocessing, it will be log2 transformed here. > Log2-transformed data will be used for the t-test
 
         Returns:
             pd.DataFrame: DataFrame with index_column, p-value and log2 fold change.
