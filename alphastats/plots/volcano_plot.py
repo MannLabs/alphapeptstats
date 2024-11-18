@@ -11,10 +11,10 @@ from alphastats.DataSet_Statistics import Statistics
 from alphastats.keys import Cols
 from alphastats.multicova import multicova
 from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
-from alphastats.statistics.DifferentialExpressionAnalysis import (
+from alphastats.statistics.differential_expression_analysis import (
     DifferentialExpressionAnalysis,
 )
-from alphastats.statistics.StatisticUtils import (
+from alphastats.statistics.statistic_utils import (
     add_metadata_column,
     calculate_foldchange,
 )

@@ -5,11 +5,11 @@ import pandas as pd
 import pingouin
 
 from alphastats.keys import Cols
-from alphastats.statistics.Anova import Anova
-from alphastats.statistics.DifferentialExpressionAnalysis import (
+from alphastats.statistics.anova import Anova
+from alphastats.statistics.differential_expression_analysis import (
     DifferentialExpressionAnalysis,
 )
-from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
+from alphastats.statistics.multicova_analysis import MultiCovaAnalysis
 from alphastats.utils import ignore_warning
 
 

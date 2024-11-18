@@ -7,7 +7,7 @@ import scipy
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.keys import Cols
 from alphastats.multicova import multicova
-from alphastats.statistics.StatisticUtils import (
+from alphastats.statistics.statistic_utils import (
     add_metadata_column,
     calculate_foldchange,
 )
