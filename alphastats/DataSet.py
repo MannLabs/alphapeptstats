@@ -4,13 +4,13 @@ import pandas as pd
 import plotly
 import scipy
 
-from alphastats import BaseLoader
 from alphastats.dataset_factory import DataSetFactory
 from alphastats.dataset_harmonizer import DataHarmonizer
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.keys import Cols
+from alphastats.loader.BaseLoader import BaseLoader
 from alphastats.plots.ClusterMap import ClusterMap
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.IntensityPlot import IntensityPlot
