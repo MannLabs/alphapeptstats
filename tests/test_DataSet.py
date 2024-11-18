@@ -9,10 +9,10 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import plotly
+from dataset.DataSet import DataSet
+from dataset.dataset_factory import DataSetFactory
+from dataset.DataSet_Preprocess import PreprocessingStateKeys
 
-from alphastats.DataSet import DataSet
-from alphastats.dataset_factory import DataSetFactory
-from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.loader.alphapept_loader import AlphaPeptLoader
 from alphastats.loader.diann_loader import DIANNLoader
 from alphastats.loader.fragpipe_loader import FragPipeLoader

@@ -8,8 +8,8 @@ import inspect
 from typing import Callable, Dict
 
 import pandas as pd
+from dataset.DataSet import DataSet
 
-from alphastats.DataSet import DataSet
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,

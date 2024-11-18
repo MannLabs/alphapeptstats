@@ -1,9 +1,9 @@
 from io import BytesIO
 from pathlib import Path
 
+from dataset.DataSet import DataSet
 from streamlit.testing.v1 import AppTest
 
-from alphastats.DataSet import DataSet
 from alphastats.load_data import load_data
 
 # TODO: Turn the helpers into fixtures

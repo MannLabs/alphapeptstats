@@ -3,8 +3,8 @@ from typing import Callable, Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 import scipy
+from dataset.DataSet_Preprocess import PreprocessingStateKeys
 
-from alphastats.DataSet_Preprocess import PreprocessingStateKeys
 from alphastats.keys import Cols
 from alphastats.multicova import multicova
 from alphastats.statistics.statistic_utils import (

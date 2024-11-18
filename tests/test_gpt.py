@@ -2,7 +2,8 @@ import logging
 import unittest
 from unittest.mock import MagicMock, patch
 
-from alphastats.DataSet import DataSet
+from dataset.DataSet import DataSet
+
 from alphastats.llm.uniprot_utils import extract_data, get_uniprot_data
 from alphastats.loader.maxquant_loader import MaxQuantLoader
 
