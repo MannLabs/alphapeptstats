@@ -1,400 +1,194 @@
 import io
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.ui_helper import StateKeys, convert_df
-from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.gui.utils.analysis import (
+    ANALYSIS_OPTIONS,
+    PlottingOptions,
+    StatisticOptions,
+)
+from alphastats.gui.utils.ui_helper import (
+    StateKeys,
+    show_button_download_df,
+)
+from alphastats.plots.PlotUtils import PlotlyObject
 
 
-def check_if_options_are_loaded(f):
-    # decorator to check for missing values
-    # TODO remove this
-    def inner(*args, **kwargs):
-        if hasattr(st.session_state, StateKeys.PLOTTING_OPTIONS) is False:
-            load_options()
+@st.fragment
+def display_analysis_result_with_buttons(
+    df: pd.DataFrame,
+    analysis_method: str,
+    parameters: Optional[Dict],
+    show_save_button=True,
+    name: str = None,
+) -> None:
+    """A fragment to display a statistical analysis and download options."""
 
-        return f(*args, **kwargs)
+    if analysis_method in PlottingOptions.get_values():
+        display_function = display_figure
+        download_function = _show_buttons_download_figure
+    elif analysis_method in StatisticOptions.get_values():
+        display_function = _display_df
+        download_function = show_button_download_df
+    else:
+        raise ValueError(f"Analysis method {analysis_method} not found.")
 
-    return inner
+    _display(
+        df,
+        analysis_method=analysis_method,
+        parameters=parameters,
+        show_save_button=show_save_button,
+        name=name,
+        display_function=display_function,
+        download_function=download_function,
+    )
 
 
-def display_figure(plot):
-    """
-    display plotly or seaborn figure
-    """
+def _display(
+    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    *,
+    analysis_method: str,
+    display_function: Callable,
+    download_function: Callable,
+    parameters: Dict,
+    name: str,
+    show_save_button: bool,
+) -> None:
+    """Display analysis results and download options."""
+    display_function(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
+    if name is None:
+        name = analysis_method
+
+    name_pretty = name.replace(" ", "_").lower()
+    with c1:
+        if show_save_button and st.button("Save to results page.."):
+            _save_analysis_to_session_state(
+                analysis_result, analysis_method, parameters
+            )
+            st.toast("Saved to results page!", icon="✅")
+
+    with c2:
+        download_function(
+            analysis_result,
+            name_pretty,
+        )
+
+    with c3:
+        _show_button_download_analysis_and_preprocessing_info(
+            analysis_method, analysis_result, parameters, name_pretty
+        )
+
+
+def display_figure(plot: PlotlyObject) -> None:
+    """Display plotly or seaborn figure."""
     try:
         st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
-    except:
+    except Exception:
         st.pyplot(plot)
 
 
-def save_plot_to_session_state(plot, method):
-    """
-    save plot with method to session state to retrieve old results
-    """
-    st.session_state[StateKeys.PLOT_LIST] += [(method, plot)]
+def _show_buttons_download_figure(analysis_result: PlotlyObject, name: str) -> None:
+    """Show buttons to download figure as .pdf or .svg."""
+    _show_button_download_figure(analysis_result, name, "pdf")
+    _show_button_download_figure(analysis_result, name, "svg")
 
 
-def display_df(df):
-    mask = df.applymap(type) != bool
-    d = {True: "TRUE", False: "FALSE"}
-    df = df.where(mask, df.replace(d))
-    st.dataframe(df)
-
-
-def download_figure(obj, format, plotting_library="plotly"):
-    """
-    download plotly figure
-    """
-
-    plot = obj[1]
-    filename = obj[0] + "." + format
+def _show_button_download_figure(
+    plot: PlotlyObject,
+    file_name: str,
+    file_format: str,
+) -> None:
+    """Show a button to download a figure."""
 
     buffer = io.BytesIO()
 
-    if plotting_library == "plotly":
-        # Save the figure as a pdf to the buffer
-        plot.write_image(file=buffer, format=format)
+    try:  # plotly
+        plot.write_image(file=buffer, format=file_format)
+    except AttributeError:  # TODO figure out what else "plot" can be
+        plot.savefig(buffer, format=file_format)
 
-    else:
-        plot.savefig(buffer, format=format)
-
-    st.download_button(label="Download as " + format, data=buffer, file_name=filename)
-
-
-def download_preprocessing_info(plot):
-    preprocesing_dict = plot[1].preprocessing
-    df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + plot[0] + "preprocessing_info.csv"
-    csv = convert_df(df)
     st.download_button(
-        "Download DataSet Info as .csv",
-        csv,
-        filename,
-        "text/csv",
-        key="preprocessing",
+        label="Download as ." + file_format,
+        data=buffer,
+        file_name=file_name + "." + file_format,
     )
 
 
-def get_unique_values_from_column(column):
-    unique_values = (
-        st.session_state[StateKeys.DATASET].metadata[column].unique().tolist()
-    )
-    return unique_values
+def _display_df(df: pd.DataFrame) -> None:
+    """Display a dataframe."""
+    mask = df.applymap(type) != bool  # noqa: E721
+    df = df.where(mask, df.replace({True: "TRUE", False: "FALSE"}))
+    st.dataframe(df)
 
 
-def st_general(method_dict):
-    chosen_parameter_dict = {}
-
-    if "settings" in list(method_dict.keys()):
-        settings_dict = method_dict.get("settings")
-
-        for parameter in settings_dict:
-            parameter_dict = settings_dict[parameter]
-
-            if "options" in parameter_dict:
-                chosen_parameter = st.selectbox(
-                    parameter_dict.get("label"), options=parameter_dict.get("options")
-                )
-            else:
-                chosen_parameter = st.checkbox(parameter_dict.get("label"))
-
-            chosen_parameter_dict[parameter] = chosen_parameter
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
-
-
-# @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def gui_volcano_plot_differential_expression_analysis(
-    chosen_parameter_dict,
+def _show_button_download_analysis_and_preprocessing_info(
+    method: str,
+    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    parameters: Dict,
+    name: str,
 ):
-    """
-    initalize volcano plot object with differential expression analysis results
-    """
-    dataset = st.session_state[StateKeys.DATASET]
-
-    # TODO this is just a quickfix, a simple interface needs to be provided by DataSet
-    volcano_plot = VolcanoPlot(
-        mat=dataset.mat,
-        rawinput=dataset.rawinput,
-        metadata=dataset.metadata,
-        sample=dataset.sample,
-        index_column=dataset.index_column,
-        gene_names=dataset._gene_names,
-        preprocessing_info=dataset.preprocessing_info,
-        **chosen_parameter_dict,
-        plot=False,
-    )
-    volcano_plot._perform_differential_expression_analysis()
-    volcano_plot._add_hover_data_columns()
-    return volcano_plot
-
-
-def gui_volcano_plot():
-    """
-    Draw Volcano Plot using the VolcanoPlot class
-    """
-    chosen_parameter_dict = helper_compare_two_groups()
-    method = st.selectbox(
-        "Differential Analysis using:",
-        options=["ttest", "anova", "wald", "sam", "paired-ttest", "welch-ttest"],
-    )
-    chosen_parameter_dict.update({"method": method})
-
-    # TODO streamlit doesnt allow nested columns check for updates
-
-    labels = st.checkbox("Add label")
-
-    draw_line = st.checkbox("Draw line")
-
-    alpha = st.number_input(
-        label="alpha", min_value=0.001, max_value=0.050, value=0.050
-    )
-
-    min_fc = st.select_slider("Foldchange cutoff", range(0, 3), value=1)
-
-    plotting_parameter_dict = {
-        "labels": labels,
-        "draw_line": draw_line,
-        "alpha": alpha,
-        "min_fc": min_fc,
+    """Download analysis info (= analysis and preprocessing parameters and ) as .csv."""
+    parameters_pretty = {
+        f"analysis_parameter__{k}": "None" if v is None else v
+        for k, v in parameters.items()
     }
 
-    if method == "sam":
-        perm = st.number_input(
-            label="Number of Permutations", min_value=1, max_value=1000, value=10
+    if method in PlottingOptions.get_values():
+        dict_to_save = {
+            **analysis_result.preprocessing,
+            **parameters_pretty,
+        }  # TODO why is the preprocessing info saved in the plots?
+    else:
+        dict_to_save = parameters_pretty
+
+    show_button_download_df(
+        pd.DataFrame(dict_to_save.items()),
+        file_name=f"analysis_info__{name}",
+        label="Download analysis info as .csv",
+    )
+
+
+def _save_analysis_to_session_state(
+    analysis_results: Union[PlotlyObject, pd.DataFrame],
+    method: str,
+    parameters: Dict,
+):
+    """Save analysis with method and parameters to session state to show on results page."""
+    st.session_state[StateKeys.ANALYSIS_LIST] += [
+        (
+            analysis_results,
+            method,
+            parameters,
         )
-        fdr = st.number_input(
-            label="FDR cut off", min_value=0.005, max_value=0.1, value=0.050
-        )
-        chosen_parameter_dict.update({"perm": perm, "fdr": fdr})
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        # TODO this seems not be covered by unit test
-        volcano_plot = gui_volcano_plot_differential_expression_analysis(
-            chosen_parameter_dict
-        )
-        volcano_plot._update(plotting_parameter_dict)
-        volcano_plot._annotate_result_df()
-        volcano_plot._plot()
-        return volcano_plot.plot
+    ]
 
 
-def get_analysis_options_from_dict(method, options_dict):
+def gather_parameters_and_do_analysis(
+    analysis_method: str,
+) -> Tuple[
+    Optional[Union[PlotlyObject, pd.DataFrame]], Optional[Any], Optional[Dict[str, Any]]
+]:
+    """Extract plotting options and display.
+
+    Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
+    analysis_object is the underlying object, parameters is a dictionary of the parameters used.
+
+    Currently, analysis_object is only not-None for Volcano Plot.
     """
-    extract plotting options from dict amd display as selectbox or
-    give selceted options to plotting function
-    """
-
-    method_dict = options_dict.get(method)
-
-    if method == "t-SNE Plot":
-        return st_tsne_options(method_dict)
-
-    elif method == "Differential Expression Analysis - T-test":
-        return st_calculate_ttest(method=method, options_dict=options_dict)
-
-    elif method == "Differential Expression Analysis - Wald-test":
-        return st_calculate_waldtest(method=method, options_dict=options_dict)
-
-    elif method == "Volcano Plot":
-        return gui_volcano_plot()
-
-    elif method == "PCA Plot":
-        return st_plot_pca(method_dict)
-
-    elif method == "UMAP Plot":
-        return st_plot_umap(method_dict)
-
-    elif "settings" not in method_dict:
-        if st.session_state[StateKeys.DATASET].mat.isna().values.any() == True:
-            st.error(
-                "Data contains missing values impute your data before plotting (Preprocessing - Imputation)."
-            )
-            return
-
-        chosen_parameter_dict = {}
-        return method_dict["function"](**chosen_parameter_dict)
+    if (analysis_class := ANALYSIS_OPTIONS.get(analysis_method)) is not None:
+        analysis = analysis_class(st.session_state[StateKeys.DATASET])
+        analysis.show_widget()
+        if st.button("Run analysis .."):
+            with st.spinner("Running analysis .."):
+                result = analysis.do_analysis()
+            st.toast("Analysis done!", icon="✅")
+            return result
+        return None, None, None
 
     else:
-        return st_general(method_dict=method_dict)
-
-
-def st_plot_pca(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
-
-
-def st_plot_umap(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
-
-
-def st_calculate_ttest(method, options_dict):
-    """
-    perform ttest in streamlit
-    """
-    chosen_parameter_dict = helper_compare_two_groups()
-    chosen_parameter_dict.update({"method": "ttest"})
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return options_dict.get(method)["function"](**chosen_parameter_dict)
-
-
-def st_calculate_waldtest(method, options_dict):
-    chosen_parameter_dict = helper_compare_two_groups()
-    chosen_parameter_dict.update({"method": "wald"})
-
-    submitted = st.button("Submit")
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return options_dict.get(method)["function"](**chosen_parameter_dict)
-
-
-def helper_plot_dimensionality_reduction(method_dict):
-    group = st.selectbox(
-        method_dict["settings"]["group"].get("label"),
-        options=method_dict["settings"]["group"].get("options"),
-    )
-
-    circle = False
-
-    if group is not None:
-        circle = st.checkbox("circle")
-
-    chosen_parameter_dict = {
-        "circle": circle,
-        "group": group,
-    }
-    return chosen_parameter_dict
-
-
-def helper_compare_two_groups():
-    """
-    Helper function to compare two groups for example
-    Volcano Plot, Differetial Expression Analysis and t-test
-    selectbox based on selected column
-    """
-
-    chosen_parameter_dict = {}
-    default_option = "<select>"
-    group = st.selectbox(
-        "Grouping variable",
-        options=[default_option]
-        + st.session_state[StateKeys.DATASET].metadata.columns.to_list(),
-    )
-
-    if group != default_option:
-        unique_values = get_unique_values_from_column(column=group)
-
-        group1 = st.selectbox("Group 1", options=unique_values)
-
-        group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
-
-        chosen_parameter_dict.update(
-            {"column": group, "group1": group1, "group2": group2}
-        )
-
-        if group1 == group2:
-            st.error(
-                "Group 1 and Group 2 can not be the same please select different group."
-            )
-
-    else:
-        group1 = st.multiselect(
-            "Group 1 samples:",
-            options=st.session_state[StateKeys.DATASET]
-            .metadata[st.session_state[StateKeys.DATASET].sample]
-            .to_list(),
-        )
-
-        group2 = st.multiselect(
-            "Group 2 samples:",
-            options=list(
-                reversed(
-                    st.session_state[StateKeys.DATASET]
-                    .metadata[st.session_state[StateKeys.DATASET].sample]
-                    .to_list()
-                )
-            ),
-        )
-
-        intersection_list = list(set(group1).intersection(set(group2)))
-
-        if len(intersection_list) > 0:
-            st.warning(
-                "Group 1 and Group 2 contain same samples: " + str(intersection_list)
-            )
-
-        chosen_parameter_dict.update({"group1": group1, "group2": group2})
-
-    return chosen_parameter_dict
-
-
-def get_analysis(method, options_dict):
-    if method in options_dict:
-        obj = get_analysis_options_from_dict(method, options_dict=options_dict)
-        return obj
-
-
-def st_tsne_options(method_dict):
-    chosen_parameter_dict = helper_plot_dimensionality_reduction(
-        method_dict=method_dict
-    )
-
-    n_iter = st.select_slider(
-        "Maximum number of iterations for the optimization",
-        range(250, 2001),
-        value=1000,
-    )
-    perplexity = st.select_slider("Perplexity", range(5, 51), value=30)
-
-    submitted = st.button("Submit")
-    chosen_parameter_dict.update(
-        {
-            "n_iter": n_iter,
-            "perplexity": perplexity,
-        }
-    )
-
-    if submitted:
-        with st.spinner("Calculating..."):
-            return method_dict["function"](**chosen_parameter_dict)
-
-
-def load_options():
-    from alphastats.gui.utils.options import (
-        plotting_options,
-        statistic_options,
-        # interpretation_options,
-    )
-
-    st.session_state[StateKeys.PLOTTING_OPTIONS] = plotting_options(st.session_state)
-    st.session_state[StateKeys.STATISTIC_OPTIONS] = statistic_options(st.session_state)
-    # TODO: Check if this should be reintroduced or removed
-    # st.session_state["interpretation_options"] = interpretation_options
+        raise ValueError(f"Analysis method {analysis_method} not found.")

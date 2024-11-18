@@ -8,8 +8,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scipy
 
-from alphastats.gui.utils.gpt_helper import get_gene_to_prot_id_mapping
-from alphastats.plots.PlotUtils import PlotUtils, plotly_object
+from alphastats.keys import Cols
+from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(
@@ -38,7 +38,6 @@ class IntensityPlot(PlotUtils):
         *,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
         intensity_column: str,
         preprocessing_info: Dict,
         protein_id,
@@ -50,17 +49,17 @@ class IntensityPlot(PlotUtils):
     ) -> None:
         self.mat = mat
         self.metadata = metadata
-        self.sample = sample
         self.intensity_column = intensity_column
         self.preprocessing_info = preprocessing_info
 
-        self.protein_id = get_gene_to_prot_id_mapping(protein_id)
+        self.protein_id = protein_id
         self.group = group
         self.subgroups = subgroups
         self.method = method
         self.add_significance = add_significance
         self.log_scale = log_scale
 
+        self.prepared_df = None
         self._prepare_data()
         self._plot()
 
@@ -78,7 +77,7 @@ class IntensityPlot(PlotUtils):
 
         group1, group2 = data[0]["name"], data[1]["name"]
         y_array1, y_array2 = data[0]["y"], data[1]["y"]
-        #  do ttest
+        # do ttest
         pvalue = scipy.stats.ttest_ind(y_array1, y_array2).pvalue
 
         pvalue_text = "<i>p=" + str(round(pvalue, 4)) + "</i>"
@@ -136,13 +135,13 @@ class IntensityPlot(PlotUtils):
         return plot
 
     def _prepare_data(self):
-        #  TODO use difflib to find similar ProteinId if ProteinGroup is not present
+        # TODO use difflib to find similar ProteinId if ProteinGroup is not present
         df = (
             self.mat[[self.protein_id]]
             .reset_index()
-            .rename(columns={"index": self.sample})
+            .rename(columns={"index": Cols.SAMPLE})
         )
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
+        df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
 
         if self.subgroups is not None:
             df = df[df[self.group].isin(self.subgroups)]
@@ -207,7 +206,7 @@ class IntensityPlot(PlotUtils):
         if self.add_significance:
             fig = self._add_significance(fig)
 
-        fig = plotly_object(fig)
+        fig = PlotlyObject(fig)
         self._update_figure_attributes(
             fig,
             plotting_data=self.prepared_df,

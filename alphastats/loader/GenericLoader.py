@@ -33,7 +33,7 @@ class GenericLoader(BaseLoader):
         self.confidence_column = None
         self.software = "Generic"
         self.evidence_df = None
-        self.gene_names = None
+        self.gene_names_column = None
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
@@ -53,7 +53,7 @@ class GenericLoader(BaseLoader):
     def load_file(self, file_path):
         if isinstance(file_path, pd.DataFrame):
             df = file_path
-        #  loading file needs to be more beautiful
+        # loading file needs to be more beautiful
         elif file_path.endswith(".xlsx"):
             df = pd.read_excel(file_path)
             # find robust way to detect file format

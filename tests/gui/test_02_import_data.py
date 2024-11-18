@@ -18,7 +18,6 @@ def test_page_02_loads_without_input():
 
     assert at.session_state[StateKeys.ORGANISM] == 9606
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
-    assert at.session_state[StateKeys.GENE_TO_PROT_ID] == {}
 
 
 @patch("streamlit.file_uploader")
@@ -31,7 +30,6 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
 
     assert at.session_state[StateKeys.ORGANISM] == 9606
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
-    assert at.session_state[StateKeys.GENE_TO_PROT_ID] == {}
 
 
 @patch(
@@ -47,8 +45,8 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
 
     assert not at.exception
 
-    assert at.session_state[StateKeys.METADATA_COLUMNS] == [
-        "sample",
+    assert at.session_state[StateKeys.DATASET].metadata.columns.to_list() == [
+        "sample_",
         "disease",
         "Drug therapy (procedure) (416608005)",
         "Lipid-lowering therapy (134350008)",
@@ -57,12 +55,6 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
         str(type(at.session_state[StateKeys.DATASET]))
         == "<class 'alphastats.DataSet.DataSet'>"
     )
-    assert (
-        str(type(at.session_state[StateKeys.LOADER]))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
-    )
-    assert StateKeys.PLOTTING_OPTIONS in at.session_state
-    assert StateKeys.STATISTIC_OPTIONS in at.session_state
 
 
 @patch("streamlit.file_uploader")
@@ -113,15 +105,6 @@ def test_page_02_loads_maxquant_testfiles(
     assert not at.exception
 
     dataset = at.session_state[StateKeys.DATASET]
-    assert dataset._gene_names == "Gene names"
-    assert dataset.index_column == "Protein IDs"
     assert dataset._intensity_column == "LFQ intensity [sample]"
     assert dataset.rawmat.shape == (312, 2611)
     assert dataset.software == "MaxQuant"
-    assert dataset.sample == "sample"
-    assert (
-        str(type(at.session_state[StateKeys.LOADER]))
-        == "<class 'alphastats.loader.MaxQuantLoader.MaxQuantLoader'>"
-    )
-    assert StateKeys.PLOTTING_OPTIONS in at.session_state
-    assert StateKeys.STATISTIC_OPTIONS in at.session_state

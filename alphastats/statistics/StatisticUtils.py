@@ -1,29 +1,41 @@
 import numpy as np
+import pandas as pd
+
+from alphastats.keys import Cols
 
 
-# TODO: Check if StatisticUtils is used productively anywhere. Otherwise remove it.
-class StatisticUtils:
-    def __init__(self) -> None:
-        pass
+def calculate_foldchange(
+    mat_transpose: pd.DataFrame,
+    group1_samples: list,
+    group2_samples: list,
+    is_log2_transformed: bool,
+):
+    group1_values = mat_transpose[group1_samples].T.mean().values
+    group2_values = mat_transpose[group2_samples].T.mean().values
+    if is_log2_transformed:
+        fc = group1_values - group2_values
 
-    def _add_metadata_column(self, group1_list: list, group2_list: list):
-        # create new column in metadata with defined groups
-        metadata = self.metadata
+    else:
+        fc = group1_values / group2_values
+        fc = np.log2(fc)
 
-        sample_names = metadata[self.sample].to_list()
-        misc_samples = list(set(group1_list + group2_list) - set(sample_names))
-        if len(misc_samples) > 0:
-            raise ValueError(
-                f"Sample names: {misc_samples} are not described in Metadata."
-            )
+    return fc
 
-        column = "_comparison_column"
-        conditons = [
-            metadata[self.sample].isin(group1_list),
-            metadata[self.sample].isin(group2_list),
-        ]
-        choices = ["group1", "group2"]
-        metadata[column] = np.select(conditons, choices, default=np.nan)
-        self.metadata = metadata
 
-        return column, "group1", "group2"
+def add_metadata_column(metadata: pd.DataFrame, group1_list: list, group2_list: list):
+    # create new column in metadata with defined groups
+
+    sample_names = metadata[Cols.SAMPLE].to_list()
+    misc_samples = list(set(group1_list + group2_list) - set(sample_names))
+    if len(misc_samples) > 0:
+        raise ValueError(f"Sample names: {misc_samples} are not described in Metadata.")
+
+    column = "_comparison_column"
+    conditions = [
+        metadata[Cols.SAMPLE].isin(group1_list),
+        metadata[Cols.SAMPLE].isin(group2_list),
+    ]
+    choices = ["group1", "group2"]
+    metadata[column] = np.select(conditions, choices, default=np.nan)
+
+    return metadata, column

@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 from typing import Union
 
@@ -15,6 +14,7 @@ else:
     import importlib_resources
 
 
+# TODO make the child classes instantiated this class
 class BaseLoader:
     """Parent class of Loaders"""
 
@@ -42,8 +42,7 @@ class BaseLoader:
         self.confidence_column = None
         self.software = None
         self.evidence_df = None
-        # TODO: rename to gene_names_column
-        self.gene_names = None
+        self.gene_names_column = None
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
@@ -66,6 +65,7 @@ class BaseLoader:
     def _read_all_column_names_as_string(self):
         self.rawinput.columns = self.rawinput.columns.astype(str)
 
+    # TODO unused
     def _check_if_indexcolumn_is_unique(self):
         duplicated_values = find_duplicates_in_list(
             self.rawinput[self.index_column].to_list()
@@ -77,18 +77,14 @@ class BaseLoader:
                 + ", ".join(duplicated_values)
             )
 
-    def _check_if_file_exists(self, file):
-        if os.path.isfile(file) == False:
-            raise OSError(f"{file} does not exist.")
-
     def _add_contamination_column(self):
-        #  load df with potential contamination from fasta file
+        # load df with potential contamination from fasta file
         contaminations_path = (
             importlib_resources.files(__package__) / "../data/contaminations.txt"
         )
         contaminations = pd.read_csv(contaminations_path, sep="\t")
         contaminations_ids = contaminations["Uniprot ID"].to_list()
-        #  add column with True False
+        # add column with True False
 
         self.rawinput["contamination_library"] = np.where(
             self.rawinput[self.index_column].isin(contaminations_ids), True, False

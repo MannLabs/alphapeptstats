@@ -5,6 +5,8 @@ import pandas as pd
 import streamlit as st
 
 from alphastats import __version__
+from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
+from alphastats.keys import ConstantsClass
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -64,8 +66,23 @@ def img_to_bytes(img_path):
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash
-def convert_df(df: pd.DataFrame) -> bytes:
+def _convert_df_to_csv(df: pd.DataFrame) -> bytes:
     return df.to_csv().encode("utf-8")
+
+
+def show_button_download_df(
+    df: pd.DataFrame, file_name: str, label="Download as .csv"
+) -> None:
+    """Show a button to download a dataframe as .csv."""
+    csv = _convert_df_to_csv(df)
+
+    st.download_button(
+        label,
+        csv,
+        file_name + ".csv",
+        "text/csv",
+        key=f"download-csv-{file_name}",
+    )
 
 
 def empty_session_state():
@@ -83,48 +100,35 @@ def init_session_state() -> None:
     if StateKeys.USER_SESSION_ID not in st.session_state:
         st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
 
-    if StateKeys.GENE_TO_PROT_ID not in st.session_state:
-        st.session_state[StateKeys.GENE_TO_PROT_ID] = {}
-
     if StateKeys.ORGANISM not in st.session_state:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
 
+    if StateKeys.WORKFLOW not in st.session_state:
+        st.session_state[StateKeys.WORKFLOW] = [
+            PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
+            PREPROCESSING_STEPS.SUBSET,
+            PREPROCESSING_STEPS.LOG2_TRANSFORM,
+        ]
 
-class StateKeys:
-    ## 02_Data Import
-    # on 1st run
-    ORGANISM = "organism"
-    GENE_TO_PROT_ID = "gene_to_prot_id"
+    if StateKeys.ANALYSIS_LIST not in st.session_state:
+        st.session_state[StateKeys.ANALYSIS_LIST] = []
+
+    if StateKeys.LLM_INTEGRATION not in st.session_state:
+        st.session_state[StateKeys.LLM_INTEGRATION] = {}
+
+
+class StateKeys(metaclass=ConstantsClass):
     USER_SESSION_ID = "user_session_id"
-    LOADER = "loader"
-    # on sample run (function load_sample_data), removed on new session click
-    DATASET = "dataset"  # functions upload_metadatafile
-    PLOTTING_OPTIONS = "plotting_options"  # function load_options
-    STATISTIC_OPTIONS = "statistic_options"  # function load_options
+    DATASET = "dataset"
 
-    METADATA_COLUMNS = "metadata_columns"
     WORKFLOW = "workflow"
-    PLOT_LIST = "plot_list"
+
+    ANALYSIS_LIST = "analysis_list"
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
-    API_TYPE = "api_type"
+    MODEL_NAME = "model_name"
+    LLM_INPUT = "llm_input"
     LLM_INTEGRATION = "llm_integration"
 
-    PLOT_SUBMITTED_CLICKED = "plot_submitted_clicked"
-    PLOT_SUBMITTED_COUNTER = "plot_submitted_counter"
-
-    LOOKUP_SUBMITTED_CLICKED = "lookup_submitted_clicked"
-    LOOKUP_SUBMITTED_COUNTER = "lookup_submitted_counter"
-
-    GPT_SUBMITTED_CLICKED = "gpt_submitted_clicked"
-    GPT_SUBMITTED_COUNTER = "gpt_submitted_counter"
-
-    INSTRUCTIONS = "instructions"
-    USER_PROMPT = "user_prompt"
-    MESSAGES = "messages"
-    ARTIFACTS = "artifacts"
-    PROT_ID_TO_GENE = "prot_id_to_gene"
-    GENES_OF_INTEREST_COLORED = "genes_of_interest_colored"
-    UPREGULATED = "upregulated"
-    DOWNREGULATED = "downregulated"
+    ORGANISM = "organism"  # TODO this is essentially a constant

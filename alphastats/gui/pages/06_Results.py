@@ -1,74 +1,45 @@
-import io
-
-import pandas as pd
 import streamlit as st
 
+from alphastats.gui.utils.analysis_helper import (
+    display_analysis_result_with_buttons,
+)
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
-    convert_df,
     init_session_state,
     sidebar_info,
 )
 
-
-def display_plotly_figure(plot):
-    st.plotly_chart(plot)
-
-
-def save_plotly(plot, name, format):
-    # Create an in-memory buffer
-    buffer = io.BytesIO()
-    # Save the figure as a pdf to the buffer
-    plot.write_image(file=buffer, format=format)
-    st.download_button(
-        label="Download as " + format, data=buffer, file_name=name + "." + format
-    )
-
-
-def download_preprocessing_info(plot, name, count):
-    preprocesing_dict = plot.preprocessing
-    df = pd.DataFrame(preprocesing_dict.items())
-    filename = "plot" + name + "preprocessing_info.csv"
-    csv = convert_df(df)
-    print("preprocessing" + count)
-    st.download_button(
-        "Download DataSet Info as .csv",
-        csv,
-        filename,
-        "text/csv",
-        key="preprocessing" + count,
-    )
-
-
+st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
-st.markdown("### Results")
+st.markdown("## Results")
 
+if not st.session_state[StateKeys.ANALYSIS_LIST]:
+    st.info("No analysis saved yet.")
+    st.stop()
 
-if StateKeys.PLOT_LIST in st.session_state:
-    for count, plot in enumerate(st.session_state[StateKeys.PLOT_LIST]):
-        print("plot", type(plot), count)
-        count = str(count)
+for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
+    count = n + 1
 
-        st.markdown("\n\n")
-        name = plot[0]
-        plot = plot[1]
-        if name == "ttest":
-            plot = plot.plot
-        st.write(name)
+    analysis_result = saved_analysis[0]
+    method = saved_analysis[1]
+    parameters = saved_analysis[2]
 
-        display_plotly_figure(plot)
+    st.markdown("\n\n\n")
+    st.markdown(f"#### #{count}: {method}")
+    st.markdown(f"Parameters used for analysis: `{parameters}`")
 
-        col1, col2, col3 = st.columns([1, 1, 1])
+    name = f"{method}_{count}"
 
-        with col1:
-            save_plotly(plot, name + count, format="pdf")
+    if st.button(f"❌ Remove analysis #{count}", key=f"remove_{name}"):
+        st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_analysis)
+        st.rerun()
 
-        with col2:
-            save_plotly(plot, name + count, format="svg")
-
-        with col3:
-            download_preprocessing_info(plot, name, count)
-else:
-    st.info("No analysis performed yet.")
+    display_analysis_result_with_buttons(
+        analysis_result,
+        analysis_method=method,
+        parameters=parameters,
+        show_save_button=False,
+        name=name,
+    )

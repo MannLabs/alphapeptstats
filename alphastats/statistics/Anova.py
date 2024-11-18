@@ -4,6 +4,7 @@ import pandas as pd
 import scipy
 from tqdm import tqdm
 
+from alphastats.keys import Cols
 from alphastats.statistics.tukey_test import tukey_test
 
 
@@ -12,16 +13,12 @@ class Anova:
         self,
         mat: pd.DataFrame,
         metadata: pd.DataFrame,
-        sample: str,
-        index_column: str,
         column: str,
         protein_ids: Union[str, List[str]],
         tukey: bool,
     ):
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
-        self.index_column: str = index_column
 
         # TODO move these to perform()?
         self.column: str = column
@@ -47,32 +44,32 @@ class Anova:
             axis=1,
         )
         anova_df = pd.DataFrame()
-        anova_df[self.index_column], anova_df["ANOVA_pvalue"] = (
+        anova_df[Cols.INDEX], anova_df["ANOVA_pvalue"] = (
             p_values.index.tolist(),
             p_values.values,
         )
         return anova_df
 
     def _prepare_data(self):
-        #  generated list of list with samples
+        # generated list of list with samples
         subgroup = self.metadata[self.column].unique().tolist()
         self.all_groups = []
         for sub in subgroup:
             group_list = self.metadata[self.metadata[self.column] == sub][
-                self.sample
+                Cols.SAMPLE
             ].tolist()
             self.all_groups.append(group_list)
 
         self.mat_transpose = self.mat[self.protein_ids_list].transpose()
 
     def _create_tukey_df(self, anova_df: pd.DataFrame) -> pd.DataFrame:
-        #  combine tukey results with anova results
+        # combine tukey results with anova results
         df = (
             self.mat[self.protein_ids_list]
             .reset_index()
-            .rename(columns={"index": self.sample})
+            .rename(columns={"index": Cols.SAMPLE})
         )
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
+        df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
         tukey_df_list = []
         for protein_id in tqdm(self.protein_ids_list):
             tukey_df_list.append(
@@ -80,19 +77,18 @@ class Anova:
                     df=df,
                     protein_id=protein_id,
                     group=self.column,
-                    index_column=self.index_column,
                 )
             )
         # combine all tukey test results
         tukey_df = pd.concat(tukey_df_list)
         # combine anova and tukey test results
         final_df = anova_df.merge(
-            tukey_df[["comparison", "p-tukey", self.index_column]],
+            tukey_df[["comparison", "p-tukey", Cols.INDEX]],
             how="inner",
-            on=[self.index_column],
+            on=[Cols.INDEX],
         )
         final_df = final_df.pivot(
-            index=[self.index_column, "ANOVA_pvalue"],
+            index=[Cols.INDEX, "ANOVA_pvalue"],
             columns=["comparison"],
             values="p-tukey",
         )

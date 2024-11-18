@@ -1,17 +1,16 @@
-import logging
-import warnings
 from typing import Dict, List, Optional, Tuple, Union
 
-import numpy as np
 import pandas as pd
 import plotly
 import scipy
 
 from alphastats import BaseLoader
 from alphastats.dataset_factory import DataSetFactory
+from alphastats.dataset_harmonizer import DataHarmonizer
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
+from alphastats.keys import Cols
 from alphastats.plots.ClusterMap import ClusterMap
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.IntensityPlot import IntensityPlot
@@ -65,18 +64,20 @@ class DataSet:
         """
         self._check_loader(loader=loader)
 
-        # fill data from loader
-        self.rawinput: pd.DataFrame = loader.rawinput
-        self.filter_columns: List[str] = loader.filter_columns
-        self.index_column: str = loader.index_column
-        self.software: str = loader.software
-        self._gene_names: str = loader.gene_names
+        self._data_harmonizer = DataHarmonizer(loader, sample_column)
 
+        # fill data from loader
+        self.rawinput: pd.DataFrame = self._data_harmonizer.get_harmonized_rawinput(
+            loader.rawinput
+        )
+        self.filter_columns: List[str] = loader.filter_columns
+        self.software: str = loader.software
         self._intensity_column: Union[str, list] = (
             loader._extract_sample_names(
-                metadata=self.metadata, sample_column=self.sample
+                metadata=self.metadata, sample_column=sample_column
             )
-            if loader == "Generic"
+            if loader
+            == "Generic"  # TODO is this ever the case? not rather instanceof(loader, GenericLoader)?
             else loader.intensity_column
         )
 
@@ -84,28 +85,41 @@ class DataSet:
 
         self._dataset_factory = DataSetFactory(
             rawinput=self.rawinput,
-            index_column=self.index_column,
             intensity_column=self._intensity_column,
             metadata_path_or_df=metadata_path_or_df,
-            sample_column=sample_column,
+            data_harmonizer=self._data_harmonizer,
         )
 
-        rawmat, mat, metadata, sample, preprocessing_info = self._get_init_dataset()
+        rawmat, mat, metadata, preprocessing_info = self._get_init_dataset()
         self.rawmat: pd.DataFrame = rawmat
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
-        self.sample: str = sample
         self.preprocessing_info: Dict = preprocessing_info
+
+        self._gene_name_to_protein_id_map = (
+            {
+                k: v
+                for k, v in dict(
+                    zip(
+                        self.rawinput[Cols.GENE_NAMES].tolist(),
+                        self.rawinput[Cols.INDEX].tolist(),
+                    )
+                ).items()
+                if isinstance(k, str)  # avoid having NaN as key
+            }
+            if Cols.GENE_NAMES in self.rawinput.columns
+            else {}
+        )
 
         print("DataSet has been created.")
 
     def _get_init_dataset(
         self,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str, Dict]:
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict]:
         """Get the initial data structure for the DataSet."""
         rawmat, mat = self._dataset_factory.create_matrix_from_rawinput()
 
-        metadata, sample = self._dataset_factory.create_metadata(mat)
+        metadata = self._dataset_factory.create_metadata(mat)
 
         preprocessing_info = Preprocess.init_preprocessing_info(
             num_samples=mat.shape[0],
@@ -114,7 +128,7 @@ class DataSet:
             filter_columns=self.filter_columns,
         )
 
-        return rawmat, mat, metadata, sample, preprocessing_info
+        return rawmat, mat, metadata, preprocessing_info
 
     def _check_loader(self, loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
@@ -143,8 +157,6 @@ class DataSet:
         return Preprocess(
             self.filter_columns,
             self.rawinput,
-            self.index_column,
-            self.sample,
             self.metadata,
             self.preprocessing_info,
             self.mat,
@@ -185,7 +197,6 @@ class DataSet:
             self.rawmat,
             self.mat,
             self.metadata,
-            self.sample,
             self.preprocessing_info,
         ) = self._get_init_dataset()
 
@@ -198,8 +209,6 @@ class DataSet:
         return Statistics(
             mat=self.mat,
             metadata=self.metadata,
-            index_column=self.index_column,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
         )
 
@@ -224,14 +233,13 @@ class DataSet:
 
     def tukey_test(self, protein_id: str, group: str) -> pd.DataFrame:
         """A wrapper for tukey_test.tukey_test(), see documentation there."""
-        df = self.mat[[protein_id]].reset_index().rename(columns={"index": self.sample})
-        df = df.merge(self.metadata, how="inner", on=[self.sample])
+        df = self.mat[[protein_id]].reset_index().rename(columns={"index": Cols.SAMPLE})
+        df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
 
         return tukey_test(
             df,
             protein_id,
             group,
-            self.index_column,
         )
 
     def anova(self, column: str, protein_ids="all", tukey: bool = True) -> pd.DataFrame:
@@ -258,7 +266,6 @@ class DataSet:
         dimensionality_reduction = DimensionalityReduction(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group=group,
             circle=circle,
@@ -286,7 +293,6 @@ class DataSet:
         dimensionality_reduction = DimensionalityReduction(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group=group,
             method="tsne",
@@ -310,13 +316,33 @@ class DataSet:
         dimensionality_reduction = DimensionalityReduction(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             preprocessing_info=self.preprocessing_info,
             group=group,
             method="umap",
             circle=circle,
         )
         return dimensionality_reduction.plot
+
+    def perform_dimensionality_reduction(
+        self, method: str, group: Optional[str] = None, circle: bool = False
+    ):
+        """Generic wrapper for dimensionality reduction methods to be used by LLM.
+
+        Args:
+            method (str): "pca", "tsne", "umap"
+            group (str, optional): column in metadata that should be used for coloring. Defaults to None.
+            circle (bool, optional): draw circle around each group. Defaults to False.
+        """
+
+        result = {
+            "pca": self.plot_pca,
+            "tsne": self.plot_tsne,
+            "umap": self.plot_umap,
+        }.get(method)
+        if result is None:
+            raise ValueError(f"Invalid method: {method}")
+
+        return result(group=group, circle=circle)
 
     @ignore_warning(RuntimeWarning)
     def plot_volcano(
@@ -332,7 +358,7 @@ class DataSet:
         perm: int = 100,
         fdr: float = 0.05,
         # compare_preprocessing_modes: bool = False, # TODO reimplement
-        color_list: list = [],
+        color_list: list = None,
     ):
         """Plot Volcano Plot
 
@@ -348,7 +374,7 @@ class DataSet:
             perm(float,optional): number of permutations when using SAM as method. Defaults to 100.
             fdr(float,optional): FDR cut off when using SAM as method. Defaults to 0.05.
             color_list (list): list with ProteinIDs that should be highlighted.
-            compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
+            #compare_preprocessing_modes(bool): Will iterate through normalization and imputation modes and return a list of VolcanoPlots in different settings, Default False.
 
 
         Returns:
@@ -364,13 +390,12 @@ class DataSet:
         #     return results
         #
         # else:
+        if color_list is None:
+            color_list = []
         volcano_plot = VolcanoPlot(
             mat=self.mat,
             rawinput=self.rawinput,
             metadata=self.metadata,
-            sample=self.sample,
-            index_column=self.index_column,
-            gene_names=self._gene_names,
             preprocessing_info=self.preprocessing_info,
             group1=group1,
             group2=group2,
@@ -387,12 +412,35 @@ class DataSet:
 
         return volcano_plot.plot
 
+    def _get_protein_id_for_gene_name(
+        self,
+        gene_name: str,
+    ) -> str:
+        """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
+        'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
+
+        Args:
+            gene_name (str): Gene name
+
+        Returns:
+            str: Protein id or gene name if not present in the mapping.
+        """
+        if gene_name in self._gene_name_to_protein_id_map:
+            return self._gene_name_to_protein_id_map[gene_name]
+
+        for gene, protein_id in self._gene_name_to_protein_id_map.items():
+            if gene_name in gene.split(";"):
+                return protein_id
+        return gene_name
+
     def plot_intensity(
         self,
-        protein_id: str,
+        *,
+        protein_id: str = None,
+        gene_name: str = None,
         group: str = None,
         subgroups: list = None,
-        method: str = "box",
+        method: str = "box",  # TODO rename
         add_significance: bool = False,
         log_scale: bool = False,
         # compare_preprocessing_modes: bool = False, TODO reimplement
@@ -400,7 +448,8 @@ class DataSet:
         """Plot Intensity of individual Protein/ProteinGroup
 
         Args:
-            protein_id (str): ProteinGroup ID
+            protein_id (str): ProteinGroup ID. Mutually exclusive with gene_name.
+            gene_name (str): Gene Name, will be mapped to a ProteinGroup ID. Mutually exclusive with protein_id.
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter" or "all". Defaults to "box".
@@ -418,10 +467,18 @@ class DataSet:
         #     )
         #     return results
 
+        if gene_name is None and protein_id is not None:
+            pass
+        elif gene_name is not None and protein_id is None:
+            protein_id = self._get_protein_id_for_gene_name(gene_name)
+        else:
+            raise ValueError(
+                "Either protein_id or gene_name must be provided, but not both."
+            )
+
         intensity_plot = IntensityPlot(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
             intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
@@ -458,8 +515,6 @@ class DataSet:
         clustermap = ClusterMap(
             mat=self.mat,
             metadata=self.metadata,
-            sample=self.sample,
-            index_column=self.index_column,
             preprocessing_info=self.preprocessing_info,
             label_bar=label_bar,
             only_significant=only_significant,
@@ -482,7 +537,6 @@ class DataSet:
             self.mat,
             self.rawmat,
             self.metadata,
-            self.sample,
             self.preprocessing_info,
         )
 
@@ -493,7 +547,7 @@ class DataSet:
     def plot_sampledistribution(
         self,
         method: str = "violin",
-        color: str = None,
+        color: str = None,  # TODO rename to group
         log_scale: bool = False,
         use_raw: bool = False,
     ):

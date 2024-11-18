@@ -40,7 +40,7 @@
 # 0.5.3
 * FIX FragPipe loading issue
 
-# 0.5.2
+# 0.5.2
 * FIX FragPipe import #173
 
 # 0.5.1

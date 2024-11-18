@@ -1,10 +1,6 @@
-from pathlib import Path
-
 from streamlit.testing.v1 import AppTest
 
-from alphastats.DataSet import DataSet
 from alphastats.gui.utils.ui_helper import StateKeys
-from alphastats.load_data import load_data
 
 from .conftest import APP_FOLDER, create_dataset_alphapept
 
@@ -28,7 +24,7 @@ def test_page_04_loads_with_input():
     at.run()
 
     assert not at.exception
-    assert at.columns[3].selectbox.len == 3
+    assert at.columns[0].selectbox.len == 3
     assert at.button.len == 2
 
 
