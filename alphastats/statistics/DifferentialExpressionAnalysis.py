@@ -166,6 +166,7 @@ class DifferentialExpressionAnalysis:
 
         if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
             mat_transpose = mat_transpose.transform(lambda x: np.log2(x))
+            mat_transpose = mat_transpose.replace([np.inf, -np.inf], np.nan)
 
         # TODO: return not only the p-value, but also the t-statistic
         p_values = mat_transpose.apply(
