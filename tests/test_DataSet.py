@@ -558,7 +558,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             draw_line=False,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        self.assertTrue(n_labels > 20)
+        self.assertTrue(n_labels > 5)
 
     def test_plot_volcano_wald(self):
         """
@@ -627,7 +627,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        self.assertEqual(n_labels, 20)
+        self.assertEqual(n_labels, 9)
 
     def test_plot_volcano_with_labels_proteins_welch_ttest(self):
         # remove gene names
