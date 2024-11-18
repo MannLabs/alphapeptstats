@@ -13,12 +13,12 @@ import plotly
 from alphastats.DataSet import DataSet
 from alphastats.dataset_factory import DataSetFactory
 from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.GenericLoader import GenericLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.generic_loader import GenericLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
+from alphastats.loader.spectronaut_loader import SpectronautLoader
 from alphastats.utils import LoaderError
 
 logger = logging.getLogger(__name__)

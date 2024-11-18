@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from alphastats.loader.BaseLoader import BaseLoader
+from alphastats.loader.base_loader import BaseLoader
 
 
 class AlphaPeptLoader(BaseLoader):

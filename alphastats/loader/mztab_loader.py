@@ -1,6 +1,6 @@
 from pyteomics import mztab
 
-from alphastats.loader.BaseLoader import BaseLoader
+from alphastats.loader.base_loader import BaseLoader
 
 
 class mzTabLoader(BaseLoader):

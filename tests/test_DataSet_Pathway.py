@@ -5,7 +5,7 @@ import pandas as pd
 
 from alphastats.DataSet import DataSet
 from alphastats.DataSet_Pathway import Enrichment
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
 
 
 class BaseTestDataSet:

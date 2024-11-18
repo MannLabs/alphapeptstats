@@ -1,7 +1,7 @@
 from alphastats import MaxQuantLoader
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
 
 
 # TODO: Currently only used by tests, but should maybe be used more widely

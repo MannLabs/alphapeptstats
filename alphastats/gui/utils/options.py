@@ -1,10 +1,10 @@
 from alphastats import SpectronautLoader
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.GenericLoader import GenericLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.mzTabLoader import mzTabLoader
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.generic_loader import GenericLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
+from alphastats.loader.mztab_loader import mzTabLoader
 
 SOFTWARE_OPTIONS = {
     "MaxQuant": {
