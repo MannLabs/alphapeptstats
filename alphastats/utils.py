@@ -89,6 +89,7 @@ def list_to_tuple(function):
     return wrapper
 
 
+# TODO: replace with https://pandas.pydata.org/docs/reference/api/pandas.Index.has_duplicates.html#pandas.Index.has_duplicates
 def find_duplicates_in_list(input_list: list) -> list:
     """Find duplicates in a list.
 

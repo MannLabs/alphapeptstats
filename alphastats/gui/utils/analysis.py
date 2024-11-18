@@ -16,10 +16,10 @@ from alphastats.plots.VolcanoPlot import VolcanoPlot
 class PlottingOptions(metaclass=ConstantsClass):
     """Keys for the plotting options, the order determines order in UI."""
 
+    VOLCANO_PLOT = "Volcano Plot"
     PCA_PLOT = "PCA Plot"
     UMAP_PLOT = "UMAP Plot"
     TSNE_PLOT = "t-SNE Plot"
-    VOLCANO_PLOT = "Volcano Plot"
     SAMPLE_DISTRIBUTION_PLOT = "Sampledistribution Plot"
     INTENSITY_PLOT = "Intensity Plot"
     CLUSTERMAP = "Clustermap"
@@ -55,7 +55,7 @@ class AbstractAnalysis(ABC):
     ) -> Tuple[
         Union[PlotlyObject, pd.DataFrame], Optional[VolcanoPlot], Dict[str, Any]
     ]:
-        """Perform the analysis after an optional check for NaNs.
+        """Perform the analysis after some upfront method-dependent checks (e.g. or NaNs).
 
         Returns a tuple(analysis, analysis_object, parameters) where 'analysis' is the plot or dataframe,
         'analysis_object' is the underlying object, 'parameters' is a dictionary of the parameters used.
@@ -78,7 +78,7 @@ class AbstractAnalysis(ABC):
 
     def _nan_check(self) -> None:  # noqa: B027
         """Raise ValueError for methods that do not tolerate NaNs if there are any."""
-        if not self._works_with_nans and self._dataset.mat.isnull().values.any():
+        if not self._works_with_nans and self._dataset.mat.isnan().values.any():
             raise ValueError("This analysis does not work with NaN values.")
 
     def _pre_analysis_check(self) -> None:  # noqa: B027
@@ -301,6 +301,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             "Foldchange cutoff", range(0, 3), value=1
         )
 
+        # TODO: The sam fdr cutoff should be mutually exclusive with alpha
         if method == "sam":
             parameters["perm"] = st.number_input(
                 label="Number of Permutations", min_value=1, max_value=1000, value=10

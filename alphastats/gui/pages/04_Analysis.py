@@ -31,8 +31,7 @@ styl = """
     """
 st.markdown(styl, unsafe_allow_html=True)
 
-# TODO put everything in the session state for a given parameter set?
-# or is caching functionality the way to go here?
+# TODO use caching functionality for all analysis (not: plot creation)
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
