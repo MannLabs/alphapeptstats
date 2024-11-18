@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
 
 from alphastats.keys import Cols
@@ -10,7 +11,9 @@ from alphastats.keys import Cols
 class MultiCovaAnalysis:
     def __init__(
         self,
-        dataset,
+        *,
+        mat: pd.DataFrame,
+        metadata: pd.DataFrame,
         covariates: list,
         n_permutations: int = 3,
         fdr: float = 0.05,
@@ -18,7 +21,11 @@ class MultiCovaAnalysis:
         subset: dict = None,
         plot: bool = False,
     ):
-        self.dataset = dataset  # TODO pass only .mat, .metadata
+        self.metadata_ori = metadata
+        self.mat = mat
+
+        self.metadata = None  # TODO check if the distinction between metadata and metadata_ori is necessary
+
         self.covariates = covariates
         self.n_permutations = n_permutations
         self.fdr = fdr
@@ -38,17 +45,17 @@ class MultiCovaAnalysis:
             # dict structure {"column_name": ["group1", "group2"]}
             subset_column = list(self.subset.keys())[0]
             groups = self.subset.get(subset_column)
-            self.metadata = self.dataset.metadata[
-                self.dataset.metadata[subset_column].isin(groups)
+            self.metadata = self.metadata_ori[
+                self.metadata_ori[subset_column].isin(groups)
             ][columns_to_keep]
 
         else:
-            self.metadata = self.dataset.metadata[columns_to_keep]
+            self.metadata = self.metadata_ori[columns_to_keep]
 
     def _check_covariat_input(self):
         # check whether covariates in metadata column
         misc_covariates = list(
-            set(self.covariates) - set(self.dataset.metadata.columns.to_list())
+            set(self.covariates) - set(self.metadata_ori.columns.to_list())
         )
         if len(misc_covariates) > 0:
             warnings.warn(f"Covariates: {misc_covariates} are not found in Metadata.")
@@ -56,7 +63,7 @@ class MultiCovaAnalysis:
 
     def _check_na_values(self):
         for covariate in self.covariates:
-            if self.dataset.metadata[covariate].isna().any():
+            if self.metadata_ori[covariate].isna().any():
                 self.covariates.remove(covariate)
                 warnings.warn(
                     f"Covariate: {covariate} contains missing values in metadata and will not be used for analysis."
@@ -98,7 +105,7 @@ class MultiCovaAnalysis:
                     self.covariates.remove(col)
 
     def _prepare_matrix(self):
-        transposed = self.dataset.mat.transpose()
+        transposed = self.mat.transpose()
         transposed[Cols.INDEX] = transposed.index
         transposed = transposed.reset_index(drop=True)
         self.transposed = transposed[self.metadata[Cols.SAMPLE].to_list()]
@@ -134,7 +141,7 @@ class MultiCovaAnalysis:
             fdr=self.fdr,
             s0=self.s0,
         )
-        res[Cols.INDEX] = self.dataset.mat.columns.to_list()
+        res[Cols.INDEX] = self.mat.columns.to_list()
         plot_list = []
 
         if self.plot:

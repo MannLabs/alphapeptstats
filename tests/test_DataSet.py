@@ -759,8 +759,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         first_value = self.obj.mat.values[0, 0]
         self.assertTrue(np.isclose(150490495.32554176, first_value))
 
-    # TODO this opens a plot in a browser window
-    @skip  # TODO multicova_analysis is unused
     def test_multicova_analysis_invalid_covariates(self):
         self.obj.preprocess(imputation="knn", normalization="zscore", subset=True)
         res, _ = self.obj.multicova_analysis(

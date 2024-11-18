@@ -134,7 +134,8 @@ class DataSet:
 
         return rawmat, mat, metadata, preprocessing_info
 
-    def _check_loader(self, loader):
+    @staticmethod
+    def _check_loader(loader):
         """Checks if the Loader is from class AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader
 
         Args:
@@ -255,6 +256,19 @@ class DataSet:
     ) -> pd.DataFrame:
         """A wrapper for Statistics.ancova(), see documentation there."""
         return self._get_statistics().ancova(protein_id, covar, between)
+
+    def multicova_analysis(
+        self,
+        covariates: list,
+        n_permutations: int = 3,
+        fdr: float = 0.05,
+        s0: float = 0.05,
+        subset: dict = None,
+    ) -> Tuple[pd.DataFrame, list]:
+        """A wrapper for Statistics.multicova_analysis(), see documentation there."""
+        return self._get_statistics().multicova_analysis(
+            covariates, n_permutations, fdr, s0, subset
+        )
 
     @check_for_missing_values
     def plot_pca(self, group: Optional[str] = None, circle: bool = False):
