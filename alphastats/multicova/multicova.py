@@ -9,12 +9,13 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import swifter  # noqa: F401  required for pd.DataFrame.swifter to work
-from dataset.keys import Cols
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.multitest import multipletests
+
+from alphastats.dataset.keys import Cols
 
 # code taken from Isabel Bludau - multicova
 

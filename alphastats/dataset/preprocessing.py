@@ -7,9 +7,10 @@ import sklearn
 import sklearn.ensemble
 import sklearn.impute
 import streamlit as st
-from dataset.keys import Cols, ConstantsClass
-from dataset.utils import ignore_warning
 from sklearn.experimental import enable_iterative_imputer  # noqa
+
+from alphastats.dataset.keys import Cols, ConstantsClass
+from alphastats.dataset.utils import ignore_warning
 
 
 class PreprocessingStateKeys(metaclass=ConstantsClass):

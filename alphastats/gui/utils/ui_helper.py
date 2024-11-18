@@ -3,9 +3,9 @@ import uuid
 
 import pandas as pd
 import streamlit as st
-from dataset.keys import ConstantsClass
 
 from alphastats import __version__
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
 
 # TODO add logo above the options when issue is closed

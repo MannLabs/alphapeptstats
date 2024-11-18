@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from dataset.keys import Cols
+
+from alphastats.dataset.keys import Cols
 
 
 def calculate_foldchange(

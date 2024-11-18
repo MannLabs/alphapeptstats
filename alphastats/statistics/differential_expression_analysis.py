@@ -3,9 +3,9 @@ from typing import Callable, Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 import scipy
-from dataset.keys import Cols
-from dataset.preprocessing import PreprocessingStateKeys
 
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.multicova import multicova
 from alphastats.statistics.statistic_utils import (
     add_metadata_column,

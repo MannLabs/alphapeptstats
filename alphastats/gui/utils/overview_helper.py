@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
-from dataset.dataset import DataSet
 
+from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.ui_helper import StateKeys, show_button_download_df
 
 

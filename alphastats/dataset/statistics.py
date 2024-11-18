@@ -3,9 +3,9 @@ from typing import Dict, Tuple, Union
 
 import pandas as pd
 import pingouin
-from dataset.keys import Cols
-from dataset.utils import ignore_warning
 
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.utils import ignore_warning
 from alphastats.statistics.anova import Anova
 from alphastats.statistics.differential_expression_analysis import (
     DifferentialExpressionAnalysis,

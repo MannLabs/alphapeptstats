@@ -5,11 +5,11 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
-from dataset.keys import Cols
-from dataset.preprocessing import PreprocessingStateKeys
-from dataset.statistics import Statistics
-from dataset.utils import ignore_warning
 
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.preprocessing import PreprocessingStateKeys
+from alphastats.dataset.statistics import Statistics
+from alphastats.dataset.utils import ignore_warning
 from alphastats.multicova import multicova
 from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
 from alphastats.statistics.differential_expression_analysis import (

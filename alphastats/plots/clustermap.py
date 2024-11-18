@@ -3,9 +3,9 @@ from typing import Dict
 
 import pandas as pd
 import seaborn as sns
-from dataset.keys import Cols
-from dataset.statistics import Statistics
 
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.statistics import Statistics
 from alphastats.plots.plot_utils import PlotUtils
 
 

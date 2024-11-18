@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import requests
-from dataset.utils import check_if_df_empty, check_internetconnection
 
 from alphastats import AlphaPeptLoader
+from alphastats.dataset.utils import check_if_df_empty, check_internetconnection
 
 
 class enrichment_df(pd.DataFrame):
