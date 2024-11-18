@@ -220,7 +220,7 @@ def configure_preprocessing(dataset):
     )
 
     log2_transform = st.checkbox(
-        "Log2-transform dataset",
+        "Log2-transform dataset. Note: If this is skipped it weill be performed on the fly for select analyses (e.g. Volcano plot).",
         value=True,
     )
 
