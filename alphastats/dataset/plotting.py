@@ -6,10 +6,10 @@ import plotly.express as px
 import plotly.figure_factory
 import scipy
 import seaborn as sns
+from dataset.keys import Cols
+from dataset.utils import check_for_missing_values
 
-from alphastats.keys import Cols
 from alphastats.plots.plot_utils import PlotUtils
-from alphastats.utils import check_for_missing_values
 
 
 class plotly_object(plotly.graph_objs._figure.Figure):

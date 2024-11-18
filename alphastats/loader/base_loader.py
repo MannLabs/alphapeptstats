@@ -4,8 +4,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-
-from alphastats.utils import find_duplicates_in_list
+from dataset.utils import find_duplicates_in_list
 
 if sys.version_info >= (3, 9):
     import importlib.resources as importlib_resources

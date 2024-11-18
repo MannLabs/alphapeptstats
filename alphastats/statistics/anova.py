@@ -2,9 +2,9 @@ from typing import List, Union
 
 import pandas as pd
 import scipy
+from dataset.keys import Cols
 from tqdm import tqdm
 
-from alphastats.keys import Cols
 from alphastats.statistics.tukey_test import tukey_test
 
 

@@ -5,11 +5,12 @@ import plotly
 import scipy
 from dataset.factory import DataSetFactory
 from dataset.harmonizer import DataHarmonizer
+from dataset.keys import Cols
 from dataset.plotting import Plot
 from dataset.preprocessing import Preprocess
 from dataset.statistics import Statistics
+from dataset.utils import LoaderError, check_for_missing_values, ignore_warning
 
-from alphastats.keys import Cols
 from alphastats.loader.BaseLoader import BaseLoader
 from alphastats.plots.clustermap import ClusterMap
 from alphastats.plots.dimensionality_reduction import DimensionalityReduction
@@ -17,7 +18,6 @@ from alphastats.plots.intensity_plot import IntensityPlot
 from alphastats.plots.sample_histogram import SampleHistogram
 from alphastats.plots.volcano_plot import VolcanoPlot
 from alphastats.statistics.tukey_test import tukey_test
-from alphastats.utils import LoaderError, check_for_missing_values, ignore_warning
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
     layout=plotly.graph_objects.Layout(

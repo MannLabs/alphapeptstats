@@ -5,10 +5,11 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
+from dataset.keys import Cols
 from dataset.preprocessing import PreprocessingStateKeys
 from dataset.statistics import Statistics
+from dataset.utils import ignore_warning
 
-from alphastats.keys import Cols
 from alphastats.multicova import multicova
 from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
 from alphastats.statistics.differential_expression_analysis import (
@@ -18,7 +19,6 @@ from alphastats.statistics.statistic_utils import (
     add_metadata_column,
     calculate_foldchange,
 )
-from alphastats.utils import ignore_warning
 
 # TODO this is repeated and needs to go elsewhere!
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(

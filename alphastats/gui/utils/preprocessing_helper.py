@@ -3,9 +3,8 @@ from typing import List
 import pandas as pd
 import streamlit as st
 from dataset.dataset import DataSet
+from dataset.keys import Cols
 from st_cytoscape import cytoscape
-
-from alphastats.keys import Cols
 
 CYTOSCAPE_STYLESHEET = [
     {

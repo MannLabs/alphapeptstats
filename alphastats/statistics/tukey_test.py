@@ -1,7 +1,6 @@
 import pandas as pd
 import pingouin
-
-from alphastats.keys import Cols
+from dataset.keys import Cols
 
 
 def tukey_test(

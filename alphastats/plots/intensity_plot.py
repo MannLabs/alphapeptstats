@@ -7,8 +7,8 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import scipy
+from dataset.keys import Cols
 
-from alphastats.keys import Cols
 from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
 
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(

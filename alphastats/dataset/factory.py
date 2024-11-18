@@ -5,8 +5,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from dataset.harmonizer import DataHarmonizer
-
-from alphastats.keys import Cols
+from dataset.keys import Cols
 
 
 class DataSetFactory:

@@ -12,6 +12,7 @@ import plotly
 from dataset.dataset import DataSet
 from dataset.factory import DataSetFactory
 from dataset.preprocessing import PreprocessingStateKeys
+from dataset.utils import LoaderError
 
 from alphastats.loader.alphapept_loader import AlphaPeptLoader
 from alphastats.loader.diann_loader import DIANNLoader
@@ -19,7 +20,6 @@ from alphastats.loader.fragpipe_loader import FragPipeLoader
 from alphastats.loader.generic_loader import GenericLoader
 from alphastats.loader.maxquant_loader import MaxQuantLoader
 from alphastats.loader.spectronaut_loader import SpectronautLoader
-from alphastats.utils import LoaderError
 
 logger = logging.getLogger(__name__)
 

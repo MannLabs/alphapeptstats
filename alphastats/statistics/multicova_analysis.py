@@ -3,8 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import plotly.express as px
-
-from alphastats.keys import Cols
+from dataset.keys import Cols
 
 
 # TODO unused
