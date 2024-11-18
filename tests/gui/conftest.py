@@ -3,8 +3,11 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-from alphastats import AlphaPeptLoader, DIANNLoader, FragPipeLoader, MaxQuantLoader
 from alphastats.dataset.dataset import DataSet
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
 
 # TODO: Turn the helpers into fixtures
 

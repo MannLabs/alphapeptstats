@@ -7,8 +7,8 @@ import pandas as pd
 import plotly.express as px
 import requests
 
-from alphastats import AlphaPeptLoader
 from alphastats.dataset.utils import check_if_df_empty, check_internetconnection
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
 
 
 class enrichment_df(pd.DataFrame):
