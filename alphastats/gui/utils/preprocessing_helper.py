@@ -54,7 +54,7 @@ class PREPROCESSING_STEPS:
     REMOVE_CONTAMINATIONS = "remove_contaminations"
     REMOVE_SAMPLES = "remove_samples"
     SUBSET = "subset"
-    REPLACE_ZERO = "replace_zero"
+    REPLACE_ZEROES = "replace_zeroes"
     DATA_COMPLETENESS = "data_completeness"
     LOG2_TRANSFORM = "log2_transform"
     NORMALIZATION = "normalization"
@@ -78,7 +78,7 @@ UI_ELEMENTS = {
         "repr": "Subset data",
         "help": "Subset data so it matches with metadata. Can for example be useful if several dimensions of an experiment were analysed together.",
     },
-    PREPROCESSING_STEPS.REPLACE_ZERO: {
+    PREPROCESSING_STEPS.REPLACE_ZEROES: {
         "repr": "0 --> NaN",
         "help": "Replace 0 in the data with NaN.",
     },
@@ -100,7 +100,7 @@ UI_ELEMENTS = {
     },
     PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES: {
         "repr": "Drop empty proteins",
-        "help": "Drop unmeasured features (protein groups).",
+        "help": "Drop unmeasured features (protein groups), i.e. ones that are all NaNs or Infs.",
     },
     PREPROCESSING_STEPS.BATCH: {
         "repr": "Batch correction",
@@ -112,7 +112,7 @@ PREDEFINED_ORDER = [
     PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
     PREPROCESSING_STEPS.REMOVE_SAMPLES,
     PREPROCESSING_STEPS.SUBSET,
-    PREPROCESSING_STEPS.REPLACE_ZERO,
+    PREPROCESSING_STEPS.REPLACE_ZEROES,
     PREPROCESSING_STEPS.DATA_COMPLETENESS,
     PREPROCESSING_STEPS.LOG2_TRANSFORM,
     PREPROCESSING_STEPS.NORMALIZATION,
@@ -206,7 +206,7 @@ def configure_preprocessing(dataset):
     )
     remove_samples = remove_samples if len(remove_samples) != 0 else None
 
-    replace_zero = st.checkbox(
+    replace_zeroes = st.checkbox(
         "Replace 0 in the data with NaN.",
         value=True,
     )
@@ -233,7 +233,7 @@ def configure_preprocessing(dataset):
     )
 
     drop_unmeasured_features = st.checkbox(
-        "Drop unmeasured features (protein groups)",
+        "Drop unmeasured features (protein groups), i.e. ones that are all NaNs or Infs.",
         value=True,
     )
 
@@ -246,7 +246,7 @@ def configure_preprocessing(dataset):
         PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS: remove_contaminations,
         PREPROCESSING_STEPS.REMOVE_SAMPLES: remove_samples,
         PREPROCESSING_STEPS.SUBSET: subset,
-        PREPROCESSING_STEPS.REPLACE_ZERO: replace_zero,
+        PREPROCESSING_STEPS.REPLACE_ZEROES: replace_zeroes,
         PREPROCESSING_STEPS.DATA_COMPLETENESS: data_completeness,
         PREPROCESSING_STEPS.LOG2_TRANSFORM: log2_transform,
         PREPROCESSING_STEPS.NORMALIZATION: normalization,

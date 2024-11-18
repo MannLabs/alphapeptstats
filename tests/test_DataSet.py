@@ -1061,7 +1061,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             2,
         )
         self.assertEqual(
-            self.obj.preprocessing_info[PreprocessingStateKeys.REPLACE_ZERO], True
+            self.obj.preprocessing_info[PreprocessingStateKeys.REPLACE_ZEROES], True
         )
 
 
