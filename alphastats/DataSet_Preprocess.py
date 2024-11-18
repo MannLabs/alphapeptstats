@@ -23,6 +23,7 @@ class PreprocessingStateKeys(metaclass=ConstantsClass):
     NUM_PG = "Matrix= Number of ProteinIDs/ProteinGroups"
     NUM_SAMPLES = "Matrix= Number of samples"
     INTENSITY_COLUMN = "Intensity used for analysis"
+    REPLACE_ZEROES = "Replace zero values with nan"
     LOG2_TRANSFORMED = "Log2-transformed"
     NORMALIZATION = "Normalization"
     IMPUTATION = "Imputation"
@@ -36,6 +37,7 @@ class PreprocessingStateKeys(metaclass=ConstantsClass):
         "Number of removed ProteinGroups due to data completeness cutoff"
     )
     MISSING_VALUES_REMOVED = "Missing values were removed"
+    DROP_UNMEASURED_FEATURES = "Drop unmeasured features"
 
 
 class Preprocess:
@@ -72,6 +74,7 @@ class Preprocess:
             PreprocessingStateKeys.NUM_PG: num_protein_groups,
             PreprocessingStateKeys.NUM_SAMPLES: num_samples,
             PreprocessingStateKeys.INTENSITY_COLUMN: intensity_column,
+            PreprocessingStateKeys.REPLACE_ZEROES: False,
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
             PreprocessingStateKeys.NORMALIZATION: None,
             PreprocessingStateKeys.IMPUTATION: None,
@@ -81,6 +84,7 @@ class Preprocess:
             PreprocessingStateKeys.DATA_COMPLETENESS_CUTOFF: 0,
             PreprocessingStateKeys.NUM_PG_REMOVED_DUE_TO_DATA_COMPLETENESS_CUTOFF: 0,
             PreprocessingStateKeys.MISSING_VALUES_REMOVED: False,
+            PreprocessingStateKeys.DROP_UNMEASURED_FEATURES: False,
         }
 
     def _remove_samples(self, sample_list: list):
@@ -117,7 +121,6 @@ class Preprocess:
         num_samples, num_proteins = self.mat.shape
         limit = num_samples * cut
 
-        self.mat.replace(0, np.nan, inplace=True)
         keep_list = list()
         invalid = 0
         for column_name in self.mat.columns:
@@ -331,6 +334,8 @@ class Preprocess:
 
     def _log2_transform(self):
         self.mat = np.log2(self.mat)
+        self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
+        # TODO: Ideally we wouldn't need to replace infs if all downstream methods can handle them
         self.preprocessing_info.update({PreprocessingStateKeys.LOG2_TRANSFORMED: True})
         print("Data has been log2-transformed.")
 
@@ -362,10 +367,12 @@ class Preprocess:
         log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
+        replace_zeroes: bool = False,
         data_completeness: float = 0,
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        drop_unmeasured_features: bool = False,
         **kwargs,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict]:
         """Preprocess Protein data
@@ -427,6 +434,14 @@ class Preprocess:
         if subset:
             self.mat = self.subset(self.mat, self.metadata, self.preprocessing_info)
 
+        if replace_zeroes:
+            self.mat = self.mat.replace(0, np.nan)
+            self.preprocessing_info.update(
+                {
+                    PreprocessingStateKeys.REPLACE_ZEROES: True,
+                }
+            )
+
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)
 
@@ -444,9 +459,15 @@ class Preprocess:
         if imputation is not None:
             self._imputation(method=imputation)
 
-        # TODO should this step be optional, too? is also done in create_matrix
-        # for now, add it to `preprocessing_info`
-        self.mat = self.mat.loc[:, (self.mat != 0).any(axis=0)]
+        if drop_unmeasured_features:
+            n = self.mat.shape[1]
+            self.mat = self.mat.loc[:, np.isfinite(self.mat).any(axis=0)]
+            self.preprocessing_info.update(
+                {
+                    PreprocessingStateKeys.DROP_UNMEASURED_FEATURES: n
+                    - self.mat.shape[1],
+                }
+            )
 
         self.preprocessing_info.update(
             {

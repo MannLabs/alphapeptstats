@@ -4,13 +4,13 @@ import pandas as pd
 import plotly
 import scipy
 
-from alphastats import BaseLoader
 from alphastats.dataset_factory import DataSetFactory
 from alphastats.dataset_harmonizer import DataHarmonizer
 from alphastats.DataSet_Plot import Plot
 from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.keys import Cols
+from alphastats.loader.BaseLoader import BaseLoader
 from alphastats.plots.ClusterMap import ClusterMap
 from alphastats.plots.DimensionalityReduction import DimensionalityReduction
 from alphastats.plots.IntensityPlot import IntensityPlot
@@ -167,10 +167,12 @@ class DataSet:
         log2_transform: bool = False,
         remove_contaminations: bool = False,
         subset: bool = False,
+        replace_zeroes: bool = False,
         data_completeness: float = 0,
         normalization: str = None,
         imputation: str = None,
         remove_samples: list = None,
+        drop_unmeasured_features: bool = False,
         **kwargs,
     ) -> None:
         """A wrapper for Preprocess.preprocess(), see documentation there."""
@@ -179,10 +181,12 @@ class DataSet:
                 log2_transform,
                 remove_contaminations,
                 subset,
+                replace_zeroes,
                 data_completeness,
                 normalization,
                 imputation,
                 remove_samples,
+                drop_unmeasured_features,
                 **kwargs,
             )
         )

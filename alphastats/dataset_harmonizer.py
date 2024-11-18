@@ -4,8 +4,8 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from alphastats import BaseLoader
 from alphastats.keys import Cols
+from alphastats.loader.BaseLoader import BaseLoader
 
 
 class DataHarmonizer:

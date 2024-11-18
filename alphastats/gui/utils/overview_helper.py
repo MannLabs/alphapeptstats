@@ -42,8 +42,8 @@ def display_loaded_dataset(dataset: DataSet) -> None:
     st.markdown("*Preview:* Matrix")
 
     df = pd.DataFrame(
-        dataset.mat.values,
-        index=dataset.mat.index.to_list(),
+        dataset.rawmat.values,
+        index=dataset.rawmat.index.to_list(),
     ).head(5)
 
     st.dataframe(df)

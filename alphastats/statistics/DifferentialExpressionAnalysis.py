@@ -144,6 +144,17 @@ class DifferentialExpressionAnalysis:
         return df
 
     def _generic_ttest(self, test_fun: Callable) -> pd.DataFrame:
+        """
+        Perform a t-test between two groups, assuming log-normally distributed data.
+
+        If the data was not already log transformed during preprocessing, it will be log2 transformed here. > Log2-transformed data will be used for the t-test
+
+        Parameters:
+            test_fun (Callable): A function that performs a t-test, e.g. scipy.stats.ttest_ind or scipy.stats.ttest_rel
+
+        Returns:
+            pd.DataFrame: DataFrame with index_column, p-value and log2 fold change.
+        """
         group1_samples = self.metadata[self.metadata[self.column] == self.group1][
             Cols.SAMPLE
         ].tolist()
@@ -153,10 +164,16 @@ class DifferentialExpressionAnalysis:
         # calculate fold change (if its is not logarithimic normalized)
         mat_transpose = self.mat.transpose()
 
+        if not self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
+            mat_transpose = mat_transpose.transform(lambda x: np.log2(x))
+            mat_transpose = mat_transpose.replace([np.inf, -np.inf], np.nan)
+
+        # TODO: return not only the p-value, but also the t-statistic
         p_values = mat_transpose.apply(
             lambda row: test_fun(
                 row[group1_samples].values.flatten(),
                 row[group2_samples].values.flatten(),
+                nan_policy="omit",
             )[1],
             axis=1,
         )
@@ -170,9 +187,7 @@ class DifferentialExpressionAnalysis:
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
-            is_log2_transformed=self.preprocessing_info[
-                PreprocessingStateKeys.LOG2_TRANSFORMED
-            ],
+            is_log2_transformed=True,
         )
         return df
 
