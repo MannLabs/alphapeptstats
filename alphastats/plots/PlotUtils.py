@@ -45,6 +45,10 @@ class PlotUtils:
         #  plotly doesnt allow to assign color to certain group
         #  update instead the figure in form of a dict
         #  color_dict with group_variable/legendgroup as key, and corresponding color as value
+        # update:
+        # https://plotly.com/python-api-reference/generated/generated/plotly.graph_objects.Figure.update_traces.html
+        # + selector to set individual color or something like:
+        # plot.for_each_trace(lambda t: t.update(marker_color=color_dict.get(t.legendgroup))
         fig_dict = fig.to_plotly_json()
         data_dict_list = fig_dict.get("data")
         for count, group in enumerate(data_dict_list):
