@@ -53,7 +53,7 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
     ]
     assert (
         str(type(at.session_state[StateKeys.DATASET]))
-        == "<class 'alphastats.DataSet.DataSet'>"
+        == "<class 'alphastats.dataset.dataset.DataSet'>"
     )
 
 

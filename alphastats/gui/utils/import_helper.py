@@ -9,7 +9,8 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.loader.maxquant_loader import BaseLoader, MaxQuantLoader
+from alphastats.loader.base_loader import BaseLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
 
 
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):

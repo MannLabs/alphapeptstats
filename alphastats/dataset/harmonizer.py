@@ -5,7 +5,7 @@ from typing import Dict, Optional
 import pandas as pd
 
 from alphastats.dataset.keys import Cols
-from alphastats.loader.BaseLoader import BaseLoader
+from alphastats.loader.base_loader import BaseLoader
 
 
 class DataHarmonizer:

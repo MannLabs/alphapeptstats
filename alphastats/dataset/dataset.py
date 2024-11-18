@@ -15,7 +15,7 @@ from alphastats.dataset.utils import (
     check_for_missing_values,
     ignore_warning,
 )
-from alphastats.loader.BaseLoader import BaseLoader
+from alphastats.loader.base_loader import BaseLoader
 from alphastats.plots.clustermap import ClusterMap
 from alphastats.plots.dimensionality_reduction import DimensionalityReduction
 from alphastats.plots.intensity_plot import IntensityPlot
