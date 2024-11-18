@@ -9,8 +9,8 @@ import streamlit as st
 
 from alphastats.DataSet import DataSet
 from alphastats.keys import Cols, ConstantsClass
-from alphastats.plots.PlotUtils import PlotlyObject
-from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.plots.plot_utils import PlotlyObject
+from alphastats.plots.volcano_plot import VolcanoPlot
 
 
 class PlottingOptions(metaclass=ConstantsClass):

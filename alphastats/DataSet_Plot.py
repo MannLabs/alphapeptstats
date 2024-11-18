@@ -8,7 +8,7 @@ import scipy
 import seaborn as sns
 
 from alphastats.keys import Cols
-from alphastats.plots.PlotUtils import PlotUtils
+from alphastats.plots.plot_utils import PlotUtils
 from alphastats.utils import check_for_missing_values
 
 

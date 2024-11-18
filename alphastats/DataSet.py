@@ -11,11 +11,11 @@ from alphastats.DataSet_Preprocess import Preprocess
 from alphastats.DataSet_Statistics import Statistics
 from alphastats.keys import Cols
 from alphastats.loader.BaseLoader import BaseLoader
-from alphastats.plots.ClusterMap import ClusterMap
-from alphastats.plots.DimensionalityReduction import DimensionalityReduction
-from alphastats.plots.IntensityPlot import IntensityPlot
-from alphastats.plots.SampleHistogram import SampleHistogram
-from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.plots.clustermap import ClusterMap
+from alphastats.plots.dimensionality_reduction import DimensionalityReduction
+from alphastats.plots.intensity_plot import IntensityPlot
+from alphastats.plots.sample_histogram import SampleHistogram
+from alphastats.plots.volcano_plot import VolcanoPlot
 from alphastats.statistics.tukey_test import tukey_test
 from alphastats.utils import LoaderError, check_for_missing_values, ignore_warning
 
