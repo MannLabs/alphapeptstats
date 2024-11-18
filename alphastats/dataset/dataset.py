@@ -3,11 +3,11 @@ from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd
 import plotly
 import scipy
-from dataset.dataset_factory import DataSetFactory
-from dataset.dataset_harmonizer import DataHarmonizer
-from dataset.DataSet_Plot import Plot
-from dataset.DataSet_Preprocess import Preprocess
-from dataset.DataSet_Statistics import Statistics
+from dataset.factory import DataSetFactory
+from dataset.harmonizer import DataHarmonizer
+from dataset.plotting import Plot
+from dataset.preprocessing import Preprocess
+from dataset.statistics import Statistics
 
 from alphastats.keys import Cols
 from alphastats.loader.BaseLoader import BaseLoader

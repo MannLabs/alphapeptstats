@@ -3,7 +3,7 @@
 import os
 from typing import Any, Dict, List
 
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from alphastats.llm.llm_utils import get_subgroups_for_each_group

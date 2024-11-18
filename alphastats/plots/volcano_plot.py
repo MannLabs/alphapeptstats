@@ -5,8 +5,8 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
-from dataset.DataSet_Preprocess import PreprocessingStateKeys
-from dataset.DataSet_Statistics import Statistics
+from dataset.preprocessing import PreprocessingStateKeys
+from dataset.statistics import Statistics
 
 from alphastats.keys import Cols
 from alphastats.multicova import multicova

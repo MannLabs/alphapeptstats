@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 import pandas as pd
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 
 from alphastats.llm.enrichment_analysis import get_enrichment_data
 from alphastats.llm.uniprot_utils import get_gene_function

@@ -3,7 +3,7 @@ from typing import Dict
 
 import pandas as pd
 import seaborn as sns
-from dataset.DataSet_Statistics import Statistics
+from dataset.statistics import Statistics
 
 from alphastats.keys import Cols
 from alphastats.plots.plot_utils import PlotUtils

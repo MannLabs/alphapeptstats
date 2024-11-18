@@ -5,7 +5,7 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import sklearn
-from dataset.DataSet_Preprocess import Preprocess
+from dataset.preprocessing import Preprocess
 
 from alphastats.keys import Cols
 from alphastats.plots.plot_utils import PlotlyObject, PlotUtils

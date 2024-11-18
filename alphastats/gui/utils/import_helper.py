@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS

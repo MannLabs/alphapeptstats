@@ -2,7 +2,7 @@ from typing import List
 
 import pandas as pd
 import streamlit as st
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 from st_cytoscape import cytoscape
 
 from alphastats.keys import Cols

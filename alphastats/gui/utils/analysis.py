@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 
 from alphastats.keys import Cols, ConstantsClass
 from alphastats.plots.plot_utils import PlotlyObject

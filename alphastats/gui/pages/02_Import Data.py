@@ -1,5 +1,5 @@
 import streamlit as st
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 
 from alphastats.gui.utils.import_helper import (
     load_example_data,

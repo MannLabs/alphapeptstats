@@ -1,7 +1,7 @@
 from io import BytesIO
 from pathlib import Path
 
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 from streamlit.testing.v1 import AppTest
 
 from alphastats.load_data import load_data

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
-from dataset.DataSet import DataSet
+from dataset.dataset import DataSet
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
