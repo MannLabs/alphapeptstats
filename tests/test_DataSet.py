@@ -491,7 +491,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.obj.preprocess(subset=True)
         self.assertEqual(self.obj.mat.shape[0], 48)
 
-    @patch("alphastats.DataSet.DataSet.tukey_test")
+    @patch("alphastats.dataset.dataset.DataSet.tukey_test")
     def test_anova_without_tukey(self, mock):
         # TODO: Check why 4 extra rows are generated here. This is not due to changes made to 0 and nan filtering.
         anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)

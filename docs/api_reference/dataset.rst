@@ -5,7 +5,7 @@ DataSet
 
 DataSet
 ~~~~~~~~~~~
-.. automodule:: alphastats.DataSet
+.. automodule:: alphastats.dataset.dataset.DataSet
     :members:
     :undoc-members:
     :inherited-members:
