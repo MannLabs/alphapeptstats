@@ -22,6 +22,7 @@ class PreprocessingStateKeys:
     NUM_PG = "Matrix= Number of ProteinIDs/ProteinGroups"
     NUM_SAMPLES = "Matrix= Number of samples"
     INTENSITY_COLUMN = "Intensity used for analysis"
+    REPLACE_ZERO = "Replace zero values with nan"
     LOG2_TRANSFORMED = "Log2-transformed"
     NORMALIZATION = "Normalization"
     IMPUTATION = "Imputation"
@@ -76,6 +77,7 @@ class Preprocess:
             PreprocessingStateKeys.NUM_PG: num_protein_groups,
             PreprocessingStateKeys.NUM_SAMPLES: num_samples,
             PreprocessingStateKeys.INTENSITY_COLUMN: intensity_column,
+            PreprocessingStateKeys.REPLACE_ZERO: False,
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
             PreprocessingStateKeys.NORMALIZATION: None,
             PreprocessingStateKeys.IMPUTATION: None,
@@ -336,6 +338,7 @@ class Preprocess:
     def _log2_transform(self):
         self.mat = np.log2(self.mat)
         self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
+        # TODO: Ideally we wouldn't need to replace infs if all downstream methods can handle them
         self.preprocessing_info.update({PreprocessingStateKeys.LOG2_TRANSFORMED: True})
         print("Data has been log2-transformed.")
 
@@ -436,6 +439,11 @@ class Preprocess:
 
         if replace_zero:
             self.mat = self.mat.replace(0, np.nan)
+            self.preprocessing_info.update(
+                {
+                    PreprocessingStateKeys.REPLACE_ZERO: True,
+                }
+            )
 
         if data_completeness > 0:
             self._remove_na_values(cut_off=data_completeness)
@@ -454,13 +462,15 @@ class Preprocess:
         if imputation is not None:
             self._imputation(method=imputation)
 
-        self.preprocessing_info.update(
-            {
-                PreprocessingStateKeys.DROP_UNMEASURED_FEATURES: drop_unmeasured_features,
-            }
-        )
         if drop_unmeasured_features:
+            n = self.mat.shape[1]
             self.mat = self.mat.loc[:, np.isfinite(self.mat).any(axis=0)]
+            self.preprocessing_info.update(
+                {
+                    PreprocessingStateKeys.DROP_UNMEASURED_FEATURES: n
+                    - self.mat.shape[1],
+                }
+            )
 
         self.preprocessing_info.update(
             {
