@@ -385,7 +385,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def setUp(self):
         self.loader = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
         self.metadata_path = "testfiles/maxquant/metadata.xlsx"
-        self.obj = DataSet(
+        self.obj: DataSet = DataSet(
             loader=self.loader,
             metadata_path_or_df=self.metadata_path,
             sample_column="sample",
@@ -414,7 +414,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_data_completeness(self):
         self.obj.preprocess(
-            log2_transform=False, replace_zero=True, data_completeness=0.7
+            log2_transform=False, replace_zeroes=True, data_completeness=0.7
         )
         self.assertEqual(self.obj.mat.shape[1], 159)
 
@@ -752,7 +752,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_batch_correction(self):
         self.obj.preprocess(
-            subset=True, replace_zero=True, data_completeness=0.1, imputation="knn"
+            subset=True, replace_zeroes=True, data_completeness=0.1, imputation="knn"
         )
         self.obj.batch_correction(batch="batch_artifical_added")
         # TODO: check if batch correction worked, but not by np.isclose, as this will change whenever soemthing else about preprocessing is changed
@@ -1046,7 +1046,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
 
     def test_preprocess_replace_zero(self):
         """Replace zeros with NaNs, remove two rows, leave 8 nans"""
-        self.obj.preprocess(replace_zero=True, drop_unmeasured_features=True)
+        self.obj.preprocess(replace_zeroes=True, drop_unmeasured_features=True)
         self.assertEqual(self.obj.mat.shape[1], 18)
         self.assertEqual(np.isnan(self.obj.mat.values.flatten()).sum(), 8)
         self.assertEqual(
