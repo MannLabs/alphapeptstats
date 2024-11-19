@@ -15,7 +15,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.multitest import multipletests
 
-from alphastats.keys import Cols
+from alphastats.dataset.keys import Cols
 
 # code taken from Isabel Bludau - multicova
 

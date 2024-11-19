@@ -13,7 +13,7 @@ from alphastats.gui.utils.ui_helper import (
     StateKeys,
     show_button_download_df,
 )
-from alphastats.plots.PlotUtils import PlotlyObject
+from alphastats.plots.plot_utils import PlotlyObject
 
 
 @st.fragment

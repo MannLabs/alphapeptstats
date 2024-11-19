@@ -4,8 +4,8 @@ import pandas as pd
 import streamlit as st
 from st_cytoscape import cytoscape
 
-from alphastats.DataSet import DataSet
-from alphastats.keys import Cols
+from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import Cols
 
 CYTOSCAPE_STYLESHEET = [
     {

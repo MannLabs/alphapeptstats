@@ -7,9 +7,9 @@ import plotly.figure_factory
 import scipy
 import seaborn as sns
 
-from alphastats.keys import Cols
-from alphastats.plots.PlotUtils import PlotUtils
-from alphastats.utils import check_for_missing_values
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.utils import check_for_missing_values
+from alphastats.plots.plot_utils import PlotUtils
 
 
 class plotly_object(plotly.graph_objs._figure.Figure):

@@ -6,19 +6,19 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 
-from alphastats.DataSet_Preprocess import PreprocessingStateKeys
-from alphastats.DataSet_Statistics import Statistics
-from alphastats.keys import Cols
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.preprocessing import PreprocessingStateKeys
+from alphastats.dataset.statistics import Statistics
+from alphastats.dataset.utils import ignore_warning
 from alphastats.multicova import multicova
-from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
-from alphastats.statistics.DifferentialExpressionAnalysis import (
+from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
+from alphastats.statistics.differential_expression_analysis import (
     DifferentialExpressionAnalysis,
 )
-from alphastats.statistics.StatisticUtils import (
+from alphastats.statistics.statistic_utils import (
     add_metadata_column,
     calculate_foldchange,
 )
-from alphastats.utils import ignore_warning
 
 # TODO this is repeated and needs to go elsewhere!
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(

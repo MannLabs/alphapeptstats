@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from openai.types.chat import ChatCompletionMessageToolCall
 
-from alphastats.DataSet import DataSet
+from alphastats.dataset.dataset import DataSet
 from alphastats.llm.llm_utils import get_subgroups_for_each_group
 
 

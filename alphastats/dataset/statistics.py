@@ -4,13 +4,13 @@ from typing import Dict, Tuple, Union
 import pandas as pd
 import pingouin
 
-from alphastats.keys import Cols
-from alphastats.statistics.Anova import Anova
-from alphastats.statistics.DifferentialExpressionAnalysis import (
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.utils import ignore_warning
+from alphastats.statistics.anova import Anova
+from alphastats.statistics.differential_expression_analysis import (
     DifferentialExpressionAnalysis,
 )
-from alphastats.statistics.MultiCovaAnalysis import MultiCovaAnalysis
-from alphastats.utils import ignore_warning
+from alphastats.statistics.multicova_analysis import MultiCovaAnalysis
 
 
 class Statistics:

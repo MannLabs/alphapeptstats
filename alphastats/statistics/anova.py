@@ -4,7 +4,7 @@ import pandas as pd
 import scipy
 from tqdm import tqdm
 
-from alphastats.keys import Cols
+from alphastats.dataset.keys import Cols
 from alphastats.statistics.tukey_test import tukey_test
 
 

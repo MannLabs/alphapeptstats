@@ -6,9 +6,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import sklearn
 
-from alphastats.DataSet_Preprocess import Preprocess
-from alphastats.keys import Cols
-from alphastats.plots.PlotUtils import PlotlyObject, PlotUtils
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.preprocessing import Preprocess
+from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
 
 # make own alphastats theme
 plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(

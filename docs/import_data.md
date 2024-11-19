@@ -12,7 +12,7 @@ maxquant_data = alphastats.MaxQuantLoader(
     file="testfiles/maxquant_proteinGroups.txt"
 )
 
-dataset = alphastats.DataSet(
+dataset = alphastats.dataset.dataset.DataSet(
     loader = maxquant_data,
     metadata_path_or_df="../testfiles/maxquant/metadata.xlsx",
     sample_column="sample"
@@ -115,7 +115,7 @@ To compare samples across various conditions in the downstream analysis, a metad
 
 ## Creating a DataSet
 
-The whole downstream analysis can be performed on the alphastats.DataSet. To create the DataSet you need to provide the loader object as well as the metadata.
+The whole downstream analysis can be performed on the alphastats.dataset.dataset.DataSet. To create the DataSet you need to provide the loader object as well as the metadata.
 
 ```python
 import alphastats
@@ -124,7 +124,7 @@ maxquant_data = alphastats.MaxQuantLoader(
     file="testfiles/maxquant_proteinGroups.txt"
 )
 
-dataset = alphastats.DataSet(
+dataset = alphastats.dataset.dataset.DataSet(
     loader = maxquant_data,
     metadata_path_or_df="../testfiles/maxquant/metadata.xlsx",
     sample_column="sample"

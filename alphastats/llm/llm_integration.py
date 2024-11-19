@@ -10,7 +10,7 @@ from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
-from alphastats.DataSet import DataSet
+from alphastats.dataset.dataset import DataSet
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,

@@ -43,8 +43,8 @@ __extra_requirements__ = {
 import alphastats.gui  # noqa: F401
 
 from .cli import *  # noqa: F403
-from .loader.AlphaPeptLoader import *  # noqa: F403
-from .loader.DIANNLoader import *  # noqa: F403
-from .loader.FragPipeLoader import *  # noqa: F403
-from .loader.MaxQuantLoader import *  # noqa: F403
-from .loader.SpectronautLoader import *  # noqa: F403
+from .loader.alphapept_loader import *  # noqa: F403
+from .loader.diann_loader import *  # noqa: F403
+from .loader.fragpipe_loader import *  # noqa: F403
+from .loader.maxquant_loader import *  # noqa: F403
+from .loader.spectronaut_loader import *  # noqa: F403

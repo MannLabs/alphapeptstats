@@ -3,8 +3,11 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-from alphastats.DataSet import DataSet
-from alphastats.load_data import load_data
+from alphastats.dataset.dataset import DataSet
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
 
 # TODO: Turn the helpers into fixtures
 
@@ -21,9 +24,26 @@ def print_session_state(apptest: AppTest):
         )
 
 
+def _load_data(file, type, **kwargs):
+    type = type.lower()
+    if type == "maxquant":
+        loader = MaxQuantLoader(file=file, **kwargs)
+    elif type == "alphapept":
+        loader = AlphaPeptLoader(file=file, **kwargs)
+    elif type == "diann":
+        loader = DIANNLoader(file=file, **kwargs)
+    elif type == "fragpipe":
+        loader = FragPipeLoader(file=file, **kwargs)
+    else:
+        raise ValueError(
+            f"type: {type} is invalid. Choose from maxquant, alphapept, diann, fragpipe"
+        )
+    return loader
+
+
 def create_dataset_alphapept():
     """Creates a dataset object from the alphapept testfiles."""
-    loader = load_data(
+    loader = _load_data(
         file=str(TEST_INPUT_FILES_PATH / "alphapept/results_proteins.csv"),
         type="alphapept",
     )

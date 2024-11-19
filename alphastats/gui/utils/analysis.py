@@ -7,10 +7,10 @@ from typing import Any, Dict, Optional, Tuple, Union
 import pandas as pd
 import streamlit as st
 
-from alphastats.DataSet import DataSet
-from alphastats.keys import Cols, ConstantsClass
-from alphastats.plots.PlotUtils import PlotlyObject
-from alphastats.plots.VolcanoPlot import VolcanoPlot
+from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import Cols, ConstantsClass
+from alphastats.plots.plot_utils import PlotlyObject
+from alphastats.plots.volcano_plot import VolcanoPlot
 
 
 class PlottingOptions(metaclass=ConstantsClass):

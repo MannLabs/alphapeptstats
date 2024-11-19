@@ -7,12 +7,12 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.mzTabLoader import mzTabLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
+from alphastats.loader.mztab_loader import mzTabLoader
+from alphastats.loader.spectronaut_loader import SpectronautLoader
 
 logger = logging.getLogger(__name__)
 

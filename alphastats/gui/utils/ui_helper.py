@@ -5,8 +5,8 @@ import pandas as pd
 import streamlit as st
 
 from alphastats import __version__
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
-from alphastats.keys import ConstantsClass
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984

@@ -2,7 +2,7 @@ from typing import Union
 
 import pandas as pd
 
-from alphastats.loader.BaseLoader import BaseLoader
+from alphastats.loader.base_loader import BaseLoader
 
 
 class GenericLoader(BaseLoader):

@@ -1,6 +1,6 @@
 import streamlit as st
 
-from alphastats.DataSet import DataSet
+from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.import_helper import (
     load_example_data,
     load_proteomics_data,
