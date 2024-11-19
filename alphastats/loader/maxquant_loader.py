@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 import numpy as np
@@ -44,6 +45,23 @@ class MaxQuantLoader(BaseLoader):
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
         self._read_all_column_names_as_string()
+
+        intensity_columns = [
+            col
+            for col in self.rawinput.columns
+            if intensity_column.replace("[sample]", "") in col
+        ]
+        if len(self.rawinput.dropna(subset=intensity_columns, how="all")) != len(
+            self.rawinput
+        ):
+            valid_id = re.compile(
+                "[A-Z]"
+            )  # Assuming that all valid protein ids would contain at least one letter.
+            self.rawinput = self.rawinput[
+                self.rawinput[self.index_column].apply(
+                    lambda x: bool(valid_id.match(x))
+                )
+            ]
 
         if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names_column = gene_names_column
