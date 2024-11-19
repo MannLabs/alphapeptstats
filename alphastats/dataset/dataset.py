@@ -108,23 +108,6 @@ class DataSet:
             self._feature_to_repr_map,
         ) = self._create_id_dicts()
 
-        self._gene_name_to_protein_id_map = (
-            {
-                k: v
-                for k, v in dict(
-                    zip(
-                        self.rawinput[Cols.GENE_NAMES].tolist(),
-                        self.rawinput[Cols.INDEX].tolist(),
-                    )
-                ).items()
-                if isinstance(k, str)  # avoid having NaN as key
-            }
-            if Cols.GENE_NAMES in self.rawinput.columns
-            else {}
-        )
-        # TODO This is not necessarily unique, and should ideally raise an error in some of our test-data sets that
-        #  contain isoform ids. E.g. TPM1 occurs 5 times in testfiles/maxquant/proteinGroups.txt with different base Protein IDs.
-
         print("DataSet has been created.")
 
     def _get_init_dataset(
