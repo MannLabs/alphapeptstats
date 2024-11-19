@@ -102,6 +102,11 @@ class DataSet:
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
+        (
+            self._gene_to_features_map,
+            self._protein_to_features_map,
+            self._feature_to_repr_map,
+        ) = self._create_id_dicts()
 
         self._gene_name_to_protein_id_map = (
             {
@@ -166,8 +171,8 @@ class DataSet:
         """Create mapprings from gene, protein to feature and from feature to repr."""
 
         features = self.mat.columns.to_list()
-        gene_to_feature_map = defaultdict(lambda: [])
-        protein_to_feature_map = defaultdict(lambda: [])
+        gene_to_features_map = defaultdict(lambda: [])
+        protein_to_features_map = defaultdict(lambda: [])
         feature_to_repr_map = defaultdict(lambda x: x)
 
         for genes, proteins, feature in self.rawinput[
@@ -177,15 +182,15 @@ class DataSet:
                 continue
             if isinstance(genes, str):
                 for gene in genes.split(sep):
-                    gene_to_feature_map[gene].append(feature)
+                    gene_to_features_map[gene].append(feature)
                 feature_to_repr_map[feature] = genes
             else:
                 # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
                 feature_to_repr_map[feature] = "ids:" + proteins
             for protein in proteins.split(sep):
-                protein_to_feature_map[protein].append(feature)
+                protein_to_features_map[protein].append(feature)
 
-        return gene_to_feature_map, protein_to_feature_map, feature_to_repr_map
+        return gene_to_features_map, protein_to_features_map, feature_to_repr_map
 
     def _get_preprocess(self) -> Preprocess:
         """Return instance of the Preprocess object."""
@@ -225,6 +230,11 @@ class DataSet:
                 **kwargs,
             )
         )
+        (
+            self._gene_to_features_map,
+            self._protein_to_features_map,
+            self._feature_to_repr_map,
+        ) = self._create_id_dicts()
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
@@ -234,6 +244,11 @@ class DataSet:
             self.metadata,
             self.preprocessing_info,
         ) = self._get_init_dataset()
+        (
+            self._gene_to_features_map,
+            self._protein_to_features_map,
+            self._feature_to_repr_map,
+        ) = self._create_id_dicts()
 
     def batch_correction(self, batch: str) -> None:
         """A wrapper for Preprocess.batch_correction(), see documentation there."""
