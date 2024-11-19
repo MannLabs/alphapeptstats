@@ -175,20 +175,31 @@ class DataSet:
         protein_to_features_map = defaultdict(lambda: [])
         feature_to_repr_map = defaultdict(lambda x: x)
 
-        for genes, proteins, feature in self.rawinput[
-            [Cols.GENE_NAMES, Cols.INDEX, Cols.INDEX]
-        ].itertuples(index=False):
-            if feature not in features:
-                continue
-            if isinstance(genes, str):
-                for gene in genes.split(sep):
-                    gene_to_features_map[gene].append(feature)
-                feature_to_repr_map[feature] = genes
-            else:
+        if Cols.GENE_NAMES in self.rawinput.columns:
+            for genes, proteins, feature in self.rawinput[
+                [Cols.GENE_NAMES, Cols.INDEX, Cols.INDEX]
+            ].itertuples(index=False):
+                if feature not in features:
+                    continue
+                if isinstance(genes, str):
+                    for gene in genes.split(sep):
+                        gene_to_features_map[gene].append(feature)
+                    feature_to_repr_map[feature] = genes
+                else:
+                    # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
+                    feature_to_repr_map[feature] = "ids:" + proteins
+                for protein in proteins.split(sep):
+                    protein_to_features_map[protein].append(feature)
+        else:
+            for proteins, feature in self.rawinput[[Cols.INDEX, Cols.INDEX]].itertuples(
+                index=False
+            ):
+                if feature not in features:
+                    continue
                 # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
                 feature_to_repr_map[feature] = "ids:" + proteins
-            for protein in proteins.split(sep):
-                protein_to_features_map[protein].append(feature)
+                for protein in proteins.split(sep):
+                    protein_to_features_map[protein].append(feature)
 
         return gene_to_features_map, protein_to_features_map, feature_to_repr_map
 
