@@ -87,7 +87,8 @@ def _display(
 def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
-        st.plotly_chart()
+        # calling plot.update_layout is vital here as it enables the savefig function to work
+        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
     except Exception:
         st.pyplot(plot)
 
