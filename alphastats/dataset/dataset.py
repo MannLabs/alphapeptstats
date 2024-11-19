@@ -469,18 +469,18 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_protein_id_for_gene_name(
+    def _get_features_for_gene_name(
         self,
         gene_name: str,
-    ) -> str:
-        """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
-        'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
+    ) -> list:
+        """Get protein groups from gene id. If gene id is not present, return gene id, as we might already have a gene id.
+        'HEL114' -> ['P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1']
 
         Args:
             gene_name (str): Gene name
 
         Returns:
-            str: Protein id or gene name if not present in the mapping.
+            list: Protein group ids or gene name if not present in the mapping.
         """
         if gene_name in self._gene_to_features_map:
             return self._gene_to_features_map[gene_name]
@@ -524,7 +524,7 @@ class DataSet:
         if gene_name is None and protein_id is not None:
             pass
         elif gene_name is not None and protein_id is None:
-            protein_id = self._get_protein_id_for_gene_name(gene_name)
+            protein_id = self._get_features_for_gene_name(gene_name)
         else:
             raise ValueError(
                 "Either protein_id or gene_name must be provided, but not both."
