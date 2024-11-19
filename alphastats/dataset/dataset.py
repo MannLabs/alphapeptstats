@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
@@ -160,6 +161,31 @@ class DataSet:
             raise ValueError(
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
+
+    def _create_id_dicts(self, sep: str = ";") -> Tuple[dict, dict, dict]:
+        """Create mapprings from gene, protein to feature and from feature to repr."""
+
+        features = self.mat.columns.to_list()
+        gene_to_feature_map = defaultdict(lambda: [])
+        protein_to_feature_map = defaultdict(lambda: [])
+        feature_to_repr_map = defaultdict(lambda x: x)
+
+        for genes, proteins, feature in self.rawinput[
+            [Cols.GENE_NAMES, Cols.INDEX, Cols.INDEX]
+        ].itertuples(index=False):
+            if feature not in features:
+                continue
+            if isinstance(genes, str):
+                for gene in genes.split(sep):
+                    gene_to_feature_map[gene].append(feature)
+                feature_to_repr_map[feature] = genes
+            else:
+                # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
+                feature_to_repr_map[feature] = "ids:" + proteins
+            for protein in proteins.split(sep):
+                protein_to_feature_map[protein].append(feature)
+
+        return gene_to_feature_map, protein_to_feature_map, feature_to_repr_map
 
     def _get_preprocess(self) -> Preprocess:
         """Return instance of the Preprocess object."""
