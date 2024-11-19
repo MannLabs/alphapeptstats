@@ -499,12 +499,9 @@ class DataSet:
         Returns:
             str: Protein id or gene name if not present in the mapping.
         """
-        if gene_name in self._gene_name_to_protein_id_map:
-            return self._gene_name_to_protein_id_map[gene_name]
+        if gene_name in self._gene_to_features_map:
+            return self._gene_to_features_map[gene_name]
 
-        for gene, protein_id in self._gene_name_to_protein_id_map.items():
-            if gene_name in gene.split(";"):
-                return protein_id
         return gene_name
 
     def plot_intensity(

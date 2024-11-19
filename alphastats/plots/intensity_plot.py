@@ -42,7 +42,7 @@ class IntensityPlot(PlotUtils):
         preprocessing_info: Dict,
         protein_id,
         group,
-        subgroups,
+        subgroups=None,
         method,
         add_significance,
         log_scale,
@@ -52,7 +52,7 @@ class IntensityPlot(PlotUtils):
         self.intensity_column = intensity_column
         self.preprocessing_info = preprocessing_info
 
-        self.protein_id = protein_id
+        self.protein_id = [protein_id] if isinstance(protein_id, str) else protein_id
         self.group = group
         self.subgroups = subgroups
         self.method = method
@@ -137,58 +137,58 @@ class IntensityPlot(PlotUtils):
     def _prepare_data(self):
         # TODO use difflib to find similar ProteinId if ProteinGroup is not present
         df = (
-            self.mat[[self.protein_id]]
-            .reset_index()
-            .rename(columns={"index": Cols.SAMPLE})
-        )
+            self.mat[self.protein_id].melt(
+                ignore_index=False,
+                value_name=self.intensity_column.replace("[sample]", ""),
+                var_name=Cols.INDEX,
+            )
+        ).dropna()
+        df = df.reset_index().rename(columns={"index": Cols.SAMPLE})
         df = df.merge(self.metadata, how="inner", on=[Cols.SAMPLE])
 
         if self.subgroups is not None:
             df = df[df[self.group].isin(self.subgroups)]
 
-        self.y_label = (
-            self.protein_id + " - " + self.intensity_column.replace("[sample]", "")
-        )
         self.prepared_df = df
 
     def _plot(self):
         if self.method == "violin":
             fig = px.violin(
                 self.prepared_df,
-                y=self.protein_id,
+                y=self.intensity_column.replace("[sample]", ""),
                 x=self.group,
+                facet_col=Cols.INDEX,
                 color=self.group,
-                labels={self.protein_id: self.y_label},
                 template="simple_white+alphastats_colors",
             )
 
         elif self.method == "box":
             fig = px.box(
                 self.prepared_df,
-                y=self.protein_id,
+                y=self.intensity_column.replace("[sample]", ""),
                 x=self.group,
+                facet_col=Cols.INDEX,
                 color=self.group,
-                labels={self.protein_id: self.y_label},
                 template="simple_white+alphastats_colors",
             )
 
         elif self.method == "scatter":
             fig = px.scatter(
                 self.prepared_df,
-                y=self.protein_id,
+                y=self.intensity_column.replace("[sample]", ""),
                 x=self.group,
+                facet_col=Cols.INDEX,
                 color=self.group,
-                labels={self.protein_id: self.y_label},
                 template="simple_white+alphastats_colors",
             )
 
         elif self.method == "all":
             fig = px.violin(
                 self.prepared_df,
-                y=self.protein_id,
+                y=self.intensity_column.replace("[sample]", ""),
                 x=self.group,
+                facet_col=Cols.INDEX,
                 color=self.group,
-                labels={self.protein_id: self.y_label},
                 box=True,
                 points="all",
                 template="simple_white+alphastats_colors",
