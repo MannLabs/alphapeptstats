@@ -391,8 +391,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             sample_column="sample",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (312, 2611)
-        self.matrix_dim_filtered = (312, 2409)
+        self.matrix_dim = (312, 2249)
+        self.matrix_dim_filtered = (312, 2047)
         self.comparison_column = "disease"
 
     def test_load_evidence_wrong_sample_names(self):
