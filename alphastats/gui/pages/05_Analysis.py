@@ -94,7 +94,7 @@ def show_start_llm_button(analysis_method: str) -> None:
         st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
 
         st.toast("LLM analysis created!", icon="✅")
-        st.page_link("pages/05_LLM.py", label="=> Go to LLM page..")
+        st.page_link("pages/06_LLM.py", label="=> Go to LLM page..")
 
 
 if analysis_result is not None:
