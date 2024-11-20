@@ -119,14 +119,8 @@ def extract_data(data: Dict) -> Dict:
     # 2. Primary Accession
     extracted["primaryAccession"] = data.get("primaryAccession")
 
-    # 3. Organism Details
-    organism = data.get("organism", {})
-    extracted["organism"] = {
-        "scientificName": organism.get("scientificName", None),
-        "commonName": organism.get("commonName", None),
-        "taxonId": organism.get("taxonId", None),
-        "lineage": organism.get("lineage", []),
-    }
+    # 3. Secondary Accessions
+    extracted["secondaryAccessions"] = data.get("secondaryAccessions")
 
     # 4. Protein Details
     protein_description = data.get("proteinDescription", {})
@@ -187,8 +181,7 @@ def extract_data(data: Dict) -> Dict:
                 if interactantOne and interactantTwo:
                     interactions.append(
                         {
-                            "interactantOne": interactantOne,
-                            "interactantTwo": interactantTwo,
+                            "interactor": interactantTwo,
                             "numberOfExperiments": interaction["numberOfExperiments"],
                         }
                     )
@@ -207,6 +200,7 @@ def extract_data(data: Dict) -> Dict:
     ]
     extracted["subcellularLocations"] = locations
 
+    # 10. Tissue specificity
     tissue_specificities = [
         text["value"]
         for comment in data.get("comments", [])
@@ -215,43 +209,66 @@ def extract_data(data: Dict) -> Dict:
     ]
     extracted["tissueSpecificity"] = tissue_specificities
 
-    # 11. Protein Features
-    features = [
-        {
-            "type": feature["type"],
-            "description": feature["description"],
-            "location_start": feature["location"]["start"]["value"],
-            "location_end": feature["location"]["end"]["value"],
-        }
-        for feature in data.get("features", [])
-    ]
-    extracted["features"] = features
+    ## 11. Protein Features
+    # features = [
+    #    {
+    #        "type": feature["type"],
+    #        "description": feature["description"],
+    #        "location_start": feature["location"]["start"]["value"],
+    #        "location_end": feature["location"]["end"]["value"],
+    #    }
+    #    for feature in data.get("features", [])
+    # ]
+    # extracted["features"] = features
 
-    # 12. References
-    references = [
-        {
-            "authors": ref["citation"].get("authors", []),
-            "title": ref["citation"].get("title", ""),
-            "journal": ref["citation"].get("journal", ""),
-            "publicationDate": ref["citation"].get("publicationDate", ""),
-            "comments": [c["value"] for c in ref.get("referenceComments", [])],
-        }
-        for ref in data.get("references", [])
-    ]
-    extracted["references"] = references
+    ## 12. References
+    # references = [
+    #    {
+    #        "authors": ref["citation"].get("authors", []),
+    #        "title": ref["citation"].get("title", ""),
+    #        "journal": ref["citation"].get("journal", ""),
+    #        "publicationDate": ref["citation"].get("publicationDate", ""),
+    #        "comments": [c["value"] for c in ref.get("referenceComments", [])],
+    #    }
+    #    for ref in data.get("references", [])
+    # ]
+    # extracted["references"] = references
 
     # 13. Cross References
-    cross_references = [
+    # cross_references = [
+    #    {
+    #        "database": ref["database"],
+    #        "id": ref["id"],
+    #        "properties": {
+    #            prop["key"]: prop["value"] for prop in ref.get("properties", [])
+    #        },
+    #    }
+    #    for ref in data.get("uniProtKBCrossReferences", [])
+    #    if ref['database'] not in ['GO', 'Reactome']
+    # ]
+    # extracted["crossReferences"] = cross_references
+
+    # 14. Pathway references
+    pathway_references = [
         {
             "database": ref["database"],
             "id": ref["id"],
-            "properties": {
-                prop["key"]: prop["value"] for prop in ref.get("properties", [])
-            },
+            "pathway": ref.get("properties")[0]["value"],
+        }
+        if ref["database"] == "Reactome"
+        else {
+            "database": ref["database"]
+            + " "
+            + {"P": "Pathway", "C": "Component", "F": "Function"}[
+                ref.get("properties")[0]["value"][0]
+            ],
+            "id": ref["id"],
+            "pathway": ref.get("properties")[0]["value"][2::],
         }
         for ref in data.get("uniProtKBCrossReferences", [])
+        if ref["database"] in ["GO", "Reactome"]
     ]
-    extracted["crossReferences"] = cross_references
+    extracted["pathway_references"] = pathway_references
     return extracted
 
 
