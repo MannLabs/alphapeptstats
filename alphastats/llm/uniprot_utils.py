@@ -348,3 +348,74 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
         return str(extract_data(result)["functionComments"])
     else:
         return "No data found"
+
+
+def select_uniprot_id_from_feature(
+    feature: str,
+):
+    """Get uniprot information for a feaure."""
+
+    baseids = set([identifier.split("-")[0] for identifier in feature.split(";")])
+    results = [
+        get_uniprot_data(protein_id=id)["results"][0] for id in sorted(list(baseids))
+    ]
+
+    # remove inactive entries and ones without gene names
+    results = [
+        result
+        for result in results
+        if result["entryType"] != "Inactive" and result.get("genes", None) is not None
+    ]
+
+    if len(results) == 1:
+        return results[0]
+    elif len(results) == 0:
+        return "No data found"
+
+    sp_indices = [
+        i
+        for i, result in enumerate(results)
+        if result["entryType"] == "UniProtKB reviewed (Swiss-Prot)"
+    ]
+    gene_names = [
+        result.get("genes", [{}])[0].get("geneName", {}).get("value")
+        for result in results
+    ]
+    annotation_scores = [result.get("annotationScore") for result in results]
+
+    if (len(set(gene_names)) == 1 and len(sp_indices) > 0) or (
+        len(set(gene_names)) > 1 and len(sp_indices) == 1
+    ):
+        # Either all the same gene name and any swissprot entries, or multiple gene names but only one swissprot entry
+        index = sp_indices[0]
+    elif len(sp_indices) == 0:
+        # Multiple gene names and no swissprot entries present
+        index = annotation_scores.index(max(annotation_scores))
+    else:
+        # Multiple gene names and multiple swissprot entries
+        index = sp_indices[
+            annotation_scores[sp_indices].index(max(annotation_scores[sp_indices]))
+        ]
+    return results[index]
+
+
+def extract_fieldinformation_from_uniprotresult(
+    result: dict,
+    fields: list,
+):
+    if isinstance(result, str):
+        return result
+    information = str({k: v for k, v in extract_data(result).items() if k in fields})
+    # TODO: Handle fields to format nice artifacts.
+    return information
+
+
+def get_information_for_feature(
+    feature: str,
+    fields: list = None,
+):
+    if fields is None:
+        fields = ["primaryAccession", "genes", "functionComments"]
+    result = select_uniprot_id_from_feature(feature)
+    information = extract_fieldinformation_from_uniprotresult(result, fields)
+    return information
