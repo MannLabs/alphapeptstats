@@ -191,10 +191,17 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
 
         protein_id = st.selectbox(
             "ProteinID/ProteinGroup",
-            options=self._dataset.mat.columns.to_list(),
+            options=list(self._dataset._gene_to_features_map.keys())
+            + list(self._dataset._protein_to_features_map.keys()),
         )
 
-        self._parameters.update({"protein_id": protein_id})
+        self._parameters.update(
+            {
+                "protein_id": self._dataset._gene_to_features_map[protein_id]
+                if protein_id in self._dataset._gene_to_features_map
+                else self._dataset._protein_to_features_map[protein_id]
+            }
+        )
 
     def _do_analysis(self):
         """Draw Intensity Plot using the IntensityPlot class."""
