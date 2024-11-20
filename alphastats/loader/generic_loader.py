@@ -34,8 +34,11 @@ class GenericLoader(BaseLoader):
         self.confidence_column = None
         self.software = "Generic"
         self.evidence_df = None
-        if gene_names_column in self.rawinput.columns.to_list():
-            self.gene_names_column = gene_names_column
+        self.gene_names_column = (
+            gene_names_column
+            if gene_names_column in self.rawinput.columns.to_list()
+            else None
+        )
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()
