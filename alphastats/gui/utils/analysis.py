@@ -327,6 +327,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             rawinput=self._dataset.rawinput,
             metadata=self._dataset.metadata,
             preprocessing_info=self._dataset.preprocessing_info,
+            feature_repr=self._dataset._feature_to_repr_map,
             group1=self._parameters["group1"],
             group2=self._parameters["group2"],
             column=self._parameters["column"],
