@@ -1009,6 +1009,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             file="testfiles/synthetic/preprocessing_pentests.csv",
             intensity_column="Intensity [sample]",
             index_column="Protein IDs",
+            gene_names_column="Gene names",
         )
         cls.cls_metadata_path = (
             "testfiles/synthetic/preprocessing_pentests_metadata.csv"
@@ -1058,6 +1059,18 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(
             self.obj.preprocessing_info[PreprocessingStateKeys.REPLACE_ZEROES], True
         )
+
+    def test_create_id_mapping(self):
+        """Test id maps"""
+        self.assertEqual(len(self.obj._gene_to_features_map), 21)
+        self.assertEqual(len(self.obj._gene_to_features_map["G14"]), 2)
+
+        self.assertEqual(len(self.obj._protein_to_features_map), 24)
+        self.assertEqual(len(self.obj._protein_to_features_map["P15"]), 2)
+
+        self.assertEqual(len(self.obj._feature_to_repr_map), self.obj.mat.shape[1])
+        self.assertEqual(self.obj._feature_to_repr_map["P1"], "G1")
+        self.assertEqual(self.obj._feature_to_repr_map["P15"], "ids:P15")
 
 
 if __name__ == "__main__":
