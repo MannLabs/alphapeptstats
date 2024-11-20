@@ -34,7 +34,7 @@ class TestGetUniProtData(unittest.TestCase):
                     "protein_name": "P12345",
                     "gene_names": "test_gene",
                     "cc_subcellular_location": "at home",
-                }
+                },
             ]
         }
         mock_get.return_value = MagicMock(
@@ -46,7 +46,7 @@ class TestGetUniProtData(unittest.TestCase):
             "gene_names": "test_gene",
             "cc_subcellular_location": "at home",
         }
-        result = get_uniprot_data("test_gene", "9606")
+        result = get_uniprot_data("test_gene", "9606")["results"][0]
 
         # Verify that the result matches the expected result
         self.assertEqual(result, expected_result)

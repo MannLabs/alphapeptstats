@@ -5,63 +5,64 @@ import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys
 
-uniprot_fields = [
-    # Names & Taxonomy
-    "gene_names",
-    "organism_name",
-    "protein_name",
-    # Function
-    "cc_function",
-    "cc_catalytic_activity",
-    "cc_activity_regulation",
-    "cc_pathway",
-    "kinetics",
-    "ph_dependence",
-    "temp_dependence",
-    # Interaction
-    "cc_interaction",
-    "cc_subunit",
-    # Expression
-    "cc_tissue_specificity",
-    "cc_developmental_stage",
-    "cc_induction",
-    # Gene Ontology (GO)
-    "go",
-    "go_p",
-    "go_c",
-    "go_f",
-    # Pathology & Biotech
-    "cc_disease",
-    "cc_disruption_phenotype",
-    "cc_pharmaceutical",
-    "ft_mutagen",
-    "ft_act_site",
-    # Structure
-    "cc_subcellular_location",
-    "organelle",
-    "absorption",
-    # Publications
-    "lit_pubmed_id",
-    # Family & Domains
-    "protein_families",
-    "cc_domain",
-    "ft_domain",
-    # Protein-Protein Interaction Databases
-    "xref_biogrid",
-    "xref_intact",
-    "xref_mint",
-    "xref_string",
-    # Chemistry Databases
-    "xref_drugbank",
-    "xref_chembl",
-    "reviewed",
-]
+# Fields are only relevant in the context of table output, with json you automatically get everything, with different keys
+# uniprot_fields = [
+#    # Names & Taxonomy
+#    "gene_names",
+#    "organism_name",
+#    "protein_name",
+#    # Function
+#    "cc_function",
+#    "cc_catalytic_activity",
+#    "cc_activity_regulation",
+#    "cc_pathway",
+#    "kinetics",
+#    "ph_dependence",
+#    "temp_dependence",
+#    # Interaction
+#    "cc_interaction",
+#    "cc_subunit",
+#    # Expression
+#    "cc_tissue_specificity",
+#    "cc_developmental_stage",
+#    "cc_induction",
+#    # Gene Ontology (GO)
+#    "go",
+#    "go_p",
+#    "go_c",
+#    "go_f",
+#    # Pathology & Biotech
+#    "cc_disease",
+#    "cc_disruption_phenotype",
+#    "cc_pharmaceutical",
+#    "ft_mutagen",
+#    "ft_act_site",
+#    # Structure
+#    "cc_subcellular_location",
+#    "organelle",
+#    "absorption",
+#    # Publications
+#    "lit_pubmed_id",
+#    # Family & Domains
+#    "protein_families",
+#    "cc_domain",
+#    "ft_domain",
+#    # Protein-Protein Interaction Databases
+#    "xref_biogrid",
+#    "xref_intact",
+#    "xref_mint",
+#    "xref_string",
+#    # Chemistry Databases
+#    "xref_drugbank",
+#    "xref_chembl",
+#    "reviewed",
+# ]
 
 
 def get_uniprot_data(
-    gene_name: str,
-    organism_id: str,
-    fields: List[str] = uniprot_fields,
+    protein_id: str = None,
+    gene_name: str = None,
+    organism_id: str = "9606",
 ) -> Dict:
     """
     Get data from UniProt for a given gene name and organism ID.
@@ -75,11 +76,14 @@ def get_uniprot_data(
         dict: The data retrieved from UniProt.
     """
     base_url = "https://rest.uniprot.org/uniprotkb/search"
-    query = f"(gene:{gene_name}) AND (reviewed:true) AND (organism_id:{organism_id})"
+    if protein_id is not None:
+        query = f"accession:{protein_id}"
+    elif gene_name is not None:
+        query = f"(gene:{gene_name}) AND (organism_id:{organism_id})"
+    else:
+        raise ValueError("Please provide either protein id or gene name.")
 
-    response = requests.get(
-        base_url, params={"query": query, "format": "json", "fields": ",".join(fields)}
-    )
+    response = requests.get(base_url, params={"query": query, "format": "json"})
 
     if response.status_code != 200:
         print(
@@ -94,10 +98,6 @@ def get_uniprot_data(
         print(f"No UniProt entry found for {gene_name}")
         return None
 
-    # Return the first result as a dictionary (assuming it's the most relevant)
-    data = data["results"][0]
-    # for key, value in data.items():
-    #     print(f"data - {key}: {value}, {type(value)}")
     return data
 
 
@@ -270,6 +270,7 @@ def get_info(genes_list: List[str], organism_id: str) -> List[str]:
 
     for gene in genes_list:
         result = get_uniprot_data(gene, organism_id)
+        result = result["results"][0]
 
         # If result is retrieved for the gene, extract data and continue with the next gene
         if result:
@@ -286,6 +287,7 @@ def get_info(genes_list: List[str], organism_id: str) -> List[str]:
         for split_gene in split_genes:
             result = get_uniprot_data(split_gene.strip(), organism_id)
             if result:
+                result = result["results"][0]
                 print(
                     f"Successfully retrieved data for {split_gene} (from split gene: {gene})"
                 )
@@ -323,6 +325,8 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
     if isinstance(gene_name, dict):
         gene_name = gene_name["gene_name"]
     result = get_uniprot_data(gene_name, organism_id)
+    if result:
+        result = result["results"][0]
     if result and extract_data(result)["functionComments"]:
         return str(extract_data(result)["functionComments"])
     else:
