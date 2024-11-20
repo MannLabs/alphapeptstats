@@ -61,7 +61,7 @@ class IntensityPlot(PlotUtils):
         self.log_scale = log_scale
         self.y_axis = self.intensity_column.replace("[sample]", "").strip()
         if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            self.y_axis = "log2(" + self.yaxis + ")"
+            self.y_axis = "log2(" + self.y_axis + ")"
 
         self.prepared_df = None
         self._prepare_data()
