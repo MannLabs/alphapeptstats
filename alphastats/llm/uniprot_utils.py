@@ -269,6 +269,9 @@ def extract_data(data: Dict) -> Dict:
         if ref["database"] in ["GO", "Reactome"]
     ]
     extracted["pathway_references"] = pathway_references
+
+    # TODO: Add caution comments
+
     return extracted
 
 
@@ -360,11 +363,19 @@ def select_uniprot_id_from_feature(
         get_uniprot_data(protein_id=id)["results"][0] for id in sorted(list(baseids))
     ]
 
-    # remove inactive entries and ones without gene names
+    # remove inactive entries and ones without gene names (besides immunoglobulins)
     results = [
         result
         for result in results
-        if result["entryType"] != "Inactive" and result.get("genes", None) is not None
+        if result["entryType"] != "Inactive"
+        and (
+            result.get("genes", None) is not None
+            or "globulin"
+            in result.get("proteinDescription", {})
+            .get("recommendedName", {})
+            .get("fullName", {})
+            .get("value", "")
+        )
     ]
 
     if len(results) == 1:
