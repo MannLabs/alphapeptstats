@@ -223,19 +223,20 @@ class TestExtractData(unittest.TestCase):
         self.assertEqual(result["tissueSpecificity"], expected_tissue_specificity)
 
         # Verify cross references extraction
-        expected_pathways = [
+        expected_GOP = [
             {
-                "database": "GO Pathway",
                 "id": "ABC123",
-                "pathway": "some pathway",
-            },
+                "name": "some pathway",
+            }
+        ]
+        self.assertEqual(result["GO Pathway"], expected_GOP)
+        expected_reactome = [
             {
-                "database": "Reactome",
                 "id": "ABC1234",
-                "pathway": "some pathway",
+                "name": "some pathway",
             },
         ]
-        self.assertEqual(result["pathway_references"], expected_pathways)
+        self.assertEqual(result["Reactome"], expected_reactome)
 
 
 class TestSelectID(unittest.TestCase):

@@ -33,9 +33,9 @@ def test_display_proteins_upregulated(mock_streamlit):
     result = get_display_proteins_html(protein_ids, is_upregulated=True)
 
     expected_html = (
-        "<ul><a href = https://www.uniprot.org/uniprotkb?query=P12345>"
+        "<ul><a href = https://www.uniprot.org/uniprotkb/P12345>"
         + '<li style="color: green;">P12345</li></a>'
-        + "<a href = https://www.uniprot.org/uniprotkb?query=Q67890>"
+        + "<a href = https://www.uniprot.org/uniprotkb/Q67890>"
         + '<li style="color: green;">Q67890</li></a></ul>'
     )
 
@@ -48,7 +48,7 @@ def test_display_proteins_downregulated(mock_streamlit):
     result = get_display_proteins_html(protein_ids, is_upregulated=False)
 
     expected_html = (
-        "<ul><a href = https://www.uniprot.org/uniprotkb?query=P12345>"
+        "<ul><a href = https://www.uniprot.org/uniprotkb/P12345>"
         + '<li style="color: red;">P12345</li></a></ul>'
     )
 
