@@ -130,6 +130,9 @@ with c1:
             unsafe_allow_html=True,
         )
 
+with st.expander("Retrieved uniprot data"):
+    st.json(st.session_state[StateKeys.ANNOTATION_STORE])
+
 
 st.markdown("##### Prompts generated based on analysis input")
 

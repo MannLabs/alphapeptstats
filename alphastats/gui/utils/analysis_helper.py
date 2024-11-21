@@ -13,6 +13,7 @@ from alphastats.gui.utils.ui_helper import (
     StateKeys,
     show_button_download_df,
 )
+from alphastats.llm.uniprot_utils import get_information_for_feature
 from alphastats.plots.plot_utils import PlotlyObject
 
 
@@ -197,3 +198,12 @@ def gather_parameters_and_do_analysis(
 
     else:
         raise ValueError(f"Analysis method {analysis_method} not found.")
+
+
+def gather_uniprot_data(features: list):
+    for feature in features:
+        if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
+            continue
+        st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
+            get_information_for_feature(feature, all_fields=True)
+        )

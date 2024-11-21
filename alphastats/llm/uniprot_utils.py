@@ -355,7 +355,16 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
 
 
 def get_uniprot_data_for_ids(ids: list):
-    return [get_uniprot_data(protein_id=id)["results"][0] for id in ids]
+    results = [get_uniprot_data(protein_id=id) for id in ids]
+    results = [
+        "Retrieval failed"
+        if result is None
+        else result
+        if isinstance(result, str)
+        else result["results"][0]
+        for result in results
+    ]
+    return results
 
 
 def select_uniprot_id_from_feature(
@@ -376,7 +385,12 @@ def select_uniprot_id_from_feature(
         return results[0]
 
     # remove inactive entries and ones without gene names (besides immunoglobulins)
-    results = [result for result in results if result["entryType"] != "Inactive"]
+    results = [
+        result
+        for result in results
+        if isinstance(result, dict)
+        and result.get("entryType", "Inactive") != "Inactive"
+    ]
 
     if len(results) == 1:
         return results[0]
@@ -437,17 +451,36 @@ def extract_fieldinformation_from_uniprotresult(
 ):
     if isinstance(result, str):
         return result
-    information = str({k: v for k, v in extract_data(result).items() if k in fields})
-    # TODO: Handle fields to format nice artifacts.
+    information = {k: v for k, v in extract_data(result).items() if k in fields}
     return information
+
+
+def format_uniprot_information(information: dict):
+    # TODO: Handle fields to format nice LLM input.
+    return str(information)
 
 
 def get_information_for_feature(
     feature: str,
     fields: list = None,
+    all_fields: bool = False,
 ):
     if fields is None:
         fields = ["primaryAccession", "genes", "functionComments"]
+    if all_fields:
+        fields = [
+            "entryType",
+            "primaryAccession",
+            "secondaryAccessions",
+            "protein",
+            "genes",
+            "functionComments",
+            "subunitComments",
+            "interactions",
+            "subcellularLocations",
+            "tissueSpecificity",
+            "pathway_references",
+        ]
     result = select_uniprot_id_from_feature(feature)
     information = extract_fieldinformation_from_uniprotresult(result, fields)
     return information
