@@ -17,6 +17,7 @@ from alphastats.gui.utils.llm_helper import (
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 from alphastats.llm.llm_integration import LLMIntegration, Models
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
+from alphastats.llm.uniprot_utils import ExtractedFields, format_uniprot_information
 from alphastats.plots.plot_utils import PlotlyObject
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -131,8 +132,23 @@ with c1:
             unsafe_allow_html=True,
         )
 
-with st.expander("Retrieved uniprot data"):
-    st.json(st.session_state[StateKeys.ANNOTATION_STORE])
+with st.expander("Available uniprot data"):
+    text_repr = {}
+    for feature in list(regulated_genes_dict.keys()):
+        try:
+            text_repr[
+                st.session_state[StateKeys.DATASET]._feature_to_repr_map[feature]
+            ] = {
+                "protein ids": feature,
+                "text": format_uniprot_information(
+                    st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                    fields=ExtractedFields.get_values(),
+                ),
+            }
+        except Exception as e:
+            st.markdown(feature)
+            st.markdown(e)
+    st.json(text_repr, expanded=False)
 
 
 st.markdown("##### Prompts generated based on analysis input")
