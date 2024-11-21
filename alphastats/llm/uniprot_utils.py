@@ -376,20 +376,23 @@ def select_uniprot_id_from_feature(
         return results[0]
 
     # remove inactive entries and ones without gene names (besides immunoglobulins)
+    results = [result for result in results if result["entryType"] != "Inactive"]
+
+    if len(results) == 1:
+        return results[0]
+
+    # remove ones without gene names (besides immunoglobulins)
     results = [
         result
         for result in results
-        if result["entryType"] != "Inactive"
-        and (
-            result.get("genes", None) is not None
-            or bool(
-                re.match(
-                    ".*globulin.*|^Ig.*",
-                    result.get("proteinDescription", {})
-                    .get("recommendedName", {})
-                    .get("fullName", {})
-                    .get("value", ""),
-                )
+        if result.get("genes", None) is not None
+        or bool(
+            re.match(
+                ".*globulin.*|^Ig.*",
+                result.get("proteinDescription", {})
+                .get("recommendedName", {})
+                .get("fullName", {})
+                .get("value", ""),
             )
         )
     ]
@@ -421,9 +424,10 @@ def select_uniprot_id_from_feature(
         index = annotation_scores.index(max(annotation_scores))
     else:
         # Multiple gene names and multiple swissprot entries
-        index = sp_indices[
-            annotation_scores[sp_indices].index(max(annotation_scores[sp_indices]))
+        sp_annotation_scores = [
+            score for i, score in enumerate(annotation_scores) if i in sp_indices
         ]
+        index = sp_indices[sp_annotation_scores.index(max(sp_annotation_scores))]
     return results[index]
 
 

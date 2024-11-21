@@ -296,7 +296,7 @@ class TestSelectID(unittest.TestCase):
             {
                 "entryType": "UniProtKB unreviewed (TrEMBL)",
                 "primaryAccession": "P6",
-                "genes": [{"geneName": {"value": "G6"}}],
+                "genes": [{"geneName": {"value": "G1"}}],
                 "proteinDescription": {
                     "recommendedName": {
                         "fullName": {
@@ -316,6 +316,17 @@ class TestSelectID(unittest.TestCase):
                 },
                 "annotationScore": 2,
             },
+            {
+                "entryType": "UniProtKB reviewed (Swiss-Prot)",
+                "primaryAccession": "P8",
+                "genes": [{"geneName": {"value": "G1"}}],
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {"value": "Redundant well annotated sp protein"}
+                    }
+                },
+                "annotationScore": 5,
+            },
         ]
 
     def get_example_results(self, ids: list):
@@ -329,6 +340,54 @@ class TestSelectID(unittest.TestCase):
         mock_results.return_value = self.get_example_results(["P7"])
         result = select_uniprot_id_from_feature("P7")
         self.assertEqual(result, self.get_example_results(["P7"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_return_active_wo_gene(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P7", "P3"])
+        result = select_uniprot_id_from_feature("P7;P3")
+        self.assertEqual(result, self.get_example_results(["P7"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_return_active_with_gene(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P7", "P3", "P6"])
+        result = select_uniprot_id_from_feature("P7;P3;P6")
+        self.assertEqual(result, self.get_example_results(["P6"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_return_active_immunoglobulin(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P7", "P3", "P4"])
+        result = select_uniprot_id_from_feature("P7;P3;P4")
+        self.assertEqual(result, self.get_example_results(["P4"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_single_swissprot_samegene(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P6", "P1"])
+        result = select_uniprot_id_from_feature("P6;P1")
+        self.assertEqual(result, self.get_example_results(["P1"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_single_swissprot_differentgene(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P5", "P1"])
+        result = select_uniprot_id_from_feature("P5;P1")
+        self.assertEqual(result, self.get_example_results(["P1"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_first_swissprot_samegenes(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P1", "P8"])
+        result = select_uniprot_id_from_feature("P1;P8")
+        self.assertEqual(result, self.get_example_results(["P1"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_better_trembl(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P5", "P6"])
+        result = select_uniprot_id_from_feature("P5;P6")
+        self.assertEqual(result, self.get_example_results(["P5"])[0])
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_better_swissprot(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P1", "P2"])
+        result = select_uniprot_id_from_feature("P1;P2")
+        self.assertEqual(result, self.get_example_results(["P1"])[0])
 
 
 if __name__ == "__main__":
