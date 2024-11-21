@@ -82,6 +82,7 @@ class TestExtractData(unittest.TestCase):
         self.example_data = {
             "entryType": "protein",
             "primaryAccession": "P12345",
+            "secondaryAccessions": ["P2345", "Q12345"],
             "organism": {
                 "scientificName": "Homo sapiens",
                 "commonName": "human",
@@ -155,7 +156,17 @@ class TestExtractData(unittest.TestCase):
                     "database": "EMBL",
                     "id": "ABC123",
                     "properties": [{"key": "molecule type", "value": "mRNA"}],
-                }
+                },
+                {
+                    "database": "GO",
+                    "id": "ABC123",
+                    "properties": [{"key": "name", "value": "P:some pathway"}],
+                },
+                {
+                    "database": "Reactome",
+                    "id": "ABC1234",
+                    "properties": [{"key": "name", "value": "some pathway"}],
+                },
             ],
         }
 
@@ -165,15 +176,7 @@ class TestExtractData(unittest.TestCase):
         # Verify the top-level data extraction
         self.assertEqual(result["entryType"], "protein")
         self.assertEqual(result["primaryAccession"], "P12345")
-
-        # Verify organism details are extracted correctly
-        expected_organism = {
-            "scientificName": "Homo sapiens",
-            "commonName": "human",
-            "taxonId": "9606",
-            "lineage": ["Eukaryota", "Metazoa", "Chordata", "Mammalia", "Primates"],
-        }
-        self.assertEqual(result["organism"], expected_organism)
+        self.assertEqual(result["secondaryAccessions"], ["P2345", "Q12345"])
 
         # Verify protein details are extracted properly
         expected_protein = {
@@ -201,8 +204,7 @@ class TestExtractData(unittest.TestCase):
         # Verify protein interactions are extracted correctly
         expected_interactions = [
             {
-                "interactantOne": "Q12345",
-                "interactantTwo": "Q23456",
+                "interactor": "Q23456",
                 "numberOfExperiments": 5,
             }
         ]
@@ -216,38 +218,20 @@ class TestExtractData(unittest.TestCase):
         expected_tissue_specificity = ["Expressed in liver."]
         self.assertEqual(result["tissueSpecificity"], expected_tissue_specificity)
 
-        # Verify protein features are extracted correctly
-        expected_features = [
-            {
-                "type": "domain",
-                "description": "ATP-binding region",
-                "location_start": 100,
-                "location_end": 200,
-            }
-        ]
-        self.assertEqual(result["features"], expected_features)
-
-        # Verify references are extracted properly
-        expected_references = [
-            {
-                "authors": ["Author A"],
-                "title": "Paper title",
-                "journal": "Journal",
-                "publicationDate": "2021-01",
-                "comments": [],
-            }
-        ]
-        self.assertEqual(result["references"], expected_references)
-
         # Verify cross references extraction
-        expected_cross_references = [
+        expected_pathways = [
             {
-                "database": "EMBL",
+                "database": "GO Pathway",
                 "id": "ABC123",
-                "properties": {"molecule type": "mRNA"},
-            }
+                "pathway": "some pathway",
+            },
+            {
+                "database": "Reactome",
+                "id": "ABC1234",
+                "pathway": "some pathway",
+            },
         ]
-        self.assertEqual(result["crossReferences"], expected_cross_references)
+        self.assertEqual(result["pathway_references"], expected_pathways)
 
 
 if __name__ == "__main__":
