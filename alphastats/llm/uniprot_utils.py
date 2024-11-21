@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List, Union
 
 import requests
@@ -356,12 +357,19 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
 def select_uniprot_id_from_feature(
     feature: str,
 ):
-    """Get uniprot information for a feaure."""
+    """Get uniprot information for a feaure.
+
+    This function collects the results for all base ids (truncating isoform ids) and selects the one to use for feeding the LLM.
+    It does so by reducing the number of results until 1 remains and if that is not straight forward, selects the best annotated (sp over trembl, high annotation score).
+    """
 
     baseids = set([identifier.split("-")[0] for identifier in feature.split(";")])
     results = [
         get_uniprot_data(protein_id=id)["results"][0] for id in sorted(list(baseids))
     ]
+
+    if len(results) == 1:
+        return results[0]
 
     # remove inactive entries and ones without gene names (besides immunoglobulins)
     results = [
@@ -370,11 +378,15 @@ def select_uniprot_id_from_feature(
         if result["entryType"] != "Inactive"
         and (
             result.get("genes", None) is not None
-            or "globulin"
-            in result.get("proteinDescription", {})
-            .get("recommendedName", {})
-            .get("fullName", {})
-            .get("value", "")
+            or bool(
+                re.match(
+                    ".*globulin.*|^Ig.*",
+                    result.get("proteinDescription", {})
+                    .get("recommendedName", {})
+                    .get("fullName", {})
+                    .get("value", ""),
+                )
+            )
         )
     ]
 
@@ -383,6 +395,7 @@ def select_uniprot_id_from_feature(
     elif len(results) == 0:
         return "No data found"
 
+    # Go by gene names, swissprot and annotation scores
     sp_indices = [
         i
         for i, result in enumerate(results)
