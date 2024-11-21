@@ -354,6 +354,10 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
         return "No data found"
 
 
+def get_uniprot_data_for_ids(ids: list):
+    return [get_uniprot_data(protein_id=id)["results"][0] for id in ids]
+
+
 def select_uniprot_id_from_feature(
     feature: str,
 ):
@@ -363,10 +367,10 @@ def select_uniprot_id_from_feature(
     It does so by reducing the number of results until 1 remains and if that is not straight forward, selects the best annotated (sp over trembl, high annotation score).
     """
 
-    baseids = set([identifier.split("-")[0] for identifier in feature.split(";")])
-    results = [
-        get_uniprot_data(protein_id=id)["results"][0] for id in sorted(list(baseids))
-    ]
+    baseids = sorted(
+        list(set([identifier.split("-")[0] for identifier in feature.split(";")]))
+    )
+    results = get_uniprot_data_for_ids(baseids)
 
     if len(results) == 1:
         return results[0]

@@ -3,7 +3,11 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from alphastats.dataset.dataset import DataSet
-from alphastats.llm.uniprot_utils import extract_data, get_uniprot_data
+from alphastats.llm.uniprot_utils import (
+    extract_data,
+    get_uniprot_data,
+    select_uniprot_id_from_feature,
+)
 from alphastats.loader.maxquant_loader import MaxQuantLoader
 
 logger = logging.getLogger(__name__)
@@ -232,6 +236,99 @@ class TestExtractData(unittest.TestCase):
             },
         ]
         self.assertEqual(result["pathway_references"], expected_pathways)
+
+
+class TestSelectID(unittest.TestCase):
+    def setUp(self):
+        self.results = [
+            {
+                "entryType": "UniProtKB reviewed (Swiss-Prot)",
+                "primaryAccession": "P1",
+                "genes": [{"geneName": {"value": "G1"}}],
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {"value": "Well annotated sp protein"}
+                    }
+                },
+                "annotationScore": 5,
+            },
+            {
+                "entryType": "UniProtKB reviewed (Swiss-Prot)",
+                "primaryAccession": "P2",
+                "genes": [{"geneName": {"value": "G2"}}],
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {"value": "Less well annotated sp protein"}
+                    }
+                },
+                "annotationScore": 3,
+            },
+            {
+                "entryType": "Inactive",
+                "primaryAccession": "P3",
+                "proteinDescription": {
+                    "recommendedName": {"fullName": {"value": "Inactive protein"}}
+                },
+            },
+            {
+                "entryType": "UniProtKB reviewed (Swiss-Prot)",
+                "primaryAccession": "P4",
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {"value": "Immunoglobulin without gene name"}
+                    }
+                },
+                "annotationScore": 3,
+            },
+            {
+                "entryType": "UniProtKB unreviewed (TrEMBL)",
+                "primaryAccession": "P5",
+                "genes": [{"geneName": {"value": "G5"}}],
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {
+                            "value": "Trembl protein with gene name, well annotated"
+                        }
+                    }
+                },
+                "annotationScore": 5,
+            },
+            {
+                "entryType": "UniProtKB unreviewed (TrEMBL)",
+                "primaryAccession": "P6",
+                "genes": [{"geneName": {"value": "G6"}}],
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {
+                            "value": "Trembl protein with gene name, less well annotated"
+                        }
+                    }
+                },
+                "annotationScore": 4,
+            },
+            {
+                "entryType": "UniProtKB unreviewed (TrEMBL)",
+                "primaryAccession": "P7",
+                "proteinDescription": {
+                    "recommendedName": {
+                        "fullName": {"value": "Trembl protein without gene name"}
+                    }
+                },
+                "annotationScore": 2,
+            },
+        ]
+
+    def get_example_results(self, ids: list):
+        results = [
+            result for result in self.results if result["primaryAccession"] in ids
+        ]
+        return results
+
+    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    def test_select_single_id(self, mock_results):
+        mock_results.return_value = self.get_example_results(["P7"])
+        result = select_uniprot_id_from_feature("P7")
+        self.assertEqual(result, self.get_example_results(["P7"])[0])
 
 
 if __name__ == "__main__":
