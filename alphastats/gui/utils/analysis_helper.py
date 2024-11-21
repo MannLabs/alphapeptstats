@@ -205,5 +205,5 @@ def gather_uniprot_data(features: list):
         if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
             continue
         st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
-            get_information_for_feature(feature, all_fields=True)
+            get_information_for_feature(feature)
         )
