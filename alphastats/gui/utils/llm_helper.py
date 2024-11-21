@@ -16,11 +16,11 @@ def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> s
         is_upregulated (bool): whether the proteins are up- or down-regulated.
     """
 
-    uniprot_url = "https://www.uniprot.org/uniprotkb?query="
+    uniprot_url = "https://www.uniprot.org/uniprotkb/"
 
     color = "green" if is_upregulated else "red"
     protein_ids_html = "".join(
-        f'<a href = {uniprot_url + protein}><li style="color: {color};">{protein}</li></a>'
+        f'<a href = {uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][protein].get("primaryAccession",protein)}><li style="color: {color};">{st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]}</li></a>'
         for protein in protein_ids
     )
 

@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from openai import AuthenticationError
 
+from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
@@ -101,7 +102,7 @@ with c2:
 with c1:
     regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
     regulated_genes_dict = dict(
-        zip(regulated_genes_df["label"], regulated_genes_df["color"].tolist())
+        zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
     )
 
     if not regulated_genes_dict:
