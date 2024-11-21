@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from openai import AuthenticationError
 
+from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
@@ -15,6 +16,7 @@ from alphastats.gui.utils.llm_helper import (
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 from alphastats.llm.llm_integration import LLMIntegration, Models
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
+from alphastats.plots.plot_utils import PlotlyObject
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
@@ -218,8 +220,8 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
             for artifact in message["artifacts"]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)
-                elif "plotly" in str(
-                    type(artifact)
+                elif isinstance(
+                    artifact, (PlotlyObject, plotly_object)
                 ):  # TODO can there be non-plotly types here
                     st.plotly_chart(artifact)
                 elif not isinstance(artifact, str):
