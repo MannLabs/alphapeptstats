@@ -59,7 +59,7 @@ class MaxQuantLoader(BaseLoader):
             )  # Assuming that all valid protein ids would contain at least one letter.
             self.rawinput = self.rawinput[
                 self.rawinput[self.index_column].apply(
-                    lambda x: bool(valid_id.match(x))
+                    lambda x: isinstance(x, str) and bool(valid_id.match(x))
                 )
             ]
 
