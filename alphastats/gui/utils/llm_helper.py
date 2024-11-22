@@ -5,6 +5,7 @@ import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.llm.llm_integration import LLMIntegration
+from alphastats.llm.uniprot_utils import format_uniprot_information
 
 
 def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> str:
@@ -80,3 +81,30 @@ def llm_connection_test(
 
     except Exception as e:
         return str(e)
+
+
+def get_display_available_uniprot_info(regulated_features: list) -> dict:
+    """
+    Retrieves and formats UniProt information for a list of regulated features.
+
+    Note: The information is retrieved from the `annotation_store` in the `session_state`, which is filled when the LLM analysis is set up from the anlaysis page.
+
+    Args:
+        regulated_features (list): A list of features for which UniProt information is to be retrieved.
+    Returns:
+        dict: A dictionary where each key is a feature representation and the value is another dictionary
+              containing the 'protein ids' and 'generated text' with formatted UniProt information or an error message.
+    """
+    text_repr = {}
+    for feature in regulated_features:
+        try:
+            text = format_uniprot_information(
+                st.session_state[StateKeys.ANNOTATION_STORE][feature]
+            )
+        except Exception as e:
+            text = e
+        text_repr[st.session_state[StateKeys.DATASET]._feature_to_repr_map[feature]] = {
+            "protein ids": feature,
+            "generated text": text,
+        }
+    return text_repr
