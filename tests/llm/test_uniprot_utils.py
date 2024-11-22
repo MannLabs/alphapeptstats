@@ -3,9 +3,9 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from alphastats.llm.uniprot_utils import (
-    extract_data,
-    get_uniprot_data,
-    select_uniprot_id_from_feature,
+    _extract_annotations_from_uniprot_data,
+    _request_uniprot_data,
+    _select_uniprot_result_from_feature,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class TestGetUniProtData(unittest.TestCase):
             "gene_names": "test_gene",
             "cc_subcellular_location": "at home",
         }
-        result = get_uniprot_data("test_gene", "9606")["results"][0]
+        result = _request_uniprot_data("test_gene", "9606")["results"][0]
 
         # Verify that the result matches the expected result
         self.assertEqual(result, expected_result)
@@ -45,7 +45,7 @@ class TestGetUniProtData(unittest.TestCase):
         # Set up the mock to return a failed response
         mock_get.return_value = MagicMock(status_code=500, text="Internal Server Error")
 
-        result = get_uniprot_data("test_gene", "9606")
+        result = _request_uniprot_data("test_gene", "9606")
 
         # Verify that the function handles errors properly and returns None
         self.assertIsNone(result)
@@ -58,7 +58,7 @@ class TestGetUniProtData(unittest.TestCase):
             status_code=200, json=lambda: example_response
         )
 
-        result = get_uniprot_data("test_gene", "9606")
+        result = _request_uniprot_data("test_gene", "9606")
 
         # Verify that the function handles no results found properly and returns None
         self.assertIsNone(result)
@@ -158,7 +158,7 @@ class TestExtractData(unittest.TestCase):
         }
 
     def test_extract_data_success(self):
-        result = extract_data(self.example_data)
+        result = _extract_annotations_from_uniprot_data(self.example_data)
 
         # Verify the top-level data extraction
         self.assertEqual(result["entryType"], "protein")
@@ -319,58 +319,58 @@ class TestSelectID(unittest.TestCase):
         ]
         return results
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_single_id(self, mock_results):
         mock_results.return_value = self.get_example_results(["P7"])
-        result = select_uniprot_id_from_feature("P7")
+        result = _select_uniprot_result_from_feature("P7")
         self.assertEqual(result, self.get_example_results(["P7"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_return_active_wo_gene(self, mock_results):
         mock_results.return_value = self.get_example_results(["P7", "P3"])
-        result = select_uniprot_id_from_feature("P7;P3")
+        result = _select_uniprot_result_from_feature("P7;P3")
         self.assertEqual(result, self.get_example_results(["P7"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_return_active_with_gene(self, mock_results):
         mock_results.return_value = self.get_example_results(["P7", "P3", "P6"])
-        result = select_uniprot_id_from_feature("P7;P3;P6")
+        result = _select_uniprot_result_from_feature("P7;P3;P6")
         self.assertEqual(result, self.get_example_results(["P6"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_return_active_immunoglobulin(self, mock_results):
         mock_results.return_value = self.get_example_results(["P7", "P3", "P4"])
-        result = select_uniprot_id_from_feature("P7;P3;P4")
+        result = _select_uniprot_result_from_feature("P7;P3;P4")
         self.assertEqual(result, self.get_example_results(["P4"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_single_swissprot_samegene(self, mock_results):
         mock_results.return_value = self.get_example_results(["P6", "P1"])
-        result = select_uniprot_id_from_feature("P6;P1")
+        result = _select_uniprot_result_from_feature("P6;P1")
         self.assertEqual(result, self.get_example_results(["P1"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_single_swissprot_differentgene(self, mock_results):
         mock_results.return_value = self.get_example_results(["P5", "P1"])
-        result = select_uniprot_id_from_feature("P5;P1")
+        result = _select_uniprot_result_from_feature("P5;P1")
         self.assertEqual(result, self.get_example_results(["P1"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_first_swissprot_samegenes(self, mock_results):
         mock_results.return_value = self.get_example_results(["P1", "P8"])
-        result = select_uniprot_id_from_feature("P1;P8")
+        result = _select_uniprot_result_from_feature("P1;P8")
         self.assertEqual(result, self.get_example_results(["P1"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_better_trembl(self, mock_results):
         mock_results.return_value = self.get_example_results(["P5", "P6"])
-        result = select_uniprot_id_from_feature("P5;P6")
+        result = _select_uniprot_result_from_feature("P5;P6")
         self.assertEqual(result, self.get_example_results(["P5"])[0])
 
-    @patch("alphastats.llm.uniprot_utils.get_uniprot_data_for_ids")
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_select_better_swissprot(self, mock_results):
         mock_results.return_value = self.get_example_results(["P1", "P2"])
-        result = select_uniprot_id_from_feature("P1;P2")
+        result = _select_uniprot_result_from_feature("P1;P2")
         self.assertEqual(result, self.get_example_results(["P1"])[0])
 
 

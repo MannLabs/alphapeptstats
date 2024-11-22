@@ -5,7 +5,7 @@ import streamlit as st
 
 from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.llm.llm_integration import LLMIntegration
-from alphastats.llm.uniprot_utils import format_uniprot_information
+from alphastats.llm.uniprot_utils import format_uniprot_annotation
 
 
 def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> str:
@@ -98,7 +98,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
     text_repr = {}
     for feature in regulated_features:
         try:
-            text = format_uniprot_information(
+            text = format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature]
             )
         except Exception as e:

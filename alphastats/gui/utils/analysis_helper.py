@@ -14,7 +14,7 @@ from alphastats.gui.utils.ui_helper import (
     StateKeys,
     show_button_download_df,
 )
-from alphastats.llm.uniprot_utils import get_information_for_feature
+from alphastats.llm.uniprot_utils import get_annotations_for_feature
 from alphastats.plots.plot_utils import PlotlyObject
 
 
@@ -217,7 +217,7 @@ def gather_uniprot_data(features: list) -> None:
             continue
         # TODO: Add some kind of rate limitation to avoid being locked out by uniprot
         st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
-            get_information_for_feature(feature)
+            get_annotations_for_feature(feature)
         )
 
 
