@@ -27,9 +27,23 @@ def mock_streamlit():
         }
 
 
-def test_display_proteins_upregulated(mock_streamlit):
+class dummy_class:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+
+
+@patch("streamlit.session_state", new_callable=dict)
+def test_display_proteins_upregulated(mock_session_state):
     """Test displaying upregulated proteins."""
-    protein_ids = ["P12345", "Q67890"]
+    mock_session_state[StateKeys.ANNOTATION_STORE] = {
+        "P12345": {"primaryAccession": "P12345"},
+        "Q67890;P56789": {"primaryAccession": "Q67890"},
+    }
+    mock_session_state[StateKeys.DATASET] = dummy_class(
+        _feature_to_repr_map={"P12345": "P12345", "Q67890;P56789": "Q67890"}
+    )
+    protein_ids = ["P12345", "Q67890;P56789"]
     result = get_display_proteins_html(protein_ids, is_upregulated=True)
 
     expected_html = (
@@ -42,8 +56,15 @@ def test_display_proteins_upregulated(mock_streamlit):
     assert result == expected_html
 
 
-def test_display_proteins_downregulated(mock_streamlit):
+@patch("streamlit.session_state", new_callable=dict)
+def test_display_proteins_downregulated(mock_session_state):
     """Test displaying downregulated proteins."""
+    mock_session_state[StateKeys.ANNOTATION_STORE] = {
+        "P12345": {"primaryAccession": "P12345"}
+    }
+    mock_session_state[StateKeys.DATASET] = dummy_class(
+        _feature_to_repr_map={"P12345": "P12345", "Q67890;P56789": "Q67890"}
+    )
     protein_ids = ["P12345"]
     result = get_display_proteins_html(protein_ids, is_upregulated=False)
 
