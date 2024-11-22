@@ -6,6 +6,8 @@ from alphastats.llm.uniprot_utils import (
     _extract_annotations_from_uniprot_data,
     _request_uniprot_data,
     _select_uniprot_result_from_feature,
+    format_uniprot_annotation,
+    get_annotations_for_feature,
 )
 
 logger = logging.getLogger(__name__)
@@ -372,6 +374,133 @@ class TestSelectID(unittest.TestCase):
         mock_results.return_value = self.get_example_results(["P1", "P2"])
         result = _select_uniprot_result_from_feature("P1;P2")
         self.assertEqual(result, self.get_example_results(["P1"])[0])
+
+
+class TestGetAnnotationsForFeature(unittest.TestCase):
+    @patch("alphastats.llm.uniprot_utils._select_uniprot_result_from_feature")
+    def test_get_annotations_for_feature(self, mock_select_result):
+        # Set up the mock to return example data
+        example_result = {
+            "entryType": "UniProtKB reviewed (Swiss-Prot)",
+            "primaryAccession": "P12345",
+            "genes": [{"geneName": {"value": "TEST"}}],
+            "proteinDescription": {
+                "recommendedName": {"fullName": {"value": "Test Protein"}},
+                "alternativeNames": [
+                    {"fullName": {"value": "Protein Alt1"}},
+                    {"fullName": {"value": "Protein Alt2"}},
+                ],
+            },
+            "comments": [
+                {
+                    "commentType": "FUNCTION",
+                    "texts": [{"value": "Function description."}],
+                },
+            ],
+        }
+        mock_select_result.return_value = example_result
+
+        expected_annotations = {
+            "entryType": "UniProtKB reviewed (Swiss-Prot)",
+            "primaryAccession": "P12345",
+            "secondaryAccessions": None,
+            "protein": {
+                "recommendedName": "Test Protein",
+                "alternativeNames": ["Protein Alt1", "Protein Alt2"],
+                "flag": None,
+            },
+            "genes": {
+                "geneName": "TEST",
+                "synonyms": [],
+            },
+            "functionComments": ["Function description."],
+            "subunitComments": [],
+            "subcellularLocations": [],
+            "tissueSpecificity": [],
+            "interactions": [],
+            "GO Component": [],
+            "GO Function": [],
+            "GO Pathway": [],
+            "Reactome": [],
+        }
+
+        result = get_annotations_for_feature("P12345")
+
+        # Verify that the result matches the expected annotations
+        self.assertEqual(result, expected_annotations)
+        # Verify that _select_uniprot_result_from_feature was called with the correct parameters
+        mock_select_result.assert_called_once_with("P12345")
+
+
+class TestFormatUniProtAnnotation(unittest.TestCase):
+    def setUp(self):
+        self.example_information = {
+            "protein": {
+                "recommendedName": "Test Protein",
+                "alternativeNames": ["Protein Alt1", "Protein Alt2"],
+                "flag": "Precursor",
+            },
+            "genes": {
+                "geneName": "TEST",
+                "synonyms": ["Test Syn1", "Test Syn2"],
+            },
+            "functionComments": ["Function description."],
+            "subunitComments": ["Subunit description."],
+            "tissueSpecificity": ["Expressed in liver."],
+            "interactions": [
+                {
+                    "interactor": "Q23456",
+                    "numberOfExperiments": 5,
+                }
+            ],
+            "subcellularLocations": ["Cytoplasm", "Nucleus"],
+            "GO Pathway": [
+                {
+                    "id": "ABC123",
+                    "name": "some pathway",
+                }
+            ],
+            "Reactome": [
+                {
+                    "id": "ABC1234",
+                    "name": "some pathway",
+                },
+            ],
+        }
+
+    def test_format_all_information_all_fields(self):
+        fields = list(self.example_information.keys())
+        result = format_uniprot_annotation(self.example_information, fields)
+        self.assertIn(
+            "The protein TEST is called Test Protein (or Protein Alt1/Protein Alt2).",
+            result,
+        )
+        self.assertIn("Function description.", result)
+        self.assertIn("Subunit description.", result)
+        self.assertIn("Expressed in liver.", result)
+        self.assertIn("Interacts with Q23456.", result)
+        self.assertIn("Locates to Cytoplasm, Nucleus.", result)
+        self.assertIn(
+            "The protein is part of the GO cell biological pathway(s) some pathway.",
+            result,
+        )
+        self.assertIn(
+            "The protein is part of the Reactome pathways some pathway.", result
+        )
+
+    def test_format_all_information_no_fields(self):
+        result = format_uniprot_annotation(self.example_information, fields=[])
+        self.assertEqual(result, "")
+
+    def test_format_no_information_all_fields(self):
+        result = format_uniprot_annotation(
+            {}, fields=list(self.example_information.keys())
+        )
+        self.assertEqual(result, "")
+
+    def test_format_no_information_no_fields(self):
+        result = format_uniprot_annotation({}, fields=[])
+        self.assertEqual(result, "")
 
 
 if __name__ == "__main__":
