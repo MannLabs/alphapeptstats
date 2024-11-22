@@ -96,6 +96,7 @@ def show_start_llm_button(analysis_method: str) -> None:
         st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
         with st.spinner("Retrieving uniprot data on regulated features ..."):
             regulated_features = get_regulated_features(analysis_object)
+            # TODO: Add confirmation prompt if an excessive number of proteins is to be looked up.
             gather_uniprot_data(regulated_features)
 
         st.toast("LLM analysis created!", icon="✅")

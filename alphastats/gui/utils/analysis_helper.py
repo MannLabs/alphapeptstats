@@ -215,6 +215,7 @@ def gather_uniprot_data(features: list) -> None:
     for feature in features:
         if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
             continue
+        # TODO: Add some kind of rate limitation to avoid being locked out by uniprot
         st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
             get_information_for_feature(feature)
         )
