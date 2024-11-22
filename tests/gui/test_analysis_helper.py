@@ -43,7 +43,7 @@ def test_get_regulated_features_all():
 
 
 @patch("streamlit.session_state", new_callable=dict)
-@patch("alphastats.gui.utils.analysis_helper.get_information_for_feature")
+@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_feature")
 def test_gather_uniprot_data_empty(mock_get_info, mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {}
     features = []
@@ -53,7 +53,7 @@ def test_gather_uniprot_data_empty(mock_get_info, mock_session_state):
 
 
 @patch("streamlit.session_state", new_callable=dict)
-@patch("alphastats.gui.utils.analysis_helper.get_information_for_feature")
+@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_feature")
 def test_gather_uniprot_data_lookupall(mock_get_info, mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {}
     features = ["feature1", "feature2"]
@@ -70,7 +70,7 @@ def test_gather_uniprot_data_lookupall(mock_get_info, mock_session_state):
 
 
 @patch("streamlit.session_state", new_callable=dict)
-@patch("alphastats.gui.utils.analysis_helper.get_information_for_feature")
+@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_feature")
 def test_gather_uniprot_data_lookupsome(mock_get_info, mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {"feature1": "existing_info"}
     features = ["feature1", "feature2"]
