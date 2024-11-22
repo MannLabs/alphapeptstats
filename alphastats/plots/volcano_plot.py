@@ -156,6 +156,7 @@ class VolcanoPlot(PlotUtils):
     def _sam_calculate_fdr_line(self):
         fdr_line = multicova.get_fdr_line(
             t_limit=self.tlim_ttest,
+            # TODO: Fix that this is hardcoded (see issues 270 and 273)
             s0=0.05,
             n_x=len(
                 list(
