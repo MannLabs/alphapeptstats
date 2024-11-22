@@ -202,6 +202,16 @@ def gather_parameters_and_do_analysis(
 
 
 def gather_uniprot_data(features: list) -> None:
+    """
+    Gathers UniProt data for a list of features and stores it in the session state.
+
+    Features that are already in the session state are skipped.
+
+    Args:
+        features (list): A list of features for which UniProt data needs to be gathered.
+    Returns:
+        None
+    """
     for feature in features:
         if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
             continue
