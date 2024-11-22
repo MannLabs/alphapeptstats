@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 import pandas as pd
 import streamlit as st
 
+from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
     PlottingOptions,
@@ -200,10 +201,32 @@ def gather_parameters_and_do_analysis(
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
 
-def gather_uniprot_data(features: list):
+def gather_uniprot_data(features: list) -> None:
     for feature in features:
         if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
             continue
         st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
             get_information_for_feature(feature)
         )
+
+
+def get_regulated_features(analysis_object: PlotlyObject) -> list:
+    """
+    Retrieve regulated features from the analysis object.
+    This function extracts features that are labeled (i.e., have a non-empty label)
+    from the analysis results. It is specifically designed to work with volcano plots.
+    Args:
+        analysis_object (PlotlyObject): An object containing analysis results,
+                                        including feature indices and labels.
+    Returns:
+        list: A list of regulated features that have non-empty labels.
+    """
+    # TODO: add a method to the AbstractAnalysis class to retrieve regulated features upon analysis to store in the session state. This function here only works for volcano plots.
+    regulated_features = [
+        feature
+        for feature, label in zip(
+            analysis_object.res[Cols.INDEX], analysis_object.res["label"]
+        )
+        if label != ""
+    ]
+    return regulated_features
