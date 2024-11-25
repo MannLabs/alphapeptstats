@@ -493,17 +493,12 @@ def _format_uniprot_field(
     if content is None:
         return None
     if field == ExtractedFields.NAME:
-        return (
-            None
-            if content["recommendedName"] is None
-            else " is called " + content["recommendedName"]
-            if "alternativeNames" not in content
-            else " is called "
-            + content["recommendedName"]
-            + " (or "
-            + "/".join(content["alternativeNames"])
-            + ")"
-        )
+        if content["recommendedName"] is None:
+            return None
+        result = f" is called {content['recommendedName']}"
+        if alt_names := content.get("alternativeNames"):
+            result += f" (or {'/'.join(alt_names)})"
+        return result
     if field == ExtractedFields.GENE:
         return (
             " without a gene symbol"
