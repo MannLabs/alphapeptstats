@@ -171,15 +171,13 @@ class DataSet:
             - feature_to_repr_map (dict): A dictionary mapping features to their representation strings.
         """
 
-        features = self.mat.columns.to_list()
+        features = set(self.mat.columns.to_list())
         gene_to_features_map = defaultdict(list)
         protein_to_features_map = defaultdict(list)
         feature_to_repr_map = {}
         # TODO: Make sure both iterators are with zip after merging branches.
 
-        for proteins, feature in self.rawinput[[Cols.INDEX, Cols.INDEX]].itertuples(
-            index=False
-        ):
+        for proteins, feature in zip(self.rawinput[Cols.INDEX], self.rawinput[Cols.INDEX]):
             if feature not in features:
                 continue
             # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
