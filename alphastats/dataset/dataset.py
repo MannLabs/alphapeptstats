@@ -153,7 +153,7 @@ class DataSet:
     def _create_id_dicts(self, sep: str = ";") -> Tuple[dict, dict, dict]:
         """Create mapprings from gene, protein to feature and from feature to repr."""
 
-        features = self.mat.columns.to_list()
+        features = set(self.mat.columns.to_list())
         gene_to_features_map = defaultdict(lambda: [])
         protein_to_features_map = defaultdict(lambda: [])
         feature_to_repr_map = defaultdict(lambda x: x)
