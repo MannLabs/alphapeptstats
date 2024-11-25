@@ -59,6 +59,7 @@ class IntensityPlot(PlotUtils):
         self.method = method
         self.add_significance = add_significance
         self.log_scale = log_scale
+        # TODO: rename y_axis to make clear this is not a name from the original data
         self.y_axis = self.intensity_column.replace("[sample]", "").strip()
         if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
             self.y_axis = "log2(" + self.y_axis + ")"
@@ -139,7 +140,6 @@ class IntensityPlot(PlotUtils):
         return plot
 
     def _prepare_data(self):
-        # TODO use difflib to find similar ProteinId if ProteinGroup is not present
         df = (
             self.mat[self.protein_id].melt(
                 ignore_index=False,
