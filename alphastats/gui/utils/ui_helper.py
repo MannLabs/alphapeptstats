@@ -118,6 +118,9 @@ def init_session_state() -> None:
     if StateKeys.LLM_INTEGRATION not in st.session_state:
         st.session_state[StateKeys.LLM_INTEGRATION] = {}
 
+    if StateKeys.ANNOTATION_STORE not in st.session_state:
+        st.session_state[StateKeys.ANNOTATION_STORE] = {}
+
 
 class StateKeys(metaclass=ConstantsClass):
     USER_SESSION_ID = "user_session_id"
@@ -132,5 +135,6 @@ class StateKeys(metaclass=ConstantsClass):
     MODEL_NAME = "model_name"
     LLM_INPUT = "llm_input"
     LLM_INTEGRATION = "llm_integration"
+    ANNOTATION_STORE = "annotation_store"
 
     ORGANISM = "organism"  # TODO this is essentially a constant

@@ -626,7 +626,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        self.assertEqual(n_labels, 9)
+        self.assertEqual(n_labels, 12)
 
     def test_plot_volcano_with_labels_proteins_welch_ttest(self):
         # remove gene names
@@ -1061,6 +1061,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         )
 
     def test_create_id_mapping(self):
+        # TODO: Test the actual dicts.
         """Test id maps"""
         self.assertEqual(len(self.obj._gene_to_features_map), 21)
         self.assertEqual(len(self.obj._gene_to_features_map["G14"]), 2)

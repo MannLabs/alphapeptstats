@@ -4,6 +4,8 @@ from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
     gather_parameters_and_do_analysis,
+    gather_uniprot_data,
+    get_regulated_features,
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
@@ -92,6 +94,10 @@ def show_start_llm_button(analysis_method: str) -> None:
         if StateKeys.LLM_INTEGRATION in st.session_state:
             del st.session_state[StateKeys.LLM_INTEGRATION]
         st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
+        with st.spinner("Retrieving uniprot data on regulated features ..."):
+            regulated_features = get_regulated_features(analysis_object)
+            # TODO: Add confirmation prompt if an excessive number of proteins is to be looked up.
+            gather_uniprot_data(regulated_features)
 
         st.toast("LLM analysis created!", icon="✅")
         st.page_link("pages/06_LLM.py", label="=> Go to LLM page..")

@@ -46,11 +46,13 @@ class MaxQuantLoader(BaseLoader):
         self._set_filter_columns_to_true_false()
         self._read_all_column_names_as_string()
 
+        # TODO externalize to a method
         intensity_columns = [
             col
             for col in self.rawinput.columns
             if intensity_column.replace("[sample]", "") in col
         ]
+        # TODO: explain why we do this
         if len(self.rawinput.dropna(subset=intensity_columns, how="all")) != len(
             self.rawinput
         ):
@@ -59,7 +61,7 @@ class MaxQuantLoader(BaseLoader):
             )  # Assuming that all valid protein ids would contain at least one letter.
             self.rawinput = self.rawinput[
                 self.rawinput[self.index_column].apply(
-                    lambda x: bool(valid_id.match(x))
+                    lambda x: isinstance(x, str) and bool(valid_id.match(x))
                 )
             ]
 

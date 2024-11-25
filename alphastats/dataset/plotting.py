@@ -12,6 +12,7 @@ from alphastats.dataset.utils import check_for_missing_values
 from alphastats.plots.plot_utils import PlotUtils
 
 
+# TODO: Remove redundancy with PlotlyObject
 class plotly_object(plotly.graph_objs._figure.Figure):
     plotting_data = None
     preprocessing = None
