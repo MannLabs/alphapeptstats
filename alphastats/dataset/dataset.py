@@ -158,9 +158,7 @@ class DataSet:
         protein_to_features_map = defaultdict(lambda: [])
         feature_to_repr_map = defaultdict(lambda x: x)
 
-        for proteins, feature in self.rawinput[[Cols.INDEX, Cols.INDEX]].itertuples(
-            index=False
-        ):
+        for proteins, feature in zip(self.rawinput[Cols.INDEX], self.rawinput[Cols.INDEX]):
             if feature not in features:
                 continue
             # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
