@@ -151,12 +151,31 @@ class DataSet:
             )
 
     def _create_id_dicts(self, sep: str = ";") -> Tuple[dict, dict, dict]:
-        """Create mapprings from gene, protein to feature and from feature to repr."""
+        """
+        Create mappings from gene and protein to feature, and from feature to representation.
+        Features are the entities measured in each sample, usually protein groups represented by semicolon separated protein ids.
+        This is to maintain the many-to-many relationships between the three entities feature, protein and gene.
+
+        This method processes the raw input data to generate three dictionaries:
+        1. gene_to_features_map: Maps each gene to a list of features.
+        2. protein_to_features_map: Maps each protein to a list of features.
+        3. feature_to_repr_map: Maps each feature to its representation string.
+
+        Args:
+            sep (str): The separator used to split gene and protein identifiers. Default is ";".
+
+        Returns:
+            Tuple[dict, dict, dict]: A tuple containing three dictionaries:
+            - gene_to_features_map (dict): A dictionary mapping genes to features.
+            - protein_to_features_map (dict): A dictionary mapping proteins to features.
+            - feature_to_repr_map (dict): A dictionary mapping features to their representation strings.
+        """
 
         features = self.mat.columns.to_list()
-        gene_to_features_map = defaultdict(lambda: [])
-        protein_to_features_map = defaultdict(lambda: [])
-        feature_to_repr_map = defaultdict(lambda x: x)
+        gene_to_features_map = defaultdict(list)
+        protein_to_features_map = defaultdict(list)
+        feature_to_repr_map = {}
+        # TODO: Make sure both iterators are with zip after merging branches.
 
         for proteins, feature in self.rawinput[[Cols.INDEX, Cols.INDEX]].itertuples(
             index=False
@@ -449,7 +468,7 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             preprocessing_info=self.preprocessing_info,
-            feature_repr=self._feature_to_repr_map,
+            feature_to_repr_map=self._feature_to_repr_map,
             group1=group1,
             group2=group2,
             column=column,
@@ -469,7 +488,8 @@ class DataSet:
         self,
         gene_name: str,
     ) -> list:
-        """Get protein groups from gene id. If gene id is not present, return gene id, as we might already have a gene id.
+        # TODO: This should raise an error and not return the gene name if it is not actually in the data.
+        """Get feature from gene name. If gene name is not present, return gene name, as we might already have a gene id.
         'HEL114' -> ['P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1']
 
         Args:

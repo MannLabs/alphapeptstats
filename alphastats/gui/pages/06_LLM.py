@@ -4,11 +4,13 @@ import pandas as pd
 import streamlit as st
 from openai import AuthenticationError
 
+from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
 from alphastats.gui.utils.llm_helper import (
+    get_display_available_uniprot_info,
     get_display_proteins_html,
     llm_connection_test,
     set_api_key,
@@ -16,6 +18,7 @@ from alphastats.gui.utils.llm_helper import (
 from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
 from alphastats.llm.llm_integration import LLMIntegration, Models
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
+from alphastats.llm.uniprot_utils import ExtractedFields, format_uniprot_annotation
 from alphastats.plots.plot_utils import PlotlyObject
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -101,7 +104,7 @@ with c2:
 with c1:
     regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
     regulated_genes_dict = dict(
-        zip(regulated_genes_df["label"], regulated_genes_df["color"].tolist())
+        zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
     )
 
     if not regulated_genes_dict:
@@ -130,6 +133,60 @@ with c1:
             unsafe_allow_html=True,
         )
 
+st.markdown("##### Select which information from Uniprot to supply to the LLM")
+c1, c2, c3 = st.columns((1, 1, 5))
+default_fields = [
+    ExtractedFields.GENE,
+    ExtractedFields.NAME,
+    ExtractedFields.FUNCTIONCOMM,
+]
+# TODO: Turn the list of selected fields into a single list in the session state and make sure the setting is persistent across page navigation.
+with c1:
+    if st.button("Select all"):
+        for field in ExtractedFields.get_values():
+            st.session_state["EX" + field] = True
+with c2:
+    if st.button("Select none"):
+        for field in ExtractedFields.get_values():
+            st.session_state["EX" + field] = False
+with c3:
+    if st.button("Recommended selection"):
+        for field in ExtractedFields.get_values():
+            st.session_state["EX" + field] = field in default_fields
+c1, c2 = st.columns((1, 3))
+with c1, st.expander("Show options"):
+    selected_fields = [
+        st.checkbox(
+            field,
+            value=field in default_fields
+            if "EX" + field not in st.session_state
+            else None,
+            key="EX" + field,
+        )
+        for field in ExtractedFields.get_values()
+    ]
+with c2, st.expander("Show preview", expanded=True):
+    preview_feature = st.selectbox(
+        "Feature id", options=list(regulated_genes_dict.keys())
+    )
+    st.markdown(
+        format_uniprot_annotation(
+            st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
+            fields=[
+                field
+                for field, selected in zip(
+                    ExtractedFields.get_values(), selected_fields
+                )
+                if selected
+            ],
+        )
+    )
+
+with st.expander("View all available uniprot data"):
+    st.json(
+        get_display_available_uniprot_info(list(regulated_genes_dict.keys())),
+        expanded=False,
+    )
 
 st.markdown("##### Prompts generated based on analysis input")
 

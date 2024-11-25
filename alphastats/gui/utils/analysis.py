@@ -189,17 +189,19 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
         """Gather parameters for intensity plot analysis."""
         super().show_widget()
 
-        protein_id = st.selectbox(
-            "ProteinID/ProteinGroup",
+        protein_id_or_gene_name = st.selectbox(
+            "Gene or protein identifier to plot",
             options=list(self._dataset._gene_to_features_map.keys())
             + list(self._dataset._protein_to_features_map.keys()),
         )
 
         self._parameters.update(
             {
-                "protein_id": self._dataset._gene_to_features_map[protein_id]
-                if protein_id in self._dataset._gene_to_features_map
-                else self._dataset._protein_to_features_map[protein_id]
+                "protein_id": self._dataset._gene_to_features_map[
+                    protein_id_or_gene_name
+                ]
+                if protein_id_or_gene_name in self._dataset._gene_to_features_map
+                else self._dataset._protein_to_features_map[protein_id_or_gene_name]
             }
         )
 
@@ -334,7 +336,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             rawinput=self._dataset.rawinput,
             metadata=self._dataset.metadata,
             preprocessing_info=self._dataset.preprocessing_info,
-            feature_repr=self._dataset._feature_to_repr_map,
+            feature_to_repr_map=self._dataset._feature_to_repr_map,
             group1=self._parameters["group1"],
             group2=self._parameters["group2"],
             column=self._parameters["column"],

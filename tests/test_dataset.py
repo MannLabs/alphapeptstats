@@ -1061,6 +1061,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         )
 
     def test_create_id_mapping(self):
+        # TODO: Test the actual dicts.
         """Test id maps"""
         self.assertEqual(len(self.obj._gene_to_features_map), 21)
         self.assertEqual(len(self.obj._gene_to_features_map["G14"]), 2)
