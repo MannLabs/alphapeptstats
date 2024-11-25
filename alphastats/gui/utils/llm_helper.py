@@ -8,6 +8,7 @@ from alphastats.llm.llm_integration import LLMIntegration
 from alphastats.llm.uniprot_utils import format_uniprot_annotation
 
 
+# TODO: pass the annotation store and the feature repr map as arguments
 def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> str:
     """
     Get HTML code for displaying a list of proteins, color according to expression.
@@ -103,6 +104,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
             )
         except Exception as e:
             text = e
+            # TODO: make downstream filtering of faulty information possible.
         text_repr[st.session_state[StateKeys.DATASET]._feature_to_repr_map[feature]] = {
             "protein ids": feature,
             "generated text": text,

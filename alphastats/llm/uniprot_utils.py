@@ -25,6 +25,7 @@ class ExtractedFields(metaclass=ConstantsClass):
     REACTOME = "Reactome"
 
 
+# TODO: evaluate option of returning an empty dict instead of None.
 def _request_uniprot_data(
     protein_id: str = None,
     gene_name: str = None,
@@ -312,6 +313,7 @@ def _select_uniprot_result_from_feature(
         and result.get("entryType", "Inactive") != "Inactive"
     ]
 
+    # TODO: Double check if results is actually a dict or a list.
     if len(results) == 1:
         return results[0]
     elif len(results) == 0:
