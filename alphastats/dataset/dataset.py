@@ -468,7 +468,7 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             preprocessing_info=self.preprocessing_info,
-            feature_repr=self._feature_to_repr_map,
+            feature_to_repr_map=self._feature_to_repr_map,
             group1=group1,
             group2=group2,
             column=column,

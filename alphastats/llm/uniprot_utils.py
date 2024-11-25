@@ -25,67 +25,13 @@ class ExtractedFields(metaclass=ConstantsClass):
     REACTOME = "Reactome"
 
 
-# Fields are only relevant in the context of table output, with json you automatically get everything, with different keys
-# uniprot_fields = [
-#    # Names & Taxonomy
-#    "gene_names",
-#    "organism_name",
-#    "protein_name",
-#    # Function
-#    "cc_function",
-#    "cc_catalytic_activity",
-#    "cc_activity_regulation",
-#    "cc_pathway",
-#    "kinetics",
-#    "ph_dependence",
-#    "temp_dependence",
-#    # Interaction
-#    "cc_interaction",
-#    "cc_subunit",
-#    # Expression
-#    "cc_tissue_specificity",
-#    "cc_developmental_stage",
-#    "cc_induction",
-#    # Gene Ontology (GO)
-#    "go",
-#    "go_p",
-#    "go_c",
-#    "go_f",
-#    # Pathology & Biotech
-#    "cc_disease",
-#    "cc_disruption_phenotype",
-#    "cc_pharmaceutical",
-#    "ft_mutagen",
-#    "ft_act_site",
-#    # Structure
-#    "cc_subcellular_location",
-#    "organelle",
-#    "absorption",
-#    # Publications
-#    "lit_pubmed_id",
-#    # Family & Domains
-#    "protein_families",
-#    "cc_domain",
-#    "ft_domain",
-#    # Protein-Protein Interaction Databases
-#    "xref_biogrid",
-#    "xref_intact",
-#    "xref_mint",
-#    "xref_string",
-#    # Chemistry Databases
-#    "xref_drugbank",
-#    "xref_chembl",
-#    "reviewed",
-# ]
-
-
 def _request_uniprot_data(
     protein_id: str = None,
     gene_name: str = None,
     organism_id: str = "9606",
 ) -> Union[Dict, None]:
     """
-    Get data from UniProt for a given gene name and organism ID.
+    Get data from UniProt for a given gene name and organism ID, or for a specific Uniprot identifier.
 
     Args:
         protein_id (str): Uniprot identifier of a protein
@@ -232,45 +178,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     ]
     extracted[ExtractedFields.TISSUE] = tissue_specificities
 
-    ## 11. Protein Features
-    # features = [
-    #    {
-    #        "type": feature["type"],
-    #        "description": feature["description"],
-    #        "location_start": feature["location"]["start"]["value"],
-    #        "location_end": feature["location"]["end"]["value"],
-    #    }
-    #    for feature in data.get("features", [])
-    # ]
-    # extracted["features"] = features
-
-    ## 12. References
-    # references = [
-    #    {
-    #        "authors": ref["citation"].get("authors", []),
-    #        "title": ref["citation"].get("title", ""),
-    #        "journal": ref["citation"].get("journal", ""),
-    #        "publicationDate": ref["citation"].get("publicationDate", ""),
-    #        "comments": [c["value"] for c in ref.get("referenceComments", [])],
-    #    }
-    #    for ref in data.get("references", [])
-    # ]
-    # extracted["references"] = references
-
-    # 13. Cross References
-    # cross_references = [
-    #    {
-    #        "database": ref["database"],
-    #        "id": ref["id"],
-    #        "properties": {
-    #            prop["key"]: prop["value"] for prop in ref.get("properties", [])
-    #        },
-    #    }
-    #    for ref in data.get("uniProtKBCrossReferences", [])
-    #    if ref['database'] not in ['GO', 'Reactome']
-    # ]
-    # extracted["crossReferences"] = cross_references
-
+    # TODO: Optimize according to comments: https://github.com/MannLabs/alphapeptstats/pull/379#discussion_r1854130200, https://github.com/MannLabs/alphapeptstats/pull/383#discussion_r1854146844
     # 14. Pathway references
     annotation_references = [
         {
@@ -319,6 +227,9 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     # TODO: Add caution comments
 
     return extracted
+
+
+# TODO: Check plurals of result(s)
 
 
 # TODO: Depracate once LLM is fed with protein id based information
@@ -428,6 +339,8 @@ def _select_uniprot_result_from_feature(
         return "No useful data found"
 
     # Go by gene names, swissprot and annotation scores
+    # TODO: Make this a separate method
+    # TODO: Define n_ variables for reused lengths.
     sp_indices = [
         i
         for i, result in enumerate(results)
@@ -489,7 +402,7 @@ def _format_uniprot_field(
     Returns:
         Union[str, None]: A formatted string representation of the content for the specified field, or None if the content is None or empty.
     """
-
+    # TODO: Make this code less redundant and fail fast if content is empty. Maybe use a dictionary instead of ifs.
     if content is None:
         return None
     if field == ExtractedFields.NAME:
