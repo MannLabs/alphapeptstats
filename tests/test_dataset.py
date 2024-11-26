@@ -791,9 +791,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(res.shape[1], 45)
 
     def test_get_protein_id_for_gene_name(self):
-        self.assertEqual(
+        with self.assertRaises(ValueError):
             self.obj._get_features_for_gene_name("MADE_UP_GENE"), "MADE_UP_GENE"
-        )
+
         self.assertEqual(
             self.obj._get_features_for_gene_name("ALDOC"),
             [
