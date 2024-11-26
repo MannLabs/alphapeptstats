@@ -487,7 +487,6 @@ class DataSet:
         self,
         gene_name: str,
     ) -> list:
-        # TODO: This should raise an error and not return the gene name if it is not actually in the data.
         """Get feature from gene name. If gene name is not present, return gene name, as we might already have a gene id.
         'HEL114' -> ['P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1']
 
