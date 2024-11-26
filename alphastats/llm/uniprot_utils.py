@@ -14,6 +14,7 @@ class ExtractedFields(metaclass=ConstantsClass):
     GENE = "genes"
     FUNCTIONCOMM = "functionComments"
     SUBUNITCOMM = "subunitComments"
+    CAUTIONCOMM = "cautionComments"
     INTERACTIONS = "interactions"
     SUBCELL = "subcellularLocations"
     TISSUE = "tissueSpecificity"
@@ -129,6 +130,15 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     ]
     extracted[ExtractedFields.SUBUNITCOMM] = subunit_comments
 
+    # 7.1. Caution Comments
+    caution_comments = [
+        text["value"]
+        for comment in data.get("comments", [])
+        if comment["commentType"] == "CAUTION"
+        for text in comment.get("texts", [])
+    ]
+    extracted[ExtractedFields.CAUTIONCOMM] = caution_comments
+
     # 8. Protein Interactions
     interactions = []
 
@@ -220,12 +230,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         if entry["database"] == "Reactome"
     ]
 
-    # TODO: Add caution comments
-
     return extracted
-
-
-# TODO: Check plurals of result(s)
 
 
 # TODO: Depracate once LLM is fed with protein id based information
@@ -415,6 +420,7 @@ def _format_uniprot_field(
         ExtractedFields.FUNCTIONCOMM,
         ExtractedFields.SUBUNITCOMM,
         ExtractedFields.TISSUE,
+        ExtractedFields.CAUTIONCOMM,
     ]:
         return " ".join(content) if len(content) > 0 else None
     if field == ExtractedFields.INTERACTIONS:
