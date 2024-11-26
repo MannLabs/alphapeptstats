@@ -403,8 +403,11 @@ def _format_uniprot_field(
     Returns:
         Union[str, None]: A formatted string representation of the content for the specified field, or None if the content is None or empty.
     """
-    # TODO: Make this code less redundant and fail fast if content is empty. Maybe use a dictionary instead of ifs.
-    if content is None:
+    if (
+        content is None
+        or len(content) == 0
+        or field not in ExtractedFields.get_values()
+    ):
         return None
     if field == ExtractedFields.NAME:
         if content["recommendedName"] is None:
@@ -419,53 +422,35 @@ def _format_uniprot_field(
             if "geneName" not in content or content["geneName"] is None
             else " " + content["geneName"]
         )
-    if field in [
-        ExtractedFields.FUNCTIONCOMM,
-        ExtractedFields.SUBUNITCOMM,
-        ExtractedFields.TISSUE,
-        ExtractedFields.CAUTIONCOMM,
-    ]:
-        return " ".join(content) if len(content) > 0 else None
     if field == ExtractedFields.INTERACTIONS:
         return (
             "Interacts with " + ", ".join([i["interactor"] for i in content]) + "."
             if len(content) > 0
             else None
         )
-    if field == ExtractedFields.SUBCELL:
-        return "Locates to " + ", ".join(content) + "." if len(content) > 0 else None
-    if field == ExtractedFields.GOP:
-        return (
-            "The protein is part of the GO cell biological pathway(s) "
-            + ", ".join([el["name"] for el in content])
-            + "."
-            if len(content) > 0
-            else None
+    if field in [
+        ExtractedFields.FUNCTIONCOMM,
+        ExtractedFields.SUBUNITCOMM,
+        ExtractedFields.TISSUE,
+        ExtractedFields.CAUTIONCOMM,
+    ]:
+        return " ".join(content)
+
+    if isinstance(content, list):
+        elements = ", ".join(
+            [el if isinstance(el, str) else el["name"] for el in content]
         )
-    if field == ExtractedFields.GOC:
-        return (
-            "Locates to "
-            + ", ".join([el["name"] for el in content])
-            + " by GO annotation."
-            if len(content) > 0
-            else None
+        formatstrings = {
+            ExtractedFields.SUBCELL: "Locates to {}.",
+            ExtractedFields.GOP: "The protein is part of the GO cell biological pathway(s) {}.",
+            ExtractedFields.GOC: "Locates to {} by GO annotation.",
+            ExtractedFields.GOF: "According to GO annotations the proteins molecular function(s) are {}.",
+            ExtractedFields.REACTOME: "The protein is part of the Reactome pathways {}.",
+        }
+        return formatstrings.get(field, field + " of this protein is {}.").format(
+            elements
         )
-    if field == ExtractedFields.GOF:
-        return (
-            "By GO annotation the proteins molecular function(s) are "
-            + ", ".join([el["name"] for el in content])
-            + "."
-            if len(content) > 0
-            else None
-        )
-    if field == ExtractedFields.REACTOME:
-        return (
-            "The protein is part of the Reactome pathways "
-            + ", ".join([el["name"] for el in content])
-            + "."
-            if len(content) > 0
-            else None
-        )
+
     return f"{field} of this protein is {str(content)}."
 
 
