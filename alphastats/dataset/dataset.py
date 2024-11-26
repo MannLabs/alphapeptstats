@@ -175,9 +175,10 @@ class DataSet:
         gene_to_features_map = defaultdict(list)
         protein_to_features_map = defaultdict(list)
         feature_to_repr_map = {}
-        # TODO: Make sure both iterators are with zip after merging branches.
 
-        for proteins, feature in zip(self.rawinput[Cols.INDEX], self.rawinput[Cols.INDEX]):
+        for proteins, feature in zip(
+            self.rawinput[Cols.INDEX], self.rawinput[Cols.INDEX]
+        ):
             if feature not in features:
                 continue
             # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
@@ -186,9 +187,9 @@ class DataSet:
                 protein_to_features_map[protein].append(feature)
 
         if Cols.GENE_NAMES in self.rawinput.columns:
-            for genes, feature in self.rawinput[
-                [Cols.GENE_NAMES, Cols.INDEX]
-            ].itertuples(index=False):
+            for genes, feature in zip(
+                self.rawinput[Cols.GENE_NAMES], self.rawinput[Cols.INDEX]
+            ):
                 if feature not in features:
                     continue
                 if isinstance(genes, str):
