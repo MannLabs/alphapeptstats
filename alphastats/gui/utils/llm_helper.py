@@ -8,8 +8,9 @@ from alphastats.llm.llm_integration import LLMIntegration
 from alphastats.llm.uniprot_utils import ExtractedFields, format_uniprot_annotation
 
 
-# TODO: pass the annotation store and the feature repr map as arguments
-def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> str:
+def get_display_proteins_html(
+    protein_ids: List[str], is_upregulated: True, annotation_store, feature_to_repr_map
+) -> str:
     """
     Get HTML code for displaying a list of proteins, color according to expression.
 
@@ -22,7 +23,7 @@ def get_display_proteins_html(protein_ids: List[str], is_upregulated: True) -> s
 
     color = "green" if is_upregulated else "red"
     protein_ids_html = "".join(
-        f'<a href = {uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][protein].get("primaryAccession",protein)}><li style="color: {color};">{st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]}</li></a>'
+        f'<a href = {uniprot_url + annotation_store[protein].get("primaryAccession",protein)}><li style="color: {color};">{feature_to_repr_map[protein]}</li></a>'
         for protein in protein_ids
     )
 

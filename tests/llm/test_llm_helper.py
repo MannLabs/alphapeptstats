@@ -27,24 +27,21 @@ def mock_streamlit():
         }
 
 
-class DummyClass:
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            self.__setattr__(k, v)
-
-
 @patch("streamlit.session_state", new_callable=dict)
 def test_display_proteins_upregulated(mock_session_state):
     """Test displaying upregulated proteins."""
-    mock_session_state[StateKeys.ANNOTATION_STORE] = {
+    annotation_store = {
         "P12345": {"primaryAccession": "P12345"},
         "Q67890;P56789": {"primaryAccession": "Q67890"},
     }
-    mock_session_state[StateKeys.DATASET] = DummyClass(
-        _feature_to_repr_map={"P12345": "P12345", "Q67890;P56789": "Q67890"}
-    )
+    feature_to_repr_map = {"P12345": "P12345", "Q67890;P56789": "Q67890"}
     protein_ids = ["P12345", "Q67890;P56789"]
-    result = get_display_proteins_html(protein_ids, is_upregulated=True)
+    result = get_display_proteins_html(
+        protein_ids,
+        is_upregulated=True,
+        annotation_store=annotation_store,
+        feature_to_repr_map=feature_to_repr_map,
+    )
 
     expected_html = (
         "<ul><a href = https://www.uniprot.org/uniprotkb/P12345>"
@@ -59,14 +56,15 @@ def test_display_proteins_upregulated(mock_session_state):
 @patch("streamlit.session_state", new_callable=dict)
 def test_display_proteins_downregulated(mock_session_state):
     """Test displaying downregulated proteins."""
-    mock_session_state[StateKeys.ANNOTATION_STORE] = {
-        "P12345": {"primaryAccession": "P12345"}
-    }
-    mock_session_state[StateKeys.DATASET] = DummyClass(
-        _feature_to_repr_map={"P12345": "P12345", "Q67890;P56789": "Q67890"}
-    )
+    annotation_store = {"P12345": {"primaryAccession": "P12345"}}
+    feature_to_repr_map = {"P12345": "P12345", "Q67890;P56789": "Q67890"}
     protein_ids = ["P12345"]
-    result = get_display_proteins_html(protein_ids, is_upregulated=False)
+    result = get_display_proteins_html(
+        protein_ids,
+        is_upregulated=False,
+        annotation_store=annotation_store,
+        feature_to_repr_map=feature_to_repr_map,
+    )
 
     expected_html = (
         "<ul><a href = https://www.uniprot.org/uniprotkb/P12345>"
@@ -78,7 +76,12 @@ def test_display_proteins_downregulated(mock_session_state):
 
 def test_display_proteins_empty_list(mock_streamlit):
     """Test displaying empty protein list."""
-    assert get_display_proteins_html([], is_upregulated=True) == "<ul></ul>"
+    assert (
+        get_display_proteins_html(
+            [], is_upregulated=True, annotation_store={}, feature_to_repr_map={}
+        )
+        == "<ul></ul>"
+    )
 
 
 @pytest.mark.parametrize(

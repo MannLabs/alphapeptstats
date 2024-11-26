@@ -126,13 +126,28 @@ with c1:
     with c11:
         st.write("Upregulated genes")
         st.markdown(
-            get_display_proteins_html(upregulated_genes, True), unsafe_allow_html=True
+            get_display_proteins_html(
+                upregulated_genes,
+                True,
+                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
+                feature_to_repr_map=st.session_state[
+                    StateKeys.DATASET
+                ]._feature_to_repr_map,
+            ),
+            unsafe_allow_html=True,
         )
 
     with c12:
         st.write("Downregulated genes")
         st.markdown(
-            get_display_proteins_html(downregulated_genes, False),
+            get_display_proteins_html(
+                downregulated_genes,
+                False,
+                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
+                feature_to_repr_map=st.session_state[
+                    StateKeys.DATASET
+                ]._feature_to_repr_map,
+            ),
             unsafe_allow_html=True,
         )
 
