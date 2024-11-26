@@ -40,7 +40,7 @@ def test_display_proteins_upregulated(mock_session_state):
         "P12345": {"primaryAccession": "P12345"},
         "Q67890;P56789": {"primaryAccession": "Q67890"},
     }
-    mock_session_state[StateKeys.DATASET] = dummy_class(
+    mock_session_state[StateKeys.DATASET] = DummyClass(
         _feature_to_repr_map={"P12345": "P12345", "Q67890;P56789": "Q67890"}
     )
     protein_ids = ["P12345", "Q67890;P56789"]
@@ -62,7 +62,7 @@ def test_display_proteins_downregulated(mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {
         "P12345": {"primaryAccession": "P12345"}
     }
-    mock_session_state[StateKeys.DATASET] = dummy_class(
+    mock_session_state[StateKeys.DATASET] = DummyClass(
         _feature_to_repr_map={"P12345": "P12345", "Q67890;P56789": "Q67890"}
     )
     protein_ids = ["P12345"]
