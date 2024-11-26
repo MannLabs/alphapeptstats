@@ -184,51 +184,31 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     ]
     extracted[ExtractedFields.TISSUE] = tissue_specificities
 
-    # TODO: Optimize according to comments: https://github.com/MannLabs/alphapeptstats/pull/379#discussion_r1854130200, https://github.com/MannLabs/alphapeptstats/pull/383#discussion_r1854146844
     # 14. Pathway references
-    annotation_references = [
-        {
-            "database": ref["database"],
-            "entry": {
+    extracted[ExtractedFields.GOP] = []
+    extracted[ExtractedFields.GOC] = []
+    extracted[ExtractedFields.GOF] = []
+    extracted[ExtractedFields.REACTOME] = []
+    for ref in data.get("uniProtKBCrossReferences", []):
+        if ref["database"] == "Reactome":
+            database = ExtractedFields.REACTOME
+            entry = {
                 "id": ref["id"],
                 "name": ref.get("properties")[0]["value"],
-            },
-        }
-        if ref["database"] == "Reactome"
-        else {
-            "database": ref["database"]
-            + " "
-            + {"P": "Pathway", "C": "Component", "F": "Function"}[
-                ref.get("properties")[0]["value"][0]
-            ],
-            "entry": {
+            }
+        elif ref["database"] == "GO":
+            database = {
+                "P": ExtractedFields.GOP,
+                "C": ExtractedFields.GOC,
+                "F": ExtractedFields.GOF,
+            }[ref.get("properties")[0]["value"][0]]
+            entry = {
                 "id": ref["id"],
                 "name": ref.get("properties")[0]["value"][2::],
-            },
-        }
-        for ref in data.get("uniProtKBCrossReferences", [])
-        if ref["database"] in ["GO", "Reactome"]
-    ]
-    extracted[ExtractedFields.GOP] = [
-        entry["entry"]
-        for entry in annotation_references
-        if entry["database"] == "GO Pathway"
-    ]
-    extracted[ExtractedFields.GOC] = [
-        entry["entry"]
-        for entry in annotation_references
-        if entry["database"] == "GO Component"
-    ]
-    extracted[ExtractedFields.GOF] = [
-        entry["entry"]
-        for entry in annotation_references
-        if entry["database"] == "GO Function"
-    ]
-    extracted[ExtractedFields.REACTOME] = [
-        entry["entry"]
-        for entry in annotation_references
-        if entry["database"] == "Reactome"
-    ]
+            }
+        else:
+            continue
+        extracted[database].append(entry)
 
     return extracted
 
