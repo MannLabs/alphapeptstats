@@ -59,10 +59,9 @@ class IntensityPlot(PlotUtils):
         self.method = method
         self.add_significance = add_significance
         self.log_scale = log_scale
-        # TODO: rename y_axis to make clear this is not a name from the original data
-        self.y_axis = self.intensity_column.replace("[sample]", "").strip()
+        self.y_axis_label = self.intensity_column.replace("[sample]", "").strip()
         if self.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED]:
-            self.y_axis = "log2(" + self.y_axis + ")"
+            self.y_axis_label = "log2(" + self.y_axis_label + ")"
 
         self.prepared_df = None
         self._prepare_data()
@@ -143,7 +142,7 @@ class IntensityPlot(PlotUtils):
         df = (
             self.mat[self.protein_id].melt(
                 ignore_index=False,
-                value_name=self.y_axis,
+                value_name=self.y_axis_label,
                 var_name=Cols.INDEX,
             )
         ).dropna()
@@ -159,7 +158,7 @@ class IntensityPlot(PlotUtils):
         if self.method == "violin":
             fig = px.violin(
                 self.prepared_df,
-                y=self.y_axis,
+                y=self.y_axis_label,
                 x=self.group,
                 facet_col=Cols.INDEX,
                 color=self.group,
@@ -169,7 +168,7 @@ class IntensityPlot(PlotUtils):
         elif self.method == "box":
             fig = px.box(
                 self.prepared_df,
-                y=self.y_axis,
+                y=self.y_axis_label,
                 x=self.group,
                 facet_col=Cols.INDEX,
                 color=self.group,
@@ -179,7 +178,7 @@ class IntensityPlot(PlotUtils):
         elif self.method == "scatter":
             fig = px.scatter(
                 self.prepared_df,
-                y=self.y_axis,
+                y=self.y_axis_label,
                 x=self.group,
                 facet_col=Cols.INDEX,
                 color=self.group,
@@ -189,7 +188,7 @@ class IntensityPlot(PlotUtils):
         elif self.method == "all":
             fig = px.violin(
                 self.prepared_df,
-                y=self.y_axis,
+                y=self.y_axis_label,
                 x=self.group,
                 facet_col=Cols.INDEX,
                 color=self.group,

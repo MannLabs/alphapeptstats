@@ -1076,17 +1076,88 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         )
 
     def test_create_id_mapping(self):
-        # TODO: Test the actual dicts.
         """Test id maps"""
-        self.assertEqual(len(self.obj._gene_to_features_map), 21)
-        self.assertEqual(len(self.obj._gene_to_features_map["G14"]), 2)
 
-        self.assertEqual(len(self.obj._protein_to_features_map), 24)
-        self.assertEqual(len(self.obj._protein_to_features_map["P15"]), 2)
-
-        self.assertEqual(len(self.obj._feature_to_repr_map), self.obj.mat.shape[1])
-        self.assertEqual(self.obj._feature_to_repr_map["P1"], "G1")
-        self.assertEqual(self.obj._feature_to_repr_map["P15"], "ids:P15")
+        self.assertDictEqual(
+            self.obj._gene_to_features_map,
+            {
+                "G1": ["P1"],
+                "G2": ["P2"],
+                "G3": ["P3"],
+                "G4": ["P4"],
+                "G5": ["P5"],
+                "G6": ["P6"],
+                "G7": ["P7"],
+                "G8": ["P8"],
+                "G9": ["P9"],
+                "G10": ["P10"],
+                "G11": ["P11;P11-2"],
+                "G12": ["P12;P21;P22"],
+                "G21": ["P12;P21;P22"],
+                "G22": ["P12;P21;P22"],
+                "G13": ["P13;P14-2"],
+                "G14": ["P13;P14-2", "P14;P15"],
+                "G15": ["P14;P15"],
+                "G16": ["P16", "P17"],
+                "G18": ["P18"],
+                "G19": ["P19"],
+                "G20": ["P20"],
+            },
+        )
+        self.assertDictEqual(
+            self.obj._protein_to_features_map,
+            {
+                "P1": ["P1"],
+                "P2": ["P2"],
+                "P3": ["P3"],
+                "P4": ["P4"],
+                "P5": ["P5"],
+                "P6": ["P6"],
+                "P7": ["P7"],
+                "P8": ["P8"],
+                "P9": ["P9"],
+                "P10": ["P10"],
+                "P11": ["P11;P11-2"],
+                "P11-2": ["P11;P11-2"],
+                "P12": ["P12;P21;P22"],
+                "P21": ["P12;P21;P22"],
+                "P22": ["P12;P21;P22"],
+                "P13": ["P13;P14-2"],
+                "P14-2": ["P13;P14-2"],
+                "P14": ["P14;P15"],
+                "P15": ["P14;P15", "P15"],
+                "P16": ["P16"],
+                "P17": ["P17"],
+                "P18": ["P18"],
+                "P19": ["P19"],
+                "P20": ["P20"],
+            },
+        )
+        self.assertDictEqual(
+            self.obj._feature_to_repr_map,
+            {
+                "P1": "G1",
+                "P2": "G2",
+                "P3": "G3",
+                "P4": "G4",
+                "P5": "G5",
+                "P6": "G6",
+                "P7": "G7",
+                "P8": "G8",
+                "P9": "G9",
+                "P10": "G10",
+                "P11;P11-2": "G11",
+                "P12;P21;P22": "G12;G21;G22",
+                "P13;P14-2": "G13;G14",
+                "P14;P15": "G14;G15",
+                "P15": "ids:P15",
+                "P16": "G16",
+                "P17": "G16",
+                "P18": "G18",
+                "P19": "G19",
+                "P20": "G20",
+            },
+        )
 
 
 if __name__ == "__main__":
