@@ -499,8 +499,7 @@ class DataSet:
         """
         if gene_name in self._gene_to_features_map:
             return self._gene_to_features_map[gene_name]
-
-        return gene_name
+        raise ValueError(f"Gene {gene_name} is not in the (processed) data.")
 
     def plot_intensity(
         self,

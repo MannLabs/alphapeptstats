@@ -509,6 +509,21 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 3)
 
+    def test_plot_intenstity_valid_gene(self):
+        plot = self.obj.plot_intensity(
+            gene_name="ALDOC",
+            group="disease",
+        )
+        plot_dict = plot.to_plotly_json()
+        self.assertEqual(len(plot_dict.get("data")), 5)
+
+    def test_plot_intenstity_bogus_gene(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_intensity(
+                gene_name="BOGUSGENE",
+                group="disease",
+            )
+
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         plot = self.obj.plot_intensity(
             protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
