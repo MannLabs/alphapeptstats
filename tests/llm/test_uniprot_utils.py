@@ -415,6 +415,7 @@ class TestGetAnnotationsForFeature(unittest.TestCase):
             },
             "functionComments": ["Function description."],
             "subunitComments": [],
+            "cautionComments": [],
             "subcellularLocations": [],
             "tissueSpecificity": [],
             "interactions": [],

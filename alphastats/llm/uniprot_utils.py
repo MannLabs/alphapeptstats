@@ -300,6 +300,27 @@ def _select_uniprot_result_from_feature(
     if len(results) == 1:
         return results[0]
 
+    results = _select_valid_unprot_results(results)
+
+    if len(results) == 1:
+        return results[0]
+    elif len(results) == 0:
+        return "No useful data found"
+
+    best_result = _select_best_annotated_uniprot_result(results)
+    return best_result
+
+
+def _select_valid_unprot_results(results) -> List[Dict]:
+    """
+    Filter out invalid uniprot results. This includes inactive entries and if multiple ones remain, entries without gene names (except for immunoglobulins).
+
+    Args:
+        results (list): List of uniprot results.
+
+    Returns:
+        list: List of valid uniprot results.
+    """
     # remove inactive entries and failed retrievals (would be str instance)
     results = [
         result
@@ -308,10 +329,8 @@ def _select_uniprot_result_from_feature(
         and result.get("entryType", "Inactive") != "Inactive"
     ]
 
-    if len(results) == 1:
-        return results[0]
-    elif len(results) == 0:
-        return "No useful data found"
+    if len(results) <= 1:
+        return results
 
     # remove ones without gene names (besides immunoglobulins)
     results = [
@@ -328,14 +347,18 @@ def _select_uniprot_result_from_feature(
             )
         )
     ]
+    return results
 
-    if len(results) == 1:
-        return results[0]
-    elif len(results) == 0:
-        return "No useful data found"
 
-    # Go by gene names, swissprot and annotation scores
-    # TODO: Make this a separate method
+def _select_best_annotated_uniprot_result(results) -> Dict:
+    """Going by quality of annotation select the best uniprot result.
+    It prioritizes swissprot entries over trembl entries and entries with higher annotation scores over lower ones.
+
+    Args:
+        results (list): List of uniprot results.
+
+    Returns:
+        dict: The best annotated uniprot result."""
     sp_indices = [
         i
         for i, result in enumerate(results)
