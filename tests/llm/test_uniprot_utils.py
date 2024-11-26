@@ -35,7 +35,7 @@ class TestGetUniProtData(unittest.TestCase):
             "gene_names": "test_gene",
             "cc_subcellular_location": "at home",
         }
-        result = _request_uniprot_data("test_gene", "9606")["results"][0]
+        result = _request_uniprot_data("test_gene", "9606")[0]
 
         # Verify that the result matches the expected result
         self.assertEqual(result, expected_result)
@@ -47,10 +47,10 @@ class TestGetUniProtData(unittest.TestCase):
         # Set up the mock to return a failed response
         mock_get.return_value = MagicMock(status_code=500, text="Internal Server Error")
 
-        result = _request_uniprot_data("test_gene", "9606")
+        results = _request_uniprot_data("test_gene", "9606")
 
-        # Verify that the function handles errors properly and returns None
-        self.assertIsNone(result)
+        # Verify that the function handles errors properly and returns an empty list
+        self.assertListEqual(results, [])
 
     @patch("requests.get")
     def test_get_uniprot_no_results(self, mock_get):
@@ -60,10 +60,10 @@ class TestGetUniProtData(unittest.TestCase):
             status_code=200, json=lambda: example_response
         )
 
-        result = _request_uniprot_data("test_gene", "9606")
+        results = _request_uniprot_data("test_gene", "9606")
 
-        # Verify that the function handles no results found properly and returns None
-        self.assertIsNone(result)
+        # Verify that the function handles no results found properly and returns an empty list
+        self.assertListEqual(results, [])
 
 
 class TestExtractData(unittest.TestCase):

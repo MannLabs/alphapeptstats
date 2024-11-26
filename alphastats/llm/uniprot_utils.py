@@ -23,12 +23,11 @@ class ExtractedFields(metaclass=ConstantsClass):
     REACTOME = "Reactome"
 
 
-# TODO: evaluate option of returning an empty dict instead of None.
 def _request_uniprot_data(
     protein_id: str = None,
     gene_name: str = None,
     organism_id: str = "9606",
-) -> Union[Dict, None]:
+) -> Union[List, None]:
     """
     Get data from UniProt for a given gene name and organism ID, or for a specific Uniprot identifier.
 
@@ -38,9 +37,7 @@ def _request_uniprot_data(
         organism_id (str, optional): The organism ID to search in. Defaults to human, only used in the context of a gene name.
 
     Returns:
-        One of dict, None, str:
-            dict: The data retrieved from UniProt, if retrieval was successful.
-            None: If the response code was not 200 or there were no results
+        list: The data retrieved from UniProt, if retrieval was successful. If the response code was not 200 or there were no results the list is empty.
     """
     base_url = "https://rest.uniprot.org/uniprotkb/search"
     if protein_id is not None:
@@ -57,15 +54,15 @@ def _request_uniprot_data(
             f"Failed to retrieve data for {query}. Status code: {response.status_code}"
         )
         print(response.text)
-        return None
+        return []
 
     data = response.json()
 
     if not data.get("results"):
         print(f"No UniProt entry found for {query}")
-        return None
+        return []
 
-    return data
+    return data.get("results")
 
 
 def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
@@ -245,16 +242,14 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
     """
     if isinstance(gene_name, dict):
         gene_name = gene_name["gene_name"]
-    result = _request_uniprot_data(gene_name, organism_id)
-    if result:
-        result = result["results"][0]
-    if (
-        result
-        and _extract_annotations_from_uniprot_data(result)[ExtractedFields.FUNCTIONCOMM]
-    ):
-        return str(
-            _extract_annotations_from_uniprot_data(result)[ExtractedFields.FUNCTIONCOMM]
-        )
+    results = _request_uniprot_data(gene_name, organism_id)
+    if results:
+        # Assuming the first is the most relevant
+        result = results[0]
+    if function_comment := _extract_annotations_from_uniprot_data(result)[
+        ExtractedFields.FUNCTIONCOMM
+    ]:
+        return str(function_comment)
     else:
         return "No data found"
 
@@ -272,8 +267,7 @@ def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
 
     results = [_request_uniprot_data(protein_id=id) for id in ids]
     results = [
-        "Retrieval failed" if result is None else result["results"][0]
-        for result in results
+        "Retrieval failed" if not idresult else idresult[0] for idresult in results
     ]
     return results
 
@@ -309,7 +303,6 @@ def _select_uniprot_result_from_feature(
         and result.get("entryType", "Inactive") != "Inactive"
     ]
 
-    # TODO: Double check if results is actually a dict or a list.
     if len(results) == 1:
         return results[0]
     elif len(results) == 0:
