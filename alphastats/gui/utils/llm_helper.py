@@ -3,9 +3,9 @@ from typing import List, Optional
 
 import streamlit as st
 
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
 from alphastats.llm.llm_integration import LLMIntegration
-from alphastats.llm.uniprot_utils import format_uniprot_annotation
+from alphastats.llm.uniprot_utils import ExtractedFields, format_uniprot_annotation
 
 
 # TODO: pass the annotation store and the feature repr map as arguments
@@ -84,6 +84,7 @@ def llm_connection_test(
         return str(e)
 
 
+# Unused now, but could be useful in the future
 def get_display_available_uniprot_info(regulated_features: list) -> dict:
     """
     Retrieves and formats UniProt information for a list of regulated features.
@@ -110,3 +111,47 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
             "generated text": text,
         }
     return text_repr
+
+
+# TODO: Write test for this display
+@st.fragment
+def display_uniprot(regulated_genes_dict):
+    c1, c2, c3, c4 = st.columns((1, 1, 3, 1))
+    with c1:
+        if st.button("Select all"):
+            st.session_state[StateKeys.UNIPROT_FIELDS] = ExtractedFields.get_values()
+            st.rerun(scope="fragment")
+    with c2:
+        if st.button("Select none"):
+            st.session_state[StateKeys.UNIPROT_FIELDS] = []
+            st.rerun(scope="fragment")
+    with c3:
+        if st.button("Recommended selection"):
+            st.session_state[StateKeys.UNIPROT_FIELDS] = DefaultStates.UNIPROT_FIELDS
+            st.rerun(scope="fragment")
+    with c4:
+        if st.button("Update initial prompt", type="primary"):
+            st.toast("Not implemented yet.", icon="⚠️")
+            # TODO: Implement this
+    c1, c2 = st.columns((1, 3))
+    with c1, st.expander("Show options", expanded=True):
+        fields = ExtractedFields.get_values()
+        selected_fields = []
+        for field in fields:
+            if st.checkbox(
+                field, value=field in st.session_state[StateKeys.UNIPROT_FIELDS]
+            ):
+                selected_fields.append(field)
+        if selected_fields != st.session_state[StateKeys.UNIPROT_FIELDS]:
+            st.session_state[StateKeys.UNIPROT_FIELDS] = selected_fields
+            st.rerun(scope="fragment")
+    with c2, st.expander("Show preview", expanded=True):
+        preview_feature = st.selectbox(
+            "Feature id", options=list(regulated_genes_dict.keys())
+        )
+        st.markdown(
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
+                fields=st.session_state[StateKeys.UNIPROT_FIELDS],
+            )
+        )

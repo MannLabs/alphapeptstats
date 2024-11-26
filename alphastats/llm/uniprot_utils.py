@@ -2,10 +2,8 @@ import re
 from typing import Dict, List, Union
 
 import requests
-import streamlit as st
 
 from alphastats.dataset.keys import ConstantsClass
-from alphastats.gui.utils.ui_helper import StateKeys
 
 
 class ExtractedFields(metaclass=ConstantsClass):
@@ -245,8 +243,6 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
     Returns:
         str: The gene function and description.
     """
-    if StateKeys.ORGANISM in st.session_state:
-        organism_id = st.session_state[StateKeys.ORGANISM]
     if isinstance(gene_name, dict):
         gene_name = gene_name["gene_name"]
     result = _request_uniprot_data(gene_name, organism_id)

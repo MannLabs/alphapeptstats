@@ -335,7 +335,6 @@ class Preprocess:
     def _log2_transform(self):
         self.mat = np.log2(self.mat)
         self.mat = self.mat.replace([np.inf, -np.inf], np.nan)
-        # TODO: Ideally we wouldn't need to replace infs if all downstream methods can handle them
         self.preprocessing_info.update({PreprocessingStateKeys.LOG2_TRANSFORMED: True})
         print("Data has been log2-transformed.")
 
