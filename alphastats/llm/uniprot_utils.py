@@ -338,7 +338,6 @@ def _select_uniprot_result_from_feature(
 
     # Go by gene names, swissprot and annotation scores
     # TODO: Make this a separate method
-    # TODO: Define n_ variables for reused lengths.
     sp_indices = [
         i
         for i, result in enumerate(results)
@@ -350,12 +349,15 @@ def _select_uniprot_result_from_feature(
     ]
     annotation_scores = [result.get("annotationScore") for result in results]
 
-    if (len(set(gene_names)) == 1 and len(sp_indices) > 0) or (
-        len(set(gene_names)) > 1 and len(sp_indices) == 1
+    n_sp_indices = len(sp_indices)
+    n_gene_names = len(set(gene_names))
+
+    if (n_gene_names == 1 and n_sp_indices > 0) or (
+        n_gene_names > 1 and n_sp_indices == 1
     ):
         # Either all the same gene name and any swissprot entries, or multiple gene names but only one swissprot entry
         index = sp_indices[0]
-    elif len(sp_indices) == 0:
+    elif n_sp_indices == 0:
         # Multiple gene names and no swissprot entries present
         index = annotation_scores.index(max(annotation_scores))
     else:

@@ -96,7 +96,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
         regulated_features (list): A list of features for which UniProt information is to be retrieved.
     Returns:
         dict: A dictionary where each key is a feature representation and the value is another dictionary
-              containing the 'protein ids' and 'generated text' with formatted UniProt information or an error message.
+              containing the 'protein ids' and 'generated text' with formatted UniProt information or an error message, starting with ERROR, so it can be filtered before passing on to the LLM.
     """
     text_repr = {}
     for feature in regulated_features:
@@ -105,8 +105,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
                 st.session_state[StateKeys.ANNOTATION_STORE][feature]
             )
         except Exception as e:
-            text = e
-            # TODO: make downstream filtering of faulty information possible.
+            text = f"ERROR: {e}"
         text_repr[st.session_state[StateKeys.DATASET]._feature_to_repr_map[feature]] = {
             "protein ids": feature,
             "generated text": text,
