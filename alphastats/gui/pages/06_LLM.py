@@ -153,7 +153,9 @@ with c1:
 
 
 st.markdown("##### Select which information from Uniprot to supply to the LLM")
-display_uniprot(regulated_genes_dict)
+display_uniprot(
+    regulated_genes_dict, st.session_state[StateKeys.DATASET]._feature_to_repr_map
+)
 
 st.markdown("##### Prompts generated based on analysis input")
 
