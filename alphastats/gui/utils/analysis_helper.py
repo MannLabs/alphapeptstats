@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
+from stqdm import stqdm
 
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import (
@@ -212,7 +213,11 @@ def gather_uniprot_data(features: list) -> None:
     Returns:
         None
     """
-    for feature in features:
+    for feature in stqdm(
+        features,
+        desc="Retrieving uniprot data on regulated features ...",
+        mininterval=1,
+    ):
         if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
             continue
         # TODO: Add some kind of rate limitation to avoid being locked out by uniprot
