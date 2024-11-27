@@ -110,7 +110,7 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
         cls.obj = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
-        cls.df_dim = (2611, 2531)
+        cls.df_dim = (2249, 2531)
 
     def test_set_filter_columns_to_true_false(self):
         # check if + has been replaced by TRUE FALSE

@@ -50,6 +50,7 @@ class VolcanoPlot(PlotUtils):
         rawinput: pd.DataFrame,
         metadata: pd.DataFrame,
         preprocessing_info: Dict,
+        feature_to_repr_map: Dict,
         group1: Union[List[str], str],
         group2: Union[List[str], str],
         column: str = None,
@@ -68,6 +69,7 @@ class VolcanoPlot(PlotUtils):
         self.rawinput = rawinput
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
+        self.feature_to_repr_map = feature_to_repr_map
 
         self.method = method
         self.labels = labels
@@ -154,6 +156,7 @@ class VolcanoPlot(PlotUtils):
     def _sam_calculate_fdr_line(self):
         fdr_line = multicova.get_fdr_line(
             t_limit=self.tlim_ttest,
+            # TODO: Fix that this is hardcoded (see issues 270 and 273)
             s0=0.05,
             n_x=len(
                 list(
@@ -273,12 +276,10 @@ class VolcanoPlot(PlotUtils):
         add gene names as hover data if they are given
         """
 
-        label_column = (
-            Cols.GENE_NAMES if Cols.GENE_NAMES in self.res.columns else Cols.INDEX
-        )
-
         self.res["label"] = np.where(
-            self.res.color != "non_sig", self.res[label_column], ""
+            self.res.color != "non_sig",
+            [self.feature_to_repr_map[feature] for feature in self.res[Cols.INDEX]],
+            "",
         )
         # replace nas with empty string (can cause error when plotting with gene names)
         self.res["label"] = self.res["label"].fillna("")

@@ -96,3 +96,14 @@ class BaseLoader:
             + "The contaminant library was created by Frankenfield et al."
             + ":https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full"
         )
+
+    def _get_intensity_columns(self):
+        """Get the intensity columns"""
+        if isinstance(self.intensity_column, list):
+            return self.intensity_column
+        else:
+            return [
+                col
+                for col in self.rawinput.columns
+                if self.intensity_column.replace("[sample]", "") in col
+            ]

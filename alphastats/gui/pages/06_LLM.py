@@ -4,17 +4,25 @@ import pandas as pd
 import streamlit as st
 from openai import AuthenticationError
 
+from alphastats.dataset.keys import Cols
+from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
 from alphastats.gui.utils.llm_helper import (
+    display_uniprot,
     get_display_proteins_html,
     llm_connection_test,
     set_api_key,
 )
-from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
+from alphastats.gui.utils.ui_helper import (
+    StateKeys,
+    init_session_state,
+    sidebar_info,
+)
 from alphastats.llm.llm_integration import LLMIntegration, Models
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
+from alphastats.plots.plot_utils import PlotlyObject
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
@@ -99,7 +107,7 @@ with c2:
 with c1:
     regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
     regulated_genes_dict = dict(
-        zip(regulated_genes_df["label"], regulated_genes_df["color"].tolist())
+        zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
     )
 
     if not regulated_genes_dict:
@@ -118,16 +126,36 @@ with c1:
     with c11:
         st.write("Upregulated genes")
         st.markdown(
-            get_display_proteins_html(upregulated_genes, True), unsafe_allow_html=True
+            get_display_proteins_html(
+                upregulated_genes,
+                True,
+                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
+                feature_to_repr_map=st.session_state[
+                    StateKeys.DATASET
+                ]._feature_to_repr_map,
+            ),
+            unsafe_allow_html=True,
         )
 
     with c12:
         st.write("Downregulated genes")
         st.markdown(
-            get_display_proteins_html(downregulated_genes, False),
+            get_display_proteins_html(
+                downregulated_genes,
+                False,
+                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
+                feature_to_repr_map=st.session_state[
+                    StateKeys.DATASET
+                ]._feature_to_repr_map,
+            ),
             unsafe_allow_html=True,
         )
 
+
+st.markdown("##### Select which information from Uniprot to supply to the LLM")
+display_uniprot(
+    regulated_genes_dict, st.session_state[StateKeys.DATASET]._feature_to_repr_map
+)
 
 st.markdown("##### Prompts generated based on analysis input")
 
@@ -218,8 +246,8 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
             for artifact in message["artifacts"]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)
-                elif "plotly" in str(
-                    type(artifact)
+                elif isinstance(
+                    artifact, (PlotlyObject, plotly_object)
                 ):  # TODO can there be non-plotly types here
                     st.plotly_chart(artifact)
                 elif not isinstance(artifact, str):

@@ -391,8 +391,8 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             sample_column="sample",
         )
         # expected dimensions of matrix
-        self.matrix_dim = (312, 2611)
-        self.matrix_dim_filtered = (312, 2409)
+        self.matrix_dim = (312, 2249)
+        self.matrix_dim_filtered = (312, 2047)
         self.comparison_column = "disease"
 
     def test_load_evidence_wrong_sample_names(self):
@@ -493,10 +493,9 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     @patch("alphastats.dataset.dataset.DataSet.tukey_test")
     def test_anova_without_tukey(self, mock):
-        # TODO: Check why 4 extra rows are generated here. This is not due to changes made to 0 and nan filtering.
         anova_results = self.obj.anova(column="disease", protein_ids="all", tukey=False)
         self.assertEqual(anova_results["ANOVA_pvalue"][1], 0.4469688936240973)
-        self.assertEqual(anova_results.shape, (self.matrix_dim[1] + 4, 2))
+        self.assertEqual(anova_results.shape, (self.matrix_dim[1], 2))
         # check if tukey isnt called
         mock.assert_not_called()
 
@@ -509,6 +508,21 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         plot_dict = plot.to_plotly_json()
         self.assertEqual(len(plot_dict.get("data")), 3)
+
+    def test_plot_intenstity_valid_gene(self):
+        plot = self.obj.plot_intensity(
+            gene_name="ALDOC",
+            group="disease",
+        )
+        plot_dict = plot.to_plotly_json()
+        self.assertEqual(len(plot_dict.get("data")), 5)
+
+    def test_plot_intenstity_bogus_gene(self):
+        with self.assertRaises(ValueError):
+            self.obj.plot_intensity(
+                gene_name="BOGUSGENE",
+                group="disease",
+            )
 
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         plot = self.obj.plot_intensity(
@@ -627,7 +641,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             labels=True,
         )
         n_labels = len(plot.to_plotly_json().get("layout").get("annotations"))
-        self.assertEqual(n_labels, 9)
+        self.assertEqual(n_labels, 12)
 
     def test_plot_volcano_with_labels_proteins_welch_ttest(self):
         # remove gene names
@@ -683,9 +697,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             add_significance=True,
         )
 
-        annotation = (
-            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
-        )
+        annotations = plot.to_plotly_json().get("layout").get("annotations")
+        annotation = [
+            ann.get("text") for ann in annotations if ann.get("name") == "significance"
+        ][0]
         self.assertEqual(annotation, "-")
 
     def test_plot_intensity_sign(self):
@@ -699,9 +714,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             add_significance=True,
         )
 
-        annotation = (
-            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
-        )
+        annotations = plot.to_plotly_json().get("layout").get("annotations")
+        annotation = [
+            ann.get("text") for ann in annotations if ann.get("name") == "significance"
+        ][0]
         self.assertEqual(annotation, "*")
 
     def test_plot_intensity_sign_01(self):
@@ -715,9 +731,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             add_significance=True,
         )
 
-        annotation = (
-            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
-        )
+        annotations = plot.to_plotly_json().get("layout").get("annotations")
+        annotation = [
+            ann.get("text") for ann in annotations if ann.get("name") == "significance"
+        ][0]
         self.assertEqual(annotation, "**")
 
     def test_plot_intensity_sign_001(self):
@@ -731,9 +748,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             add_significance=True,
         )
 
-        annotation = (
-            plot.to_plotly_json().get("layout").get("annotations")[1].get("text")
-        )
+        annotations = plot.to_plotly_json().get("layout").get("annotations")
+        annotation = [
+            ann.get("text") for ann in annotations if ann.get("name") == "significance"
+        ][0]
         self.assertEqual(annotation, "***")
 
     def test_plot_intensity_all(self):
@@ -773,15 +791,14 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         self.assertEqual(res.shape[1], 45)
 
     def test_get_protein_id_for_gene_name(self):
+        with self.assertRaises(ValueError):
+            self.obj._get_features_for_gene_name("MADE_UP_GENE"), "MADE_UP_GENE"
+
         self.assertEqual(
-            self.obj._get_protein_id_for_gene_name("MADE_UP_GENE"), "MADE_UP_GENE"
-        )
-        self.assertEqual(
-            self.obj._get_protein_id_for_gene_name("ALDOC"),
-            "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5",
-        )
-        self.assertEqual(
-            self.obj._get_protein_id_for_gene_name("FCGRT"), "P55899;M0R0A9;A0A024QZI2"
+            self.obj._get_features_for_gene_name("ALDOC"),
+            [
+                "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5"
+            ],
         )
 
     # def test_perform_gsea(self):
@@ -1007,6 +1024,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             file="testfiles/synthetic/preprocessing_pentests.csv",
             intensity_column="Intensity [sample]",
             index_column="Protein IDs",
+            gene_names_column="Gene names",
         )
         cls.cls_metadata_path = (
             "testfiles/synthetic/preprocessing_pentests_metadata.csv"
@@ -1055,6 +1073,90 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         )
         self.assertEqual(
             self.obj.preprocessing_info[PreprocessingStateKeys.REPLACE_ZEROES], True
+        )
+
+    def test_create_id_mapping(self):
+        """Test id maps"""
+
+        self.assertDictEqual(
+            self.obj._gene_to_features_map,
+            {
+                "G1": ["P1"],
+                "G2": ["P2"],
+                "G3": ["P3"],
+                "G4": ["P4"],
+                "G5": ["P5"],
+                "G6": ["P6"],
+                "G7": ["P7"],
+                "G8": ["P8"],
+                "G9": ["P9"],
+                "G10": ["P10"],
+                "G11": ["P11;P11-2"],
+                "G12": ["P12;P21;P22"],
+                "G21": ["P12;P21;P22"],
+                "G22": ["P12;P21;P22"],
+                "G13": ["P13;P14-2"],
+                "G14": ["P13;P14-2", "P14;P15"],
+                "G15": ["P14;P15"],
+                "G16": ["P16", "P17"],
+                "G18": ["P18"],
+                "G19": ["P19"],
+                "G20": ["P20"],
+            },
+        )
+        self.assertDictEqual(
+            self.obj._protein_to_features_map,
+            {
+                "P1": ["P1"],
+                "P2": ["P2"],
+                "P3": ["P3"],
+                "P4": ["P4"],
+                "P5": ["P5"],
+                "P6": ["P6"],
+                "P7": ["P7"],
+                "P8": ["P8"],
+                "P9": ["P9"],
+                "P10": ["P10"],
+                "P11": ["P11;P11-2"],
+                "P11-2": ["P11;P11-2"],
+                "P12": ["P12;P21;P22"],
+                "P21": ["P12;P21;P22"],
+                "P22": ["P12;P21;P22"],
+                "P13": ["P13;P14-2"],
+                "P14-2": ["P13;P14-2"],
+                "P14": ["P14;P15"],
+                "P15": ["P14;P15", "P15"],
+                "P16": ["P16"],
+                "P17": ["P17"],
+                "P18": ["P18"],
+                "P19": ["P19"],
+                "P20": ["P20"],
+            },
+        )
+        self.assertDictEqual(
+            self.obj._feature_to_repr_map,
+            {
+                "P1": "G1",
+                "P2": "G2",
+                "P3": "G3",
+                "P4": "G4",
+                "P5": "G5",
+                "P6": "G6",
+                "P7": "G7",
+                "P8": "G8",
+                "P9": "G9",
+                "P10": "G10",
+                "P11;P11-2": "G11",
+                "P12;P21;P22": "G12;G21;G22",
+                "P13;P14-2": "G13;G14",
+                "P14;P15": "G14;G15",
+                "P15": "ids:P15",
+                "P16": "G16",
+                "P17": "G16",
+                "P18": "G18",
+                "P19": "G19",
+                "P20": "G20",
+            },
         )
 
 

@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 import numpy as np
@@ -23,6 +24,8 @@ class MaxQuantLoader(BaseLoader):
     ):
         """Loader MaxQuant output
 
+        Special handling for Maxquant data includes removal of additional input rows that stems from overflowing id references. This is done by checking if the Protein IDs contain at least one letter, as the overflow is a string of numebrs a semicolons. If numeric ids are used, filter the data for any non-nan values in the intensity columns.
+
         Args:
             file (str): ProteinGroups.txt file: http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable
             intensity_column (str, optional): columns with Intensity values for each sample. Defaults to "LFQ intentsity [experiment]".
@@ -44,6 +47,18 @@ class MaxQuantLoader(BaseLoader):
         self.software = "MaxQuant"
         self._set_filter_columns_to_true_false()
         self._read_all_column_names_as_string()
+
+        intensity_columns = self._get_intensity_columns()
+        if len(self.rawinput.dropna(subset=intensity_columns, how="all")) != len(
+            self.rawinput
+        ):
+            # there are likely overflowing id rows
+            valid_id = re.compile("[A-Z]")
+            self.rawinput = self.rawinput[
+                self.rawinput[self.index_column].apply(
+                    lambda x: isinstance(x, str) and bool(valid_id.match(x))
+                )
+            ]
 
         if gene_names_column in self.rawinput.columns.to_list():
             self.gene_names_column = gene_names_column

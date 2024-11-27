@@ -7,6 +7,7 @@ import streamlit as st
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
+from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -94,6 +95,21 @@ def empty_session_state():
     st.empty()
 
 
+class DefaultStates(metaclass=ConstantsClass):
+    SELECTED_UNIPROT_FIELDS = [
+        ExtractedUniprotFields.NAME,
+        ExtractedUniprotFields.GENE,
+        ExtractedUniprotFields.FUNCTIONCOMM,
+    ]
+    WORKFLOW = [
+        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
+        PREPROCESSING_STEPS.SUBSET,
+        PREPROCESSING_STEPS.REPLACE_ZEROES,
+        PREPROCESSING_STEPS.LOG2_TRANSFORM,
+        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
+    ]
+
+
 def init_session_state() -> None:
     """Initialize the session state if not done yet."""
 
@@ -104,19 +120,21 @@ def init_session_state() -> None:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
 
     if StateKeys.WORKFLOW not in st.session_state:
-        st.session_state[StateKeys.WORKFLOW] = [
-            PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
-            PREPROCESSING_STEPS.SUBSET,
-            PREPROCESSING_STEPS.REPLACE_ZEROES,
-            PREPROCESSING_STEPS.LOG2_TRANSFORM,
-            PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
-        ]
+        st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW.copy()
 
     if StateKeys.ANALYSIS_LIST not in st.session_state:
         st.session_state[StateKeys.ANALYSIS_LIST] = []
 
     if StateKeys.LLM_INTEGRATION not in st.session_state:
         st.session_state[StateKeys.LLM_INTEGRATION] = {}
+
+    if StateKeys.ANNOTATION_STORE not in st.session_state:
+        st.session_state[StateKeys.ANNOTATION_STORE] = {}
+
+    if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
+        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
+            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+        )
 
 
 class StateKeys(metaclass=ConstantsClass):
@@ -132,5 +150,7 @@ class StateKeys(metaclass=ConstantsClass):
     MODEL_NAME = "model_name"
     LLM_INPUT = "llm_input"
     LLM_INTEGRATION = "llm_integration"
+    ANNOTATION_STORE = "annotation_store"
+    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
 
     ORGANISM = "organism"  # TODO this is essentially a constant

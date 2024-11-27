@@ -11,6 +11,7 @@ class GenericLoader(BaseLoader):
         file: Union[str, pd.DataFrame],
         intensity_column: list,
         index_column: str,
+        gene_names_column: str = None,
         sep: str = None,
     ):
         """Generic Loader for you proteomics data
@@ -33,7 +34,11 @@ class GenericLoader(BaseLoader):
         self.confidence_column = None
         self.software = "Generic"
         self.evidence_df = None
-        self.gene_names_column = None
+        self.gene_names_column = (
+            gene_names_column
+            if gene_names_column in self.rawinput.columns.to_list()
+            else None
+        )
         self.ptm_df = None
         self._add_contamination_column()
         self._check_if_columns_are_present()

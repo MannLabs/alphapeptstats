@@ -27,28 +27,47 @@ def mock_streamlit():
         }
 
 
-def test_display_proteins_upregulated(mock_streamlit):
+@patch("streamlit.session_state", new_callable=dict)
+def test_display_proteins_upregulated(mock_session_state):
     """Test displaying upregulated proteins."""
-    protein_ids = ["P12345", "Q67890"]
-    result = get_display_proteins_html(protein_ids, is_upregulated=True)
+    annotation_store = {
+        "P12345": {"primaryAccession": "P12345"},
+        "Q67890;P56789": {"primaryAccession": "Q67890"},
+    }
+    feature_to_repr_map = {"P12345": "P12345", "Q67890;P56789": "Q67890"}
+    protein_ids = ["P12345", "Q67890;P56789"]
+    result = get_display_proteins_html(
+        protein_ids,
+        is_upregulated=True,
+        annotation_store=annotation_store,
+        feature_to_repr_map=feature_to_repr_map,
+    )
 
     expected_html = (
-        "<ul><a href = https://www.uniprot.org/uniprotkb?query=P12345>"
+        "<ul><a href = https://www.uniprot.org/uniprotkb/P12345>"
         + '<li style="color: green;">P12345</li></a>'
-        + "<a href = https://www.uniprot.org/uniprotkb?query=Q67890>"
+        + "<a href = https://www.uniprot.org/uniprotkb/Q67890>"
         + '<li style="color: green;">Q67890</li></a></ul>'
     )
 
     assert result == expected_html
 
 
-def test_display_proteins_downregulated(mock_streamlit):
+@patch("streamlit.session_state", new_callable=dict)
+def test_display_proteins_downregulated(mock_session_state):
     """Test displaying downregulated proteins."""
+    annotation_store = {"P12345": {"primaryAccession": "P12345"}}
+    feature_to_repr_map = {"P12345": "P12345", "Q67890;P56789": "Q67890"}
     protein_ids = ["P12345"]
-    result = get_display_proteins_html(protein_ids, is_upregulated=False)
+    result = get_display_proteins_html(
+        protein_ids,
+        is_upregulated=False,
+        annotation_store=annotation_store,
+        feature_to_repr_map=feature_to_repr_map,
+    )
 
     expected_html = (
-        "<ul><a href = https://www.uniprot.org/uniprotkb?query=P12345>"
+        "<ul><a href = https://www.uniprot.org/uniprotkb/P12345>"
         + '<li style="color: red;">P12345</li></a></ul>'
     )
 
@@ -57,7 +76,12 @@ def test_display_proteins_downregulated(mock_streamlit):
 
 def test_display_proteins_empty_list(mock_streamlit):
     """Test displaying empty protein list."""
-    assert get_display_proteins_html([], is_upregulated=True) == "<ul></ul>"
+    assert (
+        get_display_proteins_html(
+            [], is_upregulated=True, annotation_store={}, feature_to_repr_map={}
+        )
+        == "<ul></ul>"
+    )
 
 
 @pytest.mark.parametrize(

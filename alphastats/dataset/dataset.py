@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
@@ -101,23 +102,11 @@ class DataSet:
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
-
-        self._gene_name_to_protein_id_map = (
-            {
-                k: v
-                for k, v in dict(
-                    zip(
-                        self.rawinput[Cols.GENE_NAMES].tolist(),
-                        self.rawinput[Cols.INDEX].tolist(),
-                    )
-                ).items()
-                if isinstance(k, str)  # avoid having NaN as key
-            }
-            if Cols.GENE_NAMES in self.rawinput.columns
-            else {}
-        )
-        # TODO This is not necessarily unique, and should ideally raise an error in some of our test-data sets that
-        #  contain isoform ids. E.g. TPM1 occurs 5 times in testfiles/maxquant/proteinGroups.txt with different base Protein IDs.
+        (
+            self._gene_to_features_map,
+            self._protein_to_features_map,
+            self._feature_to_repr_map,
+        ) = self._create_id_dicts()
 
         print("DataSet has been created.")
 
@@ -161,6 +150,55 @@ class DataSet:
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
 
+    def _create_id_dicts(self, sep: str = ";") -> Tuple[dict, dict, dict]:
+        """
+        Create mappings from gene and protein to feature, and from feature to representation.
+        Features are the entities measured in each sample, usually protein groups represented by semicolon separated protein ids.
+        This is to maintain the many-to-many relationships between the three entities feature, protein and gene.
+
+        This method processes the raw input data to generate three dictionaries:
+        1. gene_to_features_map: Maps each gene to a list of features.
+        2. protein_to_features_map: Maps each protein to a list of features.
+        3. feature_to_repr_map: Maps each feature to its representation string.
+
+        Args:
+            sep (str): The separator used to split gene and protein identifiers. Default is ";".
+
+        Returns:
+            Tuple[dict, dict, dict]: A tuple containing three dictionaries:
+            - gene_to_features_map (dict): A dictionary mapping genes to features.
+            - protein_to_features_map (dict): A dictionary mapping proteins to features.
+            - feature_to_repr_map (dict): A dictionary mapping features to their representation strings.
+        """
+
+        features = set(self.mat.columns.to_list())
+        gene_to_features_map = defaultdict(list)
+        protein_to_features_map = defaultdict(list)
+        feature_to_repr_map = {}
+
+        for proteins, feature in zip(
+            self.rawinput[Cols.INDEX], self.rawinput[Cols.INDEX]
+        ):
+            if feature not in features:
+                continue
+            # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
+            feature_to_repr_map[feature] = "ids:" + proteins
+            for protein in proteins.split(sep):
+                protein_to_features_map[protein].append(feature)
+
+        if Cols.GENE_NAMES in self.rawinput.columns:
+            for genes, feature in zip(
+                self.rawinput[Cols.GENE_NAMES], self.rawinput[Cols.INDEX]
+            ):
+                if feature not in features:
+                    continue
+                if isinstance(genes, str):
+                    for gene in genes.split(sep):
+                        gene_to_features_map[gene].append(feature)
+                    feature_to_repr_map[feature] = genes
+
+        return gene_to_features_map, protein_to_features_map, feature_to_repr_map
+
     def _get_preprocess(self) -> Preprocess:
         """Return instance of the Preprocess object."""
         return Preprocess(
@@ -199,6 +237,11 @@ class DataSet:
                 **kwargs,
             )
         )
+        (
+            self._gene_to_features_map,
+            self._protein_to_features_map,
+            self._feature_to_repr_map,
+        ) = self._create_id_dicts()
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
@@ -208,6 +251,11 @@ class DataSet:
             self.metadata,
             self.preprocessing_info,
         ) = self._get_init_dataset()
+        (
+            self._gene_to_features_map,
+            self._protein_to_features_map,
+            self._feature_to_repr_map,
+        ) = self._create_id_dicts()
 
     def batch_correction(self, batch: str) -> None:
         """A wrapper for Preprocess.batch_correction(), see documentation there."""
@@ -419,6 +467,7 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             preprocessing_info=self.preprocessing_info,
+            feature_to_repr_map=self._feature_to_repr_map,
             group1=group1,
             group2=group2,
             column=column,
@@ -434,26 +483,22 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_protein_id_for_gene_name(
+    def _get_features_for_gene_name(
         self,
         gene_name: str,
-    ) -> str:
-        """Get protein id from gene id. If gene id is not present, return gene id, as we might already have a gene id.
-        'VCL;HEL114' -> 'P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1'
+    ) -> list:
+        """Get feature from gene name. If gene name is not present, return gene name, as we might already have a gene id.
+        'HEL114' -> ['P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1']
 
         Args:
             gene_name (str): Gene name
 
         Returns:
-            str: Protein id or gene name if not present in the mapping.
+            list: Protein group ids or gene name if not present in the mapping.
         """
-        if gene_name in self._gene_name_to_protein_id_map:
-            return self._gene_name_to_protein_id_map[gene_name]
-
-        for gene, protein_id in self._gene_name_to_protein_id_map.items():
-            if gene_name in gene.split(";"):
-                return protein_id
-        return gene_name
+        if gene_name in self._gene_to_features_map:
+            return self._gene_to_features_map[gene_name]
+        raise ValueError(f"Gene {gene_name} is not in the (processed) data.")
 
     def plot_intensity(
         self,
@@ -492,7 +537,7 @@ class DataSet:
         if gene_name is None and protein_id is not None:
             pass
         elif gene_name is not None and protein_id is None:
-            protein_id = self._get_protein_id_for_gene_name(gene_name)
+            protein_id = self._get_features_for_gene_name(gene_name)
         else:
             raise ValueError(
                 "Either protein_id or gene_name must be provided, but not both."
