@@ -5,7 +5,10 @@ import streamlit as st
 
 from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
 from alphastats.llm.llm_integration import LLMIntegration
-from alphastats.llm.uniprot_utils import ExtractedFields, format_uniprot_annotation
+from alphastats.llm.uniprot_utils import (
+    ExtractedUniprotFields,
+    format_uniprot_annotation,
+)
 
 
 def get_display_proteins_html(
@@ -86,6 +89,7 @@ def llm_connection_test(
 
 
 # Unused now, but could be useful in the future
+# TODO: Remove this by end of year if still unused.
 def get_display_available_uniprot_info(regulated_features: list) -> dict:
     """
     Retrieves and formats UniProt information for a list of regulated features.
@@ -116,34 +120,36 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 # TODO: Write test for this display
 @st.fragment
 def display_uniprot(regulated_genes_dict):
+    """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
+    all_fields = ExtractedUniprotFields.get_values()
     c1, c2, c3, c4 = st.columns((1, 1, 3, 1))
-    with c1:
-        if st.button("Select all"):
-            st.session_state[StateKeys.UNIPROT_FIELDS] = ExtractedFields.get_values()
-            st.rerun(scope="fragment")
-    with c2:
-        if st.button("Select none"):
-            st.session_state[StateKeys.UNIPROT_FIELDS] = []
-            st.rerun(scope="fragment")
-    with c3:
-        if st.button("Recommended selection"):
-            st.session_state[StateKeys.UNIPROT_FIELDS] = DefaultStates.UNIPROT_FIELDS
-            st.rerun(scope="fragment")
-    with c4:
-        if st.button("Update initial prompt", type="primary"):
-            st.toast("Not implemented yet.", icon="⚠️")
-            # TODO: Implement this
+    if c1.button("Select all"):
+        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = all_fields
+        st.rerun(scope="fragment")
+    if c2.button("Select none"):
+        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
+        st.rerun(scope="fragment")
+    if c3.button("Recommended selection"):
+        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
+            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+        )
+        st.rerun(scope="fragment")
+    if c4.button("Update initial prompt", type="primary"):
+        st.toast("Not implemented yet.", icon="⚠️")
+        # TODO: Implement this
     c1, c2 = st.columns((1, 3))
     with c1, st.expander("Show options", expanded=True):
-        fields = ExtractedFields.get_values()
         selected_fields = []
-        for field in fields:
+        for field in all_fields:
             if st.checkbox(
-                field, value=field in st.session_state[StateKeys.UNIPROT_FIELDS]
+                field,
+                value=field in st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
             ):
                 selected_fields.append(field)
-        if selected_fields != st.session_state[StateKeys.UNIPROT_FIELDS]:
-            st.session_state[StateKeys.UNIPROT_FIELDS] = selected_fields
+        if set(selected_fields) != set(
+            st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS]
+        ):
+            st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_fields
             st.rerun(scope="fragment")
     with c2, st.expander("Show preview", expanded=True):
         preview_feature = st.selectbox(
@@ -152,6 +158,6 @@ def display_uniprot(regulated_genes_dict):
         st.markdown(
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
-                fields=st.session_state[StateKeys.UNIPROT_FIELDS],
+                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
             )
         )

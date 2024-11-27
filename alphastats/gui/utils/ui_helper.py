@@ -7,7 +7,7 @@ import streamlit as st
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
-from alphastats.llm.uniprot_utils import ExtractedFields
+from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -96,10 +96,10 @@ def empty_session_state():
 
 
 class DefaultStates(metaclass=ConstantsClass):
-    UNIPROT_FIELDS = [
-        ExtractedFields.NAME,
-        ExtractedFields.GENE,
-        ExtractedFields.FUNCTIONCOMM,
+    SELECTED_UNIPROT_FIELDS = [
+        ExtractedUniprotFields.NAME,
+        ExtractedUniprotFields.GENE,
+        ExtractedUniprotFields.FUNCTIONCOMM,
     ]
     WORKFLOW = [
         PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
@@ -120,7 +120,7 @@ def init_session_state() -> None:
         st.session_state[StateKeys.ORGANISM] = 9606  # human
 
     if StateKeys.WORKFLOW not in st.session_state:
-        st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW
+        st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW.copy()
 
     if StateKeys.ANALYSIS_LIST not in st.session_state:
         st.session_state[StateKeys.ANALYSIS_LIST] = []
@@ -131,8 +131,10 @@ def init_session_state() -> None:
     if StateKeys.ANNOTATION_STORE not in st.session_state:
         st.session_state[StateKeys.ANNOTATION_STORE] = {}
 
-    if StateKeys.UNIPROT_FIELDS not in st.session_state:
-        st.session_state[StateKeys.UNIPROT_FIELDS] = DefaultStates.UNIPROT_FIELDS
+    if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
+        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
+            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+        )
 
 
 class StateKeys(metaclass=ConstantsClass):
@@ -149,6 +151,6 @@ class StateKeys(metaclass=ConstantsClass):
     LLM_INPUT = "llm_input"
     LLM_INTEGRATION = "llm_integration"
     ANNOTATION_STORE = "annotation_store"
-    UNIPROT_FIELDS = "uniprot_fields"
+    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
 
     ORGANISM = "organism"  # TODO this is essentially a constant

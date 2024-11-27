@@ -6,7 +6,9 @@ import requests
 from alphastats.dataset.keys import ConstantsClass
 
 
-class ExtractedFields(metaclass=ConstantsClass):
+class ExtractedUniprotFields(metaclass=ConstantsClass):
+    """These are the dictionary keys for the extracted uniprot fields, as created by _extract_annotations_from_uniprot_data. The order also determines the order in which the fields are displayed in the interface and largely also the formatted output."""
+
     DB = "entryType"
     ID = "primaryAccession"
     SECONDARYACC = "secondaryAccessions"
@@ -15,9 +17,9 @@ class ExtractedFields(metaclass=ConstantsClass):
     FUNCTIONCOMM = "functionComments"
     SUBUNITCOMM = "subunitComments"
     CAUTIONCOMM = "cautionComments"
-    INTERACTIONS = "interactions"
     SUBCELL = "subcellularLocations"
     TISSUE = "tissueSpecificity"
+    INTERACTIONS = "interactions"
     GOP = "GO Pathway"
     GOF = "GO Function"
     GOC = "GO Component"
@@ -59,11 +61,10 @@ def _request_uniprot_data(
 
     data = response.json()
 
-    if not data.get("results"):
+    if not (results := data.get("results", [])):
         print(f"No UniProt entry found for {query}")
-        return []
 
-    return data.get("results")
+    return results
 
 
 def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
@@ -80,13 +81,13 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     extracted = {}
 
     # 1. Entry Type
-    extracted[ExtractedFields.DB] = data.get("entryType")
+    extracted[ExtractedUniprotFields.DB] = data.get("entryType")
 
     # 2. Primary Accession
-    extracted[ExtractedFields.ID] = data.get("primaryAccession")
+    extracted[ExtractedUniprotFields.ID] = data.get("primaryAccession")
 
     # 3. Secondary Accessions
-    extracted[ExtractedFields.SECONDARYACC] = data.get("secondaryAccessions")
+    extracted[ExtractedUniprotFields.SECONDARYACC] = data.get("secondaryAccessions")
 
     # 4. Protein Details
     protein_description = data.get("proteinDescription", {})
@@ -99,7 +100,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         alt_name["fullName"]["value"]
         for alt_name in protein_description.get("alternativeNames", [])
     ]
-    extracted[ExtractedFields.NAME] = {
+    extracted[ExtractedUniprotFields.NAME] = {
         "recommendedName": recommended_name,
         "alternativeNames": alternative_names,
         "flag": protein_description.get("flag", None),
@@ -107,7 +108,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
 
     # 5. Gene Details
     genes = data.get("genes", [{}])[0]
-    extracted[ExtractedFields.GENE] = {
+    extracted[ExtractedUniprotFields.GENE] = {
         "geneName": genes.get("geneName", {}).get("value", None),
         "synonyms": [syn["value"] for syn in genes.get("synonyms", [])],
     }
@@ -119,7 +120,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         if comment["commentType"] == "FUNCTION"
         for text in comment.get("texts", [])
     ]
-    extracted[ExtractedFields.FUNCTIONCOMM] = function_comments
+    extracted[ExtractedUniprotFields.FUNCTIONCOMM] = function_comments
 
     # 7. Subunit Details
     subunit_comments = [
@@ -128,7 +129,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         if comment["commentType"] == "SUBUNIT"
         for text in comment.get("texts", [])
     ]
-    extracted[ExtractedFields.SUBUNITCOMM] = subunit_comments
+    extracted[ExtractedUniprotFields.SUBUNITCOMM] = subunit_comments
 
     # 7.1. Caution Comments
     caution_comments = [
@@ -137,7 +138,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         if comment["commentType"] == "CAUTION"
         for text in comment.get("texts", [])
     ]
-    extracted[ExtractedFields.CAUTIONCOMM] = caution_comments
+    extracted[ExtractedUniprotFields.CAUTIONCOMM] = caution_comments
 
     # 8. Protein Interactions
     interactions = []
@@ -160,7 +161,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
                             "numberOfExperiments": interaction["numberOfExperiments"],
                         }
                     )
-    extracted[ExtractedFields.INTERACTIONS] = interactions
+    extracted[ExtractedUniprotFields.INTERACTIONS] = interactions
 
     # 9. Subcellular Locations
     subcellular_locations_comments = [
@@ -173,7 +174,7 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         for locations_comment in subcellular_locations_comments
         for location in locations_comment
     ]
-    extracted[ExtractedFields.SUBCELL] = locations
+    extracted[ExtractedUniprotFields.SUBCELL] = locations
 
     # 10. Tissue specificity
     tissue_specificities = [
@@ -182,25 +183,25 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
         if comment["commentType"] == "TISSUE SPECIFICITY"
         for text in comment.get("texts", [])
     ]
-    extracted[ExtractedFields.TISSUE] = tissue_specificities
+    extracted[ExtractedUniprotFields.TISSUE] = tissue_specificities
 
     # 14. Pathway references
-    extracted[ExtractedFields.GOP] = []
-    extracted[ExtractedFields.GOC] = []
-    extracted[ExtractedFields.GOF] = []
-    extracted[ExtractedFields.REACTOME] = []
+    extracted[ExtractedUniprotFields.GOP] = []
+    extracted[ExtractedUniprotFields.GOC] = []
+    extracted[ExtractedUniprotFields.GOF] = []
+    extracted[ExtractedUniprotFields.REACTOME] = []
     for ref in data.get("uniProtKBCrossReferences", []):
         if ref["database"] == "Reactome":
-            database = ExtractedFields.REACTOME
+            database = ExtractedUniprotFields.REACTOME
             entry = {
                 "id": ref["id"],
                 "name": ref.get("properties")[0]["value"],
             }
         elif ref["database"] == "GO":
             database = {
-                "P": ExtractedFields.GOP,
-                "C": ExtractedFields.GOC,
-                "F": ExtractedFields.GOF,
+                "P": ExtractedUniprotFields.GOP,
+                "C": ExtractedUniprotFields.GOC,
+                "F": ExtractedUniprotFields.GOF,
             }[ref.get("properties")[0]["value"][0]]
             entry = {
                 "id": ref["id"],
@@ -232,7 +233,7 @@ def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
         # Assuming the first is the most relevant
         result = results[0]
     if function_comment := _extract_annotations_from_uniprot_data(result)[
-        ExtractedFields.FUNCTIONCOMM
+        ExtractedUniprotFields.FUNCTIONCOMM
     ]:
         return str(function_comment)
     else:
@@ -406,33 +407,33 @@ def _format_uniprot_field(
     if (
         content is None
         or len(content) == 0
-        or field not in ExtractedFields.get_values()
+        or field not in ExtractedUniprotFields.get_values()
     ):
         return None
-    if field == ExtractedFields.NAME:
+    if field == ExtractedUniprotFields.NAME:
         if content["recommendedName"] is None:
             return None
         result = f" is called {content['recommendedName']}"
         if alt_names := content.get("alternativeNames"):
             result += f" (or {'/'.join(alt_names)})"
         return result
-    if field == ExtractedFields.GENE:
+    if field == ExtractedUniprotFields.GENE:
         return (
             " without a gene symbol"
             if "geneName" not in content or content["geneName"] is None
             else " " + content["geneName"]
         )
-    if field == ExtractedFields.INTERACTIONS:
+    if field == ExtractedUniprotFields.INTERACTIONS:
         return (
             "Interacts with " + ", ".join([i["interactor"] for i in content]) + "."
             if len(content) > 0
             else None
         )
     if field in [
-        ExtractedFields.FUNCTIONCOMM,
-        ExtractedFields.SUBUNITCOMM,
-        ExtractedFields.TISSUE,
-        ExtractedFields.CAUTIONCOMM,
+        ExtractedUniprotFields.FUNCTIONCOMM,
+        ExtractedUniprotFields.SUBUNITCOMM,
+        ExtractedUniprotFields.TISSUE,
+        ExtractedUniprotFields.CAUTIONCOMM,
     ]:
         return " ".join(content)
 
@@ -441,11 +442,11 @@ def _format_uniprot_field(
             [el if isinstance(el, str) else el["name"] for el in content]
         )
         formatstrings = {
-            ExtractedFields.SUBCELL: "Locates to {}.",
-            ExtractedFields.GOP: "The protein is part of the GO cell biological pathway(s) {}.",
-            ExtractedFields.GOC: "Locates to {} by GO annotation.",
-            ExtractedFields.GOF: "According to GO annotations the proteins molecular function(s) are {}.",
-            ExtractedFields.REACTOME: "The protein is part of the Reactome pathways {}.",
+            ExtractedUniprotFields.SUBCELL: "Locates to {}.",
+            ExtractedUniprotFields.GOP: "The protein is part of the GO cell biological pathway(s) {}.",
+            ExtractedUniprotFields.GOC: "Locates to {} by GO annotation.",
+            ExtractedUniprotFields.GOF: "According to GO annotations the proteins molecular function(s) are {}.",
+            ExtractedUniprotFields.REACTOME: "The protein is part of the Reactome pathways {}.",
         }
         return formatstrings.get(field, field + " of this protein is {}.").format(
             elements
@@ -465,7 +466,7 @@ def get_annotations_for_feature(
         Union[Dict, str]: A dictionary containing the annotations if found,
                           otherwise a string indicating an error or empty result.
     """
-    fields = ExtractedFields.get_values()
+    fields = ExtractedUniprotFields.get_values()
     result = _select_uniprot_result_from_feature(feature)
     annotations = _filter_extracted_annotations(result, fields)
     return annotations
