@@ -99,6 +99,7 @@ class DifferentialExpressionAnalysis:
             c2=list(
                 self.metadata[self.metadata[self.column] == self.group2][Cols.SAMPLE]
             ),
+            # TODO: Remove hardcoded values
             s0=0.05,
             n_perm=self.perm,
             fdr=self.fdr,
