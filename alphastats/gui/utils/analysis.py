@@ -80,6 +80,7 @@ class AbstractAnalysis(ABC):
         """Raise ValueError for methods that do not tolerate NaNs if there are any."""
         if not self._works_with_nans and self._dataset.mat.isnan().values.any():
             raise ValueError("This analysis does not work with NaN values.")
+        # TODO: raises attribute error for isnan during wald analysis
 
     def _pre_analysis_check(self) -> None:  # noqa: B027
         """Perform pre-analysis check, raise ValueError on fail."""

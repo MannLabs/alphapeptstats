@@ -279,6 +279,7 @@ def get_tstat_limit(stats, fdr=0.01):
     return t_limit
 
 
+# TODO: Separate q-value and FDR annotation
 def annotate_fdr_significance(res_real, stats, fdr=0.01):
     t_limit = np.min(stats[stats.fdr <= fdr].t_cut)
     res_real["qval"] = [

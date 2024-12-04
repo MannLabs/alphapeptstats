@@ -118,6 +118,7 @@ class DifferentialExpressionAnalysis:
                 "qval",
             ]
         ]
+        # TODO: these can just be a renames
         df["log2fc"] = res_ttest["fc"]
         df["FDR"] = res_ttest[fdr_column]
 
@@ -140,6 +141,7 @@ class DifferentialExpressionAnalysis:
 
         d = self._prepare_anndata()
 
+        # TODO: pass log flag correctly
         test = de.test.t_test(data=d, grouping=self.column)
         df = test.summary().rename(columns={"gene": Cols.INDEX})
         return df
