@@ -173,10 +173,13 @@ with st.expander("System message", expanded=False):
     )
 
 with st.expander("Initial prompt", expanded=True):
+    feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
     initial_prompt = st.text_area(
         "",
         value=get_initial_prompt(
-            plot_parameters, upregulated_genes, downregulated_genes
+            plot_parameters,
+            list(map(feature_to_repr_map.get, upregulated_genes)),
+            list(map(feature_to_repr_map.get, downregulated_genes)),
         ),
         height=200,
         disabled=llm_integration_set_for_model,
