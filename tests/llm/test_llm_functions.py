@@ -6,14 +6,20 @@
 
 import inspect
 from typing import Callable, Dict
+from unittest.mock import patch
 
 import pandas as pd
+import pytest
 
 from alphastats.dataset.dataset import DataSet
+from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
+    get_annotation_from_store_by_feature_list,
+    get_annotation_from_uniprot_by_feature_list,
     get_assistant_functions,
     get_general_assistant_functions,
+    get_uniprot_info_for_llm_input,
 )
 
 
@@ -93,3 +99,139 @@ def test_assistant_functions():
             raise ValueError(f"Function not found in test: {name_}")
 
         assert_parameters(method_definition, llm_function_dict_)
+
+
+def test_get_annotation_from_store_by_feature_list():
+    """Test that the function retrieves the correct entry from annotation store."""
+    annotation_store = {
+        "feature1": {"annotation": "annotation1"},
+        "feature3": {"annotation": "annotation3"},
+        "feature2": {"annotation": "annotation2"},
+    }
+
+    features = ["feature1"]
+    result = get_annotation_from_store_by_feature_list(features, annotation_store)
+    assert result == {"annotation": "annotation1"}
+
+    features = ["feature2", "feature3"]
+    result = get_annotation_from_store_by_feature_list(features, annotation_store)
+    assert result == {"annotation": "annotation2"}
+
+    features = []
+    result = get_annotation_from_store_by_feature_list(features, annotation_store)
+    assert result is None
+
+    features = ["feature4"]
+    result = get_annotation_from_store_by_feature_list(features, annotation_store)
+    assert result is None
+
+
+@patch("alphastats.llm.llm_functions.get_annotations_for_feature")
+@patch("streamlit.session_state")
+def test_get_annotation_from_uniprot_by_feature_list(
+    mock_session_state, mock_uniprot_annotation
+):
+    """Test that the function retrieves the correct entry from UniProt."""
+
+    mock_session_state.return_value = {StateKeys.ANNOTATION_STORE: {}}
+
+    # just one feature
+    features = ["id1"]
+    mock_uniprot_annotation.return_value = "id1"
+    result = get_annotation_from_uniprot_by_feature_list(features)
+    mock_uniprot_annotation.assert_called_with("id1")
+    mock_session_state.__getitem__().__setitem__.assert_called_with("id1", "id1")
+    assert result == "id1"
+
+    # same base ids
+    features = ["id2", "id2;id2-3"]
+    get_annotation_from_uniprot_by_feature_list(features)
+    mock_uniprot_annotation.assert_called_with("id2")
+
+    # different base ids, no longest element
+    features = ["id2", "id3"]
+    get_annotation_from_uniprot_by_feature_list(features)
+    mock_uniprot_annotation.assert_called_with("id2")
+
+    # different base ids, longest element
+    features = ["id2", "id2;id3"]
+    get_annotation_from_uniprot_by_feature_list(features)
+    mock_uniprot_annotation.assert_called_with("id2;id3")
+
+    features = []
+    with pytest.raises(ValueError, match="No features provided"):
+        get_annotation_from_uniprot_by_feature_list(features)
+
+
+@patch("alphastats.llm.llm_functions.format_uniprot_annotation")
+@patch("alphastats.llm.llm_functions.get_annotation_from_uniprot_by_feature_list")
+@patch("alphastats.llm.llm_functions.get_annotation_from_store_by_feature_list")
+@patch("streamlit.session_state", new_callable=dict)
+def test_get_uniprot_info_for_llm_input(
+    mock_session_state,
+    mock_get_annotation_from_store,
+    mock_get_annotation_from_uniprot,
+    mock_format_uniprot_annotation,
+):
+    """Test that the function retrieves the correct UniProt information for the LLM input."""
+
+    class DUMMY_DATASET:
+        _feature_to_repr_map = {
+            "id1;id4": "gene2;gene4",
+            "id2": "gene2",
+            "id3": "gene1",
+            "id5;id1": "ids:id5",
+        }
+        _gene_to_features_map = {
+            "gene1": ["id3"],
+            "gene2": ["id1;id4", "id2"],
+            "gene4": ["id1;id4"],
+        }
+        _protein_to_features_map = {
+            "id1": ["id1;id4", "id5;id1"],
+            "id2": ["id2"],
+            "id3": ["id3"],
+            "id4": ["id1;id4"],
+            "id5": ["id5;id1"],
+        }
+
+    mock_session_state[StateKeys.DATASET] = DUMMY_DATASET()
+    mock_session_state[StateKeys.ANNOTATION_STORE] = {}
+    mock_session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
+
+    # repr
+    llm_input = "gene2;gene4"
+    mock_get_annotation_from_store.return_value = None
+    mock_get_annotation_from_uniprot.return_value = {"annotation": "annotation1"}
+    mock_format_uniprot_annotation.return_value = ""
+    result = get_uniprot_info_for_llm_input(llm_input)
+    mock_get_annotation_from_store.assert_called_with(["id1;id4"], {})
+    mock_get_annotation_from_uniprot.assert_called_with(["id1;id4"])
+    assert result == "gene2;gene4: "
+
+    mock_get_annotation_from_store.return_value = {"annotation": "annotation1"}
+    # repr that is also gene
+    llm_input = "gene2"
+    get_uniprot_info_for_llm_input(llm_input)
+    mock_get_annotation_from_store.assert_called_with(["id2"], {})
+    mock_get_annotation_from_uniprot.assert_called_once()
+
+    # feature id
+    llm_input = "id1;id4"
+    get_uniprot_info_for_llm_input(llm_input)
+    mock_get_annotation_from_store.assert_called_with(["id1;id4"], {})
+
+    # gene
+    llm_input = "gene4"
+    get_uniprot_info_for_llm_input(llm_input)
+    mock_get_annotation_from_store.assert_called_with(["id1;id4"], {})
+
+    # protein
+    llm_input = "id1"
+    get_uniprot_info_for_llm_input(llm_input)
+    mock_get_annotation_from_store.assert_called_with(["id1;id4", "id5;id1"], {})
+
+    # not valid
+    llm_input = "id6"
+    with pytest.raises(ValueError, match="id6 not found in dataset."):
+        get_uniprot_info_for_llm_input(llm_input)

@@ -45,11 +45,13 @@ def get_annotation_from_uniprot_by_feature_list(features: list) -> Union[dict, s
     """
     if len(features) == 1:
         feature = features[0]
+    elif len(features) == 0:
+        raise ValueError("No features provided.")
     else:
         baseid_sets = []
         for feature in features:
             baseid_sets.append(set([el.split("-")[0] for el in feature.split(";")]))
-        if len(set.union(baseid_sets)) == len(set.intersection(baseid_sets)):
+        if len(set.union(*baseid_sets)) == len(set.intersection(*baseid_sets)):
             feature = features[0]
         else:
             feature = features[baseid_sets.index(max(baseid_sets, key=len))]
@@ -90,6 +92,8 @@ def get_uniprot_info_for_llm_input(llm_input: str) -> str:
 
     elif llm_input in protein_to_features_map:
         features = protein_to_features_map[llm_input]
+    else:
+        raise ValueError(f"{llm_input} not found in dataset.")
 
     annotation = get_annotation_from_store_by_feature_list(features, annotation_store)
     if annotation is None:
