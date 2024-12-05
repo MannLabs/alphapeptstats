@@ -134,7 +134,11 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map):
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
         st.rerun(scope="fragment")
-    if c4.button("Update initial prompt", type="primary"):
+    if c4.button(
+        "Integrate into initial prompt",
+        type="primary",
+        help="Not implemented yet, but will adjust the initial prompt to include the output from Uniprot already and the system message to avoid calling the tool function again for the genes included.",
+    ):
         st.toast("Not implemented yet.", icon="⚠️")
         # TODO: Implement this
     c1, c2 = st.columns((1, 3))
