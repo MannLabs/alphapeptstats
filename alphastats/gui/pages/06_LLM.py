@@ -172,6 +172,7 @@ with st.expander("System message", expanded=False):
         disabled=llm_integration_set_for_model,
     )
 
+# TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
     initial_prompt = st.text_area(
