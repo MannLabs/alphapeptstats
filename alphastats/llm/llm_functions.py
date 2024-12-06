@@ -1,6 +1,6 @@
 """Module for defining assistant functions for the ChatGPT model."""
 
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 import streamlit as st
@@ -18,12 +18,10 @@ def get_annotation_from_store_by_feature_list(
     features: list, annotation_store: dict
 ) -> Union[dict, str, None]:
     """
-    Retrieve the annotation from the store based on the feature representation.
-    This function searches for a feature in the feature-to-representation map that matches the given feature representation.
-    If a matching feature is found in the annotation store, its corresponding annotation is returned.
+    Retrieve the annotation from the store based on a list of feauture ids.
+    The first matching feature found in the annotation store, is returned. Don't use this for disparate features, it is meant to be used for features that have the same representation.
     Args:
-        feature_repr (str): The representation of the feature to search for.
-        feature_to_repr_map (dict): A dictionary mapping features to their representations.
+        features (list): A list of features to search for.
         annotation_store (dict): A dictionary storing annotations for features.
     Returns:
         Union[dict, str, None]: The annotation corresponding to the feature representation if found, otherwise None.
@@ -34,7 +32,9 @@ def get_annotation_from_store_by_feature_list(
     return None
 
 
-def get_annotation_from_uniprot_by_feature_list(features: list) -> Union[dict, str]:
+def get_annotation_from_uniprot_by_feature_list(
+    features: list,
+) -> Tuple[Union[dict, str], str]:
     """
     Retrieve annotation from UniProt based on a list of features.
     It retrieves the annotation for the most appropriate feature from UniProt. Most appropriate is defined as 1. the only feature, 2. any feature if they only differ in isoform ids, 3. the feature with the most base ids, as this is most likely to contain a well annotated protein.
@@ -42,30 +42,32 @@ def get_annotation_from_uniprot_by_feature_list(features: list) -> Union[dict, s
         features (list): A list of features to search for.
     Returns:
         Union[dict, str]: The annotation for the identified feature. The return type can be a dictionaryn or a string depending on the annotation retrieved.
+        feature (str): The feature that was used to retrieve the annotation.
     """
-    if len(features) == 1:
-        feature = features[0]
-    elif len(features) == 0:
+    if len(features) == 0:
         raise ValueError("No features provided.")
+    elif len(features) == 1:
+        feature = features[0]
     else:
         baseid_sets = []
         for feature in features:
-            baseid_sets.append(set([el.split("-")[0] for el in feature.split(";")]))
+            baseid_sets.append(
+                set([identifier.split("-")[0] for identifier in feature.split(";")])
+            )
         if len(set.union(*baseid_sets)) == len(set.intersection(*baseid_sets)):
             feature = features[0]
         else:
             feature = features[baseid_sets.index(max(baseid_sets, key=len))]
     annotation = get_annotations_for_feature(feature)
-    st.session_state[StateKeys.ANNOTATION_STORE][feature] = annotation
-    return annotation
+    return annotation, feature
 
 
-def get_uniprot_info_for_llm_input(llm_input: str) -> str:
+def get_uniprot_info_for_search_string(search_string: str) -> str:
     """Get the UniProt information from llm input. This can be either a feature representation, a gene identifier or a protein id.
     This is required so the LLM can feed the promt from the list of feature representations it is provided with.
 
     Args:
-        llm_input (str): Either a feature representation, feature id, gene symbol or protein identifier.
+        search_string (str): Either a feature representation, feature id, gene symbol or protein identifier.
 
     Returns:
         str: The formatted UniProt information for the feature."""
@@ -77,30 +79,31 @@ def get_uniprot_info_for_llm_input(llm_input: str) -> str:
     ]._protein_to_features_map
     annotation_store = st.session_state[StateKeys.ANNOTATION_STORE]
 
-    if llm_input in feature_to_repr_map.values():
+    if search_string in feature_to_repr_map.values():
         features = [
             feature
             for feature, repr in feature_to_repr_map.items()
-            if repr == llm_input
+            if repr == search_string
         ]
 
-    elif llm_input in feature_to_repr_map:
-        features = [llm_input]
+    elif search_string in feature_to_repr_map:
+        features = [search_string]
 
-    elif llm_input in gene_to_features_map:
-        features = gene_to_features_map[llm_input]
+    elif search_string in gene_to_features_map:
+        features = gene_to_features_map[search_string]
 
-    elif llm_input in protein_to_features_map:
-        features = protein_to_features_map[llm_input]
+    elif search_string in protein_to_features_map:
+        features = protein_to_features_map[search_string]
     else:
-        raise ValueError(f"{llm_input} not found in dataset.")
+        raise ValueError(f"{search_string} not found in dataset.")
 
     annotation = get_annotation_from_store_by_feature_list(features, annotation_store)
     if annotation is None:
-        annotation = get_annotation_from_uniprot_by_feature_list(features)
+        annotation, feature = get_annotation_from_uniprot_by_feature_list(features)
+        annotation_store[feature] = annotation
 
     return (
-        llm_input
+        search_string
         + ": "
         + format_uniprot_annotation(
             annotation,
@@ -110,7 +113,7 @@ def get_uniprot_info_for_llm_input(llm_input: str) -> str:
 
 
 GENERAL_FUNCTION_MAPPING = {
-    "get_uniprot_info_for_llm_input": get_uniprot_info_for_llm_input,
+    "get_uniprot_info_for_search_string": get_uniprot_info_for_search_string,
     "get_enrichment_data": get_enrichment_data,
 }
 
@@ -125,17 +128,17 @@ def get_general_assistant_functions() -> List[Dict]:
         {
             "type": "function",
             "function": {
-                "name": get_uniprot_info_for_llm_input.__name__,
-                "description": "Get the gene function and description by UniProt lookup of gene identifier or protein id. When picking the representation from a comma separated list, always include the whole item, even if it contains semicolons or other separators. e.g. from A:B, ids:123, C submit A:B, not A or B and ids:123, not 123.",
+                "name": get_uniprot_info_for_search_string.__name__,
+                "description": "Get the gene function and description by UniProt lookup of gene identifier or protein id. When picking the representation from a comma separated list, always include the whole item, even if it contains semicolons or other separators. e.g. from `A;B, ids:123, C` submit `A:B` (not only `A` and/or `B`) and `ids:123`, not `123`.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "llm_input": {
+                        "search_string": {
                             "type": "string",
                             "description": "Feature representation, gene identifier or protein id",
                         },
                     },
-                    "required": ["llm_input"],
+                    "required": ["search_string"],
                 },
             },
         },

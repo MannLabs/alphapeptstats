@@ -119,7 +119,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 
 # TODO: Write test for this display
 @st.fragment
-def display_uniprot(regulated_genes_dict, feature_to_repr_map):
+def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
     c1, c2, c3, c4 = st.columns((1, 1, 3, 1))
@@ -148,6 +148,7 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map):
             if st.checkbox(
                 field,
                 value=field in st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                disabled=disabled,
             ):
                 selected_fields.append(field)
         if set(selected_fields) != set(

@@ -19,7 +19,7 @@ from alphastats.llm.llm_functions import (
     get_annotation_from_uniprot_by_feature_list,
     get_assistant_functions,
     get_general_assistant_functions,
-    get_uniprot_info_for_llm_input,
+    get_uniprot_info_for_search_string,
 )
 
 
@@ -127,21 +127,15 @@ def test_get_annotation_from_store_by_feature_list():
 
 
 @patch("alphastats.llm.llm_functions.get_annotations_for_feature")
-@patch("streamlit.session_state")
-def test_get_annotation_from_uniprot_by_feature_list(
-    mock_session_state, mock_uniprot_annotation
-):
+def test_get_annotation_from_uniprot_by_feature_list(mock_uniprot_annotation):
     """Test that the function retrieves the correct entry from UniProt."""
-
-    mock_session_state.return_value = {StateKeys.ANNOTATION_STORE: {}}
 
     # just one feature
     features = ["id1"]
-    mock_uniprot_annotation.return_value = "id1"
+    mock_uniprot_annotation.return_value = "id1annotation"
     result = get_annotation_from_uniprot_by_feature_list(features)
     mock_uniprot_annotation.assert_called_with("id1")
-    mock_session_state.__getitem__().__setitem__.assert_called_with("id1", "id1")
-    assert result == "id1"
+    assert result == ("id1annotation", "id1")
 
     # same base ids
     features = ["id2", "id2;id2-3"]
@@ -175,7 +169,7 @@ def test_get_uniprot_info_for_llm_input(
 ):
     """Test that the function retrieves the correct UniProt information for the LLM input."""
 
-    class DUMMY_DATASET:
+    class DummyDataset:
         _feature_to_repr_map = {
             "id1;id4": "gene2;gene4",
             "id2": "gene2",
@@ -195,43 +189,51 @@ def test_get_uniprot_info_for_llm_input(
             "id5": ["id5;id1"],
         }
 
-    mock_session_state[StateKeys.DATASET] = DUMMY_DATASET()
+    mock_session_state[StateKeys.DATASET] = DummyDataset()
     mock_session_state[StateKeys.ANNOTATION_STORE] = {}
     mock_session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
+
+    # mock_session_state.__getitem__().__setitem__.assert_called_with("id1", "id1")
 
     # repr
     llm_input = "gene2;gene4"
     mock_get_annotation_from_store.return_value = None
-    mock_get_annotation_from_uniprot.return_value = {"annotation": "annotation1"}
+    mock_get_annotation_from_uniprot.return_value = (
+        {"annotation": "annotation1"},
+        "id1;id4",
+    )
     mock_format_uniprot_annotation.return_value = ""
-    result = get_uniprot_info_for_llm_input(llm_input)
+    result = get_uniprot_info_for_search_string(llm_input)
     mock_get_annotation_from_store.assert_called_with(["id1;id4"], {})
     mock_get_annotation_from_uniprot.assert_called_with(["id1;id4"])
+    mock_session_state.__getitem__().__setitem__.assert_called_with(
+        "id1;id4", {"annotation": "annotation1"}
+    )
     assert result == "gene2;gene4: "
 
-    mock_get_annotation_from_store.return_value = {"annotation": "annotation1"}
+    mock_get_annotation_from_store.return_value = ({"annotation": "annotation1"}, "id2")
     # repr that is also gene
     llm_input = "gene2"
-    get_uniprot_info_for_llm_input(llm_input)
+    get_uniprot_info_for_search_string(llm_input)
     mock_get_annotation_from_store.assert_called_with(["id2"], {})
     mock_get_annotation_from_uniprot.assert_called_once()
 
     # feature id
     llm_input = "id1;id4"
-    get_uniprot_info_for_llm_input(llm_input)
+    get_uniprot_info_for_search_string(llm_input)
     mock_get_annotation_from_store.assert_called_with(["id1;id4"], {})
 
     # gene
     llm_input = "gene4"
-    get_uniprot_info_for_llm_input(llm_input)
+    get_uniprot_info_for_search_string(llm_input)
     mock_get_annotation_from_store.assert_called_with(["id1;id4"], {})
 
     # protein
     llm_input = "id1"
-    get_uniprot_info_for_llm_input(llm_input)
+    get_uniprot_info_for_search_string(llm_input)
     mock_get_annotation_from_store.assert_called_with(["id1;id4", "id5;id1"], {})
 
     # not valid
     llm_input = "id6"
     with pytest.raises(ValueError, match="id6 not found in dataset."):
-        get_uniprot_info_for_llm_input(llm_input)
+        get_uniprot_info_for_search_string(llm_input)

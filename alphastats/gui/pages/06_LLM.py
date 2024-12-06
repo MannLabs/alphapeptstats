@@ -152,18 +152,20 @@ with c1:
         )
 
 
-st.markdown("##### Select which information from Uniprot to supply to the LLM")
-display_uniprot(
-    regulated_genes_dict, st.session_state[StateKeys.DATASET]._feature_to_repr_map
-)
-
-st.markdown("##### Prompts generated based on analysis input")
-
 model_name = st.session_state[StateKeys.MODEL_NAME]
 llm_integration_set_for_model = (
     st.session_state.get(StateKeys.LLM_INTEGRATION, {}).get(model_name, None)
     is not None
 )
+
+st.markdown("##### Select which information from Uniprot to supply to the LLM")
+display_uniprot(
+    regulated_genes_dict,
+    st.session_state[StateKeys.DATASET]._feature_to_repr_map,
+    disabled=llm_integration_set_for_model,
+)
+
+st.markdown("##### Prompts generated based on analysis input")
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
         "",
