@@ -41,7 +41,7 @@ def get_annotation_from_uniprot_by_feature_list(
     Args:
         features (list): A list of features to search for.
     Returns:
-        Union[dict, str]: The annotation for the identified feature. The return type can be a dictionaryn or a string depending on the annotation retrieved.
+        Union[dict, str]: The annotation for the identified feature. The return type can be a dictionary or a string depending on the annotation retrieved.
         feature (str): The feature that was used to retrieve the annotation.
     """
     if len(features) == 0:
