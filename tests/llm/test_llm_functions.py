@@ -126,35 +126,40 @@ def test_get_annotation_from_store_by_feature_list():
     assert result is None
 
 
+testdata_test_get_annotation_from_uniprot_by_feature_list = [
+    (["id1"], "id1", "id1annotation"),  # just one feature
+    (["id2", "id2;id2-3"], "id2", "id2annotation"),  # same base ids
+    (["id2", "id3"], "id2", "id2annotation"),  # different base ids, no longest element
+    (
+        ["id2", "id2;id3"],
+        "id2;id3",
+        "id2:id3annotation",
+    ),  # different base ids, longest element
+]
+
+
+@pytest.mark.parametrize(
+    "features, call_arg, return_value",
+    testdata_test_get_annotation_from_uniprot_by_feature_list,
+)
 @patch("alphastats.llm.llm_functions.get_annotations_for_feature")
-def test_get_annotation_from_uniprot_by_feature_list(mock_uniprot_annotation):
+def test_get_annotation_from_uniprot_by_feature_list(
+    mock_uniprot_annotation, features, call_arg, return_value
+):
     """Test that the function retrieves the correct entry from UniProt."""
 
     # just one feature
-    features = ["id1"]
-    mock_uniprot_annotation.return_value = "id1annotation"
+    mock_uniprot_annotation.return_value = return_value
     result = get_annotation_from_uniprot_by_feature_list(features)
-    mock_uniprot_annotation.assert_called_with("id1")
-    assert result == ("id1annotation", "id1")
+    mock_uniprot_annotation.assert_called_with(call_arg)
+    assert result == (return_value, call_arg)
 
-    # same base ids
-    features = ["id2", "id2;id2-3"]
-    get_annotation_from_uniprot_by_feature_list(features)
-    mock_uniprot_annotation.assert_called_with("id2")
 
-    # different base ids, no longest element
-    features = ["id2", "id3"]
-    get_annotation_from_uniprot_by_feature_list(features)
-    mock_uniprot_annotation.assert_called_with("id2")
-
-    # different base ids, longest element
-    features = ["id2", "id2;id3"]
-    get_annotation_from_uniprot_by_feature_list(features)
-    mock_uniprot_annotation.assert_called_with("id2;id3")
-
-    features = []
+@patch("alphastats.llm.llm_functions.get_annotations_for_feature")
+def test_get_annotation_from_uniprot_by_feature_list_error(mock_uniprot_annotation):
     with pytest.raises(ValueError, match="No features provided"):
-        get_annotation_from_uniprot_by_feature_list(features)
+        get_annotation_from_uniprot_by_feature_list([])
+    mock_uniprot_annotation.assert_not_called()
 
 
 class DummyDataset:
@@ -178,7 +183,7 @@ class DummyDataset:
     }
 
 
-testdata = [
+testdata_test_get_uniprot_info_for_search_string = [
     ({}, "gene2;gene4", ["id1;id4"], "gene2;gene4: "),  # repr
     ({"id2": {}}, "gene2", ["id2"], "gene2: "),  # repr over gene key
     ({}, "id1;id4", ["id1;id4"], "id1;id4: "),  # feature id
@@ -187,7 +192,10 @@ testdata = [
 ]
 
 
-@pytest.mark.parametrize("store_init, llm_input, call_arg, expected_result", testdata)
+@pytest.mark.parametrize(
+    "store_init, llm_input, call_arg, expected_result",
+    testdata_test_get_uniprot_info_for_search_string,
+)
 @patch("alphastats.llm.llm_functions.format_uniprot_annotation")
 @patch("alphastats.llm.llm_functions.get_annotation_from_uniprot_by_feature_list")
 @patch("alphastats.llm.llm_functions.get_annotation_from_store_by_feature_list")
