@@ -28,43 +28,34 @@ class ExtractedUniprotFields(metaclass=ConstantsClass):
 
 def _request_uniprot_data(
     protein_id: str = None,
-    gene_name: str = None,
-    organism_id: str = "9606",
-) -> Union[List, None]:
+) -> Dict:
     """
-    Get data from UniProt for a given gene name and organism ID, or for a specific Uniprot identifier.
+    Get data from UniProt for a given Uniprot identifier.
 
     Args:
         protein_id (str): Uniprot identifier of a protein
-        gene_name (str): The gene name to search for.
-        organism_id (str, optional): The organism ID to search in. Defaults to human, only used in the context of a gene name.
 
     Returns:
-        list: The data retrieved from UniProt, if retrieval was successful. If the response code was not 200 or there were no results the list is empty.
+        dict: The data retrieved from UniProt, if retrieval was successful. If the response code was not 200 or there were no results the dictionary is empty.
     """
-    base_url = "https://rest.uniprot.org/uniprotkb/search"
+    base_url = "https://rest.uniprot.org/uniprotkb"
     if protein_id is not None:
-        query = f"accession:{protein_id}"
-    elif gene_name is not None:
-        query = f"(gene:{gene_name}) AND (organism_id:{organism_id})"
+        query = f"{base_url}/{protein_id}"
     else:
-        raise ValueError("Please provide either protein id or gene name.")
+        raise ValueError("Please provide a protein id.")
 
-    response = requests.get(base_url, params={"query": query, "format": "json"})
+    response = requests.get(query, headers={"Accept": "application/json"})
 
     if response.status_code != 200:
         print(
             f"Failed to retrieve data for {query}. Status code: {response.status_code}"
         )
         print(response.text)
-        return []
+        return {}
 
     data = response.json()
 
-    if not (results := data.get("results", [])):
-        print(f"No UniProt entry found for {query}")
-
-    return results
+    return data
 
 
 def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
@@ -214,32 +205,6 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     return extracted
 
 
-# TODO: Depracate once LLM is fed with protein id based information
-def get_gene_function(gene_name: Union[str, Dict], organism_id=9606) -> str:
-    """
-    Get the gene function and description by UniProt lookup of gene identifier / name.
-
-    Args:
-        gene_name (Union[str, dict]): Gene identifier / name for UniProt lookup.
-        organism_id (str): The UniProt organism ID to search in.
-
-    Returns:
-        str: The gene function and description.
-    """
-    if isinstance(gene_name, dict):
-        gene_name = gene_name["gene_name"]
-    results = _request_uniprot_data(gene_name, organism_id)
-    if results:
-        # Assuming the first is the most relevant
-        result = results[0]
-    if function_comment := _extract_annotations_from_uniprot_data(result)[
-        ExtractedUniprotFields.FUNCTIONCOMM
-    ]:
-        return str(function_comment)
-    else:
-        return "No data found"
-
-
 def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
     """
     Retrieve UniProt data for a list of protein IDs.
@@ -253,7 +218,7 @@ def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
 
     results = [_request_uniprot_data(protein_id=id) for id in ids]
     results = [
-        "Retrieval failed" if not idresult else idresult[0] for idresult in results
+        "Retrieval failed" if len(idresult) == 0 else idresult for idresult in results
     ]
     return results
 

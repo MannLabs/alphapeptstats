@@ -151,8 +151,9 @@ class LLMIntegration:
             The maximum number of tokens to keep in history, by default 100000
         """
         # TODO: avoid important messages being removed (e.g. facts about genes)
+        # TODO: find out how messages can be None type and handle them earlier
         total_tokens = sum(
-            len(message["content"].split()) for message in self._messages
+            len(message["content"].split()) for message in self._messages if message
         )
         while total_tokens > max_tokens and len(self._messages) > 1:
             removed_message = self._messages.pop(0)

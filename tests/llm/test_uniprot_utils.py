@@ -18,13 +18,9 @@ class TestGetUniProtData(unittest.TestCase):
     def test_get_uniprot_data_success(self, mock_get):
         # Set up the mock to return a successful response with example data
         example_response = {
-            "results": [
-                {
-                    "protein_name": "P12345",
-                    "gene_names": "test_gene",
-                    "cc_subcellular_location": "at home",
-                },
-            ]
+            "protein_name": "P12345",
+            "gene_names": "test_gene",
+            "cc_subcellular_location": "at home",
         }
         mock_get.return_value = MagicMock(
             status_code=200, json=lambda: example_response
@@ -35,7 +31,7 @@ class TestGetUniProtData(unittest.TestCase):
             "gene_names": "test_gene",
             "cc_subcellular_location": "at home",
         }
-        result = _request_uniprot_data("test_gene", "9606")[0]
+        result = _request_uniprot_data("test_gene")
 
         # Verify that the result matches the expected result
         self.assertEqual(result, expected_result)
@@ -47,23 +43,23 @@ class TestGetUniProtData(unittest.TestCase):
         # Set up the mock to return a failed response
         mock_get.return_value = MagicMock(status_code=500, text="Internal Server Error")
 
-        results = _request_uniprot_data("test_gene", "9606")
+        results = _request_uniprot_data("test_gene")
 
         # Verify that the function handles errors properly and returns an empty list
-        self.assertListEqual(results, [])
+        self.assertDictEqual(results, {})
 
     @patch("requests.get")
     def test_get_uniprot_no_results(self, mock_get):
         # Set up the mock to return a successful response with no results
-        example_response = {"results": []}
+        example_response = {}
         mock_get.return_value = MagicMock(
             status_code=200, json=lambda: example_response
         )
 
-        results = _request_uniprot_data("test_gene", "9606")
+        results = _request_uniprot_data("test_gene")
 
         # Verify that the function handles no results found properly and returns an empty list
-        self.assertListEqual(results, [])
+        self.assertDictEqual(results, {})
 
 
 class TestExtractData(unittest.TestCase):
