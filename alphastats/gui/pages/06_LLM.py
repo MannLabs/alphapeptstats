@@ -263,7 +263,14 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     if prompt := st.chat_input("Say something"):
         with st.spinner("Processing prompt..."):
             llm_integration.chat_completion(prompt)
-        st.rerun(scope="fragment")
+            st.rerun(scope="fragment")
+
+    st.download_button(
+        "Download chat log",
+        llm_integration.get_chat_log_txt(),
+        f"chat_log_{model_name}.txt",
+        "text/plain",
+    )
 
 
 show_all = st.checkbox(
