@@ -289,6 +289,21 @@ class LLMIntegration:
             )
         return print_view
 
+    def get_chat_log_txt(self) -> str:
+        """Get a chat log in text format for saving. It excludes tool replies, as they are usually also represented in the artifacts."""
+        messages = self.get_print_view(show_all=True)
+        chatlog = ""
+        for message in messages:
+            if message["role"] == "tool":
+                continue
+            chatlog += f"{message['role'].capitalize()}: {message['content']}\n"
+            if len(message["artifacts"]) > 0:
+                chatlog += "-----\n"
+            for artifact in message["artifacts"]:
+                chatlog += f"Artifact: {artifact}\n"
+            chatlog += "----------\n"
+        return chatlog
+
     def chat_completion(self, prompt: str, role: str = "user") -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
