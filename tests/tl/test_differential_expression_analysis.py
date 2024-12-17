@@ -353,7 +353,7 @@ def test_dea_ttest_perform_runs():
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
             DeaParameters.TEST_FUN: "independent",
-            DeaParameters.FDR_METHOD: "bh",
+            DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: True,
         },
     )
@@ -369,7 +369,7 @@ def test_dea_ttest_runs_log(mock_transform):
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
             DeaParameters.TEST_FUN: "independent",
-            DeaParameters.FDR_METHOD: "bh",
+            DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
         },
     )
@@ -388,7 +388,7 @@ def test_dea_ttest_validate_wrong_stats_method():
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{
                 DeaParameters.TEST_FUN: "not defined",
-                DeaParameters.FDR_METHOD: "bh",
+                DeaParameters.FDR_METHOD: "fdr_bh",
                 PreprocessingStateKeys.LOG2_TRANSFORMED: True,
             },
         )
@@ -397,7 +397,9 @@ def test_dea_ttest_validate_wrong_stats_method():
 def test_dea_ttest_validate_wrong_fdr_method():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = DifferentialExpressionAnalysisTTest(input_data)
-    with pytest.raises(ValueError, match="fdr_method must be one of 'bh', 'by'."):
+    with pytest.raises(
+        ValueError, match="fdr_method must be one of 'fdr_bh', 'bonferroni'."
+    ):
         dea.perform(
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{

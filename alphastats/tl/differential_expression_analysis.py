@@ -4,6 +4,7 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import scipy
+from statsmodels.stats.multitest import multipletests
 
 from alphastats.dataset.keys import Cols, ConstantsClass
 from alphastats.dataset.preprocessing import PreprocessingStateKeys
@@ -231,8 +232,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             raise ValueError(
                 "test_fun must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel."
             )
-        if parameters["fdr_method"] not in ["bh", "by"]:
-            raise ValueError("fdr_method must be one of 'bh', 'by'.")
+        if parameters["fdr_method"] not in ["fdr_bh", "bonferroni"]:
+            raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
     def _run_statistical_test(self, **kwargs) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
@@ -269,7 +270,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         group2 (list): The samples for group 2.
         is_log2_transformed (bool): Whether the data is log2 transformed.
         test_fun (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
-        fdr_method (str): The FDR method to use, 'bh' or 'by'.
+        fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
 
         Returns:
         pd.DataFrame: The result of the analysis.
@@ -306,7 +307,5 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             is_log2_transformed=True,
         )
 
-        result[DeaColumns.QVALUE] = scipy.stats.false_discovery_control(
-            p_values.values, method=fdr_method
-        )
+        result[DeaColumns.QVALUE] = multipletests(p_values.values, method=fdr_method)[1]
         return result
