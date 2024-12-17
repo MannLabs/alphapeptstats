@@ -16,10 +16,11 @@ from alphastats.tl.differential_expression_analysis import (
 
 
 class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
-    def allowed_parameters(self):
+    @staticmethod
+    def _allowed_parameters():
         return [DeaParameters.METADATA]
 
-    def _extend_validation(self, input_data, parameters):
+    def _extend_validation(self, parameters):
         if parameters[DeaParameters.METADATA] is None:
             raise ValueError("Metadata must be provided")
 
@@ -66,7 +67,7 @@ def test_dea_parameters_none():
     input_data = pd.DataFrame()
     dea = TestableDifferentialExpressionAnalysis(input_data)
     with pytest.raises(ValueError, match="No parameters were provided."):
-        dea._validate_input(input_data, None)
+        dea._validate_input(None)
 
 
 def test_dea_no_metadata():
@@ -188,7 +189,8 @@ Index: []}"""
 class TestableDifferentialExpressionAnalysisTwoGroups(
     DifferentialExpressionAnalysisTwoGroups
 ):
-    def allowed_parameters(self):
+    @staticmethod
+    def _allowed_parameters():
         return [
             DeaParameters.METADATA,
             DeaParameters.GROUP1,
