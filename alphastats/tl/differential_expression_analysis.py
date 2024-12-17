@@ -214,6 +214,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             DeaParameters.GROUP2,
             DeaParameters.GROUPING_COLUMN,
             DeaParameters.METADATA,
+            PreprocessingStateKeys.LOG2_TRANSFORMED,
         ]
 
     def _extend_validation(self, input_data: pd.DataFrame, parameters: dict):
@@ -294,7 +295,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             axis=1,
         )
 
-        result = pd.DataFrame(input_data.index)
+        result = pd.DataFrame(index=input_data.columns)
         result[DeaColumns.PVALUE] = p_values.values
         result[DeaColumns.LOG2FC] = calculate_foldchange(
             mat_transpose=mat_transpose,
