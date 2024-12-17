@@ -225,11 +225,11 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         """
         super()._extend_validation(input_data, parameters)
         if parameters["test_fun"] not in [
-            scipy.stats.ttest_ind,
-            scipy.stats.ttest_rel,
+            "independent",
+            "paired",
         ]:
             raise ValueError(
-                "test_fun must be either scipy.stats.ttest_ind or scipy.stats.ttest_rel for t-test."
+                "test_fun must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel."
             )
         if parameters["fdr_method"] not in ["bh", "by"]:
             raise ValueError("fdr_method must be one of 'bh', 'by'.")
@@ -258,7 +258,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         group1: list,
         group2: list,
         is_log2_transformed: bool,
-        test_fun: callable,
+        test_fun: str,
         fdr_method: str,
     ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
@@ -268,13 +268,18 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         group1 (list): The samples for group 1.
         group2 (list): The samples for group 2.
         is_log2_transformed (bool): Whether the data is log2 transformed.
-        test_fun (callable): The test function to use, scipy.stats.ttest_ind or scipy.stats.ttest_rel.
+        test_fun (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
         fdr_method (str): The FDR method to use, 'bh' or 'by'.
 
         Returns:
         pd.DataFrame: The result of the analysis.
         """
         mat_transpose = input_data.loc[group1 + group2, :].transpose()
+
+        test_fun = {
+            "independent": scipy.stats.ttest_ind,
+            "paired": scipy.stats.ttest_rel,
+        }[test_fun]
 
         if not is_log2_transformed:
             mat_transpose = mat_transpose.transform(np.log2)

@@ -3,7 +3,6 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import pytest
-import scipy
 
 from alphastats.dataset.keys import Cols
 from alphastats.dataset.preprocessing import PreprocessingStateKeys
@@ -353,7 +352,7 @@ def test_dea_ttest_perform_runs():
     dea.perform(
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
-            DeaParameters.TEST_FUN: scipy.stats.ttest_ind,
+            DeaParameters.TEST_FUN: "independent",
             DeaParameters.FDR_METHOD: "bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: True,
         },
@@ -369,7 +368,7 @@ def test_dea_ttest_runs_log(mock_transform):
     dea.perform(
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
-            DeaParameters.TEST_FUN: scipy.stats.ttest_ind,
+            DeaParameters.TEST_FUN: "independent",
             DeaParameters.FDR_METHOD: "bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
         },
@@ -383,12 +382,12 @@ def test_dea_ttest_validate_wrong_stats_method():
     dea = DifferentialExpressionAnalysisTTest(input_data)
     with pytest.raises(
         ValueError,
-        match="test_fun must be either scipy.stats.ttest_ind or scipy.stats.ttest_rel for t-test.",
+        match="test_fun must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel.",
     ):
         dea.perform(
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{
-                DeaParameters.TEST_FUN: float,
+                DeaParameters.TEST_FUN: "not defined",
                 DeaParameters.FDR_METHOD: "bh",
                 PreprocessingStateKeys.LOG2_TRANSFORMED: True,
             },
@@ -402,7 +401,7 @@ def test_dea_ttest_validate_wrong_fdr_method():
         dea.perform(
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{
-                DeaParameters.TEST_FUN: scipy.stats.ttest_ind,
+                DeaParameters.TEST_FUN: "independent",
                 DeaParameters.FDR_METHOD: "unknown",
                 PreprocessingStateKeys.LOG2_TRANSFORMED: True,
             },
