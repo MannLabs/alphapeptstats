@@ -56,6 +56,20 @@ def test_dea_perform_success():
     )
 
 
+def test_dea_data_none():
+    input_data = None
+    dea = TestableDifferentialExpressionAnalysis(input_data)
+    with pytest.raises(ValueError, match="No input data was provided."):
+        dea.perform()
+
+
+def test_dea_parameters_none():
+    input_data = pd.DataFrame()
+    dea = TestableDifferentialExpressionAnalysis(input_data)
+    with pytest.raises(ValueError, match="No parameters were provided."):
+        dea._validate_input(input_data, None)
+
+
 def test_dea_no_metadata():
     input_data = pd.DataFrame()
     dea = TestableDifferentialExpressionAnalysis(input_data)

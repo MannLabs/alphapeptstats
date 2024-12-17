@@ -49,9 +49,9 @@ class DifferentialExpressionAnalysis(ABC):
         parameters (dict): The parameters for the analysis.
         """
         if input_data is None:
-            raise Exception("No input data was provided.")
+            raise ValueError("No input data was provided.")
         if parameters is None:
-            raise Exception("No parameters were provided.")
+            raise ValueError("No parameters were provided.")
 
         self._extend_validation(input_data, parameters)
 
@@ -173,10 +173,7 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
                 )
             group1 = parameters["group1"]
             group2 = parameters["group2"]
-        for index in group1:
-            if index not in input_data.index:
-                raise KeyError(f"Sample {index} is missing from the input data.")
-        for index in group2:
+        for index in group1 + group2:
             if index not in input_data.index:
                 raise KeyError(f"Sample {index} is missing from the input data.")
 
