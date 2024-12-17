@@ -1,11 +1,17 @@
+from unittest.mock import patch
+
+import numpy as np
 import pandas as pd
 import pytest
+import scipy
 
 from alphastats.dataset.keys import Cols
+from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DeaParameters,
     DifferentialExpressionAnalysis,
+    DifferentialExpressionAnalysisTTest,
     DifferentialExpressionAnalysisTwoGroups,
 )
 
@@ -325,3 +331,65 @@ def test_dea_two_groups_get_group_members_direct_grouping():
     )
     assert group1 == ["sample1", "sample2"]
     assert group2 == ["sample3", "sample4"]
+
+
+def test_dea_ttest_perform_runs():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = DifferentialExpressionAnalysisTTest(input_data)
+    dea.perform(
+        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+        **{
+            DeaParameters.TEST_FUN: scipy.stats.ttest_ind,
+            DeaParameters.FDR_METHOD: "bh",
+            PreprocessingStateKeys.LOG2_TRANSFORMED: True,
+        },
+    )
+    assert dea.result.shape == (3, 3)
+
+
+@patch("pandas.DataFrame.transform")
+def test_dea_ttest_runs_log(mock_transform):
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = DifferentialExpressionAnalysisTTest(input_data)
+    mock_transform.return_value = input_data.T
+    dea.perform(
+        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+        **{
+            DeaParameters.TEST_FUN: scipy.stats.ttest_ind,
+            DeaParameters.FDR_METHOD: "bh",
+            PreprocessingStateKeys.LOG2_TRANSFORMED: False,
+        },
+    )
+    assert dea.result.shape == (3, 3)
+    mock_transform.assert_called_once_with(np.log2)
+
+
+def test_dea_ttest_validate_wrong_stats_method():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = DifferentialExpressionAnalysisTTest(input_data)
+    with pytest.raises(
+        ValueError,
+        match="test_fun must be either scipy.stats.ttest_ind or scipy.stats.ttest_rel for t-test.",
+    ):
+        dea.perform(
+            **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+            **{
+                DeaParameters.TEST_FUN: float,
+                DeaParameters.FDR_METHOD: "bh",
+                PreprocessingStateKeys.LOG2_TRANSFORMED: True,
+            },
+        )
+
+
+def test_dea_ttest_validate_wrong_fdr_method():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = DifferentialExpressionAnalysisTTest(input_data)
+    with pytest.raises(ValueError, match="fdr_method must be one of 'bh', 'by'."):
+        dea.perform(
+            **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+            **{
+                DeaParameters.TEST_FUN: scipy.stats.ttest_ind,
+                DeaParameters.FDR_METHOD: "unknown",
+                PreprocessingStateKeys.LOG2_TRANSFORMED: True,
+            },
+        )

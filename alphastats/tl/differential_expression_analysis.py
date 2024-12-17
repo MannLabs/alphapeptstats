@@ -280,7 +280,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         mat_transpose = input_data.loc[group1 + group2, :].transpose()
 
         if not is_log2_transformed:
-            mat_transpose = mat_transpose.transform(lambda x: np.log2(x))
+            mat_transpose = mat_transpose.transform(np.log2)
             mat_transpose = mat_transpose.replace([np.inf, -np.inf], np.nan)
 
         mat_transpose = mat_transpose.dropna(how="all")
