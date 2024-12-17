@@ -57,7 +57,7 @@ class DifferentialExpressionAnalysis(ABC):
 
         for parameter in parameters:
             if parameter not in self.allowed_parameters():
-                raise Exception(
+                raise ValueError(
                     f"Parameter {parameter} should not be provided for this analysis."
                 )
 
@@ -66,9 +66,8 @@ class DifferentialExpressionAnalysis(ABC):
         """Method returning a list of allowed parameters for the analysis to avoid calling tests with additional parameters."""
         return []
 
-    @staticmethod
     @abstractmethod
-    def _extend_validation(input_data: pd.DataFrame, parameters: dict) -> None:
+    def _extend_validation(self, input_data: pd.DataFrame, parameters: dict) -> None:
         pass
 
     def perform(self, **kwargs) -> Tuple[str, pd.DataFrame]:
@@ -78,7 +77,7 @@ class DifferentialExpressionAnalysis(ABC):
         dict_key (str): A unique key based on the parameters that can be used for the result in a dictionary.
         result (pd.DataFrame): The result of the analysis.
         """
-        self._validate_input(self.input_data, **kwargs)
+        self._validate_input(self.input_data, parameters=kwargs)
         result = self._run_statistical_test(**kwargs)
         self._validate_output(result)
         self.result = result
@@ -93,13 +92,13 @@ class DifferentialExpressionAnalysis(ABC):
         Parameters:
         result (pd.DataFrame): The result of the analysis."""
         if result is None:
-            raise Exception("No result was generated.")
+            raise ValueError("No result was generated.")
 
         expected_columns = [DeaColumns.PVALUE, DeaColumns.QVALUE, DeaColumns.LOG2FC]
 
         for column in expected_columns:
             if column not in result.columns:
-                raise Exception(f"Column {column} is missing from the result.")
+                raise KeyError(f"Column {column} is missing from the result.")
 
     @staticmethod
     def get_dict_key(parameters: dict) -> str:
@@ -148,10 +147,9 @@ class DifferentialExpressionAnalysis(ABC):
 
 
 class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
-    """This class implements static methods required specifically for two-group differential expression analysis."""
+    """This class implements methods required specifically for two-group differential expression analysis."""
 
-    @staticmethod
-    def _extend_validation(input_data: pd.DataFrame, parameters: dict):
+    def _extend_validation(self, input_data: pd.DataFrame, parameters: dict):
         """Validates the input and parameters for the two-group differential expression analysis.
 
         This function checks for the required parameters for the two-group analysis, namely group1 and group2. If these are strings it additionally requires a grouping column, if these are lists it requires the samples to be present in the input data.
@@ -213,8 +211,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             DeaParameters.METADATA,
         ]
 
-    @staticmethod
-    def _extend_validation(input_data: pd.DataFrame, parameters: dict):
+    def _extend_validation(self, input_data: pd.DataFrame, parameters: dict):
         """Validates the input and parameters for the t-test differential expression analysis.
 
         This function checks for the required parameters for the t-test analysis, namely test_fun and fdr_method. The test_fun must be either scipy.stats.ttest_ind or scipy.stats.ttest_rel and the fdr_method must be one of 'bh' or 'by'.
