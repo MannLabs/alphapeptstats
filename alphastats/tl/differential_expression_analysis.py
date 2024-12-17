@@ -158,22 +158,27 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
         input_data (pd.DataFrame): The input data for the analysis.
         parameters (dict): The parameters for the analysis.
         """
-        if isinstance(parameters["group1"], list):
-            if DeaParameters.GROUPING_COLUMN in parameters:
-                raise Exception(
-                    "Please provide either a list of columns OR the grouping column, not both."
-                )
-            for index in parameters["group1"]:
-                if index not in input_data.index:
-                    raise Exception(f"Sample {index} is missing from the input data.")
-            for index in parameters["group2"]:
-                if index not in input_data.index:
-                    raise Exception(f"Sample {index} is missing from the input data.")
-        else:
+        if isinstance(parameters["group1"], str):
             if DeaParameters.GROUPING_COLUMN not in parameters:
-                raise Exception(
+                raise ValueError(
                     f"Parameter {DeaParameters.GROUPING_COLUMN} is missing."
                 )
+            if parameters.get(DeaParameters.METADATA, None) is None:
+                raise ValueError(f"Parameter {DeaParameters.METADATA} is missing.")
+            group1, group2 = self._get_group_members(parameters)
+        else:
+            if DeaParameters.GROUPING_COLUMN in parameters:
+                raise ValueError(
+                    "Please provide either a list of columns OR the grouping column, not both."
+                )
+            group1 = parameters["group1"]
+            group2 = parameters["group2"]
+        for index in group1:
+            if index not in input_data.index:
+                raise KeyError(f"Sample {index} is missing from the input data.")
+        for index in group2:
+            if index not in input_data.index:
+                raise KeyError(f"Sample {index} is missing from the input data.")
 
     @staticmethod
     def _get_group_members(parameters) -> Tuple[list, list]:
@@ -238,7 +243,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         Returns:
         pd.DataFrame: The result of the analysis.
         """
-        group1, group2 = self._get_group_members(**kwargs)
+        group1, group2 = self._get_group_members(kwargs)
         result = self._statistical_test_fun(
             input_data=self.input_data,
             group1=group1,

@@ -1,10 +1,12 @@
 import pandas as pd
 import pytest
 
+from alphastats.dataset.keys import Cols
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DeaParameters,
     DifferentialExpressionAnalysis,
+    DifferentialExpressionAnalysisTwoGroups,
 )
 
 
@@ -65,7 +67,7 @@ def test_dea_additional_arguments():
 def test_dea_metadata_validation():
     input_data = pd.DataFrame()
     dea = TestableDifferentialExpressionAnalysis(input_data)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Metadata must be provided"):
         dea.perform(metadata=None)
 
 
@@ -155,10 +157,171 @@ Index: []}"""
 
 def test_dea_get_dict_key_static():
     assert (
-        TestableDifferentialExpressionAnalysis.get_dict_key(
+        DifferentialExpressionAnalysis.get_dict_key(
             {DeaParameters.METADATA: pd.DataFrame()}
         )
         == """{'metadata': Empty DataFrame
 Columns: []
 Index: []}"""
     )
+
+
+class TestableDifferentialExpressionAnalysisTwoGroups(
+    DifferentialExpressionAnalysisTwoGroups
+):
+    def allowed_parameters(self):
+        return [
+            DeaParameters.METADATA,
+            DeaParameters.GROUP1,
+            DeaParameters.GROUP2,
+            DeaParameters.GROUPING_COLUMN,
+        ]
+
+    def _run_statistical_test(self, **kwargs):
+        group1, group2 = self._get_group_members(kwargs)
+        return self._statistical_test_fun(self.input_data, group1=group1, group2=group2)
+
+    @staticmethod
+    def _statistical_test_fun(input_data, group1, group2):
+        return pd.DataFrame(
+            [[0.055, 2, 0.009]],
+            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
+            index=["gene1"],
+        )
+
+    valid_parameter_input = {
+        DeaParameters.METADATA: pd.DataFrame(
+            [
+                ["sample1", "group1"],
+                ["sample2", "group1"],
+                ["sample3", "group2"],
+                ["sample4", "group2"],
+            ],
+            columns=[Cols.SAMPLE, "grouping_column"],
+        ),
+        DeaParameters.GROUP1: "group1",
+        DeaParameters.GROUP2: "group2",
+        DeaParameters.GROUPING_COLUMN: "grouping_column",
+    }
+
+    valid_data_input = pd.DataFrame(
+        [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]],
+        columns=["sample1", "sample2", "sample3", "sample4"],
+        index=["gene1", "gene2", "gene3"],
+    ).T
+
+
+def test_dea_two_groups_no_abstractmethods():
+    with pytest.raises(TypeError):
+        DifferentialExpressionAnalysisTwoGroups(None)
+
+
+def test_dea_two_groups_perform_success():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    dea.perform(**TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input)
+    assert dea.result.equals(
+        pd.DataFrame(
+            [[0.055, 2, 0.009]],
+            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
+            index=["gene1"],
+        )
+    )
+
+
+def test_dea_two_groups_validate_missing_sample_metadata():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input.drop(
+        index="sample1"
+    )
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(KeyError):
+        dea.perform(
+            **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
+        )
+
+
+def test_dea_two_groups_validate_missing_sample_direct_grouping():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input.drop(
+        index="sample1"
+    )
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(KeyError):
+        dea.perform(
+            **{"group1": ["sample1", "sample2"], "group2": ["sample3", "sample4"]}
+        )
+
+
+def test_dea_two_groups_missing_group1():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(KeyError):
+        dea.perform(**{DeaParameters.GROUP2: ["sample3", "sample4"]})
+
+
+def test_dea_two_groups_missing_group2():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(KeyError):
+        dea.perform(**{DeaParameters.GROUP1: ["sample1", "sample2"]})
+
+
+def test_dea_two_groups_both_grouping_methods():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(
+        ValueError,
+        match="Please provide either a list of columns OR the grouping column, not both.",
+    ):
+        dea.perform(
+            **{
+                DeaParameters.GROUPING_COLUMN: "grouping_column",
+                DeaParameters.GROUP1: ["sample1", "sample2"],
+                DeaParameters.GROUP2: ["sample3", "sample4"],
+            }
+        )
+
+
+def test_dea_two_groups_missing_grouping_column():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(
+        ValueError, match=f"Parameter {DeaParameters.GROUPING_COLUMN} is missing."
+    ):
+        dea.perform(
+            **{
+                DeaParameters.GROUP1: "group1",
+                DeaParameters.GROUP2: "group2",
+                DeaParameters.METADATA: pd.DataFrame([[1, 2]]),
+            }
+        )
+
+
+def test_dea_two_groups_missing_metadata():
+    input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
+    with pytest.raises(
+        ValueError, match=f"Parameter {DeaParameters.METADATA} is missing."
+    ):
+        dea.perform(
+            **{
+                DeaParameters.GROUPING_COLUMN: "grouping_column",
+                DeaParameters.GROUP1: "group1",
+                DeaParameters.GROUP2: "group2",
+            }
+        )
+
+
+def test_dea_two_groups_get_group_members_metadata():
+    group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
+        TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
+    )
+    assert group1 == ["sample1", "sample2"]
+    assert group2 == ["sample3", "sample4"]
+
+
+def test_dea_two_groups_get_group_members_direct_grouping():
+    group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
+        {"group1": ["sample1", "sample2"], "group2": ["sample3", "sample4"]}
+    )
+    assert group1 == ["sample1", "sample2"]
+    assert group2 == ["sample3", "sample4"]
