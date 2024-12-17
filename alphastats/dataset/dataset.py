@@ -90,6 +90,8 @@ class DataSet:
 
         # self.evidence_df: pd.DataFrame = loader.evidence_df  # TODO unused
 
+        # TODO: Add a store for dea results here
+
         self._dataset_factory = DataSetFactory(
             rawinput=self.rawinput,
             intensity_column=self._intensity_column,
@@ -269,6 +271,7 @@ class DataSet:
             preprocessing_info=self.preprocessing_info,
         )
 
+    # TODO: Add function get_differential_expression_analysis() which will handle the dea store and run diff_expression_analysis() if necessary
     def diff_expression_analysis(
         self,
         group1: Union[str, list],
@@ -279,6 +282,7 @@ class DataSet:
         fdr: float = 0.05,
     ) -> pd.DataFrame:
         """A wrapper for the Statistics.diff_expression_analysis(), see documentation there."""
+        # TODO: This method is the one which will be called if a dea result is not yet in the store.
         return self._get_statistics().diff_expression_analysis(
             group1,
             group2,

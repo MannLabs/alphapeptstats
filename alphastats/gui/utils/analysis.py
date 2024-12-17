@@ -328,6 +328,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
         """
+        # TODO: This is the place, where the new workflow of run/fetch DEA, filter significance, create plot should live. 1. self._dataset.get_dea(**parameters1), 2. dea.get_signficance(result, parameters2), 3. plot_volcano(result, significance, parameters3)
         # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
         # thus overwriting the default values set therein.
         # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
