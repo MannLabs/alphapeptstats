@@ -383,6 +383,8 @@ class DendrogramAnalysis(AbstractAnalysis):
 class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
     """Widget for differential expression analysis."""
 
+    # TODO: This functionality will disappear and become a part of the VolcanoPlot class. This will produce a widget to select whether the result should be displayed as table or as plot.
+
     def show_widget(self):
         """Show the widget and gather parameters."""
 
