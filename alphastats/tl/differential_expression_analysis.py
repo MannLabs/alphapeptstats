@@ -349,7 +349,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             axis=1,
         )
 
-        result = pd.DataFrame(index=input_data.columns)
+        result = pd.DataFrame(index=mat_transpose.index)
         result[DeaColumns.PVALUE] = p_values.values
         result[DeaColumns.LOG2FC] = calculate_foldchange(
             mat_transpose=mat_transpose,
