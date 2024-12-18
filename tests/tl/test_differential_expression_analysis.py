@@ -20,8 +20,8 @@ class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
     def _allowed_parameters():
         return [DeaParameters.METADATA]
 
-    def _extend_validation(self, parameters):
-        if parameters[DeaParameters.METADATA] is None:
+    def _extend_validation(self, metadata: pd.DataFrame = None, **kwargs):
+        if metadata is None:
             raise ValueError("Metadata must be provided")
 
     def _run_statistical_test(self, **kwargs):
@@ -73,14 +73,14 @@ def test_dea_parameters_none():
 def test_dea_no_metadata():
     input_data = pd.DataFrame()
     dea = TestableDifferentialExpressionAnalysis(input_data)
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError, match="Metadata must be provided"):
         dea.perform()
 
 
 def test_dea_additional_arguments():
     input_data = pd.DataFrame()
     dea = TestableDifferentialExpressionAnalysis(input_data)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         dea.perform(metadata=pd.DataFrame(), additional_argument=1)
 
 
@@ -280,14 +280,14 @@ def test_dea_two_groups_validate_missing_sample_direct_grouping():
 def test_dea_two_groups_missing_group1():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
-    with pytest.raises(KeyError):
+    with pytest.raises(TypeError, match=rf"'{DeaParameters.GROUP1}'"):
         dea.perform(**{DeaParameters.GROUP2: ["sample3", "sample4"]})
 
 
-def test_dea_two_groups_missing_group2():
+def test_dea_two_groups_missing_group2() -> None:
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
-    with pytest.raises(KeyError):
+    with pytest.raises(TypeError, match=rf"'{DeaParameters.GROUP2}'"):
         dea.perform(**{DeaParameters.GROUP1: ["sample1", "sample2"]})
 
 
@@ -295,7 +295,7 @@ def test_dea_two_groups_both_grouping_methods():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
     with pytest.raises(
-        ValueError,
+        TypeError,
         match="Please provide either a list of columns OR the grouping column, not both.",
     ):
         dea.perform(
@@ -310,9 +310,7 @@ def test_dea_two_groups_both_grouping_methods():
 def test_dea_two_groups_missing_grouping_column():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
-    with pytest.raises(
-        ValueError, match=f"Parameter {DeaParameters.GROUPING_COLUMN} is missing."
-    ):
+    with pytest.raises(TypeError, match=rf"'{DeaParameters.GROUPING_COLUMN}'"):
         dea.perform(
             **{
                 DeaParameters.GROUP1: "group1",
@@ -325,9 +323,7 @@ def test_dea_two_groups_missing_grouping_column():
 def test_dea_two_groups_missing_metadata():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
-    with pytest.raises(
-        ValueError, match=f"Parameter {DeaParameters.METADATA} is missing."
-    ):
+    with pytest.raises(TypeError, match=rf"'{DeaParameters.METADATA}'"):
         dea.perform(
             **{
                 DeaParameters.GROUPING_COLUMN: "grouping_column",

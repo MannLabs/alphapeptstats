@@ -85,12 +85,17 @@ class DifferentialExpressionAnalysis(ABC):
         if parameters is None:
             raise ValueError("No parameters were provided.")
 
-        self._extend_validation(parameters)
+        try:
+            self._extend_validation(**parameters)
+        except TypeError as err:
+            raise TypeError(
+                f"{str(err)}. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
+            ) from err
 
         for parameter in parameters:
             if parameter not in self._allowed_parameters():
-                raise ValueError(
-                    f"Parameter {parameter} should not be provided for this analysis."
+                raise TypeError(
+                    f"Parameter {parameter} should not be provided for this analysis. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
                 )
 
     @staticmethod
@@ -100,7 +105,7 @@ class DifferentialExpressionAnalysis(ABC):
         return []
 
     @abstractmethod
-    def _extend_validation(self, parameters: dict) -> None:
+    def _extend_validation(self, **kwargs) -> None:
         pass
 
     def perform(self, **kwargs) -> Tuple[str, pd.DataFrame]:
@@ -184,7 +189,14 @@ class DifferentialExpressionAnalysis(ABC):
 class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
     """This class implements methods required specifically for two-group differential expression analysis."""
 
-    def _extend_validation(self, parameters: dict):
+    def _extend_validation(
+        self,
+        group1: Union[List, str],
+        group2: Union[List, str],
+        grouping_column: Union[str, None] = None,
+        metadata: Union[pd.DataFrame, None] = None,
+        **kwargs,
+    ):
         """Validates the input and parameters for the two-group differential expression analysis.
 
         This function checks for the required parameters for the two-group analysis, namely group1 and group2. If these are strings it additionally requires a grouping column, if these are lists it requires the samples to be present in the input data.
@@ -192,27 +204,27 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
         Parameters:
         parameters (dict): The parameters for the analysis.
         """
-        if isinstance(parameters[DeaParameters.GROUP1], str):
-            if DeaParameters.GROUPING_COLUMN not in parameters:
-                raise ValueError(
-                    f"Parameter {DeaParameters.GROUPING_COLUMN} is missing."
+        if isinstance(group1, str):
+            if grouping_column is None:
+                raise TypeError(
+                    f"Parameter '{DeaParameters.GROUPING_COLUMN}' is missing."
                 )
-            if parameters.get(DeaParameters.METADATA, None) is None:
-                raise ValueError(f"Parameter {DeaParameters.METADATA} is missing.")
-            group1, group2 = self._get_group_members(
-                group1=parameters[DeaParameters.GROUP1],
-                group2=parameters[DeaParameters.GROUP2],
-                grouping_column=parameters[DeaParameters.GROUPING_COLUMN],
-                metadata=parameters[DeaParameters.METADATA],
+            if metadata is None:
+                raise TypeError(f"Parameter '{DeaParameters.METADATA}' is missing.")
+            group1_samples, group2_samples = self._get_group_members(
+                group1=group1,
+                group2=group2,
+                grouping_column=grouping_column,
+                metadata=metadata,
             )
         else:
-            if DeaParameters.GROUPING_COLUMN in parameters:
-                raise ValueError(
+            if grouping_column is not None:
+                raise TypeError(
                     "Please provide either a list of columns OR the grouping column, not both."
                 )
-            group1 = parameters[DeaParameters.GROUP1]
-            group2 = parameters[DeaParameters.GROUP2]
-        for index in group1 + group2:
+            group1_samples = group1
+            group2_samples = group2
+        for index in group1_samples + group2_samples:
             if index not in self.input_data.index:
                 raise KeyError(f"Sample {index} is missing from the input data.")
 
@@ -262,7 +274,12 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             PreprocessingStateKeys.LOG2_TRANSFORMED,
         ]
 
-    def _extend_validation(self, parameters: dict):
+    def _extend_validation(
+        self,
+        test_fun: str,
+        fdr_method: str,
+        **kwargs,
+    ):
         """Validates the input and parameters for the t-test differential expression analysis.
 
         This function checks for the required parameters for the t-test analysis, namely test_fun and fdr_method. The test_fun must be either scipy.stats.ttest_ind or scipy.stats.ttest_rel and the fdr_method must be one of 'bh' or 'by'.
@@ -270,15 +287,15 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         Parameters:
         parameters (dict): The parameters for the analysis.
         """
-        super()._extend_validation(parameters)
-        if parameters["test_fun"] not in [
+        super()._extend_validation(**kwargs)
+        if test_fun not in [
             "independent",
             "paired",
         ]:
             raise ValueError(
                 "test_fun must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel."
             )
-        if parameters["fdr_method"] not in ["fdr_bh", "bonferroni"]:
+        if fdr_method not in ["fdr_bh", "bonferroni"]:
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
     def _run_statistical_test(self, **kwargs) -> pd.DataFrame:
