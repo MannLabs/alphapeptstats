@@ -199,7 +199,12 @@ class TestableDifferentialExpressionAnalysisTwoGroups(
         ]
 
     def _run_statistical_test(self, **kwargs):
-        group1, group2 = self._get_group_members(kwargs)
+        group1, group2 = self._get_group_members(
+            group1=kwargs[DeaParameters.GROUP1],
+            group2=kwargs[DeaParameters.GROUP2],
+            metadata=kwargs[DeaParameters.METADATA],
+            grouping_column=kwargs[DeaParameters.GROUPING_COLUMN],
+        )
         return self._statistical_test_fun(self.input_data, group1=group1, group2=group2)
 
     @staticmethod
@@ -334,7 +339,7 @@ def test_dea_two_groups_missing_metadata():
 
 def test_dea_two_groups_get_group_members_metadata():
     group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
-        TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
+        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
     )
     assert group1 == ["sample1", "sample2"]
     assert group2 == ["sample3", "sample4"]
@@ -342,7 +347,7 @@ def test_dea_two_groups_get_group_members_metadata():
 
 def test_dea_two_groups_get_group_members_direct_grouping():
     group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
-        {"group1": ["sample1", "sample2"], "group2": ["sample3", "sample4"]}
+        **{"group1": ["sample1", "sample2"], "group2": ["sample3", "sample4"]}
     )
     assert group1 == ["sample1", "sample2"]
     assert group2 == ["sample3", "sample4"]

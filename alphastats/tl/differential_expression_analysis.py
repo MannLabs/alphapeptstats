@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -192,45 +192,57 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
         Parameters:
         parameters (dict): The parameters for the analysis.
         """
-        if isinstance(parameters["group1"], str):
+        if isinstance(parameters[DeaParameters.GROUP1], str):
             if DeaParameters.GROUPING_COLUMN not in parameters:
                 raise ValueError(
                     f"Parameter {DeaParameters.GROUPING_COLUMN} is missing."
                 )
             if parameters.get(DeaParameters.METADATA, None) is None:
                 raise ValueError(f"Parameter {DeaParameters.METADATA} is missing.")
-            group1, group2 = self._get_group_members(parameters)
+            group1, group2 = self._get_group_members(
+                group1=parameters[DeaParameters.GROUP1],
+                group2=parameters[DeaParameters.GROUP2],
+                grouping_column=parameters[DeaParameters.GROUPING_COLUMN],
+                metadata=parameters[DeaParameters.METADATA],
+            )
         else:
             if DeaParameters.GROUPING_COLUMN in parameters:
                 raise ValueError(
                     "Please provide either a list of columns OR the grouping column, not both."
                 )
-            group1 = parameters["group1"]
-            group2 = parameters["group2"]
+            group1 = parameters[DeaParameters.GROUP1]
+            group2 = parameters[DeaParameters.GROUP2]
         for index in group1 + group2:
             if index not in self.input_data.index:
                 raise KeyError(f"Sample {index} is missing from the input data.")
 
     @staticmethod
-    def _get_group_members(parameters) -> Tuple[list, list]:
-        """Returns the group columns based on the parameters."""
-        if DeaParameters.GROUPING_COLUMN not in parameters:
-            group1 = parameters[DeaParameters.GROUP1]
-            group2 = parameters[DeaParameters.GROUP2]
+    def _get_group_members(
+        group1: Union[List, str],
+        group2: Union[List, str],
+        grouping_column: Union[str, None] = None,
+        metadata: Union[pd.DataFrame, None] = None,
+    ) -> Tuple[list, list]:
+        """Returns the group columns based on the lists or retrieves it form the metadata."""
+        if (
+            grouping_column is None
+            and isinstance(group1, list)
+            and isinstance(group2, list)
+        ):
+            group1 = group1
+            group2 = group2
         else:
-            grouping_column = parameters[DeaParameters.METADATA][
-                parameters[DeaParameters.GROUPING_COLUMN]
-            ]
-            sample_column = parameters[DeaParameters.METADATA][Cols.SAMPLE]
+            grouping_values = metadata[grouping_column]
+            sample_values = metadata[Cols.SAMPLE]
             group1 = [
                 sample
-                for sample, group in zip(sample_column, grouping_column)
-                if group == parameters[DeaParameters.GROUP1]
+                for sample, group in zip(sample_values, grouping_values)
+                if group == group1
             ]
             group2 = [
                 sample
-                for sample, group in zip(sample_column, grouping_column)
-                if group == parameters[DeaParameters.GROUP2]
+                for sample, group in zip(sample_values, grouping_values)
+                if group == group2
             ]
         return group1, group2
 
@@ -276,7 +288,12 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         Returns:
         pd.DataFrame: The result of the analysis.
         """
-        group1, group2 = self._get_group_members(kwargs)
+        group1, group2 = self._get_group_members(
+            group1=kwargs[DeaParameters.GROUP1],
+            group2=kwargs[DeaParameters.GROUP2],
+            grouping_column=kwargs.get(DeaParameters.GROUPING_COLUMN, None),
+            metadata=kwargs.get(DeaParameters.METADATA, None),
+        )
         result = self._statistical_test_fun(
             input_data=self.input_data,
             group1=group1,
