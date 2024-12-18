@@ -229,22 +229,22 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
             and isinstance(group1, list)
             and isinstance(group2, list)
         ):
-            group1 = group1
-            group2 = group2
+            group1_samples = group1
+            group2_samples = group2
         else:
             grouping_values = metadata[grouping_column]
             sample_values = metadata[Cols.SAMPLE]
-            group1 = [
+            group1_samples = [
                 sample
                 for sample, group in zip(sample_values, grouping_values)
                 if group == group1
             ]
-            group2 = [
+            group2_samples = [
                 sample
                 for sample, group in zip(sample_values, grouping_values)
                 if group == group2
             ]
-        return group1, group2
+        return group1_samples, group2_samples
 
 
 class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroups):
@@ -288,7 +288,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         Returns:
         pd.DataFrame: The result of the analysis.
         """
-        group1, group2 = self._get_group_members(
+        group1_samples, group2_samples = self._get_group_members(
             group1=kwargs[DeaParameters.GROUP1],
             group2=kwargs[DeaParameters.GROUP2],
             grouping_column=kwargs.get(DeaParameters.GROUPING_COLUMN, None),
@@ -296,8 +296,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         )
         result = self._statistical_test_fun(
             input_data=self.input_data,
-            group1=group1,
-            group2=group2,
+            group1_samples=group1_samples,
+            group2_samples=group2_samples,
             is_log2_transformed=kwargs[PreprocessingStateKeys.LOG2_TRANSFORMED],
             test_fun=kwargs[DeaParameters.TEST_FUN],
             fdr_method=kwargs[DeaParameters.FDR_METHOD],
@@ -307,8 +307,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     @staticmethod
     def _statistical_test_fun(
         input_data: pd.DataFrame,
-        group1: list,
-        group2: list,
+        group1_samples: list,
+        group2_samples: list,
         is_log2_transformed: bool,
         test_fun: str,
         fdr_method: str,
@@ -317,8 +317,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
 
         Parameters:
         input_data (pd.DataFrame): The input data for the analysis.
-        group1 (list): The samples for group 1.
-        group2 (list): The samples for group 2.
+        group1_samples (list): The samples for group 1.
+        group2_samples (list): The samples for group 2.
         is_log2_transformed (bool): Whether the data is log2 transformed.
         test_fun (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
         fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
@@ -326,7 +326,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         Returns:
         pd.DataFrame: The result of the analysis.
         """
-        mat_transpose = input_data.loc[group1 + group2, :].transpose()
+        mat_transpose = input_data.loc[group1_samples + group2_samples, :].transpose()
 
         test_fun = {
             "independent": scipy.stats.ttest_ind,
@@ -342,8 +342,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         # TODO: return not only the p-value, but also the t-statistic
         p_values = mat_transpose.apply(
             lambda row: test_fun(
-                row[group1].values.flatten(),
-                row[group2].values.flatten(),
+                row[group1_samples].values.flatten(),
+                row[group2_samples].values.flatten(),
                 nan_policy="omit",
             )[1],
             axis=1,
@@ -353,8 +353,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         result[DeaColumns.PVALUE] = p_values.values
         result[DeaColumns.LOG2FC] = calculate_foldchange(
             mat_transpose=mat_transpose,
-            group1_samples=group1,
-            group2_samples=group2,
+            group1_samples=group1_samples,
+            group2_samples=group2_samples,
             is_log2_transformed=True,
         )
 
