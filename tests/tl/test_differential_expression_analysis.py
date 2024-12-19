@@ -9,6 +9,7 @@ from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DeaParameters,
+    DeaTestTypes,
     DifferentialExpressionAnalysis,
     DifferentialExpressionAnalysisTTest,
     DifferentialExpressionAnalysisTwoGroups,
@@ -296,7 +297,7 @@ def test_dea_ttest_perform_runs():
     dea.perform(
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
-            DeaParameters.TEST_TYPE: "independent",
+            DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
             DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: True,
         },
@@ -312,7 +313,7 @@ def test_dea_ttest_runs_log(mock_transform):
     result = dea._perform(
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
-            DeaParameters.TEST_TYPE: "independent",
+            DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
             DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
         },
@@ -347,7 +348,7 @@ def test_dea_ttest_validation_wrong_fdr_method():
         dea._validate_input(
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{
-                DeaParameters.TEST_TYPE: "independent",
+                DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
                 DeaParameters.FDR_METHOD: "unknown",
                 PreprocessingStateKeys.LOG2_TRANSFORMED: True,
             },
