@@ -38,34 +38,45 @@ class DeaTestTypes(ConstantsClass):
 class DifferentialExpressionAnalysis(ABC):
     """This class implements the basic methods required for differential expression analysis.
 
-    The purpose of this class is to provide a common interface for differential expression analysis. It should be subclassed for specific methods, such as t-tests or ANOVA. The class provides methods for input validation, output validation, and running the analysis. It also provides a method for getting the significance of the results based on a q-value cutoff.
+    The purpose of this class is to provide a common interface for differential expression analysis.
+    It should be subclassed for specific methods, such as t-tests or ANOVA. The class provides methods
+    for input validation, output validation, and running the analysis. It also provides a method for
+    getting the significance of the results based on a q-value cutoff.
 
-    attributes:
-    - mat (pd.DataFrame): The input data for the analysis.
-    - result (pd.DataFrame): The result of the analysis.
+    Attributes
+    ----------
+    mat : pd.DataFrame
+        The input data for the analysis.
+    result : pd.DataFrame
+        The result of the analysis.
 
-    public methods:
-    - perform: performs the analysis and stores the result. This fixes the worflow of input validation, running the test and validating the output.
-    - get_dict_key: generates a unique key for the result dictionary, static method
-    - get_significance: returns the significant features based on the q-value cutoff, static method
+    Methods
+    -------
+    perform(**kwargs)
+        Performs the analysis and stores the result. This fixes the workflow of input validation,
+        running the test, and validating the output.
+    get_significance(result: pd.DataFrame, qvalue_cutoff: float) -> pd.DataFrame
+        Returns the significant features based on the q-value cutoff.
 
-    abstract methods:
-    - _allowed_parameters: that returns a list of allowed parameters for the analysis, static method
-    - _extend_validation: extends the validation of parameters for the specific method
-    - _perform: wrapper runs the statistical test from kwargs
-    - _run_statistical_test: that runs the statistical test, static method. The wrapper and the actual method are separated to allow for easier testing and to ensure that all parameters are defined with types and defaults.
+    Abstract Methods
+    ----------------
+    _allowed_parameters() -> List[str]
+        Returns a list of allowed parameters for the analysis.
+    _extend_validation(**kwargs)
+        Extends the validation of parameters for the specific method.
+    _perform(**kwargs) -> pd.DataFrame
+        Wrapper that runs the statistical test from kwargs.
+    _run_statistical_test(mat: pd.DataFrame, **kwargs) -> pd.DataFrame
+        Runs the statistical test. The wrapper and the actual method are separated to allow for easier
+        testing and to ensure that all parameters are defined with types and defaults.
 
-    Intended usage:
-    class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
-        implement shared methods for two-group analysis
-    class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroups):
-        implement t-test specific methods
-    dea = DifferentialExpressionAnalysisTTest(DataSet.mat)
-    settings = {'group1': ['A', 'B'], 'group2': ['C', 'D'], 'test_type': 'independent', 'fdr_method': 'fdr_bh'}
-    result = dea.perform(**settings) # run once
-    cached_results[dea.get_dict_key(settings)] = result
-    significance = dea.get_significance(cached_results[dea.get_dict_key(settings)], 0.05) # run multiple times
-    volcano_plot(cached_results[dea.get_dict_key(settings)], significance) # visualize
+    Intended Usage
+    --------------
+        Implement shared methods for two-group analysis.
+        Implement t-test specific methods.
+    result = dea.perform(**settings)  # run once
+    significance = dea.get_significance(cached_result, 0.05)  # run multiple times
+    volcano_plot(cached_result, significance)  # visualize
     """
 
     def __init__(self, mat: pd.DataFrame) -> None:
@@ -144,11 +155,6 @@ class DifferentialExpressionAnalysis(ABC):
         for column in expected_columns:
             if column not in result.columns:
                 raise KeyError(f"Column '{column}' is missing from the result.")
-
-    @staticmethod
-    def get_dict_key(parameters: dict) -> str:
-        """Generates a unique key based on the parameters for the result dictionary."""
-        return str(parameters)
 
     @abstractmethod
     def _perform(self, **kwargs) -> pd.DataFrame:

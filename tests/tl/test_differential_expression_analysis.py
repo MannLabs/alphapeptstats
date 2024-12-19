@@ -124,18 +124,6 @@ def test_dea_get_significance():
     )
 
 
-def test_dea_get_dict_key():
-    """Test get_dict_key method."""
-    assert (
-        DifferentialExpressionAnalysis.get_dict_key(
-            {DeaParameters.METADATA: pd.DataFrame()}
-        )
-        == """{'metadata': Empty DataFrame
-Columns: []
-Index: []}"""
-    )
-
-
 valid_parameter_input_two_groups = {
     DeaParameters.METADATA: pd.DataFrame(
         [
