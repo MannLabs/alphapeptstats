@@ -35,7 +35,7 @@ class DifferentialExpressionAnalysis(ABC):
     The purpose of this class is to provide a common interface for differential expression analysis. It should be subclassed for specific methods, such as t-tests or ANOVA. The class provides methods for input validation, output validation, and running the analysis. It also provides a method for getting the significance of the results based on a q-value cutoff.
 
     attributes:
-    - input_data (pd.DataFrame): The input data for the analysis.
+    - mat (pd.DataFrame): The input data for the analysis.
     - result (pd.DataFrame): The result of the analysis.
 
     abstract methods:
@@ -62,13 +62,13 @@ class DifferentialExpressionAnalysis(ABC):
     volcano_plot(cached_results[dea.get_dict_key(settings)], significance) # visualize
     """
 
-    def __init__(self, input_data: pd.DataFrame) -> None:
+    def __init__(self, mat: pd.DataFrame) -> None:
         """Constructor for the DifferentialExpressionAnalysis class. Validates input and parameters.
 
         Parameters:
-        input_data (pd.DataFrame): The input data for the analysis. This should be a DataFrame with the samples as rows and the features as columns.
+        mat (pd.DataFrame): The input data for the analysis. This should be a DataFrame with the samples as rows and the features as columns.
         """
-        self.input_data = input_data
+        self.mat = mat
         self.result: pd.DataFrame = None
 
     def _validate_input(self, parameters: dict) -> None:
@@ -77,10 +77,10 @@ class DifferentialExpressionAnalysis(ABC):
         This function here checks for all parameters required for analysis regardless of the specific method, namely log2_transformed and metadata.
 
         Parameters:
-        input_data (pd.DataFrame): The input data for the analysis.
+        mat (pd.DataFrame): The input data for the analysis.
         parameters (dict): The parameters for the analysis.
         """
-        if self.input_data is None:
+        if self.mat is None:
             raise ValueError("No input data was provided.")
         if parameters is None:
             raise ValueError("No parameters were provided.")
@@ -146,7 +146,7 @@ class DifferentialExpressionAnalysis(ABC):
 
     @abstractmethod
     def _run_statistical_test(self, **kwargs) -> pd.DataFrame:
-        """Abstract methodwrapper to run the test. This should only rely on input_data and parameters and return the result. Output needs to conform with _validate_output
+        """Abstract methodwrapper to run the test. This should only rely on mat and parameters and return the result. Output needs to conform with _validate_output
 
         Parameters:
         **kwargs: The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
@@ -158,11 +158,11 @@ class DifferentialExpressionAnalysis(ABC):
 
     @staticmethod
     @abstractmethod
-    def _statistical_test_fun(input_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    def _statistical_test_fun(mat: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Static abstract method to run the statistical test. This must be run by _run_statistical_test and return the result of the analysis.
 
         Parameters:
-        input_data (pd.DataFrame): The input data for the analysis.
+        mat (pd.DataFrame): The input data for the analysis.
         **kwargs: The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
 
         Returns:
@@ -199,7 +199,7 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
     ):
         """Validates the input and parameters for the two-group differential expression analysis.
 
-        This function checks for the required parameters for the two-group analysis, namely group1 and group2 are valid contained in the input_data.
+        This function checks for the required parameters for the two-group analysis, namely group1 and group2 are valid contained in the mat.
 
         Parameters:
         group1 (Union[List, str]): The first group.
@@ -214,7 +214,7 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
             metadata=metadata,
         )
         for index in group1_samples + group2_samples:
-            if index not in self.input_data.index:
+            if index not in self.mat.index:
                 raise KeyError(f"Sample {index} is missing from the input data.")
 
     @staticmethod
@@ -323,7 +323,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         )
 
         result = self._statistical_test_fun(
-            input_data=self.input_data,
+            mat=self.mat,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
             is_log2_transformed=kwargs[PreprocessingStateKeys.LOG2_TRANSFORMED],
@@ -334,7 +334,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
 
     @staticmethod
     def _statistical_test_fun(
-        input_data: pd.DataFrame,
+        mat: pd.DataFrame,
         group1_samples: list,
         group2_samples: list,
         is_log2_transformed: bool,
@@ -344,7 +344,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         """Runs the t-test analysis and returns the result.
 
         Parameters:
-        input_data (pd.DataFrame): The input data for the analysis.
+        mat (pd.DataFrame): The input data for the analysis.
         group1_samples (list): The samples for group 1.
         group2_samples (list): The samples for group 2.
         is_log2_transformed (bool): Whether the data is log2 transformed.
@@ -354,7 +354,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         Returns:
         pd.DataFrame: The result of the analysis.
         """
-        mat_transpose = input_data.loc[group1_samples + group2_samples, :].transpose()
+        mat_transpose = mat.loc[group1_samples + group2_samples, :].transpose()
 
         test_fun = {
             "independent": scipy.stats.ttest_ind,
