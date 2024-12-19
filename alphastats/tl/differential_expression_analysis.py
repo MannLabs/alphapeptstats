@@ -136,14 +136,14 @@ class DifferentialExpressionAnalysis(ABC):
         Parameters:
         result (pd.DataFrame): The result of the analysis.
         """
-        if result is None:
-            raise ValueError("No result was generated.")
+        if result.empty:
+            raise ValueError("The result dataframe is empty.")
 
         expected_columns = [DeaColumns.PVALUE, DeaColumns.QVALUE, DeaColumns.LOG2FC]
 
         for column in expected_columns:
             if column not in result.columns:
-                raise KeyError(f"Column {column} is missing from the result.")
+                raise KeyError(f"Column '{column}' is missing from the result.")
 
     @staticmethod
     def get_dict_key(parameters: dict) -> str:
@@ -392,5 +392,12 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             is_log2_transformed=True,
         )
 
-        result[DeaColumns.QVALUE] = multipletests(p_values.values, method=fdr_method)[1]
+        qvalues = pd.Series(
+            multipletests(result[DeaColumns.PVALUE].dropna().values, method=fdr_method)[
+                1
+            ],
+            name=DeaColumns.QVALUE,
+            index=result[DeaColumns.PVALUE].dropna().index,
+        )
+        result = result.merge(qvalues, left_index=True, right_index=True, how="left")
         return result

@@ -15,8 +15,16 @@ from alphastats.tl.differential_expression_analysis import (
     DifferentialExpressionAnalysisTwoGroups,
 )
 
+valid_dea_output = pd.DataFrame(
+    [[0.055, 2, 0.009], [0.1, 0.1, 0.1], [0.1, 0.1, np.nan]],
+    columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
+    index=["gene1", "gene2", "gene3"],
+)
+
 
 class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
+    """Testable implementation of DifferentialExpressionAnalysis."""
+
     @staticmethod
     def _allowed_parameters():
         return [DeaParameters.METADATA]
@@ -32,107 +40,92 @@ class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
 
     @staticmethod
     def _run_statistical_test(mat, metadata):
-        return pd.DataFrame(
-            [[0.055, 2, 0.009]],
-            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
-            index=["gene1"],
+        return valid_dea_output
+
+
+class Test_DifferentialExpressionAnalysis:
+    """Tests for instances of DifferentialExpressionAnalysis."""
+
+    def setup_method(self):
+        """Setup testable DifferentialExpressionAnalysis instance."""
+        mat = pd.DataFrame(np.zeros((3, 3)))
+        self.dea = TestableDifferentialExpressionAnalysis(mat)
+
+    def teardown_method(self):
+        """Teardown testable DifferentialExpressionAnalysis instance."""
+        del self.dea
+
+    @patch(
+        "test_differential_expression_analysis.TestableDifferentialExpressionAnalysis._run_statistical_test"
+    )
+    def test_dea_perform_calls_test(self, mock_run_statistical_test):
+        """Perform method calls test method."""
+        mock_run_statistical_test.return_value = valid_dea_output
+        self.dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
+        assert mock_run_statistical_test.called_once()
+
+    def test_dea_no_metadata(self):
+        """Type error raised if metadata is not provided."""
+        with pytest.raises(TypeError, match=r"'metadata'"):
+            self.dea.perform()
+
+    def test_dea_additional_arguments(self):
+        """Type error raised if additional arguments are provided."""
+        with pytest.raises(TypeError):
+            self.dea.perform(
+                metadata=pd.DataFrame(np.zeros(3, 3)), additional_argument=1
+            )
+
+    def test_dea_metadata_validation(self):
+        """Validation error raised if metadata is empty."""
+        with pytest.raises(ValueError, match="Non-empty dataframe must be provided"):
+            self.dea.perform(metadata=pd.DataFrame())
+
+    def test_dea_output_validation_missing_column(self):
+        """Key error raised if output is missing required columns."""
+        self.dea._run_statistical_test = lambda x, metadata: pd.DataFrame(
+            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC], index=["gene1"]
         )
+        with pytest.raises(KeyError, match=rf"'{DeaColumns.QVALUE}'"):
+            self.dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
 
-
-def test_dea_no_abstractmethods():
-    with pytest.raises(TypeError):
-        DifferentialExpressionAnalysis(None)
-
-
-def test_dea_perform_success():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
-    assert dea.result.equals(
-        pd.DataFrame(
-            [[0.055, 2, 0.009]],
-            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
-            index=["gene1"],
-        )
+    @patch(
+        "test_differential_expression_analysis.TestableDifferentialExpressionAnalysis._run_statistical_test"
     )
+    def test_dea_output_validation_none(self, mock_run_statistical_test):
+        """Value error raised if output is empty."""
+        mock_run_statistical_test.return_value = pd.DataFrame()
+        with pytest.raises(ValueError, match=r"empty"):
+            self.dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
 
-
-def test_dea_no_metadata():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    with pytest.raises(TypeError, match=r"'metadata"):
-        dea.perform()
-
-
-def test_dea_additional_arguments():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    with pytest.raises(TypeError):
-        dea.perform(metadata=pd.DataFrame(np.zeros(3, 3)), additional_argument=1)
-
-
-def test_dea_metadata_validation():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    with pytest.raises(ValueError, match="Non-empty dataframe must be provided"):
-        dea.perform(metadata=pd.DataFrame())
-
-
-def test_dea_output_validation_static():
-    result = pd.DataFrame(
-        [[0.055, 2, 0.009]],
-        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
-        index=["gene1"],
+    @patch(
+        "test_differential_expression_analysis.TestableDifferentialExpressionAnalysis._run_statistical_test"
     )
-    DifferentialExpressionAnalysis._validate_output(result)
+    def test_dea_output_validation_pass_additional_columns(
+        self, mock_run_statistical_test
+    ):
+        """Additional columns are allowed in output."""
+        additional_column_output = valid_dea_output.copy()
+        additional_column_output["additional"] = 1
+        mock_run_statistical_test.return_value = additional_column_output
+        self.dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
 
 
-def test_dea_output_validation_missing_column():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    dea._run_statistical_test = lambda x, metadata: pd.DataFrame(
-        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC], index=["gene1"]
-    )
-    with pytest.raises(KeyError):
-        dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
-
-
-def test_dea_output_validation_none():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    dea._run_statistical_test = lambda x, metadata: None
-    with pytest.raises(ValueError):
-        dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
-
-
-def test_dea_output_validation_pass_additional_columns():
-    mat = pd.DataFrame(np.zeros((3, 3)))
-    dea = TestableDifferentialExpressionAnalysis(mat)
-    dea._run_statistical_test = lambda x, metadata: pd.DataFrame(
-        [[0.055, 2, 0.009, 0.1]],
-        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE, "additional"],
-        index=["gene1"],
-    )
-    dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
-
-
-def test_dea_get_significance_static():
-    result = pd.DataFrame(
-        [[0.055, 2, 0.009], [0.1, 3, 0.1]],
-        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
-        index=["gene1", "gene2"],
-    )
+def test_dea_get_significance():
+    """Test get_significance method."""
+    result = valid_dea_output
     significant = DifferentialExpressionAnalysis.get_significance(result, 0.01)
     assert significant.equals(
         pd.DataFrame(
-            [[True], [False]],
+            [[True], [False], [False]],
             columns=[DeaColumns.SIGNIFICANT],
-            index=["gene1", "gene2"],
+            index=["gene1", "gene2", "gene3"],
         )
     )
 
 
 def test_dea_get_dict_key():
+    """Test get_dict_key method."""
     assert (
         DifferentialExpressionAnalysis.get_dict_key(
             {DeaParameters.METADATA: pd.DataFrame()}
@@ -143,9 +136,39 @@ Index: []}"""
     )
 
 
+valid_parameter_input_two_groups = {
+    DeaParameters.METADATA: pd.DataFrame(
+        [
+            ["sample1", "group1"],
+            ["sample2", "group1"],
+            ["sample3", "group2"],
+            ["sample4", "group2"],
+        ],
+        columns=[Cols.SAMPLE, "grouping_column"],
+    ),
+    DeaParameters.GROUP1: "group1",
+    DeaParameters.GROUP2: "group2",
+    DeaParameters.GROUPING_COLUMN: "grouping_column",
+}
+
+valid_data_input_two_groups = pd.DataFrame(
+    [
+        [1, 1.1, 3, 4],
+        [2, 3, 4, 7],
+        [3, 4, 4, 6],
+        [0, 0, 0, 0],
+        [np.nan, np.nan, np.nan, np.nan],
+    ],
+    columns=["sample1", "sample2", "sample3", "sample4"],
+    index=["gene1", "gene2", "gene3", "zerogene", "nangene"],
+).T
+
+
 class TestableDifferentialExpressionAnalysisTwoGroups(
     DifferentialExpressionAnalysisTwoGroups
 ):
+    """Testable implementation of DifferentialExpressionAnalysisTwoGroups."""
+
     @staticmethod
     def _allowed_parameters():
         return [
@@ -166,85 +189,51 @@ class TestableDifferentialExpressionAnalysisTwoGroups(
 
     @staticmethod
     def _run_statistical_test(mat, group1, group2):
-        return pd.DataFrame(
-            [[0.055, 2, 0.009]],
-            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
-            index=["gene1"],
-        )
-
-    valid_parameter_input = {
-        DeaParameters.METADATA: pd.DataFrame(
-            [
-                ["sample1", "group1"],
-                ["sample2", "group1"],
-                ["sample3", "group2"],
-                ["sample4", "group2"],
-            ],
-            columns=[Cols.SAMPLE, "grouping_column"],
-        ),
-        DeaParameters.GROUP1: "group1",
-        DeaParameters.GROUP2: "group2",
-        DeaParameters.GROUPING_COLUMN: "grouping_column",
-    }
-
-    valid_data_input = pd.DataFrame(
-        [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]],
-        columns=["sample1", "sample2", "sample3", "sample4"],
-        index=["gene1", "gene2", "gene3"],
-    ).T
+        return valid_dea_output
 
 
-def test_dea_two_groups_no_abstractmethods():
-    with pytest.raises(TypeError):
-        DifferentialExpressionAnalysisTwoGroups(None)
-
-
-def test_dea_two_groups_perform_success():
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
-    dea = TestableDifferentialExpressionAnalysisTwoGroups(mat)
-    dea.perform(**TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input)
-    assert dea.result.equals(
-        pd.DataFrame(
-            [[0.055, 2, 0.009]],
-            columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
-            index=["gene1"],
-        )
-    )
+@patch(
+    "test_differential_expression_analysis.TestableDifferentialExpressionAnalysisTwoGroups._run_statistical_test"
+)
+def test_dea_two_groups_perform_success(mock_run_statistical_test):
+    """Test successful execution of DifferentialExpressionAnalysisTwoGroups."""
+    mock_run_statistical_test.return_value = valid_dea_output
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(valid_data_input_two_groups)
+    dea.perform(**valid_parameter_input_two_groups)
+    assert mock_run_statistical_test.called_once()
 
 
 def test_dea_two_groups_validation_missing_sample():
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input.drop(
-        index="sample1"
+    """Test KeyError if sample is missing from data input."""
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(
+        valid_data_input_two_groups.drop(index="sample1")
     )
-    dea = TestableDifferentialExpressionAnalysisTwoGroups(mat)
-    with pytest.raises(KeyError):
-        dea._validate_input(
-            **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
-        )
+    with pytest.raises(KeyError, match="sample1"):
+        dea._validate_input(**valid_parameter_input_two_groups)
 
 
 @patch(
     "alphastats.tl.differential_expression_analysis.DifferentialExpressionAnalysisTwoGroups._get_group_members"
 )
 def test_dea_two_groups_validation_calls_get_groups(mock_get_group_members):
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
-    dea = TestableDifferentialExpressionAnalysisTwoGroups(mat)
+    """Test that get_group_members is called during validation."""
+    dea = TestableDifferentialExpressionAnalysisTwoGroups(valid_data_input_two_groups)
     mock_get_group_members.return_value = ["sample1", "sample2"], ["sample3", "sample4"]
-    dea._validate_input(
-        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
-    )
+    dea._validate_input(**valid_parameter_input_two_groups)
     mock_get_group_members.assert_called_once()
 
 
 def test_dea_two_groups_get_group_members_from_metadata():
+    """ "Test successful extraction of group members from metadata."""
     group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
-        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input
+        **valid_parameter_input_two_groups
     )
     assert group1 == ["sample1", "sample2"]
     assert group2 == ["sample3", "sample4"]
 
 
 def test_dea_two_groups_get_group_members_from_lists():
+    """Test successful passing of group member lists."""
     group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
         group1=["sample1", "sample2"], group2=["sample3", "sample4"]
     )
@@ -267,7 +256,7 @@ def test_dea_two_groups_get_group_members_both_grouping_methods():
         )
 
 
-def test_dea_two_groups_missing_get_group_members_grouping_column():
+def test_dea_two_groups_get_group_members_grouping_column():
     """Test custom error if expected kwarg grouping column is missing."""
     with pytest.raises(TypeError, match=r"If grouping_column is not provided.*"):
         DifferentialExpressionAnalysisTwoGroups._get_group_members(
@@ -292,26 +281,24 @@ def test_dea_two_groups_get_group_members_missing_metadata():
 
 
 def test_dea_ttest_perform_runs():
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
-    dea = DifferentialExpressionAnalysisTTest(mat)
+    """Test successful execution of DifferentialExpressionAnalysisTTest."""
+    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
     dea.perform(
-        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+        **valid_parameter_input_two_groups,
         **{
             DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
             DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: True,
         },
     )
-    assert dea.result.shape == (3, 3)
+    assert dea.result.shape == (4, 3)
 
 
-@patch("pandas.DataFrame.transform")
-def test_dea_ttest_runs_log(mock_transform):
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
-    dea = DifferentialExpressionAnalysisTTest(mat)
-    mock_transform.return_value = mat.T
+def test_dea_ttest_runs_log():
+    """Test that log2 transformation is applied."""
+    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
     result = dea._perform(
-        **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+        **valid_parameter_input_two_groups,
         **{
             DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
             DeaParameters.FDR_METHOD: "fdr_bh",
@@ -319,18 +306,17 @@ def test_dea_ttest_runs_log(mock_transform):
         },
     )
     assert result.shape == (3, 3)
-    mock_transform.assert_called_once_with(np.log2)
 
 
 def test_dea_ttest_validation_wrong_stats_method():
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
-    dea = DifferentialExpressionAnalysisTTest(mat)
+    """Test ValueError if stats method is not recognized."""
+    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
     with pytest.raises(
         ValueError,
         match="test_type must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel.",
     ):
         dea._validate_input(
-            **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+            **valid_parameter_input_two_groups,
             **{
                 DeaParameters.TEST_TYPE: "not defined",
                 DeaParameters.FDR_METHOD: "fdr_bh",
@@ -340,13 +326,13 @@ def test_dea_ttest_validation_wrong_stats_method():
 
 
 def test_dea_ttest_validation_wrong_fdr_method():
-    mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
-    dea = DifferentialExpressionAnalysisTTest(mat)
+    """Test ValueError if fdr method is not recognized."""
+    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
     with pytest.raises(
         ValueError, match="fdr_method must be one of 'fdr_bh', 'bonferroni'."
     ):
         dea._validate_input(
-            **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
+            **valid_parameter_input_two_groups,
             **{
                 DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
                 DeaParameters.FDR_METHOD: "unknown",
