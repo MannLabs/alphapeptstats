@@ -282,6 +282,16 @@ def test_dea_two_groups_get_group_members_missing_metadata():
 
 def test_dea_ttest_perform_runs():
     """Test successful execution of DifferentialExpressionAnalysisTTest."""
+    expected_result = pd.DataFrame(
+        [
+            [0.03958486373817782, -2.45, 0.11875459121453347],
+            [0.19821627426272678, -3.0, 0.2973244113940902],
+            [0.3117527983883147, -1.5, 0.3117527983883147],
+            [np.nan, 0.0, np.nan],
+        ],
+        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
+        index=["gene1", "gene2", "gene3", "zerogene"],
+    )
     dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
     dea.perform(
         **valid_parameter_input_two_groups,
@@ -291,11 +301,20 @@ def test_dea_ttest_perform_runs():
             PreprocessingStateKeys.LOG2_TRANSFORMED: True,
         },
     )
-    assert dea.result.shape == (4, 3)
+    pd.testing.assert_frame_equal(dea.result, expected_result)
 
 
-def test_dea_ttest_runs_log():
+def test_dea_ttest_perform_runs_log():
     """Test that log2 transformation is applied."""
+    expected_result = pd.DataFrame(
+        [
+            [0.01570651089572518, -1.7237294884856105, 0.047119532687175544],
+            [0.1556022268654943, -1.1111962106682238, 0.23340334029824145],
+            [0.29794294575639113, -0.5, 0.29794294575639113],
+        ],
+        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
+        index=["gene1", "gene2", "gene3"],
+    )
     dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
     result = dea._perform(
         **valid_parameter_input_two_groups,
@@ -305,7 +324,7 @@ def test_dea_ttest_runs_log():
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
         },
     )
-    assert result.shape == (3, 3)
+    pd.testing.assert_frame_equal(result, expected_result)
 
 
 def test_dea_ttest_validation_wrong_stats_method():
