@@ -24,13 +24,13 @@ class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
         if metadata.empty:
             raise ValueError("Non-empty dataframe must be provided")
 
-    def _run_statistical_test(self, **kwargs):
-        return self._statistical_test_fun(
+    def _perform(self, **kwargs):
+        return self._run_statistical_test(
             self.mat, metadata=kwargs[DeaParameters.METADATA]
         )
 
     @staticmethod
-    def _statistical_test_fun(mat, metadata):
+    def _run_statistical_test(mat, metadata):
         return pd.DataFrame(
             [[0.055, 2, 0.009]],
             columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
@@ -46,7 +46,7 @@ def test_dea_no_abstractmethods():
 def test_dea_perform_success():
     mat = pd.DataFrame(np.zeros((3, 3)))
     dea = TestableDifferentialExpressionAnalysis(mat)
-    dea.perform(metadata=pd.DataFrame())
+    dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
     assert dea.result.equals(
         pd.DataFrame(
             [[0.055, 2, 0.009]],
@@ -74,7 +74,7 @@ def test_dea_metadata_validation():
     mat = pd.DataFrame(np.zeros((3, 3)))
     dea = TestableDifferentialExpressionAnalysis(mat)
     with pytest.raises(ValueError, match="Non-empty dataframe must be provided"):
-        dea.perform(metadata=None)
+        dea.perform(metadata=pd.DataFrame())
 
 
 def test_dea_output_validation_static():
@@ -89,30 +89,30 @@ def test_dea_output_validation_static():
 def test_dea_output_validation_missing_column():
     mat = pd.DataFrame(np.zeros((3, 3)))
     dea = TestableDifferentialExpressionAnalysis(mat)
-    dea._statistical_test_fun = lambda x, metadata: pd.DataFrame(
+    dea._run_statistical_test = lambda x, metadata: pd.DataFrame(
         columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC], index=["gene1"]
     )
     with pytest.raises(KeyError):
-        dea.perform(metadata=pd.DataFrame())
+        dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
 
 
 def test_dea_output_validation_none():
     mat = pd.DataFrame(np.zeros((3, 3)))
     dea = TestableDifferentialExpressionAnalysis(mat)
-    dea._statistical_test_fun = lambda x, metadata: None
+    dea._run_statistical_test = lambda x, metadata: None
     with pytest.raises(ValueError):
-        dea.perform(metadata=pd.DataFrame())
+        dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
 
 
 def test_dea_output_validation_pass_additional_columns():
     mat = pd.DataFrame(np.zeros((3, 3)))
     dea = TestableDifferentialExpressionAnalysis(mat)
-    dea._statistical_test_fun = lambda x, metadata: pd.DataFrame(
+    dea._run_statistical_test = lambda x, metadata: pd.DataFrame(
         [[0.055, 2, 0.009, 0.1]],
         columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE, "additional"],
         index=["gene1"],
     )
-    dea.perform(metadata=pd.DataFrame())
+    dea.perform(metadata=pd.DataFrame(np.zeros((3, 3))))
 
 
 def test_dea_get_significance_static():
@@ -154,17 +154,17 @@ class TestableDifferentialExpressionAnalysisTwoGroups(
             DeaParameters.GROUPING_COLUMN,
         ]
 
-    def _run_statistical_test(self, **kwargs):
+    def _perform(self, **kwargs):
         group1, group2 = self._get_group_members(
             group1=kwargs[DeaParameters.GROUP1],
             group2=kwargs[DeaParameters.GROUP2],
             metadata=kwargs[DeaParameters.METADATA],
             grouping_column=kwargs[DeaParameters.GROUPING_COLUMN],
         )
-        return self._statistical_test_fun(self.mat, group1=group1, group2=group2)
+        return self._run_statistical_test(self.mat, group1=group1, group2=group2)
 
     @staticmethod
-    def _statistical_test_fun(mat, group1, group2):
+    def _run_statistical_test(mat, group1, group2):
         return pd.DataFrame(
             [[0.055, 2, 0.009]],
             columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
@@ -296,7 +296,7 @@ def test_dea_ttest_perform_runs():
     dea.perform(
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
-            DeaParameters.TEST_FUN: "independent",
+            DeaParameters.TEST_TYPE: "independent",
             DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: True,
         },
@@ -309,10 +309,10 @@ def test_dea_ttest_runs_log(mock_transform):
     mat = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = DifferentialExpressionAnalysisTTest(mat)
     mock_transform.return_value = mat.T
-    result = dea._run_statistical_test(
+    result = dea._perform(
         **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
         **{
-            DeaParameters.TEST_FUN: "independent",
+            DeaParameters.TEST_TYPE: "independent",
             DeaParameters.FDR_METHOD: "fdr_bh",
             PreprocessingStateKeys.LOG2_TRANSFORMED: False,
         },
@@ -326,12 +326,12 @@ def test_dea_ttest_validation_wrong_stats_method():
     dea = DifferentialExpressionAnalysisTTest(mat)
     with pytest.raises(
         ValueError,
-        match="test_fun must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel.",
+        match="test_type must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel.",
     ):
         dea._validate_input(
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{
-                DeaParameters.TEST_FUN: "not defined",
+                DeaParameters.TEST_TYPE: "not defined",
                 DeaParameters.FDR_METHOD: "fdr_bh",
                 PreprocessingStateKeys.LOG2_TRANSFORMED: True,
             },
@@ -347,7 +347,7 @@ def test_dea_ttest_validation_wrong_fdr_method():
         dea._validate_input(
             **TestableDifferentialExpressionAnalysisTwoGroups.valid_parameter_input,
             **{
-                DeaParameters.TEST_FUN: "independent",
+                DeaParameters.TEST_TYPE: "independent",
                 DeaParameters.FDR_METHOD: "unknown",
                 PreprocessingStateKeys.LOG2_TRANSFORMED: True,
             },

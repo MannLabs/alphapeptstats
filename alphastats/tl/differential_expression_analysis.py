@@ -25,7 +25,7 @@ class DeaParameters(ConstantsClass):
     GROUP2 = "group2"
     GROUPING_COLUMN = "grouping_column"
 
-    TEST_FUN = "test_fun"
+    TEST_TYPE = "test_type"
     FDR_METHOD = "fdr_method"
 
 
@@ -38,16 +38,16 @@ class DifferentialExpressionAnalysis(ABC):
     - mat (pd.DataFrame): The input data for the analysis.
     - result (pd.DataFrame): The result of the analysis.
 
-    abstract methods:
-    - _allowed_parameters: that returns a list of allowed parameters for the analysis, static method
-    - _extend_validation: extends the validation of parameters for the specific method
-    - _run_statistical_test: wrapper runs the statistical test from kwargs
-    - _statistical_test_fun: that runs the statistical test, static method. The wrapper and the actual method are separated to allow for easier testing and to ensure that all parameters are defined with types and defaults.
-
     public methods:
     - perform: performs the analysis and stores the result. This fixes the worflow of input validation, running the test and validating the output.
     - get_dict_key: generates a unique key for the result dictionary, static method
     - get_significance: returns the significant features based on the q-value cutoff, static method
+
+    abstract methods:
+    - _allowed_parameters: that returns a list of allowed parameters for the analysis, static method
+    - _extend_validation: extends the validation of parameters for the specific method
+    - _perform: wrapper runs the statistical test from kwargs
+    - _run_statistical_test: that runs the statistical test, static method. The wrapper and the actual method are separated to allow for easier testing and to ensure that all parameters are defined with types and defaults.
 
     Intended usage:
     class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
@@ -55,7 +55,7 @@ class DifferentialExpressionAnalysis(ABC):
     class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroups):
         implement t-test specific methods
     dea = DifferentialExpressionAnalysisTTest(DataSet.mat)
-    settings = {'group1': ['A', 'B'], 'group2': ['C', 'D'], 'test_fun': 'independent', 'fdr_method': 'fdr_bh'}
+    settings = {'group1': ['A', 'B'], 'group2': ['C', 'D'], 'test_type': 'independent', 'fdr_method': 'fdr_bh'}
     result = dea.perform(**settings) # run once
     cached_results[dea.get_dict_key(settings)] = result
     significance = dea.get_significance(cached_results[dea.get_dict_key(settings)], 0.05) # run multiple times
@@ -116,7 +116,7 @@ class DifferentialExpressionAnalysis(ABC):
         result (pd.DataFrame): The result of the analysis.
         """
         self._validate_input(**kwargs)
-        result = self._run_statistical_test(**kwargs)
+        result = self._perform(**kwargs)
         self._validate_output(result)
         self.result = result
         return result
@@ -145,7 +145,7 @@ class DifferentialExpressionAnalysis(ABC):
         return str(parameters)
 
     @abstractmethod
-    def _run_statistical_test(self, **kwargs) -> pd.DataFrame:
+    def _perform(self, **kwargs) -> pd.DataFrame:
         """Abstract methodwrapper to run the test. This should only rely on mat and parameters and return the result. Output needs to conform with _validate_output
 
         Parameters:
@@ -158,7 +158,7 @@ class DifferentialExpressionAnalysis(ABC):
 
     @staticmethod
     @abstractmethod
-    def _statistical_test_fun(mat: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    def _run_statistical_test(mat: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Static abstract method to run the statistical test. This must be run by _run_statistical_test and return the result of the analysis.
 
         Parameters:
@@ -186,7 +186,7 @@ class DifferentialExpressionAnalysis(ABC):
         return significance
 
 
-class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
+class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, ABC):
     """This class implements methods required specifically for two-group differential expression analysis."""
 
     def _extend_validation(
@@ -275,7 +275,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     @staticmethod
     def _allowed_parameters() -> List[str]:
         return [
-            DeaParameters.TEST_FUN,
+            DeaParameters.TEST_TYPE,
             DeaParameters.FDR_METHOD,
             DeaParameters.GROUP1,
             DeaParameters.GROUP2,
@@ -286,29 +286,29 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
 
     def _extend_validation(
         self,
-        test_fun: str,
+        test_type: str,
         fdr_method: str,
         **kwargs,
     ):
         """Validates the input and parameters for the t-test differential expression analysis.
 
         Parameters:
-        test_fun (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
+        test_type (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
         fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
         **kwargs (dict): Additional arguments passed to perform.
         """
         super()._extend_validation(**kwargs)
-        if test_fun not in [
+        if test_type not in [
             "independent",
             "paired",
         ]:
             raise ValueError(
-                "test_fun must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel."
+                "test_type must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel."
             )
         if fdr_method not in ["fdr_bh", "bonferroni"]:
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
-    def _run_statistical_test(self, **kwargs) -> pd.DataFrame:
+    def _perform(self, **kwargs) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
         Wrapper to staistical method with actual method parameters and implementation.
 
@@ -322,23 +322,23 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             metadata=kwargs.get(DeaParameters.METADATA, None),
         )
 
-        result = self._statistical_test_fun(
+        result = self._run_statistical_test(
             mat=self.mat,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
             is_log2_transformed=kwargs[PreprocessingStateKeys.LOG2_TRANSFORMED],
-            test_fun=kwargs[DeaParameters.TEST_FUN],
+            test_type=kwargs[DeaParameters.TEST_TYPE],
             fdr_method=kwargs[DeaParameters.FDR_METHOD],
         )
         return result
 
     @staticmethod
-    def _statistical_test_fun(
+    def _run_statistical_test(
         mat: pd.DataFrame,
         group1_samples: list,
         group2_samples: list,
         is_log2_transformed: bool,
-        test_fun: str,
+        test_type: str,
         fdr_method: str,
     ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
@@ -348,7 +348,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         group1_samples (list): The samples for group 1.
         group2_samples (list): The samples for group 2.
         is_log2_transformed (bool): Whether the data is log2 transformed.
-        test_fun (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
+        test_type (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
         fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
 
         Returns:
@@ -359,7 +359,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         test_fun = {
             "independent": scipy.stats.ttest_ind,
             "paired": scipy.stats.ttest_rel,
-        }[test_fun]
+        }[test_type]
 
         if not is_log2_transformed:
             mat_transpose = mat_transpose.transform(np.log2)
