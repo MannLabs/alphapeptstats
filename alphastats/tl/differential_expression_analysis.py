@@ -26,7 +26,13 @@ class DeaParameters(ConstantsClass):
     GROUPING_COLUMN = "grouping_column"
 
     TEST_TYPE = "test_type"
+
     FDR_METHOD = "fdr_method"
+
+
+class DeaTestTypes(ConstantsClass):
+    INDEPENDENT = "independent"
+    PAIRED = "paired"
 
 
 class DifferentialExpressionAnalysis(ABC):
@@ -299,11 +305,11 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         """
         super()._extend_validation(**kwargs)
         if test_type not in [
-            "independent",
-            "paired",
+            DeaTestTypes.INDEPENDENT,
+            DeaTestTypes.PAIRED,
         ]:
             raise ValueError(
-                "test_type must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel."
+                f"test_type must be either '{DeaTestTypes.INDEPENDENT}' for scipy.stats.ttest_ind or '{DeaTestTypes.PAIRED}' for scipy.stats.ttest_rel."
             )
         if fdr_method not in ["fdr_bh", "bonferroni"]:
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
@@ -357,8 +363,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         mat_transpose = mat.loc[group1_samples + group2_samples, :].transpose()
 
         test_fun = {
-            "independent": scipy.stats.ttest_ind,
-            "paired": scipy.stats.ttest_rel,
+            DeaTestTypes.INDEPENDENT: scipy.stats.ttest_ind,
+            DeaTestTypes.PAIRED: scipy.stats.ttest_rel,
         }[test_type]
 
         if not is_log2_transformed:
