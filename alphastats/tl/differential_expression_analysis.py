@@ -282,7 +282,28 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
 
 
 class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroups):
-    """This class implements the t-test differential expression analysis."""
+    """This class implements the t-test differential expression analysis.
+
+    Examples:
+    >>> mat = pd.DataFrame({
+    ...     'sample1': [1, 2, 3],
+    ...     'sample2': [4, 5, 6],
+    ...     'sample3': [7, 8, 9],
+    ...     'sample4': [10, 11, 12]
+    ... }, index=['gene1', 'gene2', 'gene3']).T
+    >>> dea = DifferentialExpressionAnalysisTTest(mat)
+    >>> result = dea.perform(
+    ...     group1_samples = ['sample1', 'sample2'],
+    ...     group2_samples = ['sample3', 'sample4'],
+    ...     is_log2_transformed = True,
+    ...     test_type = "independent",
+    ...     fdr_method = "fdr_bh",
+    ... )
+    >>> result.columns.tolist()
+    ['p-value', 'log2(fold change)', 'q-value']
+    >>> result.index.tolist()
+    ['gene1', 'gene2', 'gene3']
+    """
 
     @staticmethod
     def _allowed_parameters() -> List[str]:
