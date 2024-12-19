@@ -63,36 +63,34 @@ class DifferentialExpressionAnalysis(ABC):
     """
 
     def __init__(self, mat: pd.DataFrame) -> None:
-        """Constructor for the DifferentialExpressionAnalysis class. Validates input and parameters.
+        """Constructor for the DifferentialExpressionAnalysis class. sets up mat and results.
 
         Parameters:
         mat (pd.DataFrame): The input data for the analysis. This should be a DataFrame with the samples as rows and the features as columns.
         """
+        if mat.empty:
+            raise ValueError(
+                "Input matrix to differential expression analysis is empty."
+            )
         self.mat = mat
         self.result: pd.DataFrame = None
 
-    def _validate_input(self, parameters: dict) -> None:
+    def _validate_input(self, **kwargs) -> None:
         """Abstract method to validate the input and parameters. This should raise an exception if the input or parameters are invalid
 
         This function here checks for all parameters required for analysis regardless of the specific method, namely log2_transformed and metadata.
 
         Parameters:
-        mat (pd.DataFrame): The input data for the analysis.
-        parameters (dict): The parameters for the analysis.
+        **kwargs (dict): The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
         """
-        if self.mat is None:
-            raise ValueError("No input data was provided.")
-        if parameters is None:
-            raise ValueError("No parameters were provided.")
-
         try:
-            self._extend_validation(**parameters)
+            self._extend_validation(**kwargs)
         except TypeError as err:
             raise TypeError(
                 f"{str(err)}. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
             ) from err
 
-        for parameter in parameters:
+        for parameter in kwargs:
             if parameter not in self._allowed_parameters():
                 raise TypeError(
                     f"Parameter {parameter} should not be provided for this analysis. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
@@ -106,6 +104,8 @@ class DifferentialExpressionAnalysis(ABC):
 
     @abstractmethod
     def _extend_validation(self, **kwargs) -> None:
+        """Abstract method to extend the validation of parameters for the specific method. This should raise an exception if the input or parameters are invalid.
+        It should have all parameters required for the method as keyword arguments and validate that parameters are compatible with mat."""
         pass
 
     def perform(self, **kwargs) -> Tuple[str, pd.DataFrame]:
@@ -115,7 +115,7 @@ class DifferentialExpressionAnalysis(ABC):
         dict_key (str): A unique key based on the parameters that can be used for the result in a dictionary.
         result (pd.DataFrame): The result of the analysis.
         """
-        self._validate_input(kwargs)
+        self._validate_input(**kwargs)
         result = self._run_statistical_test(**kwargs)
         self._validate_output(result)
         self.result = result
