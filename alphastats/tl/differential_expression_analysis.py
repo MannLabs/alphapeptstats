@@ -199,31 +199,20 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
     ):
         """Validates the input and parameters for the two-group differential expression analysis.
 
-        This function checks for the required parameters for the two-group analysis, namely group1 and group2. If these are strings it additionally requires a grouping column, if these are lists it requires the samples to be present in the input data.
+        This function checks for the required parameters for the two-group analysis, namely group1 and group2 are valid contained in the input_data.
 
         Parameters:
-        parameters (dict): The parameters for the analysis.
+        group1 (Union[List, str]): The first group.
+        group2 (Union[List, str]): The second group.
+        grouping_column (Union[str, None]): The column in the metadata to group by.
+        metadata (Union[pd.DataFrame, None]): The metadata DataFrame.
         """
-        if isinstance(group1, str):
-            if grouping_column is None:
-                raise TypeError(
-                    f"Parameter '{DeaParameters.GROUPING_COLUMN}' is missing."
-                )
-            if metadata is None:
-                raise TypeError(f"Parameter '{DeaParameters.METADATA}' is missing.")
-            group1_samples, group2_samples = self._get_group_members(
-                group1=group1,
-                group2=group2,
-                grouping_column=grouping_column,
-                metadata=metadata,
-            )
-        else:
-            if grouping_column is not None:
-                raise TypeError(
-                    "Please provide either a list of columns OR the grouping column, not both."
-                )
-            group1_samples = group1
-            group2_samples = group2
+        group1_samples, group2_samples = self._get_group_members(
+            group1=group1,
+            group2=group2,
+            grouping_column=grouping_column,
+            metadata=metadata,
+        )
         for index in group1_samples + group2_samples:
             if index not in self.input_data.index:
                 raise KeyError(f"Sample {index} is missing from the input data.")
@@ -235,15 +224,32 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
         grouping_column: Union[str, None] = None,
         metadata: Union[pd.DataFrame, None] = None,
     ) -> Tuple[list, list]:
-        """Returns the group columns based on the lists or retrieves it form the metadata."""
-        if (
-            grouping_column is None
-            and isinstance(group1, list)
-            and isinstance(group2, list)
-        ):
+        """Returns the group columns based on the lists or retrieves it form the metadata.
+
+        Parameters:
+        group1 (Union[List, str]): The first group.
+        group2 (Union[List, str]): The second group.
+        grouping_column (Union[str, None]): The column in the metadata to group by.
+        metadata (Union[pd.DataFrame, None]): The metadata DataFrame.
+
+        Returns:
+        Tuple[list, list]: The samples for group 1 and group 2."""
+        if grouping_column is None:
+            if not isinstance(group1, list) or not isinstance(group2, list):
+                raise TypeError(
+                    "If grouping_column is not provided, group1 and group2 must be lists of sample names. Alternatively 'grouping_column' is missing."
+                )
             group1_samples = group1
             group2_samples = group2
         else:
+            if not isinstance(group1, str) or not isinstance(group2, str):
+                raise TypeError(
+                    "If grouping_column is provided, group1 and group2 must be strings matching elements in the column."
+                )
+            if not isinstance(metadata, pd.DataFrame):
+                raise TypeError(
+                    "If grouping_column is provided, 'metadata' must be provided."
+                )
             grouping_values = metadata[grouping_column]
             sample_values = metadata[Cols.SAMPLE]
             group1_samples = [
@@ -256,6 +262,10 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis):
                 for sample, group in zip(sample_values, grouping_values)
                 if group == group2
             ]
+        if len(group1_samples) == 0:
+            raise ValueError("No samples found for group 1.")
+        if len(group2_samples) == 0:
+            raise ValueError("No samples found for group 2.")
         return group1_samples, group2_samples
 
 
@@ -282,10 +292,10 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     ):
         """Validates the input and parameters for the t-test differential expression analysis.
 
-        This function checks for the required parameters for the t-test analysis, namely test_fun and fdr_method. The test_fun must be either scipy.stats.ttest_ind or scipy.stats.ttest_rel and the fdr_method must be one of 'bh' or 'by'.
-
         Parameters:
-        parameters (dict): The parameters for the analysis.
+        test_fun (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
+        fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
+        **kwargs (dict): Additional arguments passed to perform.
         """
         super()._extend_validation(**kwargs)
         if test_fun not in [
@@ -300,7 +310,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
 
     def _run_statistical_test(self, **kwargs) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
-        Wrapper to method with actual method parameters and implementation.
+        Wrapper to staistical method with actual method parameters and implementation.
 
         Returns:
         pd.DataFrame: The result of the analysis.
@@ -311,6 +321,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             grouping_column=kwargs.get(DeaParameters.GROUPING_COLUMN, None),
             metadata=kwargs.get(DeaParameters.METADATA, None),
         )
+
         result = self._statistical_test_fun(
             input_data=self.input_data,
             group1_samples=group1_samples,

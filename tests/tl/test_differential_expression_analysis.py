@@ -296,7 +296,7 @@ def test_dea_two_groups_both_grouping_methods():
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
     with pytest.raises(
         TypeError,
-        match="Please provide either a list of columns OR the grouping column, not both.",
+        match=r"If grouping_column is provided.*",
     ):
         dea.perform(
             **{
@@ -310,7 +310,7 @@ def test_dea_two_groups_both_grouping_methods():
 def test_dea_two_groups_missing_grouping_column():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
-    with pytest.raises(TypeError, match=rf"'{DeaParameters.GROUPING_COLUMN}'"):
+    with pytest.raises(TypeError, match=r"If grouping_column is not provided.*"):
         dea.perform(
             **{
                 DeaParameters.GROUP1: "group1",
@@ -323,7 +323,7 @@ def test_dea_two_groups_missing_grouping_column():
 def test_dea_two_groups_missing_metadata():
     input_data = TestableDifferentialExpressionAnalysisTwoGroups.valid_data_input
     dea = TestableDifferentialExpressionAnalysisTwoGroups(input_data)
-    with pytest.raises(TypeError, match=rf"'{DeaParameters.METADATA}'"):
+    with pytest.raises(TypeError, match=r"'metadata'"):
         dea.perform(
             **{
                 DeaParameters.GROUPING_COLUMN: "grouping_column",
