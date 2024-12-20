@@ -1,4 +1,3 @@
-import inspect
 import warnings
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Union
@@ -89,18 +88,6 @@ class DifferentialExpressionAnalysis(ABC):
         **kwargs (dict): The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
         """
         self._extend_validation(**kwargs)
-
-        for parameter in kwargs:
-            if parameter not in self._allowed_parameters():
-                raise TypeError(
-                    f"Parameter {parameter} should not be provided for this analysis. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
-                )
-
-    def _allowed_parameters(self) -> List[str]:
-        """Method returning a list of allowed parameters for the analysis to avoid calling tests with additional parameters."""
-        perform_signature = inspect.signature(self._perform)
-        parameters = list(perform_signature.parameters.keys())
-        return [parameter for parameter in parameters if parameter != "kwargs"]
 
     @abstractmethod
     def _extend_validation(self, **kwargs) -> None:
@@ -324,7 +311,6 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         group2: Union[List, str],
         grouping_column: Union[str, None] = None,
         metadata: Union[pd.DataFrame, None] = None,
-        **kwargs,
     ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
         Wrapper to staistical method with actual method parameters and implementation.
