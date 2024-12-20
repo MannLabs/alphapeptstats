@@ -1,5 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
+from functools import wraps
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -21,6 +22,21 @@ class DeaColumns(ConstantsClass):
 class DeaTestTypes(ConstantsClass):
     INDEPENDENT = "independent"
     PAIRED = "paired"
+
+
+def validate(func):
+    """Decorator to wrap the perform method in input validation."""
+    func._validate = True
+
+    @wraps(func)
+    def wrapper(self, **kwargs):
+        self._validate_input(**kwargs)
+        result = func(self, **kwargs)
+        self._validate_output(result)
+        self.result = result
+        return result
+
+    return wrapper
 
 
 class DifferentialExpressionAnalysis(ABC):
@@ -95,19 +111,6 @@ class DifferentialExpressionAnalysis(ABC):
         It should have all parameters required for the method as keyword arguments and validate that parameters are compatible with mat."""
         pass
 
-    def perform(self, **kwargs) -> Tuple[str, pd.DataFrame]:
-        """Performs the differential expression analysis. Returns the result and stores it in the result attribute after validating its format.
-
-        Returns:
-        dict_key (str): A unique key based on the parameters that can be used for the result in a dictionary.
-        result (pd.DataFrame): The result of the analysis.
-        """
-        self._validate_input(**kwargs)
-        result = self._perform(**kwargs)
-        self._validate_output(result)
-        self.result = result
-        return result
-
     @staticmethod
     def _validate_output(result: pd.DataFrame) -> None:
         """Validates the output of the analysis. This raises an exception if the output is invalid.
@@ -126,8 +129,9 @@ class DifferentialExpressionAnalysis(ABC):
             if column not in result.columns:
                 raise KeyError(f"Column '{column}' is missing from the result.")
 
+    @property
     @abstractmethod
-    def _perform(self, **kwargs) -> pd.DataFrame:
+    def perform(self, **kwargs) -> pd.DataFrame:
         """Abstract methodwrapper to run the test. This should only rely on mat and parameters and return the result. Output needs to conform with _validate_output
 
         Parameters:
@@ -137,6 +141,12 @@ class DifferentialExpressionAnalysis(ABC):
         pd.DataFrame: The result of the analysis.
         """
         pass
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if "perform" in cls.__dict__ and not getattr(cls.perform, "_validate", False):
+            raise TypeError(f"perform in {cls.__name__} must use @validate decorator")
 
     @staticmethod
     @abstractmethod
@@ -303,7 +313,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         if fdr_method not in ["fdr_bh", "bonferroni"]:
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
-    def _perform(
+    @validate
+    def perform(
         self,
         test_type: str,
         fdr_method: str,

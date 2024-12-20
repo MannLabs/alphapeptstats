@@ -11,6 +11,7 @@ from alphastats.tl.differential_expression_analysis import (
     DifferentialExpressionAnalysis,
     DifferentialExpressionAnalysisTTest,
     DifferentialExpressionAnalysisTwoGroups,
+    validate,
 )
 
 
@@ -41,7 +42,8 @@ class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
         if metadata.empty:
             raise ValueError("Non-empty dataframe must be provided")
 
-    def _perform(self, metadata):
+    @validate
+    def perform(self, metadata):
         return self._run_statistical_test(self.mat, metadata=metadata)
 
     @staticmethod
@@ -163,7 +165,8 @@ class TestableDifferentialExpressionAnalysisTwoGroups(
 ):
     """Testable implementation of DifferentialExpressionAnalysisTwoGroups."""
 
-    def _perform(self, group1, group2, metadata, grouping_column):
+    @validate
+    def perform(self, group1, group2, metadata, grouping_column):
         group1_samples, group2_samples = self._get_group_members(
             group1=group1,
             group2=group2,
