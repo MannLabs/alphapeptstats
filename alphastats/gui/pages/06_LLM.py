@@ -8,10 +8,10 @@ from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
+    gather_uniprot_data,
 )
 from alphastats.gui.utils.llm_helper import (
     display_uniprot,
-    get_display_proteins_html,
     llm_connection_test,
     set_api_key,
 )
@@ -99,7 +99,7 @@ if StateKeys.LLM_INPUT not in st.session_state:
 volcano_plot, plot_parameters = st.session_state[StateKeys.LLM_INPUT]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
-c1, c2 = st.columns((1, 2))
+c1, c2 = st.columns((2, 1))
 
 with c2:
     display_figure(volcano_plot.plot)
@@ -114,6 +114,7 @@ with c1:
         st.text("No genes of interest found.")
         st.stop()
 
+    # Separate upregulated and downregulated genes
     upregulated_genes = [
         key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
     ]
@@ -121,35 +122,83 @@ with c1:
         key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
     ]
 
+    # Create dataframes with checkboxes for selection
+    upregulated_genes_df = pd.DataFrame(
+        {"Protein": upregulated_genes, "Selected": [True] * len(upregulated_genes)}
+    )
+
+    downregulated_genes_df = pd.DataFrame(
+        {"Protein": downregulated_genes, "Selected": [True] * len(downregulated_genes)}
+    )
+
     st.markdown("##### Genes of interest")
-    c11, c12 = st.columns((1, 2), gap="medium")
+    c11, c12 = st.columns((1, 1), gap="medium")
+
     with c11:
-        st.write("Upregulated genes")
-        st.markdown(
-            get_display_proteins_html(
-                upregulated_genes,
-                True,
-                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
-                feature_to_repr_map=st.session_state[
-                    StateKeys.DATASET
-                ]._feature_to_repr_map,
-            ),
-            unsafe_allow_html=True,
+        st.write("Upregulated Proteins")
+        edited_upregulated_df = st.data_editor(
+            upregulated_genes_df,
+            column_config={
+                "Selected": st.column_config.CheckboxColumn(
+                    "Include?",
+                    help="Uncheck to exclude this gene from analysis",
+                    default=True,
+                ),
+                "Protein": st.column_config.TextColumn(
+                    "Protein",
+                    help="The protein name to be included in the analysis",
+                    width="medium",
+                ),
+            },
+            disabled=["Protein"],
+            hide_index=True,
         )
+        # Extract the selected upregulated genes
+        selected_upregulated_genes = edited_upregulated_df.loc[
+            edited_upregulated_df["Selected"], "Protein"
+        ].tolist()
 
     with c12:
-        st.write("Downregulated genes")
-        st.markdown(
-            get_display_proteins_html(
-                downregulated_genes,
-                False,
-                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
-                feature_to_repr_map=st.session_state[
-                    StateKeys.DATASET
-                ]._feature_to_repr_map,
-            ),
-            unsafe_allow_html=True,
+        st.write("Downregulated Proteins")
+        edited_downregulated_df = st.data_editor(
+            downregulated_genes_df,
+            column_config={
+                "Selected": st.column_config.CheckboxColumn(
+                    "Include?",
+                    help="Uncheck to exclude this gene from analysis",
+                    default=True,
+                ),
+                "Protein": st.column_config.TextColumn(
+                    "Protein",
+                    help="The protein name to be included in the analysis",
+                    width="medium",
+                ),
+            },
+            disabled=["Protein"],
+            hide_index=True,
         )
+        # Extract the selected downregulated genes
+        selected_downregulated_genes = edited_downregulated_df.loc[
+            edited_downregulated_df["Selected"], "Protein"
+        ].tolist()
+
+    # Combine the selected genes into a new regulated_genes_dict
+    selected_regulated_genes = selected_upregulated_genes + selected_downregulated_genes
+    regulated_genes_dict = {
+        gene: "up" if gene in selected_upregulated_genes else "down"
+        for gene in selected_regulated_genes
+    }
+
+    # If no genes are selected, stop the script
+    if not regulated_genes_dict:
+        st.text("No genes selected for analysis.")
+        st.stop()
+
+    if c1.button("Gather UniProt data for selected proteins"):
+        gather_uniprot_data(selected_regulated_genes)
+
+if not st.session_state[StateKeys.ANNOTATION_STORE]:
+    st.stop()
 
 
 model_name = st.session_state[StateKeys.MODEL_NAME]
@@ -181,8 +230,8 @@ with st.expander("Initial prompt", expanded=True):
         "",
         value=get_initial_prompt(
             plot_parameters,
-            list(map(feature_to_repr_map.get, upregulated_genes)),
-            list(map(feature_to_repr_map.get, downregulated_genes)),
+            list(map(feature_to_repr_map.get, selected_upregulated_genes)),
+            list(map(feature_to_repr_map.get, selected_downregulated_genes)),
         ),
         height=200,
         disabled=llm_integration_set_for_model,
