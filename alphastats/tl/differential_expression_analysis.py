@@ -1,4 +1,5 @@
 import inspect
+import warnings
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Union
 
@@ -368,7 +369,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         mat (pd.DataFrame): The input data for the analysis.
         group1_samples (list): The samples for group 1.
         group2_samples (list): The samples for group 2.
-        is_log2_transformed (bool): Whether the data is log2 transformed.
+        is_log2_transformed (bool): Whether the data is log2 transformed. If not, this well be done before the analysis.
         test_type (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
         fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
 
@@ -383,10 +384,22 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         }[test_type]
 
         if not is_log2_transformed:
+            mat_nans = mat_transpose.isna().sum().sum()
             mat_transpose = mat_transpose.transform(np.log2)
             mat_transpose = mat_transpose.replace([np.inf, -np.inf], np.nan)
+            new_mat_nans = mat_transpose.isna().sum().sum()
+            warnings.warn(
+                f"Automatic log2 transformation was performed prior to ttest analysis. {str(new_mat_nans-mat_nans)} values were replaced with NaN in the process.",
+                UserWarning,
+            )
 
+        mat_len = mat_transpose.shape[0]
         mat_transpose = mat_transpose.dropna(how="all")
+        if mat_len > (filtered_mat_len := mat_transpose.shape[0]):
+            warnings.warn(
+                f"{str(mat_len-filtered_mat_len)} proteins contain only NaN values and are removed prior to ttest analysis.",
+                UserWarning,
+            )
 
         # TODO: return not only the p-value, but also the t-statistic
         p_values = mat_transpose.apply(

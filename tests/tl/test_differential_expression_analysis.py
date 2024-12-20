@@ -280,14 +280,15 @@ def test_dea_ttest_perform_runs():
         index=["gene1", "gene2", "gene3", "zerogene"],
     )
     dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
-    dea.perform(
-        **valid_parameter_input_two_groups,
-        **{
-            DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
-            DeaParameters.FDR_METHOD: "fdr_bh",
-            DeaParameters.ISLOG2TRANSFORMED: True,
-        },
-    )
+    with pytest.warns(UserWarning, match="only NaN values"):
+        dea.perform(
+            **valid_parameter_input_two_groups,
+            **{
+                DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
+                DeaParameters.FDR_METHOD: "fdr_bh",
+                DeaParameters.ISLOG2TRANSFORMED: True,
+            },
+        )
     pd.testing.assert_frame_equal(dea.result, expected_result)
 
 
@@ -303,14 +304,15 @@ def test_dea_ttest_perform_runs_log():
         index=["gene1", "gene2", "gene3"],
     )
     dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups)
-    result = dea._perform(
-        **valid_parameter_input_two_groups,
-        **{
-            DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
-            DeaParameters.FDR_METHOD: "fdr_bh",
-            DeaParameters.ISLOG2TRANSFORMED: False,
-        },
-    )
+    with pytest.warns(UserWarning, match="log2 transformation"):
+        result = dea._perform(
+            **valid_parameter_input_two_groups,
+            **{
+                DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
+                DeaParameters.FDR_METHOD: "fdr_bh",
+                DeaParameters.ISLOG2TRANSFORMED: False,
+            },
+        )
     pd.testing.assert_frame_equal(result, expected_result)
 
 
