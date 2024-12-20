@@ -197,7 +197,7 @@ class DifferentialExpressionAnalysis(ABC):
         """
         significance = pd.DataFrame(index=result.index)
         significance[DeaColumns.SIGNIFICANTQ] = (
-            result[DeaColumns.QVALUE] < qvalue_cutoff
+            result[DeaColumns.QVALUE] <= qvalue_cutoff
         )
         return significance
 
