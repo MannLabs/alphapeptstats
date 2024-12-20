@@ -50,23 +50,20 @@ class DifferentialExpressionAnalysis(ABC):
     ----------
     mat : pd.DataFrame
         The input data for the analysis.
-    result : pd.DataFrame
-        The result of the analysis.
+    is_log2_transformed : bool
+        Whether the data is log2 transformed.
 
     Methods
     -------
-    perform(**kwargs)
-        Performs the analysis and stores the result. This fixes the workflow of input validation,
-        running the test, and validating the output.
     get_significance(result: pd.DataFrame, qvalue_cutoff: float) -> pd.DataFrame
         Returns the significant features based on the q-value cutoff.
 
     Abstract Methods
     ----------------
+    perform(**kwargs) -> pd.DataFrame
+        Function that runs any preparatory steps and the statistical test. This is required to be decorated with @_validate_perform to fix the workflow of input validation, running the test, and validating the output.
     _extend_validation(**kwargs)
         Extends the validation of parameters for the specific method.
-    _perform(**kwargs) -> pd.DataFrame
-        Wrapper that runs the statistical test from kwargs.
     _run_statistical_test(mat: pd.DataFrame, **kwargs) -> pd.DataFrame
         Runs the statistical test. The wrapper and the actual method are separated to allow for easier
         testing and to ensure that all parameters are defined with types and defaults.
@@ -85,6 +82,7 @@ class DifferentialExpressionAnalysis(ABC):
 
         Parameters:
         mat (pd.DataFrame): The input data for the analysis. This should be a DataFrame with the samples as rows and the features as columns.
+        is_log2_transformed (bool): Whether the data is log2 transformed.
         """
         if mat.empty:
             raise ValueError(
@@ -92,7 +90,6 @@ class DifferentialExpressionAnalysis(ABC):
             )
         self.mat = mat
         self.is_log2_transformed = is_log2_transformed
-        self.result: pd.DataFrame = None
 
     def _validate_input(self, **kwargs) -> None:
         """Abstract method to validate the input and parameters. This should raise an exception if the input or parameters are invalid
@@ -194,7 +191,7 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
         grouping_column: Union[str, None] = None,
         metadata: Union[pd.DataFrame, None] = None,
         **kwargs,
-    ):
+    ) -> None:
         """Validates the input and parameters for the two-group differential expression analysis.
 
         This function checks for the required parameters for the two-group analysis, namely group1 and group2 are valid contained in the mat.
@@ -296,7 +293,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         test_type: str,
         fdr_method: str,
         **kwargs,
-    ):
+    ) -> None:
         """Validates the input and parameters for the t-test differential expression analysis.
 
         Parameters:
