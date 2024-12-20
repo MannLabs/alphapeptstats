@@ -4,15 +4,28 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, ConstantsClass
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
-    DeaParameters,
     DeaTestTypes,
     DifferentialExpressionAnalysis,
     DifferentialExpressionAnalysisTTest,
     DifferentialExpressionAnalysisTwoGroups,
 )
+
+
+class DeaParameters(ConstantsClass):
+    METADATA = "metadata"
+    ISLOG2TRANSFORMED = "is_log2_transformed"
+
+    GROUP1 = "group1"
+    GROUP2 = "group2"
+    GROUPING_COLUMN = "grouping_column"
+
+    TEST_TYPE = "test_type"
+
+    FDR_METHOD = "fdr_method"
+
 
 valid_dea_output = pd.DataFrame(
     [[0.055, 2, 0.009], [0.1, 0.1, 0.1], [0.1, 0.1, np.nan]],
@@ -24,18 +37,12 @@ valid_dea_output = pd.DataFrame(
 class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
     """Testable implementation of DifferentialExpressionAnalysis."""
 
-    @staticmethod
-    def _allowed_parameters():
-        return [DeaParameters.METADATA]
-
     def _extend_validation(self, metadata: pd.DataFrame, **kwargs):
         if metadata.empty:
             raise ValueError("Non-empty dataframe must be provided")
 
-    def _perform(self, **kwargs):
-        return self._run_statistical_test(
-            self.mat, metadata=kwargs[DeaParameters.METADATA]
-        )
+    def _perform(self, metadata, **kwargs):
+        return self._run_statistical_test(self.mat, metadata=metadata)
 
     @staticmethod
     def _run_statistical_test(mat, metadata):
@@ -156,23 +163,16 @@ class TestableDifferentialExpressionAnalysisTwoGroups(
 ):
     """Testable implementation of DifferentialExpressionAnalysisTwoGroups."""
 
-    @staticmethod
-    def _allowed_parameters():
-        return [
-            DeaParameters.METADATA,
-            DeaParameters.GROUP1,
-            DeaParameters.GROUP2,
-            DeaParameters.GROUPING_COLUMN,
-        ]
-
-    def _perform(self, **kwargs):
-        group1, group2 = self._get_group_members(
-            group1=kwargs[DeaParameters.GROUP1],
-            group2=kwargs[DeaParameters.GROUP2],
-            metadata=kwargs[DeaParameters.METADATA],
-            grouping_column=kwargs[DeaParameters.GROUPING_COLUMN],
+    def _perform(self, group1, group2, metadata, grouping_column, **kwargs):
+        group1_samples, group2_samples = self._get_group_members(
+            group1=group1,
+            group2=group2,
+            metadata=metadata,
+            grouping_column=grouping_column,
         )
-        return self._run_statistical_test(self.mat, group1=group1, group2=group2)
+        return self._run_statistical_test(
+            self.mat, group1=group1_samples, group2=group2_samples
+        )
 
     @staticmethod
     def _run_statistical_test(mat, group1, group2):

@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Union
 
@@ -15,19 +16,6 @@ class DeaColumns(ConstantsClass):
     QVALUE = "q-value"
     LOG2FC = "log2(fold change)"  # group1-group2
     SIGNIFICANTQ = "significant q-value"
-
-
-class DeaParameters(ConstantsClass):
-    METADATA = "metadata"
-    ISLOG2TRANSFORMED = "is_log2_transformed"
-
-    GROUP1 = "group1"
-    GROUP2 = "group2"
-    GROUPING_COLUMN = "grouping_column"
-
-    TEST_TYPE = "test_type"
-
-    FDR_METHOD = "fdr_method"
 
 
 class DeaTestTypes(ConstantsClass):
@@ -60,8 +48,6 @@ class DifferentialExpressionAnalysis(ABC):
 
     Abstract Methods
     ----------------
-    _allowed_parameters() -> List[str]
-        Returns a list of allowed parameters for the analysis.
     _extend_validation(**kwargs)
         Extends the validation of parameters for the specific method.
     _perform(**kwargs) -> pd.DataFrame
@@ -113,11 +99,11 @@ class DifferentialExpressionAnalysis(ABC):
                     f"Parameter {parameter} should not be provided for this analysis. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
                 )
 
-    @staticmethod
-    @abstractmethod
-    def _allowed_parameters() -> List[str]:
+    def _allowed_parameters(self) -> List[str]:
         """Method returning a list of allowed parameters for the analysis to avoid calling tests with additional parameters."""
-        return []
+        perform_signature = inspect.signature(self._perform)
+        parameters = list(perform_signature.parameters.keys())
+        return [parameter for parameter in parameters if parameter != "kwargs"]
 
     @abstractmethod
     def _extend_validation(self, **kwargs) -> None:
@@ -308,18 +294,6 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     >>> result.index.tolist()
     ['gene1', 'gene2', 'gene3']
     """
-
-    @staticmethod
-    def _allowed_parameters() -> List[str]:
-        return [
-            DeaParameters.TEST_TYPE,
-            DeaParameters.FDR_METHOD,
-            DeaParameters.GROUP1,
-            DeaParameters.GROUP2,
-            DeaParameters.GROUPING_COLUMN,
-            DeaParameters.METADATA,
-            DeaParameters.ISLOG2TRANSFORMED,
-        ]
 
     def _extend_validation(
         self,
