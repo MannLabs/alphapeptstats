@@ -114,11 +114,11 @@ class Test_DifferentialExpressionAnalysis:
 def test_dea_get_significance():
     """Test get_significance method."""
     result = valid_dea_output
-    significant = DifferentialExpressionAnalysis.get_significance(result, 0.01)
+    significant = DifferentialExpressionAnalysis.get_significance_qvalue(result, 0.01)
     assert significant.equals(
         pd.DataFrame(
             [[True], [False], [False]],
-            columns=[DeaColumns.SIGNIFICANT],
+            columns=[DeaColumns.SIGNIFICANTQ],
             index=["gene1", "gene2", "gene3"],
         )
     )

@@ -14,8 +14,8 @@ from alphastats.statistics.statistic_utils import calculate_foldchange
 class DeaColumns(ConstantsClass):
     PVALUE = "p-value"
     QVALUE = "q-value"
-    LOG2FC = "log2(fold change)"
-    SIGNIFICANT = "significant"
+    LOG2FC = "log2(fold change)"  # group1-group2
+    SIGNIFICANTQ = "significant q-value"
 
 
 class DeaParameters(ConstantsClass):
@@ -183,7 +183,9 @@ class DifferentialExpressionAnalysis(ABC):
         pass
 
     @staticmethod
-    def get_significance(result: pd.DataFrame, qvalue_cutoff: float) -> pd.DataFrame:
+    def get_significance_qvalue(
+        result: pd.DataFrame, qvalue_cutoff: float
+    ) -> pd.DataFrame:
         """Returns a DataFrame with the significant genes based on the q-value cutoff.
 
         Parameters:
@@ -194,7 +196,9 @@ class DifferentialExpressionAnalysis(ABC):
         pd.DataFrame: A DataFrame with a single binary column.
         """
         significance = pd.DataFrame(index=result.index)
-        significance[DeaColumns.SIGNIFICANT] = result[DeaColumns.QVALUE] < qvalue_cutoff
+        significance[DeaColumns.SIGNIFICANTQ] = (
+            result[DeaColumns.QVALUE] < qvalue_cutoff
+        )
         return significance
 
 
