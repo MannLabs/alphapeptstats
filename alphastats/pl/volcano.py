@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Literal, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ def plot_volcano(
     drawlines: bool = True,
     label_significant: bool = True,
     flip_xaxis: bool = False,
-    renderer: str = "webgl",
+    renderer: Literal["webgl", "svg"] = "webgl",
 ) -> Figure:
     """
     Create a volcano plot of the differential expression analysis results.
@@ -46,7 +46,7 @@ def plot_volcano(
         Whether to label significant points.
     flip_xaxis : bool, default=False
         Whether to flip the x-axis.
-    renderer : str
+    renderer : Literal['webgl', 'svg']
         The renderer to use for the plot. webgl or svg.
 
     Returns
@@ -66,6 +66,63 @@ def plot_volcano(
     )
     df_plot.reset_index(inplace=True)
 
+    fig = _plot_volcano(
+        df_plot=df_plot,
+        log2name=log2name,
+        group1=group1,
+        group2=group2,
+        qvalue_cutoff=qvalue_cutoff,
+        log2fc_cutoff=log2fc_cutoff,
+        drawlines=drawlines,
+        label_significant=label_significant,
+        flip_xaxis=flip_xaxis,
+        renderer=renderer,
+    )
+    return fig
+
+
+def _plot_volcano(
+    df_plot: pd.DataFrame,
+    log2name: str,
+    group1: str,
+    group2: str,
+    qvalue_cutoff: float,
+    log2fc_cutoff: Union[float, None],
+    drawlines: bool,
+    label_significant: bool,
+    flip_xaxis: bool,
+    renderer: Literal["webgl", "svg"],
+) -> Figure:
+    """Create the volcano plot.
+
+    Parameters
+    ----------
+    df_plot : pd.DataFrame
+        The dataframe to plot.
+    log2name : str
+        The name of the log2 fold change column.
+    group1 : str
+        The name of the first group.
+    group2 : str
+        The name of the second group.
+    qvalue_cutoff : float
+        The significance cutoff for the q-values.
+    log2fc_cutoff : Union[float, None]
+        The fold cutoff for the log2 fold changes.
+    drawlines : bool
+        Whether to draw the significance and fold change cutoff lines.
+    label_significant : bool
+        Whether to label significant points.
+    flip_xaxis : bool
+        Whether to flip the x-axis.
+    renderer : Literal['webgl', 'svg']
+        The renderer to use for the plot. webgl or svg.
+
+    Returns
+    -------
+    go.Figure
+        The volcano plot.
+    """
     # calculate x_range
     factor = 1.1 if not label_significant else 1.3
     x_range = (
@@ -165,7 +222,7 @@ def prepare_result_df(
     qvalue_cutoff: float,
     log2fc_cutoff: Union[float, None],
     flip_xaxis: bool = False,
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, str]:
     """Prepare the dataframe for plotting or display/download.
 
     Parameters
@@ -184,6 +241,13 @@ def prepare_result_df(
         The fold cutoff for the log2 fold changes.
     flip_xaxis : bool, default=False
         Whether to flip the x-axis.
+
+    Returns
+    -------
+    pd.DataFrame
+        The prepared dataframe.
+    str
+        The name of the log2 fold change column.
     """
     result_df = statistics_results.copy()
 
