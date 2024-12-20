@@ -1,19 +1,109 @@
-from typing import Literal, Tuple, Union
+from typing import Dict, Literal, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 from plotly.graph_objs._figure import Figure
 
+from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DifferentialExpressionAnalysis,
 )
 
 
+class VolcanoPlotlyObject(PlotlyObject):
+    def __init__(
+        self,
+        log2name,
+        group1,
+        group2,
+        qvalue_cutoff,
+        log2fc_cutoff,
+        drawlines,
+        label_significant,
+        flip_xaxis,
+        renderer,
+    ):
+        super().__init__()
+        self.log2name = log2name
+        self.group1 = group1
+        self.group2 = group2
+        self.qvalue_cutoff = qvalue_cutoff
+        self.log2fc_cutoff = log2fc_cutoff
+        self.drawlines = drawlines
+        self.label_significant = label_significant
+        self.flip_xaxis = flip_xaxis
+
+    def write_image(self, **kwargs):
+        fig = _plot_volcano(
+            df_plot=self.plotting_data.reset_index(),
+            log2name=self.log2name,
+            group1=self.group1,
+            group2=self.group2,
+            qvalue_cutoff=self.qvalue_cutoff,
+            log2fc_cutoff=self.log2fc_cutoff,
+            drawlines=self.drawlines,
+            label_significant=self.label_significant,
+            flip_xaxis=self.flip_xaxis,
+            renderer="svg",
+        )
+        return fig.write_image(**kwargs)
+
+
+class VolcanoPlot(PlotUtils):
+    def __init__(
+        self,
+        preprocessing_info: Dict,
+        statistics_results: pd.DataFrame,
+        feature_to_repr_map: Dict,
+        group1: str,
+        group2: str,
+        qvalue_cutoff: float = 0.05,
+        log2fc_cutoff: Union[float, None] = 1,
+        drawlines: bool = True,
+        label_significant: bool = True,
+        flip_xaxis: bool = False,
+        method: str = "volcano",
+    ):
+        self.preprocessing_info = preprocessing_info
+        self.method = method
+        fig, res, log2name = plot_volcano(
+            statistics_results=statistics_results,
+            feature_to_repr_map=feature_to_repr_map,
+            group1=group1,
+            group2=group2,
+            qvalue_cutoff=qvalue_cutoff,
+            log2fc_cutoff=log2fc_cutoff,
+            drawlines=drawlines,
+            label_significant=label_significant,
+            flip_xaxis=flip_xaxis,
+            renderer="webgl",
+        )
+        self.res = res
+        self.log2name = log2name
+        self.plot = VolcanoPlotlyObject(
+            fig,
+            log2name=log2name,
+            group1=group1,
+            group2=group2,
+            qvalue_cutoff=qvalue_cutoff,
+            log2fc_cutoff=log2fc_cutoff,
+            drawlines=drawlines,
+            label_significant=label_significant,
+            flip_xaxis=flip_xaxis,
+        )
+        self._update_figure_attributes(
+            self.plot,
+            plotting_data=self.res,
+            preprocessing_info=self.preprocessing_info,
+            method=self.method,
+        )
+
+
 def plot_volcano(
     statistics_results: pd.DataFrame,
-    feature_to_repr_map: dict,
+    feature_to_repr_map: Dict,
     group1: str,
     group2: str,
     qvalue_cutoff: float = 0.05,
@@ -53,6 +143,10 @@ def plot_volcano(
     -------
     go.Figure
         The volcano plot.
+    pd.DataFrame
+        The prepared dataframe.
+    str
+        The name of the log2 fold change column.
     """
 
     df_plot, log2name = prepare_result_df(
@@ -64,10 +158,9 @@ def plot_volcano(
         log2fc_cutoff=log2fc_cutoff,
         flip_xaxis=flip_xaxis,
     )
-    df_plot.reset_index(inplace=True)
 
     fig = _plot_volcano(
-        df_plot=df_plot,
+        df_plot=df_plot.reset_index(),
         log2name=log2name,
         group1=group1,
         group2=group2,
@@ -78,7 +171,7 @@ def plot_volcano(
         flip_xaxis=flip_xaxis,
         renderer=renderer,
     )
-    return fig
+    return fig, df_plot, log2name
 
 
 def _plot_volcano(
