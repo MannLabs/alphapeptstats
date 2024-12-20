@@ -11,7 +11,7 @@ from alphastats.tl.differential_expression_analysis import (
     DifferentialExpressionAnalysis,
     DifferentialExpressionAnalysisTTest,
     DifferentialExpressionAnalysisTwoGroups,
-    validate,
+    _validate_perform,
 )
 
 
@@ -42,7 +42,7 @@ class TestableDifferentialExpressionAnalysis(DifferentialExpressionAnalysis):
         if metadata.empty:
             raise ValueError("Non-empty dataframe must be provided")
 
-    @validate
+    @_validate_perform
     def perform(self, metadata):
         return self._run_statistical_test(self.mat, metadata=metadata)
 
@@ -165,7 +165,7 @@ class TestableDifferentialExpressionAnalysisTwoGroups(
 ):
     """Testable implementation of DifferentialExpressionAnalysisTwoGroups."""
 
-    @validate
+    @_validate_perform
     def perform(self, group1, group2, metadata, grouping_column):
         group1_samples, group2_samples = self._get_group_members(
             group1=group1,
@@ -288,14 +288,14 @@ def test_dea_ttest_perform_runs():
     )
     dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups, True)
     with pytest.warns(UserWarning, match="only NaN values"):
-        dea.perform(
+        result = dea.perform(
             **valid_parameter_input_two_groups,
             **{
                 DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
                 DeaParameters.FDR_METHOD: "fdr_bh",
             },
         )
-    pd.testing.assert_frame_equal(dea.result, expected_result)
+    pd.testing.assert_frame_equal(result, expected_result)
 
 
 def test_dea_ttest_perform_runs_log():
@@ -311,14 +311,14 @@ def test_dea_ttest_perform_runs_log():
     )
     dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups, False)
     with pytest.warns(UserWarning, match="log2 transformation"):
-        dea.perform(
+        result = dea.perform(
             **valid_parameter_input_two_groups,
             **{
                 DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
                 DeaParameters.FDR_METHOD: "fdr_bh",
             },
         )
-    pd.testing.assert_frame_equal(dea.result, expected_result)
+    pd.testing.assert_frame_equal(result, expected_result)
 
 
 def test_dea_ttest_validation_wrong_stats_method():

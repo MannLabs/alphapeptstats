@@ -24,16 +24,15 @@ class DeaTestTypes(ConstantsClass):
     PAIRED = "paired"
 
 
-def validate(func):
-    """Decorator to wrap the perform method in input validation."""
+def _validate_perform(func):
+    """Decorator to wrap the perform method in input and output validation."""
     func._validate = True
 
-    @wraps(func)
-    def wrapper(self, **kwargs):
+    @wraps(func)  # This is needed to keep the function signature
+    def wrapper(self: DifferentialExpressionAnalysis, **kwargs):
         self._validate_input(**kwargs)
         result = func(self, **kwargs)
         self._validate_output(result)
-        self.result = result
         return result
 
     return wrapper
@@ -144,9 +143,12 @@ class DifferentialExpressionAnalysis(ABC):
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
+        """If a subclass implements perform this checks if the implementation is decorated with @validate."""
         super().__init_subclass__(**kwargs)
         if "perform" in cls.__dict__ and not getattr(cls.perform, "_validate", False):
-            raise TypeError(f"perform in {cls.__name__} must use @validate decorator")
+            raise TypeError(
+                f"perform in {cls.__name__} must use @_validate_perform decorator"
+            )
 
     @staticmethod
     @abstractmethod
@@ -313,7 +315,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         if fdr_method not in ["fdr_bh", "bonferroni"]:
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
-    @validate
+    @_validate_perform
     def perform(
         self,
         test_type: str,
