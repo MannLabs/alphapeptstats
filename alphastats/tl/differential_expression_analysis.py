@@ -7,7 +7,6 @@ import scipy
 from statsmodels.stats.multitest import multipletests
 
 from alphastats.dataset.keys import Cols, ConstantsClass
-from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.statistics.statistic_utils import calculate_foldchange
 
 
@@ -20,6 +19,7 @@ class DeaColumns(ConstantsClass):
 
 class DeaParameters(ConstantsClass):
     METADATA = "metadata"
+    ISLOG2TRANSFORMED = "is_log2_transformed"
 
     GROUP1 = "group1"
     GROUP2 = "group2"
@@ -318,7 +318,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             DeaParameters.GROUP2,
             DeaParameters.GROUPING_COLUMN,
             DeaParameters.METADATA,
-            PreprocessingStateKeys.LOG2_TRANSFORMED,
+            DeaParameters.ISLOG2TRANSFORMED,
         ]
 
     def _extend_validation(
@@ -345,7 +345,17 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         if fdr_method not in ["fdr_bh", "bonferroni"]:
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
-    def _perform(self, **kwargs) -> pd.DataFrame:
+    def _perform(
+        self,
+        is_log2_transformed: bool,
+        test_type: str,
+        fdr_method: str,
+        group1: Union[List, str],
+        group2: Union[List, str],
+        grouping_column: Union[str, None] = None,
+        metadata: Union[pd.DataFrame, None] = None,
+        **kwargs,
+    ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
         Wrapper to staistical method with actual method parameters and implementation.
 
@@ -353,19 +363,19 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         pd.DataFrame: The result of the analysis.
         """
         group1_samples, group2_samples = self._get_group_members(
-            group1=kwargs[DeaParameters.GROUP1],
-            group2=kwargs[DeaParameters.GROUP2],
-            grouping_column=kwargs.get(DeaParameters.GROUPING_COLUMN, None),
-            metadata=kwargs.get(DeaParameters.METADATA, None),
+            group1=group1,
+            group2=group2,
+            grouping_column=grouping_column,
+            metadata=metadata,
         )
 
         result = self._run_statistical_test(
             mat=self.mat,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
-            is_log2_transformed=kwargs[PreprocessingStateKeys.LOG2_TRANSFORMED],
-            test_type=kwargs[DeaParameters.TEST_TYPE],
-            fdr_method=kwargs[DeaParameters.FDR_METHOD],
+            is_log2_transformed=is_log2_transformed,
+            test_type=test_type,
+            fdr_method=fdr_method,
         )
         return result
 

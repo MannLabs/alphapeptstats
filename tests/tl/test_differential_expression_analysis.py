@@ -5,7 +5,6 @@ import pandas as pd
 import pytest
 
 from alphastats.dataset.keys import Cols
-from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DeaParameters,
@@ -286,7 +285,7 @@ def test_dea_ttest_perform_runs():
         **{
             DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
             DeaParameters.FDR_METHOD: "fdr_bh",
-            PreprocessingStateKeys.LOG2_TRANSFORMED: True,
+            DeaParameters.ISLOG2TRANSFORMED: True,
         },
     )
     pd.testing.assert_frame_equal(dea.result, expected_result)
@@ -309,7 +308,7 @@ def test_dea_ttest_perform_runs_log():
         **{
             DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
             DeaParameters.FDR_METHOD: "fdr_bh",
-            PreprocessingStateKeys.LOG2_TRANSFORMED: False,
+            DeaParameters.ISLOG2TRANSFORMED: False,
         },
     )
     pd.testing.assert_frame_equal(result, expected_result)
@@ -327,7 +326,7 @@ def test_dea_ttest_validation_wrong_stats_method():
             **{
                 DeaParameters.TEST_TYPE: "not defined",
                 DeaParameters.FDR_METHOD: "fdr_bh",
-                PreprocessingStateKeys.LOG2_TRANSFORMED: True,
+                DeaParameters.ISLOG2TRANSFORMED: True,
             },
         )
 
@@ -343,6 +342,6 @@ def test_dea_ttest_validation_wrong_fdr_method():
             **{
                 DeaParameters.TEST_TYPE: DeaTestTypes.INDEPENDENT,
                 DeaParameters.FDR_METHOD: "unknown",
-                PreprocessingStateKeys.LOG2_TRANSFORMED: True,
+                DeaParameters.ISLOG2TRANSFORMED: True,
             },
         )
