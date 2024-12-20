@@ -209,7 +209,7 @@ def gather_uniprot_data(features: list) -> None:
     Features that are already in the session state are skipped.
 
     Args:
-        features (list): A list of features for which UniProt data needs to be gathered.
+        features (list[str]): A list of features for which UniProt data needs to be gathered.
     Returns:
         None
     """
