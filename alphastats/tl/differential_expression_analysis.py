@@ -66,7 +66,7 @@ class DifferentialExpressionAnalysis(ABC):
     volcano_plot(cached_result, significance)  # visualize
     """
 
-    def __init__(self, mat: pd.DataFrame) -> None:
+    def __init__(self, mat: pd.DataFrame, is_log2_transformed: bool) -> None:
         """Constructor for the DifferentialExpressionAnalysis class. sets up mat and results.
 
         Parameters:
@@ -77,6 +77,7 @@ class DifferentialExpressionAnalysis(ABC):
                 "Input matrix to differential expression analysis is empty."
             )
         self.mat = mat
+        self.is_log2_transformed = is_log2_transformed
         self.result: pd.DataFrame = None
 
     def _validate_input(self, **kwargs) -> None:
@@ -322,7 +323,6 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
 
     def _perform(
         self,
-        is_log2_transformed: bool,
         test_type: str,
         fdr_method: str,
         group1: Union[List, str],
@@ -348,7 +348,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             mat=self.mat,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
-            is_log2_transformed=is_log2_transformed,
+            is_log2_transformed=self.is_log2_transformed,
             test_type=test_type,
             fdr_method=fdr_method,
         )
