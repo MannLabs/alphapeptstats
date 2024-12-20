@@ -77,9 +77,9 @@ class Test_DifferentialExpressionAnalysis:
 
     def test_dea_additional_arguments(self):
         """Type error raised if additional arguments are provided."""
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match=r"additional_argument"):
             self.dea.perform(
-                metadata=pd.DataFrame(np.zeros(3, 3)), additional_argument=1
+                metadata=pd.DataFrame(np.zeros((3, 3))), additional_argument=1
             )
 
     def test_dea_metadata_validation(self):

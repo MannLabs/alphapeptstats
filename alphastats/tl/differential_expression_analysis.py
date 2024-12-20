@@ -88,12 +88,7 @@ class DifferentialExpressionAnalysis(ABC):
         Parameters:
         **kwargs (dict): The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
         """
-        try:
-            self._extend_validation(**kwargs)
-        except TypeError as err:
-            raise TypeError(
-                f"{str(err)}. Accepted keyword arguments to perform are {', '.join(self._allowed_parameters())}."
-            ) from err
+        self._extend_validation(**kwargs)
 
         for parameter in kwargs:
             if parameter not in self._allowed_parameters():
