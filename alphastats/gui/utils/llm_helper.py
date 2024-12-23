@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 
+import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
@@ -9,6 +10,48 @@ from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
 )
+
+
+def create_protein_editor(df: pd.DataFrame, title: str) -> List[str]:
+    """Creates a data editor for protein selection and returns the selected proteins.
+
+    Args:
+        df: DataFrame containing protein data with 'Protein' and 'Selected' columns
+        title: Title to display above the editor
+
+    Returns:
+        selected_proteins (List[str]): A list of selected proteins.
+    """
+    st.write(title)
+    df.insert(
+        0,
+        "Gene",
+        [
+            st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+            for protein in df["Protein"]
+        ],
+    )
+    df.insert(2, "Protein", df.pop("Protein"))
+    edited_df = st.data_editor(
+        df,
+        column_config={
+            "Selected": st.column_config.CheckboxColumn(
+                "Include?",
+                help="Uncheck to exclude this gene from analysis",
+                default=True,
+            ),
+            "Gene": st.column_config.TextColumn(
+                "Gene",
+                help="The gene name to be included in the analysis",
+                width="medium",
+            ),
+        },
+        disabled=["Gene"],
+        hide_index=True,
+    )
+    # Extract the selected genes
+    selected_proteins = edited_df.loc[edited_df["Selected"], "Protein"].tolist()
+    return selected_proteins
 
 
 def get_display_proteins_html(

@@ -11,6 +11,7 @@ from alphastats.gui.utils.analysis_helper import (
     gather_uniprot_data,
 )
 from alphastats.gui.utils.llm_helper import (
+    create_protein_editor,
     display_uniprot,
     llm_connection_test,
     set_api_key,
@@ -135,52 +136,14 @@ with c1:
     c11, c12 = st.columns((1, 1), gap="medium")
 
     with c11:
-        st.write("Upregulated Proteins")
-        edited_upregulated_df = st.data_editor(
-            upregulated_genes_df,
-            column_config={
-                "Selected": st.column_config.CheckboxColumn(
-                    "Include?",
-                    help="Uncheck to exclude this gene from analysis",
-                    default=True,
-                ),
-                "Protein": st.column_config.TextColumn(
-                    "Protein",
-                    help="The protein name to be included in the analysis",
-                    width="medium",
-                ),
-            },
-            disabled=["Protein"],
-            hide_index=True,
+        selected_upregulated_genes = create_protein_editor(
+            upregulated_genes_df, "Upregulated Proteins"
         )
-        # Extract the selected upregulated genes
-        selected_upregulated_genes = edited_upregulated_df.loc[
-            edited_upregulated_df["Selected"], "Protein"
-        ].tolist()
 
     with c12:
-        st.write("Downregulated Proteins")
-        edited_downregulated_df = st.data_editor(
-            downregulated_genes_df,
-            column_config={
-                "Selected": st.column_config.CheckboxColumn(
-                    "Include?",
-                    help="Uncheck to exclude this gene from analysis",
-                    default=True,
-                ),
-                "Protein": st.column_config.TextColumn(
-                    "Protein",
-                    help="The protein name to be included in the analysis",
-                    width="medium",
-                ),
-            },
-            disabled=["Protein"],
-            hide_index=True,
+        selected_downregulated_genes = create_protein_editor(
+            downregulated_genes_df, "Downregulated Proteins"
         )
-        # Extract the selected downregulated genes
-        selected_downregulated_genes = edited_downregulated_df.loc[
-            edited_downregulated_df["Selected"], "Protein"
-        ].tolist()
 
     # Combine the selected genes into a new regulated_genes_dict
     selected_regulated_genes = selected_upregulated_genes + selected_downregulated_genes
@@ -198,6 +161,7 @@ with c1:
         gather_uniprot_data(selected_regulated_genes)
 
 if not st.session_state[StateKeys.ANNOTATION_STORE]:
+    st.info("No UniProt data found. Please run UniProt data fetching first.")
     st.stop()
 
 
