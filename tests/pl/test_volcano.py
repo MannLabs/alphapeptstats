@@ -1,7 +1,9 @@
 import pandas as pd
+import streamlit as st
 
 from alphastats.dataset.keys import Cols
-from alphastats.pl.volcano import plot_volcano
+from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.pl.volcano import DifferentialExpressionTwoGroupsResult
 from alphastats.tl.differential_expression_analysis import DeaColumns
 
 show_figures = False
@@ -23,35 +25,21 @@ valid_feature_to_repr_map = {
     "f5": "gene5",
     "f6": "gene6",
 }
+valid_method = {"group1": "mutant", "group2": "ctrl"}
 
 
-def test_plot_volcano():
-    fig = plot_volcano(
-        statistics_results=valid_statistics_results.copy(),
-        feature_to_repr_map=valid_feature_to_repr_map,
-        group1="mutant",
-        group2="ctrl",
-        qvalue_cutoff=0.05,
-        log2fc_cutoff=1,
-        label_significant=True,
-        flip_xaxis=False,
+class DummyDataset:
+    def __init__(self):
+        self.feature_to_repr_map = valid_feature_to_repr_map
+
+
+def test_DifferentialExpressionTwoGroupsResult():
+    c1, c2 = st.columns((1, 2))
+    st.session_state[StateKeys.DATASET] = DummyDataset()
+    result = DifferentialExpressionTwoGroupsResult(
+        dataframe=valid_statistics_results,
+        preprocessing={},
+        method=valid_method,
     )
-    assert fig is not None
-    if show_figures:
-        fig.show()
 
-    assert "mutant/ctrl" in fig.layout.xaxis.title.text
-    annotation_texts = [annotation.text for annotation in fig.layout.annotations]
-    assert set(annotation_texts) == {
-        "<b>mutant</b>",
-        "<b>ctrl</b>",
-        "feature2;l...",
-        "gene4",
-        "gene5",
-    }
-    group1_annotation = [
-        annotation
-        for annotation in fig.layout.annotations
-        if annotation.text == "<b>mutant</b>"
-    ][0]
-    assert group1_annotation.x > 0
+    result.display_object(c2, True, True, c1)

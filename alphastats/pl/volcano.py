@@ -3,175 +3,15 @@ from typing import Dict, Literal, Tuple, Union
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 from plotly.graph_objs._figure import Figure
 
-from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
+from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.pl.display_utils import ResultObject
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DifferentialExpressionAnalysis,
 )
-
-
-class VolcanoPlotlyObject(PlotlyObject):
-    def __init__(
-        self,
-        log2name,
-        group1,
-        group2,
-        qvalue_cutoff,
-        log2fc_cutoff,
-        drawlines,
-        label_significant,
-        flip_xaxis,
-        renderer,
-    ):
-        super().__init__()
-        self.log2name = log2name
-        self.group1 = group1
-        self.group2 = group2
-        self.qvalue_cutoff = qvalue_cutoff
-        self.log2fc_cutoff = log2fc_cutoff
-        self.drawlines = drawlines
-        self.label_significant = label_significant
-        self.flip_xaxis = flip_xaxis
-
-    def write_image(self, **kwargs):
-        fig = _plot_volcano(
-            df_plot=self.plotting_data.reset_index(),
-            log2name=self.log2name,
-            group1=self.group1,
-            group2=self.group2,
-            qvalue_cutoff=self.qvalue_cutoff,
-            log2fc_cutoff=self.log2fc_cutoff,
-            drawlines=self.drawlines,
-            label_significant=self.label_significant,
-            flip_xaxis=self.flip_xaxis,
-            renderer="svg",
-        )
-        return fig.write_image(**kwargs)
-
-
-class VolcanoPlot(PlotUtils):
-    def __init__(
-        self,
-        preprocessing_info: Dict,
-        statistics_results: pd.DataFrame,
-        feature_to_repr_map: Dict,
-        group1: str,
-        group2: str,
-        qvalue_cutoff: float = 0.05,
-        log2fc_cutoff: Union[float, None] = 1,
-        drawlines: bool = True,
-        label_significant: bool = True,
-        flip_xaxis: bool = False,
-        method: str = "volcano",
-    ):
-        self.preprocessing_info = preprocessing_info
-        self.method = method
-        fig, res, log2name = plot_volcano(
-            statistics_results=statistics_results,
-            feature_to_repr_map=feature_to_repr_map,
-            group1=group1,
-            group2=group2,
-            qvalue_cutoff=qvalue_cutoff,
-            log2fc_cutoff=log2fc_cutoff,
-            drawlines=drawlines,
-            label_significant=label_significant,
-            flip_xaxis=flip_xaxis,
-            renderer="webgl",
-        )
-        self.res = res
-        self.log2name = log2name
-        self.plot = VolcanoPlotlyObject(
-            fig,
-            log2name=log2name,
-            group1=group1,
-            group2=group2,
-            qvalue_cutoff=qvalue_cutoff,
-            log2fc_cutoff=log2fc_cutoff,
-            drawlines=drawlines,
-            label_significant=label_significant,
-            flip_xaxis=flip_xaxis,
-        )
-        self._update_figure_attributes(
-            self.plot,
-            plotting_data=self.res,
-            preprocessing_info=self.preprocessing_info,
-            method=self.method,
-        )
-
-
-def plot_volcano(
-    statistics_results: pd.DataFrame,
-    feature_to_repr_map: Dict,
-    group1: str,
-    group2: str,
-    qvalue_cutoff: float = 0.05,
-    log2fc_cutoff: Union[float, None] = 1,
-    drawlines: bool = True,
-    label_significant: bool = True,
-    flip_xaxis: bool = False,
-    renderer: Literal["webgl", "svg"] = "webgl",
-) -> Figure:
-    """
-    Create a volcano plot of the differential expression analysis results.
-
-    Parameters
-    ----------
-    statistics_results : pd.DataFrame
-        The results of the differential expression analysis.
-    feature_to_repr_map : dict
-        A dictionary mapping feature names to their representations.
-    group1 : str
-        The name of the first group.
-    group2 : str
-        The name of the second group.
-    qvalue_cutoff : float, default=0.05
-        The significance cutoff for the q-values.
-    log2fc_cutoff : Union[float, None], default=1
-        The fold cutoff for the log2 fold changes.
-    drawlines : bool, default=True
-        Whether to draw the significance and fold change cutoff lines.
-    label_significant : bool, default=True
-        Whether to label significant points.
-    flip_xaxis : bool, default=False
-        Whether to flip the x-axis.
-    renderer : Literal['webgl', 'svg']
-        The renderer to use for the plot. webgl or svg.
-
-    Returns
-    -------
-    go.Figure
-        The volcano plot.
-    pd.DataFrame
-        The prepared dataframe.
-    str
-        The name of the log2 fold change column.
-    """
-
-    df_plot, log2name = prepare_result_df(
-        statistics_results=statistics_results,
-        feature_to_repr_map=feature_to_repr_map,
-        group1=group1,
-        group2=group2,
-        qvalue_cutoff=qvalue_cutoff,
-        log2fc_cutoff=log2fc_cutoff,
-        flip_xaxis=flip_xaxis,
-    )
-
-    fig = _plot_volcano(
-        df_plot=df_plot.reset_index(),
-        log2name=log2name,
-        group1=group1,
-        group2=group2,
-        qvalue_cutoff=qvalue_cutoff,
-        log2fc_cutoff=log2fc_cutoff,
-        drawlines=drawlines,
-        label_significant=label_significant,
-        flip_xaxis=flip_xaxis,
-        renderer=renderer,
-    )
-    return fig, df_plot, log2name
 
 
 def _plot_volcano(
@@ -185,6 +25,7 @@ def _plot_volcano(
     label_significant: bool,
     flip_xaxis: bool,
     renderer: Literal["webgl", "svg"],
+    **kwargs,
 ) -> Figure:
     """Create the volcano plot.
 
@@ -304,6 +145,7 @@ def _plot_volcano(
                     xshift=-5,
                 )
 
+    fig.update_layout(**kwargs)
     return fig
 
 
@@ -382,3 +224,78 @@ def prepare_result_df(
     result_df["label"] = result_df.index.map(feature_to_repr_map)
 
     return result_df, log2name
+
+
+class DifferentialExpressionTwoGroupsResult(ResultObject):
+    def __init__(
+        self,
+        dataframe: pd.DataFrame,
+        preprocessing: Dict,
+        method: Dict,
+    ):
+        super().__init__(
+            dataframe, plottable=True, preprocessing=preprocessing, method=method
+        )
+        self.log2name = ""
+
+    def _get_data_annotation_options(self) -> Dict:
+        return {
+            "qvalue_cutoff": st.number_input(
+                "Q-value cutoff", 0.0, 1.0, 0.05, 0.01, format="%.2f"
+            ),
+            "log2fc_cutoff": st.number_input(
+                "Log2FC cutoff", 0.0, 10.0, 1.0, 0.1, format="%.1f"
+            ),
+            "flip_xaxis": st.checkbox("Flip groups", False),
+        }
+
+    def _update_data_annotation(
+        self,
+        qvalue_cutoff: float,
+        log2fc_cutoff: float,
+        flip_xaxis: bool,
+    ) -> pd.DataFrame:
+        formatted_df, log2name = prepare_result_df(
+            statistics_results=self.dataframe,
+            feature_to_repr_map=st.session_state[StateKeys.DATASET].feature_to_repr_map,
+            group1=self.method["group1"],
+            group2=self.method["group2"],
+            qvalue_cutoff=qvalue_cutoff,
+            log2fc_cutoff=log2fc_cutoff,
+            flip_xaxis=flip_xaxis,
+        )
+        self.log2name = log2name
+        return formatted_df
+
+    def _get_plot_options(self) -> Dict:
+        return {
+            **{
+                "drawlines": st.checkbox(
+                    "Draw significance and fold change lines", True
+                ),
+                "label_significant": st.checkbox("Label significant points", True),
+                "renderer": st.radio("Renderer", ["webgl", "svg"], index=0),
+            },
+            **self.get_standard_layout_options(),
+        }
+
+    def _update_plot(
+        self,
+        drawlines: bool,
+        label_significant: bool,
+        renderer: Literal["webgl", "svg"],
+        **kwargs,
+    ) -> Figure:
+        return _plot_volcano(
+            df_plot=self.dataframe,
+            log2name=self.log2name,
+            group1=self.method["group1"],
+            group2=self.method["group2"],
+            qvalue_cutoff=self.data_annotation_options["qvalue_cutoff"],
+            log2fc_cutoff=self.data_annotation_options["log2fc_cutoff"],
+            flip_xaxis=self.data_annotation_options["flip_xaxis"],
+            drawlines=drawlines,
+            label_significant=label_significant,
+            renderer=renderer,
+            **kwargs,
+        )
