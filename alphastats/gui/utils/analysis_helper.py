@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
+from plotly.graph_objects import Figure
 from stqdm import stqdm
 
 from alphastats.dataset.keys import Cols
@@ -40,7 +41,7 @@ def display_analysis_result_with_buttons(
         download_function = show_button_download_df
     elif analysis_method in NewAnalysisOptions.get_values():
         display_function = display_results
-        download_function = lambda x, y: None  # noqa:E731
+        download_function = _show_buttons_download_results
     else:
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
@@ -117,11 +118,29 @@ def display_figure(plot: PlotlyObject) -> None:
         st.pyplot(plot)
 
 
-def _show_buttons_download_figure(analysis_result: PlotlyObject, name: str) -> None:
+def _show_buttons_download_results(analysis_result: ResultObject, name: str) -> None:
+    """Show buttons to download results as pdf, svg or csv."""
+    _show_buttons_download_figure(analysis_result.plot, name)
+    show_button_download_df(
+        analysis_result.dataframe,
+        file_name=f"{name}_raw_results.csv",
+        label="Download raw results as .csv",
+    )
+    show_button_download_df(
+        analysis_result.annotated_dataframe,
+        file_name=f"{name}_anotated_results.csv",
+        label="Download annotated results as .csv",
+    )
+
+
+def _show_buttons_download_figure(
+    analysis_result: Union[PlotlyObject, Figure], name: str
+) -> None:
     """Show buttons to download figure as .pdf or .svg."""
     # TODO We have to check for all scatter plotly figures, which renderer they use.
     #  Default is webgl, which is good for browser performance, but looks horrendous in svg download
     #  rerendering with svg as renderer could be a method of PlotlyObject to invoke prior to saving as svg
+
     _show_button_download_figure(analysis_result, name, "pdf")
     _show_button_download_figure(analysis_result, name, "svg")
 
