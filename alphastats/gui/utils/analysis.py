@@ -10,10 +10,14 @@ from plotly.graph_objs._figure import Figure
 
 from alphastats.dataset.dataset import DataSet
 from alphastats.dataset.keys import Cols, ConstantsClass
+from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.gui.utils.ui_helper import StateKeys
 from alphastats.pl.volcano import _plot_volcano, prepare_result_df
 from alphastats.plots.plot_utils import PlotlyObject
 from alphastats.plots.volcano_plot import VolcanoPlot
+from alphastats.tl.differential_expression_analysis import (
+    DifferentialExpressionAnalysisTTest,
+)
 
 
 class PlottingOptions(metaclass=ConstantsClass):
@@ -36,6 +40,12 @@ class StatisticOptions(metaclass=ConstantsClass):
     TUKEY_TEST = "Tukey-Test"
     ANOVA = "ANOVA"
     ANCOVA = "ANCOVA"
+
+
+class NewAnalysisOptions(metaclass=ConstantsClass):
+    """Keys for the new analysis options, the order determines order in UI."""
+
+    DIFFERENTIAL_EXPRESSION_TWO_GROUPS = "Differential Expression Analysis (Two Groups)"
 
 
 # TODO rename to AnalysisComponent
@@ -503,6 +513,56 @@ class AncovaAnalysis(AbstractAnalysis):
         return ancova_analysis, None
 
 
+class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
+    """Widget for Volcano Plot analysis."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+        super().show_widget()
+
+        parameters = {}
+        method = st.selectbox(
+            "Differential Analysis using:",
+            options=["ttest"],
+        )
+        parameters["method"] = method
+
+        self._parameters.update(parameters)
+
+    def _do_analysis(self):
+        """Draw Volcano Plot using the VolcanoPlot class.
+
+        Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
+        analysis_object is the underlying object, parameters is a dictionary of the parameters used.
+        """
+        # TODO: This is the place, where the new workflow of run/fetch DEA, filter significance, create plot should live. 1. self._dataset.get_dea(**parameters1), 2. dea.get_signficance(result, parameters2), 3. plot_volcano(result, significance, parameters3)
+        # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
+        # thus overwriting the default values set therein.
+        # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
+        # or refactor it so that all default values are `None` and the class sets the defaults programmatically.
+        if self._parameters["method"] == "ttest":
+            dea = DifferentialExpressionAnalysisTTest(
+                self._dataset.mat,
+                self._dataset.preprocessing_info[
+                    PreprocessingStateKeys.LOG2_TRANSFORMED
+                ],
+            )
+            dea_result = dea.perform(
+                test_type="independent",
+                group1=self._parameters["group1"],
+                group2=self._parameters["group2"],
+                grouping_column=self._parameters["column"],
+                metadata=self._dataset.metadata,
+                fdr_method="fdr_bh",
+            )
+
+        return DifferentialExpressionTwoGroupsResult(
+            dea_result,
+            preprocessing=self._dataset.preprocessing_info,
+            method=self._parameters,
+        ), None
+
+
 ANALYSIS_OPTIONS = {
     PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
     PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
@@ -516,6 +576,7 @@ ANALYSIS_OPTIONS = {
     StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
     StatisticOptions.ANOVA: AnovaAnalysis,
     StatisticOptions.ANCOVA: AncovaAnalysis,
+    NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS: DifferentialExpressionTwoGroupsAnalysis,
 }
 
 
@@ -714,7 +775,9 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
     ) -> pd.DataFrame:
         formatted_df, log2name = prepare_result_df(
             statistics_results=self.dataframe,
-            feature_to_repr_map=st.session_state[StateKeys.DATASET].feature_to_repr_map,
+            feature_to_repr_map=st.session_state[
+                StateKeys.DATASET
+            ]._feature_to_repr_map,
             group1=self.method["group1"],
             group2=self.method["group2"],
             qvalue_cutoff=qvalue_cutoff,

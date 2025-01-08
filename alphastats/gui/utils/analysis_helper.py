@@ -8,7 +8,9 @@ from stqdm import stqdm
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
+    NewAnalysisOptions,
     PlottingOptions,
+    ResultObject,
     StatisticOptions,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -35,6 +37,9 @@ def display_analysis_result_with_buttons(
     elif analysis_method in StatisticOptions.get_values():
         display_function = _display_df
         download_function = show_button_download_df
+    elif analysis_method in NewAnalysisOptions.get_values():
+        display_function = display_results
+        download_function = lambda x, y: None  # noqa:E731
     else:
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
@@ -46,6 +51,16 @@ def display_analysis_result_with_buttons(
         name=name,
         display_function=display_function,
         download_function=download_function,
+    )
+
+
+def display_results(results: ResultObject):
+    display_column, widget_column = st.columns((1, 1))
+    results.display_object(
+        display_column=display_column,
+        widget_column=widget_column,
+        data_annotation_editable=True,
+        display_editable=True,
     )
 
 

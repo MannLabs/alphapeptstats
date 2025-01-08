@@ -1,6 +1,10 @@
 import streamlit as st
 
-from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
+from alphastats.gui.utils.analysis import (
+    NewAnalysisOptions,
+    PlottingOptions,
+    StatisticOptions,
+)
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
     gather_parameters_and_do_analysis,
@@ -49,16 +53,18 @@ c1, c2 = st.columns([0.33, 0.67])
 with c1:
     plotting_options = PlottingOptions.get_values()
     statistic_options = StatisticOptions.get_values()
+    new_options = NewAnalysisOptions.get_values()
     analysis_method = st.selectbox(
         "Analysis",
         options=["<select>"]
+        + new_options
         + ["------- plots ------------"]
         + plotting_options
         + ["------- statistics -------"]
         + statistic_options,
     )
 
-    if analysis_method in plotting_options:
+    if analysis_method in plotting_options or analysis_method in new_options:
         analysis_result, analysis_object, parameters = (
             gather_parameters_and_do_analysis(analysis_method)
         )

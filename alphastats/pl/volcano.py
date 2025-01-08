@@ -288,7 +288,9 @@ def prepare_result_df(
     )
 
     # transform q-values to -log10
-    result_df["-log10(q-value)"] = -np.log10(result_df[DeaColumns.QVALUE])
+    result_df["-log10(q-value)"] = [
+        -np.log10(el) for el in result_df[DeaColumns.QVALUE]
+    ]
 
     # map feature names to representations
     result_df["label"] = result_df.index.map(feature_to_repr_map)
