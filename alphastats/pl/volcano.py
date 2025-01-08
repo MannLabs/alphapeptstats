@@ -24,7 +24,7 @@ def plot_volcano(
     renderer: Literal["webgl", "svg"] = "webgl",
 ) -> Figure:
     """
-    Create a volcano plot of the differential expression analysis results.
+    Create a volcano plot of the differential expression analysis results by first formatting the data and then creating the plot.
 
     Parameters
     ----------
@@ -97,7 +97,7 @@ def _plot_volcano(
     renderer: Literal["webgl", "svg"],
     **kwargs,
 ) -> Figure:
-    """Create the volcano plot.
+    """Create the volcano plot from formatted data.
 
     Parameters
     ----------

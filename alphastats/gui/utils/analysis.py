@@ -48,6 +48,176 @@ class NewAnalysisOptions(metaclass=ConstantsClass):
     DIFFERENTIAL_EXPRESSION_TWO_GROUPS = "Differential Expression Analysis (Two Groups)"
 
 
+class ResultObject(ABC):
+    """Base class for providing the UI for inspecting and parameterizing the analysis based of statistical results.
+
+    The class is intended to be subclassed and the abstract methods implemented to provide the specific functionality.
+
+    The intended use is that in a first step data can be annotated e.g. based on significance cutoffs and then plotted, e.g. applying cosmetic preferences like lines and colors.
+
+    The display function can parameterized to restrict editing options to 'freeze' the result.
+    """
+
+    def __init__(
+        self,
+        dataframe: pd.DataFrame,
+        plottable: bool,
+        preprocessing: Dict,
+        method: Dict,
+    ) -> None:
+        """Initialize the ResultObject with a dataframe and a plot.
+
+        Args:
+            dataframe (pd.DataFrame): The dataframe to be used for the analysis.
+            plottable (bool): If the analysis is plottable.
+            preprocessing (Dict): The preprocessing information.
+            method (Dict): The method used for the analysis.
+
+        Raises:
+            ValueError: If no dataframe is provided.
+        """
+        if dataframe is None:
+            raise ValueError("A dataframe is required for result display.")
+
+        self.dataframe = dataframe
+        self.annotated_dataframe = dataframe
+        self.plottable = plottable
+        self.plot: Optional[Figure] = None
+        self.preprocessing = preprocessing
+        self.method = method
+        self.data_annotation_options = {}
+        self.display_options = {}
+        self.display_selection = "Plot" if self.plottable else "Dataframe"
+
+    def _apply_data_annotation_options(self) -> None:
+        """Function to get and apply all options for data annotation.
+        This sets the data_annotation_options and updates the annotated_dataframe."""
+        self.data_annotation_options = self._get_data_annotation_options()
+        self.annotated_dataframe = self._update_data_annotation(
+            **self.data_annotation_options
+        )
+
+    @abstractmethod
+    def _get_data_annotation_options(self) -> Dict:
+        """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_data_annotation as kwargs."""
+        pass
+
+    @abstractmethod
+    def _update_data_annotation(self, **kwargs) -> pd.DataFrame:
+        """Implementations of this function should create the dataframe that can then directly be used by the _update_plot method to update the plot."""
+        pass
+
+    def _apply_display_options(self):
+        """Function to get and apply all display options.
+
+        This sets the display_options and parameterizes and updates the plot if plot is the selection made.
+        """
+        if self.plottable is False:
+            display_selection_options = ["Raw dataframe", "Annotated dataframe"]
+        else:
+            display_selection_options = ["Plot", "Raw dataframe", "Annotated dataframe"]
+
+        display_selection = st.radio(
+            "Select display",
+            display_selection_options,
+            index=display_selection_options.index(
+                st.session_state.get("TMP_display_selection", self.display_selection)
+            ),
+            key="TMP_display_selection",
+        )
+
+        self.display_selection = display_selection
+        if display_selection == "Plot":
+            self.display_options = self._get_plot_options()
+            self.plot = self._update_plot(**self.display_options)
+
+    @abstractmethod
+    def _get_plot_options(self) -> Dict:
+        """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_plot as kwargs."""
+        pass
+
+    @abstractmethod
+    def _update_plot(self, **kwargs) -> Figure:
+        """Implementations of this function should use the annotated_dataframe attribute and kwargs to create the plot that can then directly be displayed by the _display_object method."""
+        pass
+
+    def _display_object(self) -> None:
+        """Function to display the result object"""
+        if self.display_selection == "Plot":
+            st.plotly_chart(self.plot.update())
+        elif self.display_selection == "Raw dataframe":
+            st.dataframe(self.dataframe)
+        elif self.display_selection == "Annotated dataframe":
+            st.dataframe(self.annotated_dataframe)
+
+    def display_object(
+        self,
+        display_column: st.container,
+        data_annotation_editable: bool = False,
+        display_editable: bool = False,
+        widget_column: Optional[st.container] = None,
+    ):
+        """Function to display the object.
+        The function will display the object in the display column and the options in the widget column.
+        The boolean flags are intended for controlling behaviour in different sections of the application.
+
+        Args:
+            display_column (st.container): The container to display the object.
+            data_annotation_editable (bool, optional): If the data_annotation options are editable. Defaults to False.
+            display_editable (bool, optional): If the display options are editable. Defaults to False.
+            widget_column (Optional[st.container], optional): The container to display the widgets. Defaults to None.
+
+        Raises:
+            ValueError: If the widget column container is not provided.
+        """
+        if data_annotation_editable or display_editable:
+            if widget_column is None:
+                raise ValueError("Widget column container must be provided")
+            with widget_column:
+                if data_annotation_editable:
+                    self._apply_data_annotation_options()
+                if display_editable:
+                    self._apply_display_options()
+                else:  # required to update plot if annotation options change
+                    self.plot = self._update_plot(**self.display_options)
+        with display_column:
+            self._display_object()
+
+    def get_standard_layout_options(self) -> Dict:
+        """Function to get the standard layout options for the plot.
+
+        This can be used by the _get_plot_options method to get the standard layout options for the plot and then passed as kwargs to the _update_plot > plotting function > Figure.update."""
+        return {
+            "height": st.number_input(
+                "Height",
+                200,
+                1000,
+                st.session_state.get(
+                    "TMP_height", self.display_options.get("height", 500)
+                ),
+                10,
+                key="TMP_height",
+            ),
+            "width": st.number_input(
+                "Width",
+                200,
+                1000,
+                st.session_state.get(
+                    "TMP_width", self.display_options.get("width", 500)
+                ),
+                10,
+                key="TMP_width",
+            ),
+            "showlegend": st.checkbox(
+                "Show legend",
+                st.session_state.get(
+                    "TMP_showlegend", self.display_options.get("showlegend", False)
+                ),
+                key="TMP_showlegend",
+            ),
+        }
+
+
 # TODO rename to AnalysisComponent
 class AbstractAnalysis(ABC):
     """Abstract class for analysis widgets."""
@@ -86,7 +256,7 @@ class AbstractAnalysis(ABC):
     @abstractmethod
     def _do_analysis(
         self,
-    ) -> Tuple[Union[PlotlyObject, pd.DataFrame], Optional[VolcanoPlot]]:
+    ) -> Tuple[Union[PlotlyObject, pd.DataFrame, ResultObject], Optional[VolcanoPlot]]:
         pass
 
     def _nan_check(self) -> None:  # noqa: B027
@@ -514,7 +684,7 @@ class AncovaAnalysis(AbstractAnalysis):
 
 
 class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
-    """Widget for Volcano Plot analysis."""
+    """Widget for Differential expression analysis between two groups."""
 
     def show_widget(self):
         """Show the widget and gather parameters."""
@@ -523,24 +693,20 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
         parameters = {}
         method = st.selectbox(
             "Differential Analysis using:",
-            options=["ttest"],
+            options=["independent t-test", "paired t-test"],
         )
         parameters["method"] = method
 
         self._parameters.update(parameters)
 
-    def _do_analysis(self):
-        """Draw Volcano Plot using the VolcanoPlot class.
-
-        Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
-        analysis_object is the underlying object, parameters is a dictionary of the parameters used.
-        """
+    def _do_analysis(self) -> Tuple[ResultObject, None]:
+        """Run the differential expression analysis between two groups and return the corresponding results object."""
         # TODO: This is the place, where the new workflow of run/fetch DEA, filter significance, create plot should live. 1. self._dataset.get_dea(**parameters1), 2. dea.get_signficance(result, parameters2), 3. plot_volcano(result, significance, parameters3)
         # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
         # thus overwriting the default values set therein.
         # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
         # or refactor it so that all default values are `None` and the class sets the defaults programmatically.
-        if self._parameters["method"] == "ttest":
+        if self._parameters["method"] in ["independent t-test", "paired t-test"]:
             dea = DifferentialExpressionAnalysisTTest(
                 self._dataset.mat,
                 self._dataset.preprocessing_info[
@@ -548,7 +714,9 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
                 ],
             )
             dea_result = dea.perform(
-                test_type="independent",
+                test_type="independent"
+                if self._parameters["method"] == "independent t-test"
+                else "paired",
                 group1=self._parameters["group1"],
                 group2=self._parameters["group2"],
                 grouping_column=self._parameters["column"],
@@ -580,146 +748,9 @@ ANALYSIS_OPTIONS = {
 }
 
 
-class ResultObject(ABC):
-    def __init__(
-        self,
-        dataframe: pd.DataFrame,
-        plottable: bool,
-        preprocessing: Dict,
-        method: Dict,
-    ):
-        if dataframe is None:
-            raise ValueError("Either dataframe or plot must be provided")
-
-        self.dataframe = dataframe
-        self.annotated_dataframe = dataframe
-        self.plottable = plottable
-        self.plot = None
-        self.preprocessing = preprocessing
-        self.method = method
-        self.data_annotation_options = {}
-        self.display_options = {}
-        self.display_selection = "Plot" if self.plottable else "Dataframe"
-
-    def _apply_data_annotation_options(self):
-        """Function to get all significance options for the analysis object"""
-        self.data_annotation_options = self._get_data_annotation_options()
-        self.annotated_dataframe = self._update_data_annotation(
-            **self.data_annotation_options
-        )
-
-    @abstractmethod
-    def _get_data_annotation_options(self) -> Dict:
-        pass
-
-    @abstractmethod
-    def _update_data_annotation(self, **kwargs) -> pd.DataFrame:
-        pass
-
-    def _apply_display_options(self):
-        """Funciton to get all display options for the analysis object"""
-        if self.plottable is False:
-            display_selection_options = ["Raw dataframe", "Annotated dataframe"]
-        else:
-            display_selection_options = ["Plot", "Raw dataframe", "Annotated dataframe"]
-        display_selection = st.radio(
-            "Select display",
-            display_selection_options,
-            index=display_selection_options.index(
-                st.session_state.get("TMP_display_selection", self.display_selection)
-            ),
-            key="TMP_display_selection",
-        )
-        self.display_selection = display_selection
-        if display_selection == "Plot":
-            self.display_options = self._get_plot_options()
-            self.plot = self._update_plot(**self.display_options)
-
-    @abstractmethod
-    def _get_plot_options(self) -> Dict:
-        """Function to get all plotting related options for the analysis object"""
-        pass
-
-    @abstractmethod
-    def _update_plot(self, **kwargs) -> Figure:
-        """Function to update the display of the analysis object"""
-        pass
-
-    def _display_object(self):
-        """Function to display the analysis object"""
-        if self.display_selection == "Plot":
-            st.plotly_chart(self.plot.update())
-        elif self.display_selection == "Raw dataframe":
-            st.dataframe(self.dataframe)
-        elif self.display_selection == "Annotated dataframe":
-            st.dataframe(self.annotated_dataframe)
-
-    def display_object(
-        self,
-        display_column: st.container,
-        data_annotation_editable: bool = False,
-        display_editable: bool = False,
-        widget_column: Optional[st.container] = None,
-    ):
-        """Function to display the object.
-        The function will display the object in the display column and the options in the widget column.
-        The boolean flags are intended for controlling behaviour in different sections of the application.
-
-        Args:
-            display_column (st.container): The container to display the object.
-            data_annotation_editable (bool, optional): If the data_annotation options are editable. Defaults to False.
-            display_editable (bool, optional): If the display options are editable. Defaults to False.
-            widget_column (Optional[st.container], optional): The container to display the widgets. Defaults to None.
-
-        Raises:
-            ValueError: If the widget column container is not provided.
-        """
-        if data_annotation_editable or display_editable:
-            if widget_column is None:
-                raise ValueError("Widget column container must be provided")
-            with widget_column:
-                if data_annotation_editable:
-                    self._apply_data_annotation_options()
-                if display_editable:
-                    self._apply_display_options()
-                else:
-                    self.plot = self._update_plot(**self.display_options)
-        with display_column:
-            self._display_object()
-
-    def get_standard_layout_options(self):
-        return {
-            "height": st.number_input(
-                "Height",
-                200,
-                1000,
-                st.session_state.get(
-                    "TMP_height", self.display_options.get("height", 500)
-                ),
-                10,
-                key="TMP_height",
-            ),
-            "width": st.number_input(
-                "Width",
-                200,
-                1000,
-                st.session_state.get(
-                    "TMP_width", self.display_options.get("width", 500)
-                ),
-                10,
-                key="TMP_width",
-            ),
-            "showlegend": st.checkbox(
-                "Show legend",
-                st.session_state.get(
-                    "TMP_showlegend", self.display_options.get("showlegend", 500)
-                ),
-                key="TMP_showlegend",
-            ),
-        }
-
-
 class DifferentialExpressionTwoGroupsResult(ResultObject):
+    """Implementation of the ResultObject for the differential expression analysis between two groups."""
+
     def __init__(
         self,
         dataframe: pd.DataFrame,
@@ -729,9 +760,13 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         super().__init__(
             dataframe, plottable=True, preprocessing=preprocessing, method=method
         )
-        self.log2name = ""
+        self.log2name: str = ""
 
     def _get_data_annotation_options(self) -> Dict:
+        """Function to get the data annotation options for the differential expression analysis between two groups.
+
+        Parameters fetched are: qvalue_cutoff, log2fc_cutoff, flip_xaxis.
+        """
         return {
             "qvalue_cutoff": st.number_input(
                 "Q-value cutoff",
@@ -773,6 +808,17 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         log2fc_cutoff: float,
         flip_xaxis: bool,
     ) -> pd.DataFrame:
+        """Function to update the data annotation for the differential expression analysis between two groups.
+
+        Parameters
+        ----------
+        qvalue_cutoff : float
+                The q-value cutoff for the differential expression analysis.
+        log2fc_cutoff : float
+            The log2 fold change cutoff for the differential expression analysis.
+        flip_xaxis : bool
+            Whether to flip the x-axis. This determines the new column name for the fold change column, stored in log2name.
+        """
         formatted_df, log2name = prepare_result_df(
             statistics_results=self.dataframe,
             feature_to_repr_map=st.session_state[
@@ -788,6 +834,10 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         return formatted_df
 
     def _get_plot_options(self) -> Dict:
+        """Function to get the plot options for the differential expression analysis between two groups.
+
+        Parameters fetched are: drawlines, label_significant, renderer. Additionally the standard layout options are fetched.
+        Note: renderer is important to make sure that pdf and svg downloads of the plot are actually vetorized and not a png set into a vectorized frame."""
         with st.expander("Display options"):
             renderer_options = ["webgl", "svg"]
             return {
@@ -829,6 +879,17 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         renderer: Literal["webgl", "svg"],
         **kwargs,
     ) -> Figure:
+        """Function to update the plot for the differential expression analysis between two groups.
+
+        It additionally uses the data_annotation_options to get the qvalue_cutoff, log2fc_cutoff and flip_xaxis parameters and the method to get the group1 and group2 parameters.
+
+        Parameters
+        ----------
+        drawlines : bool
+            Whether to draw the significance and fold change lines.
+        label_significant : bool
+            Whether to label significant points.
+        renderer : Whether to use the webgl (better for web display) or svg (required for proper svg download) rendering engine."""
         return _plot_volcano(
             df_plot=self.annotated_dataframe,
             log2name=self.log2name,
