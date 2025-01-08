@@ -241,12 +241,37 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
     def _get_data_annotation_options(self) -> Dict:
         return {
             "qvalue_cutoff": st.number_input(
-                "Q-value cutoff", 0.0, 1.0, 0.05, 0.01, format="%.2f"
+                "Q-value cutoff",
+                0.0,
+                1.0,
+                st.session_state.get(
+                    "TMP_qvalue_cutoff",
+                    self.data_annotation_options.get("qvalue_cutoff", 0.05),
+                ),
+                0.01,
+                format="%.2f",
+                key="TMP_qvalue_cutoff",
             ),
             "log2fc_cutoff": st.number_input(
-                "Log2FC cutoff", 0.0, 10.0, 1.0, 0.1, format="%.1f"
+                "Log2FC cutoff",
+                0.0,
+                10.0,
+                st.session_state.get(
+                    "TMP_log2fc_cutoff",
+                    self.data_annotation_options.get("log2fc_cutoff", 1.0),
+                ),
+                0.1,
+                format="%.1f",
+                key="TMP_log2fc_cutoff",
             ),
-            "flip_xaxis": st.checkbox("Flip groups", False),
+            "flip_xaxis": st.checkbox(
+                "Flip groups",
+                st.session_state.get(
+                    "TMP_flip_xaxis",
+                    self.data_annotation_options.get("flip_xaxis", False),
+                ),
+                key="TMP_flip_xaxis",
+            ),
         }
 
     def _update_data_annotation(
@@ -268,16 +293,39 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         return formatted_df
 
     def _get_plot_options(self) -> Dict:
-        return {
-            **{
-                "drawlines": st.checkbox(
-                    "Draw significance and fold change lines", True
-                ),
-                "label_significant": st.checkbox("Label significant points", True),
-                "renderer": st.radio("Renderer", ["webgl", "svg"], index=0),
-            },
-            **self.get_standard_layout_options(),
-        }
+        with st.expander("Display options"):
+            renderer_options = ["webgl", "svg"]
+            return {
+                **{
+                    "drawlines": st.checkbox(
+                        "Draw significance and fold change lines",
+                        st.session_state.get(
+                            "TMP_drawlines", self.display_options.get("drawlines", True)
+                        ),
+                        key="TMP_drawlines",
+                    ),
+                    "label_significant": st.checkbox(
+                        "Label significant points",
+                        st.session_state.get(
+                            "TMP_label_significant",
+                            self.display_options.get("label_significant", True),
+                        ),
+                        key="TMP_label_significant",
+                    ),
+                    "renderer": st.radio(
+                        "Renderer",
+                        renderer_options,
+                        index=renderer_options.index(
+                            st.session_state.get(
+                                "TMP_renderer",
+                                self.display_options.get("renderer", "webgl"),
+                            )
+                        ),
+                        key="TMP_renderer",
+                    ),
+                },
+                **self.get_standard_layout_options(),
+            }
 
     def _update_plot(
         self,
@@ -287,7 +335,7 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         **kwargs,
     ) -> Figure:
         return _plot_volcano(
-            df_plot=self.dataframe,
+            df_plot=self.annotated_dataframe,
             log2name=self.log2name,
             group1=self.method["group1"],
             group2=self.method["group2"],
