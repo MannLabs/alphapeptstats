@@ -90,16 +90,16 @@ class ResultObject(ABC):
         self.display_options = {}
         self.display_selection = "Plot" if self.plottable else "Dataframe"
 
-    def _apply_data_annotation_options(self) -> None:
+    def _apply_data_annotation_options(self, name: str = "tmp") -> None:
         """Function to get and apply all options for data annotation.
         This sets the data_annotation_options and updates the annotated_dataframe."""
-        self.data_annotation_options = self._get_data_annotation_options()
+        self.data_annotation_options = self._get_data_annotation_options(name=name)
         self.annotated_dataframe = self._update_data_annotation(
             **self.data_annotation_options
         )
 
     @abstractmethod
-    def _get_data_annotation_options(self) -> Dict:
+    def _get_data_annotation_options(self, name: str = "tmp") -> Dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_data_annotation as kwargs."""
         pass
 
@@ -108,7 +108,7 @@ class ResultObject(ABC):
         """Implementations of this function should create the dataframe that can then directly be used by the _update_plot method to update the plot."""
         pass
 
-    def _apply_display_options(self):
+    def _apply_display_options(self, name: str = "tmp"):
         """Function to get and apply all display options.
 
         This sets the display_options and parameterizes and updates the plot if plot is the selection made.
@@ -122,18 +122,20 @@ class ResultObject(ABC):
             "Select display",
             display_selection_options,
             index=display_selection_options.index(
-                st.session_state.get("TMP_display_selection", self.display_selection)
+                st.session_state.get(
+                    f"{name}_display_selection", self.display_selection
+                )
             ),
-            key="TMP_display_selection",
+            key=f"{name}_display_selection",
         )
 
         self.display_selection = display_selection
         if display_selection == "Plot":
-            self.display_options = self._get_plot_options()
+            self.display_options = self._get_plot_options(name=name)
             self.plot = self._update_plot(**self.display_options)
 
     @abstractmethod
-    def _get_plot_options(self) -> Dict:
+    def _get_plot_options(self, name: str = "tmp") -> Dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_plot as kwargs."""
         pass
 
@@ -157,6 +159,7 @@ class ResultObject(ABC):
         data_annotation_editable: bool = False,
         display_editable: bool = False,
         widget_column: Optional[st.container] = None,
+        name: str = "tmp",
     ):
         """Function to display the object.
         The function will display the object in the display column and the options in the widget column.
@@ -176,15 +179,15 @@ class ResultObject(ABC):
                 raise ValueError("Widget column container must be provided")
             with widget_column:
                 if data_annotation_editable:
-                    self._apply_data_annotation_options()
+                    self._apply_data_annotation_options(name=name)
                 if display_editable:
-                    self._apply_display_options()
+                    self._apply_display_options(name=name)
                 else:  # required to update plot if annotation options change
                     self.plot = self._update_plot(**self.display_options)
         with display_column:
             self._display_object()
 
-    def get_standard_layout_options(self) -> Dict:
+    def get_standard_layout_options(self, name: str = "tmp") -> Dict:
         """Function to get the standard layout options for the plot.
 
         This can be used by the _get_plot_options method to get the standard layout options for the plot and then passed as kwargs to the _update_plot > plotting function > Figure.update."""
@@ -194,29 +197,46 @@ class ResultObject(ABC):
                 200,
                 1000,
                 st.session_state.get(
-                    "TMP_height", self.display_options.get("height", 500)
+                    f"{name}_height", self.display_options.get("height", 500)
                 ),
                 10,
-                key="TMP_height",
+                key=f"{name}_height",
             ),
             "width": st.number_input(
                 "Width",
                 200,
                 1000,
                 st.session_state.get(
-                    "TMP_width", self.display_options.get("width", 500)
+                    f"{name}_width", self.display_options.get("width", 500)
                 ),
                 10,
-                key="TMP_width",
+                key=f"{name}_width",
             ),
             "showlegend": st.checkbox(
                 "Show legend",
                 st.session_state.get(
-                    "TMP_showlegend", self.display_options.get("showlegend", False)
+                    f"{name}_showlegend", self.display_options.get("showlegend", False)
                 ),
-                key="TMP_showlegend",
+                key=f"{name}_showlegend",
             ),
         }
+
+    def copy(self):
+        """Function to copy the object."""
+        copy = self.__class__(
+            dataframe=self.dataframe,
+            plottable=self.plottable,
+            preprocessing=self.preprocessing,
+            method=self.method,
+        )
+        copy.data_annotation_options = self.data_annotation_options.copy()
+        copy.annotated_dataframe = copy._update_data_annotation(
+            **self.data_annotation_options
+        )
+        copy.display_options = self.display_options.copy()
+        if self.plottable:
+            copy.plot = self._update_plot(**self.display_options)
+        return copy
 
 
 # TODO rename to AnalysisComponent
@@ -768,13 +788,14 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         dataframe: pd.DataFrame,
         preprocessing: Dict,
         method: Dict,
+        plottable: bool = True,
     ):
         super().__init__(
-            dataframe, plottable=True, preprocessing=preprocessing, method=method
+            dataframe, plottable=plottable, preprocessing=preprocessing, method=method
         )
         self.log2name: str = ""
 
-    def _get_data_annotation_options(self) -> Dict:
+    def _get_data_annotation_options(self, name: str = "tmp") -> Dict:
         """Function to get the data annotation options for the differential expression analysis between two groups.
 
         Parameters fetched are: qvalue_cutoff, log2fc_cutoff, flip_xaxis.
@@ -785,32 +806,32 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
                 0.0,
                 1.0,
                 st.session_state.get(
-                    "TMP_qvalue_cutoff",
+                    f"{name}_qvalue_cutoff",
                     self.data_annotation_options.get("qvalue_cutoff", 0.05),
                 ),
                 0.01,
                 format="%.2f",
-                key="TMP_qvalue_cutoff",
+                key=f"{name}_qvalue_cutoff",
             ),
             "log2fc_cutoff": st.number_input(
                 "Log2FC cutoff",
                 0.0,
                 10.0,
                 st.session_state.get(
-                    "TMP_log2fc_cutoff",
+                    f"{name}_log2fc_cutoff",
                     self.data_annotation_options.get("log2fc_cutoff", 1.0),
                 ),
                 0.1,
                 format="%.1f",
-                key="TMP_log2fc_cutoff",
+                key=f"{name}_log2fc_cutoff",
             ),
             "flip_xaxis": st.checkbox(
                 "Flip groups",
                 st.session_state.get(
-                    "TMP_flip_xaxis",
+                    f"{name}_flip_xaxis",
                     self.data_annotation_options.get("flip_xaxis", False),
                 ),
-                key="TMP_flip_xaxis",
+                key=f"{name}_flip_xaxis",
             ),
         }
 
@@ -845,7 +866,7 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         self.log2name = log2name
         return formatted_df
 
-    def _get_plot_options(self) -> Dict:
+    def _get_plot_options(self, name: str = "tmp") -> Dict:
         """Function to get the plot options for the differential expression analysis between two groups.
 
         Parameters fetched are: drawlines, label_significant, renderer. Additionally the standard layout options are fetched.
@@ -857,31 +878,32 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
                     "drawlines": st.checkbox(
                         "Draw significance and fold change lines",
                         st.session_state.get(
-                            "TMP_drawlines", self.display_options.get("drawlines", True)
+                            f"{name}_drawlines",
+                            self.display_options.get("drawlines", True),
                         ),
-                        key="TMP_drawlines",
+                        key=f"{name}_drawlines",
                     ),
                     "label_significant": st.checkbox(
                         "Label significant points",
                         st.session_state.get(
-                            "TMP_label_significant",
+                            f"{name}_label_significant",
                             self.display_options.get("label_significant", True),
                         ),
-                        key="TMP_label_significant",
+                        key=f"{name}_label_significant",
                     ),
                     "renderer": st.radio(
                         "Renderer",
                         renderer_options,
                         index=renderer_options.index(
                             st.session_state.get(
-                                "TMP_renderer",
+                                f"{name}_renderer",
                                 self.display_options.get("renderer", "webgl"),
                             )
                         ),
-                        key="TMP_renderer",
+                        key=f"{name}_renderer",
                     ),
                 },
-                **self.get_standard_layout_options(),
+                **self.get_standard_layout_options(name=name),
             }
 
     def _update_plot(

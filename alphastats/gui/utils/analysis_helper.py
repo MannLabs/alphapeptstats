@@ -57,13 +57,18 @@ def display_analysis_result_with_buttons(
     )
 
 
-def display_results(results: ResultObject, editable_annotation: bool) -> None:
+def display_results(
+    results: ResultObject, editable_annotation: bool, name: str
+) -> None:
+    if name is None:
+        name = "tmp"
     display_column, widget_column = st.columns((1, 1))
     results.display_object(
         display_column=display_column,
         widget_column=widget_column,
         data_annotation_editable=editable_annotation,
         display_editable=True,
+        name=name,
     )
 
 
@@ -79,17 +84,20 @@ def _display(
     editable_annotation: bool,
 ) -> None:
     """Display analysis results and download options."""
-    try:
-        display_function(analysis_result, editable_annotation=editable_annotation)
-    except Exception:
-        display_function(analysis_result)
-
-    c1, c2, c3 = st.columns([1, 1, 1])
-
     if name is None:
         name = analysis_method
 
     name_pretty = name.replace(" ", "_").lower()
+
+    try:
+        display_function(
+            analysis_result, editable_annotation=editable_annotation, name=name
+        )
+    except TypeError:
+        display_function(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
     with c1:
         if show_save_button and st.button("Save to results page.."):
             _save_analysis_to_session_state(
@@ -209,7 +217,7 @@ def _save_analysis_to_session_state(
     """Save analysis with method and parameters to session state to show on results page."""
     st.session_state[StateKeys.ANALYSIS_LIST] += [
         (
-            analysis_results,
+            analysis_results.copy(),
             method,
             parameters,
         )
