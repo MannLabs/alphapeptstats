@@ -16,6 +16,7 @@ from alphastats.pl.volcano import _plot_volcano, prepare_result_df
 from alphastats.plots.plot_utils import PlotlyObject
 from alphastats.plots.volcano_plot import VolcanoPlot
 from alphastats.tl.differential_expression_analysis import (
+    DeaTestTypes,
     DifferentialExpressionAnalysisTTest,
 )
 
@@ -697,6 +698,17 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
         )
         parameters["method"] = method
 
+        fdr_method = st.selectbox(
+            "FDR method",
+            options=["fdr_bh", "bonferroni"],
+            index=0,
+            format_func=lambda x: {
+                "fdr_bh": "Benjamini-Hochberg",
+                "bonferroni": "Bonferroni",
+            }[x],
+        )
+        parameters["fdr_method"] = fdr_method
+
         self._parameters.update(parameters)
 
     def _do_analysis(self) -> Tuple[ResultObject, None]:
@@ -714,14 +726,14 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
                 ],
             )
             dea_result = dea.perform(
-                test_type="independent"
+                test_type=DeaTestTypes.INDEPENDENT
                 if self._parameters["method"] == "independent t-test"
-                else "paired",
+                else DeaTestTypes.PAIRED,
                 group1=self._parameters["group1"],
                 group2=self._parameters["group2"],
                 grouping_column=self._parameters["column"],
                 metadata=self._dataset.metadata,
-                fdr_method="fdr_bh",
+                fdr_method=self._parameters["fdr_method"],
             )
 
         return DifferentialExpressionTwoGroupsResult(

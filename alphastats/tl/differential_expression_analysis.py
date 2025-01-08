@@ -1,7 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import List, Tuple, Union
+from typing import List, Literal, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -315,8 +315,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     @_validate_perform
     def perform(
         self,
-        test_type: str,
-        fdr_method: str,
+        test_type: Literal[DeaTestTypes.INDEPENDENT, DeaTestTypes.PAIRED],
+        fdr_method: Literal["fdr_bh", "bonferroni"],
         group1: Union[List, str],
         group2: Union[List, str],
         grouping_column: Union[str, None] = None,
@@ -351,8 +351,8 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         group1_samples: list,
         group2_samples: list,
         is_log2_transformed: bool,
-        test_type: str,
-        fdr_method: str,
+        test_type: Literal[DeaTestTypes.INDEPENDENT, DeaTestTypes.PAIRED],
+        fdr_method: Literal["fdr_bh", "bonferroni"],
     ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
 
