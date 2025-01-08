@@ -28,6 +28,7 @@ def display_analysis_result_with_buttons(
     parameters: Optional[Dict],
     show_save_button=True,
     name: str = None,
+    editable_annotation: bool = True,
 ) -> None:
     """A fragment to display a statistical analysis and download options."""
 
@@ -51,21 +52,22 @@ def display_analysis_result_with_buttons(
         name=name,
         display_function=display_function,
         download_function=download_function,
+        editable_annotation=editable_annotation,
     )
 
 
-def display_results(results: ResultObject):
+def display_results(results: ResultObject, editable_annotation: bool) -> None:
     display_column, widget_column = st.columns((1, 1))
     results.display_object(
         display_column=display_column,
         widget_column=widget_column,
-        data_annotation_editable=True,
+        data_annotation_editable=editable_annotation,
         display_editable=True,
     )
 
 
 def _display(
-    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    analysis_result: Union[PlotlyObject, pd.DataFrame, ResultObject],
     *,
     analysis_method: str,
     display_function: Callable,
@@ -73,9 +75,13 @@ def _display(
     parameters: Dict,
     name: str,
     show_save_button: bool,
+    editable_annotation: bool,
 ) -> None:
     """Display analysis results and download options."""
-    display_function(analysis_result)
+    try:
+        display_function(analysis_result, editable_annotation=editable_annotation)
+    except Exception:
+        display_function(analysis_result)
 
     c1, c2, c3 = st.columns([1, 1, 1])
 
@@ -177,7 +183,7 @@ def _show_button_download_analysis_and_preprocessing_info(
 
 
 def _save_analysis_to_session_state(
-    analysis_results: Union[PlotlyObject, pd.DataFrame],
+    analysis_results: Union[PlotlyObject, pd.DataFrame, ResultObject],
     method: str,
     parameters: Dict,
 ):
