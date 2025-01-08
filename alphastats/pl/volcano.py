@@ -14,6 +14,79 @@ from alphastats.tl.differential_expression_analysis import (
 )
 
 
+def plot_volcano(
+    statistics_results: pd.DataFrame,
+    feature_to_repr_map: Dict,
+    group1: str,
+    group2: str,
+    qvalue_cutoff: float = 0.05,
+    log2fc_cutoff: Union[float, None] = 1,
+    drawlines: bool = True,
+    label_significant: bool = True,
+    flip_xaxis: bool = False,
+    renderer: Literal["webgl", "svg"] = "webgl",
+) -> Figure:
+    """
+    Create a volcano plot of the differential expression analysis results.
+
+    Parameters
+    ----------
+    statistics_results : pd.DataFrame
+        The results of the differential expression analysis.
+    feature_to_repr_map : dict
+        A dictionary mapping feature names to their representations.
+    group1 : str
+        The name of the first group.
+    group2 : str
+        The name of the second group.
+    qvalue_cutoff : float, default=0.05
+        The significance cutoff for the q-values.
+    log2fc_cutoff : Union[float, None], default=1
+        The fold cutoff for the log2 fold changes.
+    drawlines : bool, default=True
+        Whether to draw the significance and fold change cutoff lines.
+    label_significant : bool, default=True
+        Whether to label significant points.
+    flip_xaxis : bool, default=False
+        Whether to flip the x-axis.
+    renderer : Literal['webgl', 'svg']
+        The renderer to use for the plot. webgl or svg.
+
+    Returns
+    -------
+    go.Figure
+        The volcano plot.
+    pd.DataFrame
+        The prepared dataframe.
+    str
+        The name of the log2 fold change column.
+    """
+
+    df_plot, log2name = prepare_result_df(
+        statistics_results=statistics_results,
+        feature_to_repr_map=feature_to_repr_map,
+        group1=group1,
+        group2=group2,
+        qvalue_cutoff=qvalue_cutoff,
+        log2fc_cutoff=log2fc_cutoff,
+        flip_xaxis=flip_xaxis,
+    )
+
+    fig = _plot_volcano(
+        df_plot=df_plot.reset_index(),
+        log2name=log2name,
+        group1=group1,
+        group2=group2,
+        qvalue_cutoff=qvalue_cutoff,
+        log2fc_cutoff=log2fc_cutoff,
+        drawlines=drawlines,
+        label_significant=label_significant,
+        flip_xaxis=flip_xaxis,
+        renderer=renderer,
+    )
+    return fig, df_plot, log2name
+
+
 def _plot_volcano(
     df_plot: pd.DataFrame,
     log2name: str,
