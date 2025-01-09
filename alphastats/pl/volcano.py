@@ -70,7 +70,7 @@ def plot_volcano(
     )
 
     fig = _plot_volcano(
-        df_plot=df_plot.reset_index(),
+        df_plot=df_plot,
         group1=group1,
         group2=group2,
         qvalue_cutoff=qvalue_cutoff,
@@ -292,7 +292,7 @@ def prepare_result_df(
     # map feature names to representations
     result_df["label"] = result_df.index.map(feature_to_repr_map)
 
-    return result_df
+    return result_df.reset_index()
 
 
 def get_foldchange_column_name(group1, group2, flip_xaxis) -> str:

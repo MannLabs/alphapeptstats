@@ -122,7 +122,7 @@ def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
         # calling plot.update_layout is vital here as it enables the savefig function to work
-        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
+        st.plotly_chart(plot.update())
     except Exception:
         st.pyplot(plot)
 
@@ -275,7 +275,7 @@ def gather_uniprot_data(features: list) -> None:
         )
 
 
-def get_regulated_features(analysis_object: PlotlyObject) -> list:
+def get_regulated_features(analysis_object: ResultObject) -> list:
     """
     Retrieve regulated features from the analysis object.
     This function extracts features that are labeled (i.e., have a non-empty label)
@@ -289,9 +289,10 @@ def get_regulated_features(analysis_object: PlotlyObject) -> list:
     # TODO: add a method to the AbstractAnalysis class to retrieve regulated features upon analysis to store in the session state. This function here only works for volcano plots.
     regulated_features = [
         feature
-        for feature, label in zip(
-            analysis_object.res[Cols.INDEX], analysis_object.res["label"]
+        for feature, significance in zip(
+            analysis_object.annotated_dataframe[Cols.INDEX],
+            analysis_object.annotated_dataframe["significant"],
         )
-        if label != ""
+        if significance != "non_sig"
     ]
     return regulated_features

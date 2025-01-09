@@ -93,14 +93,16 @@ def show_start_llm_button(analysis_method: str) -> None:
 
     submitted = st.button(
         f"Analyse with LLM ... {msg}",
-        disabled=(analysis_method != PlottingOptions.VOLCANO_PLOT),
-        help="Interpret the current analysis with an LLM (available for 'Volcano Plot' only).",
+        disabled=(
+            analysis_method != NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS
+        ),
+        help="Interpret the current analysis with an LLM (available for 'Differential Analysis Two Groups' only).",
     )
     if submitted:
         if StateKeys.LLM_INTEGRATION in st.session_state:
             del st.session_state[StateKeys.LLM_INTEGRATION]
-        st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
-        regulated_features = get_regulated_features(analysis_object)
+        st.session_state[StateKeys.LLM_INPUT] = (analysis_result, parameters)
+        regulated_features = get_regulated_features(analysis_result)
         # TODO: Add confirmation prompt if an excessive number of proteins is to be looked up.
         gather_uniprot_data(regulated_features)
 
