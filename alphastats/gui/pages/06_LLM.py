@@ -7,7 +7,7 @@ from openai import AuthenticationError
 
 from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import plotly_object
-from alphastats.gui.utils.analysis import ResultObject
+from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
 )
@@ -98,7 +98,7 @@ if StateKeys.LLM_INPUT not in st.session_state:
     st.info("Create a Volcano plot first using the 'Analysis' page.")
     st.stop()
 
-volcano_plot: ResultObject = st.session_state[StateKeys.LLM_INPUT][0]
+volcano_plot: ResultComponent = st.session_state[StateKeys.LLM_INPUT][0]
 plot_parameters: Dict = st.session_state[StateKeys.LLM_INPUT][1]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")

@@ -12,7 +12,7 @@ from alphastats.dataset.keys import Cols, ConstantsClass
 from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.gui.utils.result import (
     DifferentialExpressionTwoGroupsResult,
-    ResultObject,
+    ResultComponent,
 )
 from alphastats.gui.utils.ui_helper import ANALYSIS_PARAMETERS
 from alphastats.plots.plot_utils import PlotlyObject
@@ -51,8 +51,7 @@ class NewAnalysisOptions(metaclass=ConstantsClass):
     DIFFERENTIAL_EXPRESSION_TWO_GROUPS = "Differential Expression Analysis (Two Groups)"
 
 
-# TODO rename to AnalysisComponent
-class AbstractAnalysis(ABC):
+class AnalysisComponent(ABC):
     """Abstract class for analysis widgets."""
 
     _works_with_nans = True
@@ -89,7 +88,9 @@ class AbstractAnalysis(ABC):
     @abstractmethod
     def _do_analysis(
         self,
-    ) -> Tuple[Union[PlotlyObject, pd.DataFrame, ResultObject], Optional[VolcanoPlot]]:
+    ) -> Tuple[
+        Union[PlotlyObject, pd.DataFrame, ResultComponent], Optional[VolcanoPlot]
+    ]:
         pass
 
     def _nan_check(self) -> None:  # noqa: B027
@@ -103,7 +104,7 @@ class AbstractAnalysis(ABC):
         pass
 
 
-class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
+class AbstractGroupCompareAnalysis(AnalysisComponent, ABC):
     """Abstract class for group comparison analysis widgets."""
 
     def show_widget(self):
@@ -190,7 +191,7 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
             )
 
 
-class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
+class AbstractDimensionReductionAnalysis(AnalysisComponent, ABC):
     """Abstract class for dimension reduction analysis widgets."""
 
     def show_widget(self):
@@ -206,7 +207,7 @@ class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
         self._parameters.update({"circle": circle, "group": group})
 
 
-class AbstractIntensityPlot(AbstractAnalysis, ABC):
+class AbstractIntensityPlot(AnalysisComponent, ABC):
     """Abstract class for intensity plot analysis widgets."""
 
     def show_widget(self):
@@ -399,7 +400,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
         return volcano_plot.plot, volcano_plot
 
 
-class ClustermapAnalysis(AbstractAnalysis):
+class ClustermapAnalysis(AnalysisComponent):
     """Widget for Clustermap analysis."""
 
     _works_with_nans = False
@@ -410,7 +411,7 @@ class ClustermapAnalysis(AbstractAnalysis):
         return clustermap, None
 
 
-class DendrogramAnalysis(AbstractAnalysis):
+class DendrogramAnalysis(AnalysisComponent):
     """Widget for Dendrogram analysis."""
 
     _works_with_nans = False
@@ -452,7 +453,7 @@ class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
         return diff_exp_analysis, None
 
 
-class TukeyTestAnalysis(AbstractAnalysis):
+class TukeyTestAnalysis(AnalysisComponent):
     """Widget for Tukey-Test analysis."""
 
     def show_widget(self):
@@ -508,7 +509,7 @@ class AnovaAnalysis(AbstractGroupCompareAnalysis):
         return anova_analysis, None
 
 
-class AncovaAnalysis(AbstractAnalysis):
+class AncovaAnalysis(AnalysisComponent):
     """Widget for Ancova analysis."""
 
     def show_widget(self):
@@ -570,7 +571,7 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
 
         self._parameters.update(parameters)
 
-    def _do_analysis(self) -> Tuple[ResultObject, None]:
+    def _do_analysis(self) -> Tuple[ResultComponent, None]:
         """Run the differential expression analysis between two groups and return the corresponding results object."""
 
         test_type = {

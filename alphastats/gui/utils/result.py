@@ -14,7 +14,7 @@ from alphastats.gui.utils.ui_helper import (
 from alphastats.pl.volcano import _plot_volcano, prepare_result_df
 
 
-class ResultObject(ABC):  # move to new file
+class ResultComponent(ABC):  # move to new file
     """Base class for providing the UI for inspecting and parameterizing the analysis based of statistical results.
 
     The intended use is that in a first step data can be annotated e.g. based on significance cutoffs and then plotted, e.g. applying cosmetic preferences like lines and colors.
@@ -257,7 +257,7 @@ class ResultObject(ABC):  # move to new file
         )
 
 
-class DifferentialExpressionTwoGroupsResult(ResultObject):
+class DifferentialExpressionTwoGroupsResult(ResultComponent):
     """Implementation of the ResultObject for the differential expression analysis between two groups."""
 
     def _get_data_annotation_options(self, name: str = "") -> Dict:

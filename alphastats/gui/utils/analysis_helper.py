@@ -12,7 +12,7 @@ from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
     NewAnalysisOptions,
     PlottingOptions,
-    ResultObject,
+    ResultComponent,
     StatisticOptions,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -59,7 +59,7 @@ def display_analysis_result_with_buttons(
 
 
 def display_results(
-    results: ResultObject, editable_annotation: bool, name: str
+    results: ResultComponent, editable_annotation: bool, name: str
 ) -> None:
     if name is None:
         name = "tmp"
@@ -74,7 +74,7 @@ def display_results(
 
 
 def _display(
-    analysis_result: Union[PlotlyObject, pd.DataFrame, ResultObject],
+    analysis_result: Union[PlotlyObject, pd.DataFrame, ResultComponent],
     *,
     analysis_method: str,
     display_function: Callable,
@@ -127,7 +127,7 @@ def display_figure(plot: PlotlyObject) -> None:
         st.pyplot(plot)
 
 
-def _show_buttons_download_results(analysis_result: ResultObject, name: str) -> None:
+def _show_buttons_download_results(analysis_result: ResultComponent, name: str) -> None:
     """Show buttons to download results as pdf, svg or csv."""
     _show_buttons_download_figure(analysis_result.plot, name)
     show_button_download_df(
@@ -211,7 +211,7 @@ def _show_button_download_analysis_and_preprocessing_info(
 
 
 def _save_analysis_to_session_state(
-    analysis_results: Union[PlotlyObject, pd.DataFrame, ResultObject],
+    analysis_results: Union[PlotlyObject, pd.DataFrame, ResultComponent],
     method: str,
     parameters: Dict,
 ):
@@ -275,7 +275,7 @@ def gather_uniprot_data(features: list) -> None:
         )
 
 
-def get_regulated_features(analysis_object: ResultObject) -> list:
+def get_regulated_features(analysis_object: ResultComponent) -> list:
     """
     Retrieve regulated features from the analysis object.
     This function extracts features that are labeled (i.e., have a non-empty label)
