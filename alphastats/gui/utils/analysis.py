@@ -215,7 +215,8 @@ class ResultObject(ABC):  # move to new file
             with st_widget_column:
                 if data_annotation_editable:
                     self._apply_data_annotation_options(name=name)
-                    self.plot = self._update_plot(**self._display_options)
+                    if not display_editable and self._is_plottable:
+                        self.plot = self._update_plot(**self._display_options)
                 if display_editable:
                     self._apply_display_options(name=name)
         with st_display_column:
