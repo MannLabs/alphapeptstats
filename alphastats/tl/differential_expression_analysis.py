@@ -1,7 +1,11 @@
+"""Base class for differential expression analysis as well as implementations of specific tests."""
+
+from __future__ import annotations
+
 import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import List, Literal, Tuple, Union
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -13,6 +17,8 @@ from alphastats.statistics.statistic_utils import calculate_foldchange
 
 
 class DeaColumns(ConstantsClass):
+    """Constants for the columns in the result of the differential expression analysis."""
+
     PVALUE = "p-value"
     QVALUE = "q-value"
     LOG2FC = "log2(fold change)"  # group1-group2
@@ -20,16 +26,18 @@ class DeaColumns(ConstantsClass):
 
 
 class DeaTestTypes(ConstantsClass):
+    """Constants for the test types in the differential expression analysis."""
+
     INDEPENDENT = "independent"
     PAIRED = "paired"
 
 
-def _validate_perform(func):
+def _validate_perform(func: Callable) -> Callable:
     """Decorator to wrap the perform method in input and output validation."""
-    func._validate = True
+    func._validate = True  # noqa: SLF001
 
     @wraps(func)  # This is needed to keep the function signature
-    def wrapper(self: DifferentialExpressionAnalysis, **kwargs):
+    def wrapper(self: DifferentialExpressionAnalysis, **kwargs) -> pd.DataFrame:
         self._validate_input(**kwargs)
         result = func(self, **kwargs)
         self._validate_output(result)
@@ -39,7 +47,7 @@ def _validate_perform(func):
 
 
 class DifferentialExpressionAnalysis(ABC):
-    """This class implements the basic methods required for differential expression analysis.
+    """Implements the basic methods required for differential expression analysis.
 
     The purpose of this class is to provide a common interface for differential expression analysis.
     It should be subclassed for specific methods, such as t-tests or ANOVA. The class provides methods
@@ -75,14 +83,19 @@ class DifferentialExpressionAnalysis(ABC):
     result = dea.perform(**settings)  # run once
     significance = dea.get_significance(cached_result, 0.05)  # run multiple times
     volcano_plot(cached_result, significance)  # visualize
+
     """
 
-    def __init__(self, mat: pd.DataFrame, is_log2_transformed: bool) -> None:
+    def __init__(self, mat: pd.DataFrame, *, is_log2_transformed: bool) -> None:
         """Constructor for the DifferentialExpressionAnalysis class. sets up mat and results.
 
-        Parameters:
-        mat (pd.DataFrame): The input data for the analysis. This should be a DataFrame with the samples as rows and the features as columns.
-        is_log2_transformed (bool): Whether the data is log2 transformed.
+        Parameters
+        ----------
+        mat : pd.DataFrame
+            The input data for the analysis. This should be a DataFrame with the samples as rows and the features as columns.
+        is_log2_transformed : bool
+            Whether the data is log2 transformed.
+
         """
         if mat.empty:
             raise ValueError(
@@ -92,20 +105,25 @@ class DifferentialExpressionAnalysis(ABC):
         self.is_log2_transformed = is_log2_transformed
 
     def _validate_input(self, **kwargs) -> None:
-        """Abstract method to validate the input and parameters. This should raise an exception if the input or parameters are invalid
+        """Abstract method to validate the input and parameters.
 
+        This should raise an exception if the input or parameters are invalid.
         This function here checks for all parameters required for analysis regardless of the specific method, namely log2_transformed and metadata.
 
-        Parameters:
-        **kwargs (dict): The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
+        Parameters
+        ----------
+        **kwargs : dict
+            The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
+
         """
         self._extend_validation(**kwargs)
 
     @abstractmethod
     def _extend_validation(self, **kwargs) -> None:
         """Abstract method to extend the validation of parameters for the specific method. This should raise an exception if the input or parameters are invalid.
-        It should have all parameters required for the method as keyword arguments and validate that parameters are compatible with mat."""
-        pass
+
+        It should have all parameters required for the method as keyword arguments and validate that parameters are compatible with mat.
+        """
 
     @staticmethod
     def _validate_output(result: pd.DataFrame) -> None:
@@ -113,8 +131,11 @@ class DifferentialExpressionAnalysis(ABC):
 
         The output should be a DataFrame with the columns for the p-value, q-value and log2fold-change.
 
-        Parameters:
-        result (pd.DataFrame): The result of the analysis.
+        Parameters
+        ----------
+        result : pd.DataFrame
+            The result of the analysis.
+
         """
         if result.empty:
             raise ValueError("The result dataframe is empty.")
@@ -127,19 +148,24 @@ class DifferentialExpressionAnalysis(ABC):
 
     @property
     @abstractmethod
-    def perform(self, **kwargs) -> pd.DataFrame:
-        """Abstract methodwrapper to run the test. This should only rely on mat and parameters and return the result. Output needs to conform with _validate_output
+    def perform(self, **kwargs) -> pd.DataFrame:  # noqa: PLR0206
+        """Abstract methodwrapper to run the test.
 
-        Parameters:
-        **kwargs: The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
+        This should only rely on mat and parameters and return the result. Output needs to conform with _validate_output.
 
-        Returns:
+        Parameters
+        ----------
+        **kwargs: dict
+            The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
+
+        Returns
+        -------
         pd.DataFrame: The result of the analysis.
+
         """
-        pass
 
     @classmethod
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs) -> None:
         """If a subclass implements perform this checks if the implementation is decorated with @validate."""
         super().__init_subclass__(**kwargs)
         if "perform" in cls.__dict__ and not getattr(cls.perform, "_validate", False):
@@ -152,14 +178,18 @@ class DifferentialExpressionAnalysis(ABC):
     def _run_statistical_test(mat: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Static abstract method to run the statistical test. This must be run by _run_statistical_test and return the result of the analysis.
 
-        Parameters:
-        mat (pd.DataFrame): The input data for the analysis.
-        **kwargs: The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
+        Parameters
+        ----------
+        mat : pd.DataFrame
+            The input data for the analysis.
+        **kwargs : dict
+            The parameters for the analysis. The keys need to be defined within the allowed_parameters method.
 
-        Returns:
+        Returns
+        -------
         pd.DataFrame: The result of the analysis.
+
         """
-        pass
 
     @staticmethod
     def get_significance_qvalue(
@@ -167,12 +197,17 @@ class DifferentialExpressionAnalysis(ABC):
     ) -> pd.DataFrame:
         """Returns a DataFrame with the significant genes based on the q-value cutoff.
 
-        Parameters:
-        result (pd.DataFrame): The result of the analysis.
-        qvalue_cutoff (float): The q-value cutoff for significance.
+        Parameters
+        ----------
+        result : pd.DataFrame
+            The result of the analysis.
+        qvalue_cutoff : float
+            The q-value cutoff for significance.
 
-        Returns:
+        Returns
+        -------
         pd.DataFrame: A DataFrame with a single binary column.
+
         """
         significance = pd.DataFrame(index=result.index)
         significance[DeaColumns.SIGNIFICANTQ] = (
@@ -182,25 +217,30 @@ class DifferentialExpressionAnalysis(ABC):
 
 
 class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, ABC):
-    """This class implements methods required specifically for two-group differential expression analysis."""
+    """Implementation of methods required specifically for two-group differential expression analysis."""
 
     def _extend_validation(
         self,
-        group1: Union[List, str],
-        group2: Union[List, str],
-        grouping_column: Union[str, None] = None,
-        metadata: Union[pd.DataFrame, None] = None,
-        **kwargs,
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str | None = None,
+        metadata: pd.DataFrame | None = None,
     ) -> None:
         """Validates the input and parameters for the two-group differential expression analysis.
 
         This function checks for the required parameters for the two-group analysis, namely group1 and group2 are valid contained in the mat.
 
-        Parameters:
-        group1 (Union[List, str]): The first group.
-        group2 (Union[List, str]): The second group.
-        grouping_column (Union[str, None]): The column in the metadata to group by.
-        metadata (Union[pd.DataFrame, None]): The metadata DataFrame.
+        Parameters
+        ----------
+        group1 : list | str
+            The first group.
+        group2 : list | str
+            The second group.
+        grouping_column : str | None
+            The column in the metadata to group by.
+        metadata : pd.DataFrame | None
+            The metadata DataFrame.
+
         """
         group1_samples, group2_samples = self._get_group_members(
             group1=group1,
@@ -214,21 +254,29 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
 
     @staticmethod
     def _get_group_members(
-        group1: Union[List, str],
-        group2: Union[List, str],
-        grouping_column: Union[str, None] = None,
-        metadata: Union[pd.DataFrame, None] = None,
-    ) -> Tuple[list, list]:
-        """Returns the group columns based on the lists or retrieves it form the metadata.
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str | None = None,
+        metadata: pd.DataFrame | None = None,
+    ) -> tuple(list, list):
+        """Returns the group columns based on the lists or retrieves it from the metadata.
 
-        Parameters:
-        group1 (Union[List, str]): The first group.
-        group2 (Union[List, str]): The second group.
-        grouping_column (Union[str, None]): The column in the metadata to group by.
-        metadata (Union[pd.DataFrame, None]): The metadata DataFrame.
+        Parameters
+        ----------
+        group1 : list | str
+            The first group.
+        group2 : list | str
+            The second group.
+        grouping_column : str | None
+            The column in the metadata to group by.
+        metadata : pd.DataFrame | None
+            The metadata DataFrame.
 
-        Returns:
-        Tuple[list, list]: The samples for group 1 and group 2."""
+        Returns
+        -------
+        Tuple[list, list]: The samples for group 1 and group 2.
+
+        """
         if grouping_column is None:
             if not isinstance(group1, list) or not isinstance(group2, list):
                 raise TypeError(
@@ -265,9 +313,10 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
 
 
 class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroups):
-    """This class implements the t-test differential expression analysis.
+    """Implementation of the t-test differential expression analysis.
 
-    Examples:
+    Examples
+    --------
     >>> mat = pd.DataFrame({
     ...     'sample1': [1, 2, 3],
     ...     'sample2': [4, 5, 6],
@@ -286,6 +335,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     ['p-value', 'log2(fold change)', 'q-value']
     >>> result.index.tolist()
     ['gene1', 'gene2', 'gene3']
+
     """
 
     def _extend_validation(
@@ -296,10 +346,15 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
     ) -> None:
         """Validates the input and parameters for the t-test differential expression analysis.
 
-        Parameters:
-        test_type (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
-        fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
-        **kwargs (dict): Additional arguments passed to perform.
+        Parameters
+        ----------
+        test_type : str
+            The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
+        fdr_method : str
+            The FDR method to use, 'fdr_bh' or 'bonferroni'.
+        **kwargs : dict
+            Additional arguments passed to perform.
+
         """
         super()._extend_validation(**kwargs)
         if test_type not in [
@@ -313,20 +368,23 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             raise ValueError("fdr_method must be one of 'fdr_bh', 'bonferroni'.")
 
     @_validate_perform
-    def perform(
+    def perform(  # noqa: PLR0913
         self,
         test_type: Literal[DeaTestTypes.INDEPENDENT, DeaTestTypes.PAIRED],
         fdr_method: Literal["fdr_bh", "bonferroni"],
-        group1: Union[List, str],
-        group2: Union[List, str],
-        grouping_column: Union[str, None] = None,
-        metadata: Union[pd.DataFrame, None] = None,
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str | None = None,
+        metadata: pd.DataFrame | None = None,
     ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
-        Wrapper to staistical method with actual method parameters and implementation.
 
-        Returns:
+        Wrapper to statistical method with actual method parameters and implementation.
+
+        Returns
+        -------
         pd.DataFrame: The result of the analysis.
+
         """
         group1_samples, group2_samples = self._get_group_members(
             group1=group1,
@@ -335,7 +393,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             metadata=metadata,
         )
 
-        result = self._run_statistical_test(
+        return self._run_statistical_test(
             mat=self.mat,
             group1_samples=group1_samples,
             group2_samples=group2_samples,
@@ -343,29 +401,38 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             test_type=test_type,
             fdr_method=fdr_method,
         )
-        return result
 
     @staticmethod
-    def _run_statistical_test(
+    def _run_statistical_test(  # noqa: PLR0913
         mat: pd.DataFrame,
         group1_samples: list,
         group2_samples: list,
-        is_log2_transformed: bool,
         test_type: Literal[DeaTestTypes.INDEPENDENT, DeaTestTypes.PAIRED],
         fdr_method: Literal["fdr_bh", "bonferroni"],
+        *,
+        is_log2_transformed: bool,
     ) -> pd.DataFrame:
         """Runs the t-test analysis and returns the result.
 
-        Parameters:
-        mat (pd.DataFrame): The input data for the analysis.
-        group1_samples (list): The samples for group 1.
-        group2_samples (list): The samples for group 2.
-        is_log2_transformed (bool): Whether the data is log2 transformed. If not, this well be done before the analysis.
-        test_type (str): The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
-        fdr_method (str): The FDR method to use, 'fdr_bh' or 'bonferroni'.
+        Parameters
+        ----------
+        mat : pd.DataFrame)
+            The input data for the analysis.
+        group1_samples : list)
+            The samples for group 1.
+        group2_samples : list
+            The samples for group 2.
+        test_type : str
+            The test function to use, independent for scipy.stats.ttest_ind or paired for scipy.stats.ttest_rel.
+        fdr_method : str
+            The FDR method to use, 'fdr_bh' or 'bonferroni'.
+        is_log2_transformed : bool
+            Whether the data is log2 transformed. If not, this well be done before the analysis.
 
-        Returns:
+        Returns
+        -------
         pd.DataFrame: The result of the analysis.
+
         """
         mat_transpose = mat.loc[group1_samples + group2_samples, :].transpose()
 
@@ -380,7 +447,7 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             mat_transpose = mat_transpose.replace([np.inf, -np.inf], np.nan)
             new_mat_nans = mat_transpose.isna().sum().sum()
             warnings.warn(
-                f"Automatic log2 transformation was performed prior to ttest analysis. {str(new_mat_nans-mat_nans)} values were replaced with NaN in the process.",
+                f"Automatic log2 transformation was performed prior to ttest analysis. {new_mat_nans-mat_nans!s} values were replaced with NaN in the process.",
                 UserWarning,
             )
 
@@ -388,22 +455,23 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
         mat_transpose = mat_transpose.dropna(how="all")
         if mat_len > (filtered_mat_len := mat_transpose.shape[0]):
             warnings.warn(
-                f"{str(mat_len-filtered_mat_len)} proteins contain only NaN values and are removed prior to ttest analysis.",
+                f"{mat_len-filtered_mat_len!s} proteins contain only NaN values and are removed prior to ttest analysis.",
                 UserWarning,
             )
 
         # TODO: return not only the p-value, but also the t-statistic
+        # TODO: Make sure this apply is efficient and address noqa: PD011
         p_values = mat_transpose.apply(
             lambda row: test_fun(
-                row[group1_samples].values.flatten(),
-                row[group2_samples].values.flatten(),
+                row[group1_samples].values.flatten(),  # noqa: PD011
+                row[group2_samples].values.flatten(),  # noqa: PD011
                 nan_policy="omit",
             )[1],
             axis=1,
         )
 
         result = pd.DataFrame(index=mat_transpose.index)
-        result[DeaColumns.PVALUE] = p_values.values
+        result[DeaColumns.PVALUE] = p_values.to_numpy()
         result[DeaColumns.LOG2FC] = calculate_foldchange(
             mat_transpose=mat_transpose,
             group1_samples=group1_samples,
@@ -418,5 +486,4 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             name=DeaColumns.QVALUE,
             index=result[DeaColumns.PVALUE].dropna().index,
         )
-        result = result.merge(qvalues, left_index=True, right_index=True, how="left")
-        return result
+        return result.merge(qvalues, left_index=True, right_index=True, how="left")

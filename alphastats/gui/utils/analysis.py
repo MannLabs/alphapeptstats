@@ -581,7 +581,9 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
 
         dea = DifferentialExpressionAnalysisTTest(
             self._dataset.mat,
-            self._dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED],
+            is_log2_transformed=self._dataset.preprocessing_info[
+                PreprocessingStateKeys.LOG2_TRANSFORMED
+            ],
         )
         dea_result = dea.perform(
             test_type=test_type,
