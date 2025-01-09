@@ -9,7 +9,6 @@ exclude = [
     "setup.py",
     "alphastats/__*__.py",
     "alphastats/tl/*.py",
-    "alphastats/pl/*.py",
     "alphastats/cli.py",
     "alphastats/data/*.py",
     "alphastats/dataset/*.py",

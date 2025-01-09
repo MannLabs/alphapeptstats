@@ -1,30 +1,36 @@
-from typing import Dict, Literal, Tuple, Union
+"""Module for creating volcano plots of differential expression analysis results."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-import pandas as pd
 import plotly.express as px
-from plotly.graph_objs._figure import Figure
 
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DifferentialExpressionAnalysis,
 )
 
+if TYPE_CHECKING:
+    import pandas as pd
+    import plotly.graph_objs as go
 
-def plot_volcano(
+
+def plot_volcano(  # noqa: PLR0913
     statistics_results: pd.DataFrame,
-    feature_to_repr_map: Dict,
+    feature_to_repr_map: dict,
     group1: str,
     group2: str,
     qvalue_cutoff: float = 0.05,
-    log2fc_cutoff: Union[float, None] = 1,
+    log2fc_cutoff: float | None = 1,
+    renderer: Literal["webgl", "svg"] = "webgl",
+    *,
     drawlines: bool = True,
     label_significant: bool = True,
     flip_xaxis: bool = False,
-    renderer: Literal["webgl", "svg"] = "webgl",
-) -> Figure:
-    """
-    Create a volcano plot of the differential expression analysis results by first formatting the data and then creating the plot.
+) -> tuple(go.Figure, pd.DataFrame):
+    """Create a volcano plot of the differential expression analysis results by first formatting the data and then creating the plot.
 
     Parameters
     ----------
@@ -40,14 +46,14 @@ def plot_volcano(
         The significance cutoff for the q-values.
     log2fc_cutoff : Union[float, None], default=1
         The fold cutoff for the log2 fold changes.
+    renderer : Literal['webgl', 'svg']
+        The renderer to use for the plot. webgl or svg.
     drawlines : bool, default=True
         Whether to draw the significance and fold change cutoff lines.
     label_significant : bool, default=True
         Whether to label significant points.
     flip_xaxis : bool, default=False
         Whether to flip the x-axis.
-    renderer : Literal['webgl', 'svg']
-        The renderer to use for the plot. webgl or svg.
 
     Returns
     -------
@@ -55,10 +61,8 @@ def plot_volcano(
         The volcano plot.
     pd.DataFrame
         The prepared dataframe.
-    str
-        The name of the log2 fold change column.
-    """
 
+    """
     df_plot = prepare_result_df(
         statistics_results_df=statistics_results,
         feature_to_repr_map=feature_to_repr_map,
@@ -83,18 +87,19 @@ def plot_volcano(
     return fig, df_plot
 
 
-def _plot_volcano(
+def _plot_volcano(  # noqa: PLR0913
     df_plot: pd.DataFrame,
     group1: str,
     group2: str,
     qvalue_cutoff: float,
-    log2fc_cutoff: Union[float, None],
+    log2fc_cutoff: float | None,
+    renderer: Literal["webgl", "svg"],
+    *,
     drawlines: bool,
     label_significant: bool,
     flip_xaxis: bool,
-    renderer: Literal["webgl", "svg"],
     **layout_options,
-) -> Figure:
+) -> go.Figure:
     """Create the volcano plot from formatted data.
 
     Parameters
@@ -111,22 +116,24 @@ def _plot_volcano(
         The significance cutoff for the q-values.
     log2fc_cutoff : Union[float, None]
         The fold cutoff for the log2 fold changes.
+    renderer : Literal['webgl', 'svg']
+        The renderer to use for the plot. webgl or svg.
     drawlines : bool
         Whether to draw the significance and fold change cutoff lines.
     label_significant : bool
         Whether to label significant points.
     flip_xaxis : bool
         Whether to flip the x-axis.
-    renderer : Literal['webgl', 'svg']
-        The renderer to use for the plot. webgl or svg.
+    layout_options : dict
+        Additional layout options for the plot. Passed directly to update_layout.
 
     Returns
     -------
     go.Figure
         The volcano plot.
-    """
 
-    log2name = get_foldchange_column_name(group1, group2, flip_xaxis)
+    """
+    log2name = get_foldchange_column_name(group1, group2, flip_xaxis=flip_xaxis)
 
     # calculate x_range
     factor = 1.1 if not label_significant else 1.3
@@ -153,7 +160,7 @@ def _plot_volcano(
         showlegend=False,
         width=600,
         height=700,
-        margin=dict(l=0, r=0, t=40, b=0),
+        margin={"l": 0, "r": 0, "t": 40, "b": 0},
         title=f"Volcano plot of {group1} vs {group2}",
     )
     fig.add_annotation(
@@ -197,11 +204,12 @@ def _plot_volcano(
             df_plot["significant"],
             df_plot["label"],
         ):
+            max_chars = 10
             if significant == "up":
                 fig.add_annotation(
                     x=x,
                     y=y,
-                    text=label if len(label) < 10 else label[:10] + "...",
+                    text=label if len(label) < max_chars else label[:max_chars] + "...",
                     showarrow=False,
                     xanchor="left",
                     xshift=5,
@@ -210,7 +218,7 @@ def _plot_volcano(
                 fig.add_annotation(
                     x=x,
                     y=y,
-                    text=label if len(label) < 10 else label[:10] + "...",
+                    text=label if len(label) < max_chars else label[:max_chars] + "...",
                     showarrow=False,
                     xanchor="right",
                     xshift=-5,
@@ -220,15 +228,16 @@ def _plot_volcano(
     return fig
 
 
-def prepare_result_df(
+def prepare_result_df(  # noqa: PLR0913
     statistics_results_df: pd.DataFrame,
     feature_to_repr_map: dict,
     group1: str,
     group2: str,
     qvalue_cutoff: float,
-    log2fc_cutoff: Union[float, None],
+    log2fc_cutoff: float | None,
+    *,
     flip_xaxis: bool = False,
-) -> Tuple[pd.DataFrame, str]:
+) -> tuple(pd.DataFrame, str):
     """Prepare the dataframe for plotting or display/download.
 
     Parameters
@@ -254,6 +263,7 @@ def prepare_result_df(
         The prepared dataframe.
     str
         The name of the log2 fold change column.
+
     """
     result_df = statistics_results_df.copy()
 
@@ -266,7 +276,7 @@ def prepare_result_df(
         validate="one_to_one",
     )
 
-    log2name = get_foldchange_column_name(group1, group2, flip_xaxis)
+    log2name = get_foldchange_column_name(group1, group2, flip_xaxis=flip_xaxis)
     if flip_xaxis:
         result_df[DeaColumns.LOG2FC] = -result_df[DeaColumns.LOG2FC]
     result_df = result_df.rename(columns={DeaColumns.LOG2FC: log2name})
@@ -295,7 +305,12 @@ def prepare_result_df(
     return result_df.reset_index()
 
 
-def get_foldchange_column_name(group1, group2, flip_xaxis) -> str:
+def get_foldchange_column_name(
+    group1: str,
+    group2: str,
+    *,
+    flip_xaxis: bool,
+) -> str:
     """Get the descriptive name of the log2 fold change column."""
     if not flip_xaxis:
         left_label = group2
@@ -303,5 +318,4 @@ def get_foldchange_column_name(group1, group2, flip_xaxis) -> str:
     else:
         left_label = group1
         right_label = group2
-    log2name = f"log2({right_label}/{left_label})"
-    return log2name
+    return f"log2({right_label}/{left_label})"
