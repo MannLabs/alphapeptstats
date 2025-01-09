@@ -2,8 +2,8 @@ from streamlit.testing.v1 import AppTest
 
 
 def MinimalDifferentialExpressionTwoGroupsResult(
-    widgets_editable=True, annotation_editable=True
-):
+    display_editable=True, data_annotation_editable=True
+) -> None:
     import pandas as pd
     import streamlit as st
 
@@ -44,14 +44,22 @@ def MinimalDifferentialExpressionTwoGroupsResult(
             method=valid_method,
             is_plottable=True,
         )
-    st.session_state["a"].display_object(c2, widgets_editable, annotation_editable, c1)
+    (
+        st.session_state["a"].display_object(
+            c2,
+            c1,
+            name="",
+            data_annotation_editable=data_annotation_editable,
+            display_editable=display_editable,
+        ),
+    )
 
 
 def test_DifferentialExpressionTwoGroupsResult():
     at = AppTest.from_function(
         MinimalDifferentialExpressionTwoGroupsResult,
         default_timeout=200,
-        args=(True, True),
+        kwargs={"data_annotation_editable": True, "display_editable": True},
     )
     at.run()
 
