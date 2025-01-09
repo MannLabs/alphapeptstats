@@ -793,7 +793,6 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         super().__init__(
             dataframe, plottable=plottable, preprocessing=preprocessing, method=method
         )
-        self.log2name: str = ""
 
     def _get_data_annotation_options(self, name: str = "tmp") -> Dict:
         """Function to get the data annotation options for the differential expression analysis between two groups.
@@ -852,7 +851,7 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         flip_xaxis : bool
             Whether to flip the x-axis. This determines the new column name for the fold change column, stored in log2name.
         """
-        formatted_df, log2name = prepare_result_df(
+        formatted_df = prepare_result_df(
             statistics_results=self.dataframe,
             feature_to_repr_map=st.session_state[
                 StateKeys.DATASET
@@ -863,7 +862,6 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
             log2fc_cutoff=log2fc_cutoff,
             flip_xaxis=flip_xaxis,
         )
-        self.log2name = log2name
         return formatted_df
 
     def _get_plot_options(self, name: str = "tmp") -> Dict:
@@ -926,7 +924,6 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         renderer : Whether to use the webgl (better for web display) or svg (required for proper svg download) rendering engine."""
         return _plot_volcano(
             df_plot=self.annotated_dataframe,
-            log2name=self.log2name,
             group1=self.method["group1"],
             group2=self.method["group2"],
             qvalue_cutoff=self.data_annotation_options["qvalue_cutoff"],

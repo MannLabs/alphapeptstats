@@ -59,7 +59,7 @@ def plot_volcano(
         The name of the log2 fold change column.
     """
 
-    df_plot, log2name = prepare_result_df(
+    df_plot = prepare_result_df(
         statistics_results=statistics_results,
         feature_to_repr_map=feature_to_repr_map,
         group1=group1,
@@ -71,7 +71,6 @@ def plot_volcano(
 
     fig = _plot_volcano(
         df_plot=df_plot.reset_index(),
-        log2name=log2name,
         group1=group1,
         group2=group2,
         qvalue_cutoff=qvalue_cutoff,
@@ -81,12 +80,11 @@ def plot_volcano(
         flip_xaxis=flip_xaxis,
         renderer=renderer,
     )
-    return fig, df_plot, log2name
+    return fig, df_plot
 
 
 def _plot_volcano(
     df_plot: pd.DataFrame,
-    log2name: str,
     group1: str,
     group2: str,
     qvalue_cutoff: float,
@@ -127,6 +125,9 @@ def _plot_volcano(
     go.Figure
         The volcano plot.
     """
+
+    log2name = get_foldchange_column_name(group1, group2, flip_xaxis)
+
     # calculate x_range
     factor = 1.1 if not label_significant else 1.3
     x_range = (
@@ -150,7 +151,7 @@ def _plot_volcano(
     )
     fig.update_layout(
         showlegend=False,
-        width=600,
+        width=600, # should this depend on the width/height of the underlying ploy?
         height=700,
         margin=dict(l=0, r=0, t=40, b=0),
         title=f"Volcano plot of {group1} vs {group2}",
@@ -220,7 +221,7 @@ def _plot_volcano(
 
 
 def prepare_result_df(
-    statistics_results: pd.DataFrame,
+    statistics_results: pd.DataFrame, # statistics_results_df
     feature_to_repr_map: dict,
     group1: str,
     group2: str,
@@ -262,16 +263,12 @@ def prepare_result_df(
             result_df, qvalue_cutoff=qvalue_cutoff
         ),
         how="left",
+        validate="one_to_one",
     )
 
-    if not flip_xaxis:
-        left_label = group2
-        right_label = group1
-    else:
+    log2name = get_foldchange_column_name(group1, group2, flip_xaxis)
+    if flip_xaxis:
         result_df[DeaColumns.LOG2FC] = -result_df[DeaColumns.LOG2FC]
-        left_label = group1
-        right_label = group2
-    log2name = f"log2({right_label}/{left_label})"
     result_df = result_df.rename(columns={DeaColumns.LOG2FC: log2name})
 
     # get significant column
@@ -289,10 +286,22 @@ def prepare_result_df(
 
     # transform q-values to -log10
     result_df["-log10(q-value)"] = [
-        -np.log10(el) for el in result_df[DeaColumns.QVALUE]
+        -np.log10(qvalue) for qvalue in result_df[DeaColumns.QVALUE]
     ]
 
     # map feature names to representations
     result_df["label"] = result_df.index.map(feature_to_repr_map)
 
-    return result_df, log2name
+    return result_df
+
+
+def get_foldchange_column_name(group1, group2, flip_xaxis) -> str:
+    """Get the descriptive name of the log2 fold change column."""
+    if not flip_xaxis:
+        left_label = group2
+        right_label = group1
+    else:
+        left_label = group1
+        right_label = group2
+    log2name = f"log2({right_label}/{left_label})"
+    return log2name
