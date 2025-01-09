@@ -60,7 +60,7 @@ def plot_volcano(
     """
 
     df_plot = prepare_result_df(
-        statistics_results=statistics_results,
+        statistics_results_df=statistics_results,
         feature_to_repr_map=feature_to_repr_map,
         group1=group1,
         group2=group2,
@@ -93,7 +93,7 @@ def _plot_volcano(
     label_significant: bool,
     flip_xaxis: bool,
     renderer: Literal["webgl", "svg"],
-    **kwargs,
+    **layout_options,
 ) -> Figure:
     """Create the volcano plot from formatted data.
 
@@ -151,7 +151,7 @@ def _plot_volcano(
     )
     fig.update_layout(
         showlegend=False,
-        width=600, # should this depend on the width/height of the underlying ploy?
+        width=600,
         height=700,
         margin=dict(l=0, r=0, t=40, b=0),
         title=f"Volcano plot of {group1} vs {group2}",
@@ -216,12 +216,12 @@ def _plot_volcano(
                     xshift=-5,
                 )
 
-    fig.update_layout(**kwargs)
+    fig.update_layout(**layout_options)
     return fig
 
 
 def prepare_result_df(
-    statistics_results: pd.DataFrame, # statistics_results_df
+    statistics_results_df: pd.DataFrame,
     feature_to_repr_map: dict,
     group1: str,
     group2: str,
@@ -233,7 +233,7 @@ def prepare_result_df(
 
     Parameters
     ----------
-    statistics_results : pd.DataFrame
+    statistics_results_df : pd.DataFrame
         The results of the differential expression analysis.
     feature_to_repr_map : dict
         A dictionary mapping feature names to their representations.
@@ -255,7 +255,7 @@ def prepare_result_df(
     str
         The name of the log2 fold change column.
     """
-    result_df = statistics_results.copy()
+    result_df = statistics_results_df.copy()
 
     # get significant q-values
     result_df = result_df.join(

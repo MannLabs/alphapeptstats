@@ -49,57 +49,84 @@ class NewAnalysisOptions(metaclass=ConstantsClass):
     DIFFERENTIAL_EXPRESSION_TWO_GROUPS = "Differential Expression Analysis (Two Groups)"
 
 
-class ResultObject(ABC):
-    """Base class for providing the UI for inspecting and parameterizing the analysis based of statistical results.
+class RESULT_PARAMETERS(metaclass=ConstantsClass):
+    WIDTH = "width"
+    HEIGHT = "height"
+    SHOWLEGEND = "showlegend"
+    QVALUE_CUTOFF = "qvalue_cutoff"
+    LOG2FC_CUTOFF = "log2fc_cutoff"
+    FLIP_XAXIS = "flip_xaxis"
+    DRAWLINES = "drawlines"
+    LABEL_SIGNIFICANT = "label_significant"
+    RENDERER = "renderer"
 
-    The class is intended to be subclassed and the abstract methods implemented to provide the specific functionality.
+
+class ANALYSIS_PARAMETERS(metaclass=ConstantsClass):
+    TWOGROUP_GROUP1 = "group1"
+    TWOGROUP_GROUP2 = "group2"
+    DEA_TWOGROUPS_METHOD = "method"
+    DEA_TWOGROUPS_FDR_METHOD = "fdr_method"
+    TWOGROUP_COLUMN = "column"
+
+
+class ResultObject(ABC):  # move to new file
+    """Base class for providing the UI for inspecting and parameterizing the analysis based of statistical results.
 
     The intended use is that in a first step data can be annotated e.g. based on significance cutoffs and then plotted, e.g. applying cosmetic preferences like lines and colors.
 
     The display function can parameterized to restrict editing options to 'freeze' the result.
     """
 
+    class DISPLAY_SELECTION(metaclass=ConstantsClass):
+        """Keys for the display options, the order determines order in UI."""
+
+        PLOT = "Plot"
+        RAW_DATAFRAME = "Raw Dataframe"
+        ANNOTATED_DATAFRAME = "Annotated Dataframe"
+
     def __init__(
         self,
         dataframe: pd.DataFrame,
-        plottable: bool,
+        is_plottable: bool,
         preprocessing: Dict,
         method: Dict,
     ) -> None:
-        """Initialize the ResultObject with a dataframe and a plot.
+        """Initialize the ResultObject with a dataframe.
 
         Args:
             dataframe (pd.DataFrame): The dataframe to be used for the analysis.
-            plottable (bool): If the analysis is plottable.
+            is_plottable (bool): If the analysis is plottable.
             preprocessing (Dict): The preprocessing information.
             method (Dict): The method used for the analysis.
 
         Raises:
             ValueError: If no dataframe is provided.
         """
-        if dataframe is None:
-            raise ValueError("A dataframe is required for result display.")
-
         self.dataframe = dataframe
         self.annotated_dataframe = dataframe
-        self.plottable = plottable
-        self.plot: Optional[Figure] = None
+        self._is_plottable = is_plottable
         self.preprocessing = preprocessing
         self.method = method
-        self.data_annotation_options = {}
-        self.display_options = {}
-        self.display_selection = "Plot" if self.plottable else "Dataframe"
 
-    def _apply_data_annotation_options(self, name: str = "tmp") -> None:
+        self.plot: Optional[Figure] = None
+        self._data_annotation_options = {}
+        self._display_options = {}
+        self._display_selection = (
+            self.DISPLAY_SELECTION.PLOT
+            if self._is_plottable
+            else self.DISPLAY_SELECTION.RAW_DATAFRAME
+        )
+
+    def _apply_data_annotation_options(self, name: str = "") -> None:
         """Function to get and apply all options for data annotation.
         This sets the data_annotation_options and updates the annotated_dataframe."""
-        self.data_annotation_options = self._get_data_annotation_options(name=name)
+        self._data_annotation_options = self._get_data_annotation_options(name=name)
         self.annotated_dataframe = self._update_data_annotation(
-            **self.data_annotation_options
+            **self._data_annotation_options
         )
 
     @abstractmethod
-    def _get_data_annotation_options(self, name: str = "tmp") -> Dict:
+    def _get_data_annotation_options(self, name: str = "") -> Dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_data_annotation as kwargs."""
         pass
 
@@ -108,34 +135,41 @@ class ResultObject(ABC):
         """Implementations of this function should create the dataframe that can then directly be used by the _update_plot method to update the plot."""
         pass
 
-    def _apply_display_options(self, name: str = "tmp"):
+    def _apply_display_options(self, name: str = ""):
         """Function to get and apply all display options.
 
         This sets the display_options and parameterizes and updates the plot if plot is the selection made.
         """
-        if self.plottable is False:
-            display_selection_options = ["Raw dataframe", "Annotated dataframe"]
+        if self._is_plottable is False:
+            display_selection_options = [
+                self.DISPLAY_SELECTION.RAW_DATAFRAME,
+                self.DISPLAY_SELECTION.ANNOTATED_DATAFRAME,
+            ]  # string constants
         else:
-            display_selection_options = ["Plot", "Raw dataframe", "Annotated dataframe"]
+            display_selection_options = [
+                self.DISPLAY_SELECTION.RAW_DATAFRAME,
+                self.DISPLAY_SELECTION.ANNOTATED_DATAFRAME,
+                self.DISPLAY_SELECTION.PLOT,
+            ]  # string constants
 
         display_selection = st.radio(
             "Select display",
             display_selection_options,
             index=display_selection_options.index(
                 st.session_state.get(
-                    f"{name}_display_selection", self.display_selection
+                    f"{name}_display_selection", self._display_selection
                 )
             ),
             key=f"{name}_display_selection",
         )
 
-        self.display_selection = display_selection
-        if display_selection == "Plot":
-            self.display_options = self._get_plot_options(name=name)
-            self.plot = self._update_plot(**self.display_options)
+        self._display_selection = display_selection
+        if display_selection == self.DISPLAY_SELECTION.PLOT:
+            self._display_options = self._get_plot_options(name=name)
+            self.plot = self._update_plot(**self._display_options)
 
     @abstractmethod
-    def _get_plot_options(self, name: str = "tmp") -> Dict:
+    def _get_plot_options(self, name: str = "") -> Dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_plot as kwargs."""
         pass
 
@@ -146,20 +180,20 @@ class ResultObject(ABC):
 
     def _display_object(self) -> None:
         """Function to display the result object"""
-        if self.display_selection == "Plot":
+        if self._display_selection == self.DISPLAY_SELECTION.PLOT:
             st.plotly_chart(self.plot.update())
-        elif self.display_selection == "Raw dataframe":
+        elif self._display_selection == self.DISPLAY_SELECTION.RAW_DATAFRAME:
             st.dataframe(self.dataframe)
-        elif self.display_selection == "Annotated dataframe":
+        elif self._display_selection == self.DISPLAY_SELECTION.ANNOTATED_DATAFRAME:
             st.dataframe(self.annotated_dataframe)
 
     def display_object(
         self,
-        display_column: st.container,
+        st_display_column: st.delta_generator.DeltaGenerator,
         data_annotation_editable: bool = False,
         display_editable: bool = False,
-        widget_column: Optional[st.container] = None,
-        name: str = "tmp",
+        st_widget_column: Optional[st.delta_generator.DeltaGenerator] = None,
+        name: str = "",
     ):
         """Function to display the object.
         The function will display the object in the display column and the options in the widget column.
@@ -170,73 +204,111 @@ class ResultObject(ABC):
             data_annotation_editable (bool, optional): If the data_annotation options are editable. Defaults to False.
             display_editable (bool, optional): If the display options are editable. Defaults to False.
             widget_column (Optional[st.container], optional): The container to display the widgets. Defaults to None.
+            name: ...
 
         Raises:
             ValueError: If the widget column container is not provided.
         """
         if data_annotation_editable or display_editable:
-            if widget_column is None:
+            if st_widget_column is None:
                 raise ValueError("Widget column container must be provided")
-            with widget_column:
+            with st_widget_column:
                 if data_annotation_editable:
                     self._apply_data_annotation_options(name=name)
+                    self.plot = self._update_plot(**self._display_options)
                 if display_editable:
                     self._apply_display_options(name=name)
-                else:  # required to update plot if annotation options change
-                    self.plot = self._update_plot(**self.display_options)
-        with display_column:
+        with st_display_column:
             self._display_object()
 
-    def get_standard_layout_options(self, name: str = "tmp") -> Dict:
+    def _get_standard_layout_options(self, name: str = "") -> Dict:
         """Function to get the standard layout options for the plot.
 
         This can be used by the _get_plot_options method to get the standard layout options for the plot and then passed as kwargs to the _update_plot > plotting function > Figure.update."""
         return {
-            "height": st.number_input(
+            RESULT_PARAMETERS.HEIGHT: st.number_input(
                 "Height",
                 200,
                 1000,
-                st.session_state.get(
-                    f"{name}_height", self.display_options.get("height", 500)
+                self._initialize_widget(
+                    RESULT_PARAMETERS.HEIGHT, name, self._display_options, 500
                 ),
                 10,
-                key=f"{name}_height",
+                key=self._create_temporary_sessionstate_key(
+                    RESULT_PARAMETERS.HEIGHT, name
+                ),
             ),
-            "width": st.number_input(
+            RESULT_PARAMETERS.WIDTH: st.number_input(
                 "Width",
                 200,
                 1000,
-                st.session_state.get(
-                    f"{name}_width", self.display_options.get("width", 500)
+                self._initialize_widget(
+                    RESULT_PARAMETERS.WIDTH, name, self._display_options, 500
                 ),
                 10,
-                key=f"{name}_width",
-            ),
-            "showlegend": st.checkbox(
-                "Show legend",
-                st.session_state.get(
-                    f"{name}_showlegend", self.display_options.get("showlegend", False)
+                key=self._create_temporary_sessionstate_key(
+                    RESULT_PARAMETERS.WIDTH, name
                 ),
-                key=f"{name}_showlegend",
+            ),
+            RESULT_PARAMETERS.SHOWLEGEND: st.checkbox(
+                "Show legend",
+                self._initialize_widget(
+                    RESULT_PARAMETERS.SHOWLEGEND, name, self._display_options, False
+                ),
+                key=self._create_temporary_sessionstate_key(
+                    RESULT_PARAMETERS.SHOWLEGEND, name
+                ),
             ),
         }
 
-    def copy(self):
-        """Function to copy the object."""
-        copy = self.__class__(
-            dataframe=self.dataframe,
-            plottable=self.plottable,
-            preprocessing=self.preprocessing,
-            method=self.method,
+    def _create_temporary_sessionstate_key(
+        self,
+        parameter_name: str,
+        result_id: str,
+    ) -> str:
+        """Function to create the temporary session state key for a widget.
+
+        Parameters
+        ----------
+        parameter_name : str
+            name for the parameter
+        result_id : str
+            unique identifier for this instance"""
+        return f"tmp_key_{parameter_name}_{result_id}"
+
+    def _initialize_widget(
+        self,
+        parameter_name: str,
+        result_id: str,
+        parameter_dictionary: Dict,
+        default_value: Any,
+    ) -> Any:
+        """The behaviour we want to achieve for widgets created in the context of results is the following.
+
+        - be initialized from the parameters stored in the dictionary, hence persistent
+        - be changeable by only one click
+        - be agnostic to other widgets for the same parameter on the page
+
+        If we just initialize from parameter_dictionary and then set parameter_dictionary in the next line every widget interaction has to happen twice. This is because the first interaction triggers a rerun, without setting the dictionary value first. During this rerun the value is set, but only after the widget is drawn with the old value as default (despite showing the correct value). Only the next rerun sets the widget default to the value from the dictionary. This leads to really odd behaviour. The only way to ensure, that the widget stays in sync is to use the session state, as this get updated before the rerun. To cover the case where the widget is created for the first time on a page we default that to the dictionary. The reason we use temprorary keys that use a unique id, is to avoid session state clutter and be able to display two widget for the same parameter name on the same page (results page).
+
+        Parameters
+        ----------
+        parameter_name : str
+            name for the parameter
+        result_id : str
+            unique identifier for this instance
+        parameter_dictionary : dict
+            dictionary to fetch the value from
+        default_value : Any
+            value to set as default if neither session_state, nor parameter_dictionary have a value stored
+        """
+        return st.session_state.get(
+            self._create_temporary_sessionstate_key(parameter_name, result_id),
+            parameter_dictionary.get(
+                parameter_name,
+                default_value,
+            ),
         )
-        copy.data_annotation_options = self.data_annotation_options.copy()
-        copy.annotated_dataframe = copy._update_data_annotation(
-            **self.data_annotation_options
-        )
-        copy.display_options = self.display_options.copy()
-        if self.plottable:
-            copy.plot = self._update_plot(**self.display_options)
-        return copy
 
 
 # TODO rename to AnalysisComponent
@@ -300,13 +372,20 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
         metadata = self._dataset.metadata
 
         default_option = "<select>"
+        metadata_groups = metadata.columns.to_list()
         custom_group_option = "Custom groups from samples .."
 
+        options = [default_option] + metadata_groups + [custom_group_option]
         grouping_variable = st.selectbox(
             "Grouping variable",
-            options=[default_option]
-            + metadata.columns.to_list()
-            + [custom_group_option],
+            options=options,
+            index=options.index(
+                st.session_state.get(
+                    ANALYSIS_PARAMETERS.TWOGROUP_COLUMN,
+                    default_option if len(metadata_groups) == 0 else metadata_groups[0],
+                )
+            ),
+            key=ANALYSIS_PARAMETERS.TWOGROUP_COLUMN,
         )
 
         column = None
@@ -318,18 +397,28 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
             unique_values = metadata[grouping_variable].unique().tolist()
 
             column = grouping_variable
-            group1 = st.selectbox("Group 1", options=unique_values)
-            group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
+            group1 = st.selectbox(
+                "Group 1",
+                options=unique_values,
+                key=ANALYSIS_PARAMETERS.TWOGROUP_GROUP1,
+            )
+            group2 = st.selectbox(
+                "Group 2",
+                options=list(reversed(unique_values)),
+                key=ANALYSIS_PARAMETERS.TWOGROUP_GROUP2,
+            )
 
         else:
             group1 = st.multiselect(
                 "Group 1 samples:",
                 options=metadata[Cols.SAMPLE].to_list(),
+                key=ANALYSIS_PARAMETERS.TWOGROUP_GROUP1 + "multi",
             )
 
             group2 = st.multiselect(
                 "Group 2 samples:",
                 options=list(reversed(metadata[Cols.SAMPLE].to_list())),
+                key=ANALYSIS_PARAMETERS.TWOGROUP_GROUP2 + "multi",
             )
 
             intersection_list = list(set(group1).intersection(set(group2)))
@@ -339,13 +428,21 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
                     + str(intersection_list)
                 )
 
-        self._parameters.update({"group1": group1, "group2": group2})
+        self._parameters.update(
+            {
+                ANALYSIS_PARAMETERS.TWOGROUP_GROUP1: group1,
+                ANALYSIS_PARAMETERS.TWOGROUP_GROUP2: group2,
+            }
+        )
         if column is not None:
-            self._parameters["column"] = column
+            self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_COLUMN] = column
 
     def _pre_analysis_check(self):
         """Raise if selected groups are different."""
-        if self._parameters["group1"] == self._parameters["group2"]:
+        if (
+            self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1]
+            == self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2]
+        ):
             raise (
                 ValueError(
                     "Group 1 and Group 2 can not be the same. Please select different groups."
@@ -543,10 +640,10 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             metadata=self._dataset.metadata,
             preprocessing_info=self._dataset.preprocessing_info,
             feature_to_repr_map=self._dataset._feature_to_repr_map,
-            group1=self._parameters["group1"],
-            group2=self._parameters["group2"],
-            column=self._parameters["column"],
-            method=self._parameters["method"],
+            group1=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
+            group2=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
+            column=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_COLUMN],
+            method=self._parameters[ANALYSIS_PARAMETERS.DEA_TWOGROUPS_METHOD],
             labels=self._parameters["labels"],
             min_fc=self._parameters["min_fc"],
             alpha=self._parameters["alpha"],
@@ -602,15 +699,15 @@ class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
 
         super().show_widget()
 
-        self._parameters.update({"method": method})
+        self._parameters.update({ANALYSIS_PARAMETERS.DEA_TWOGROUPS_METHOD: method})
 
     def _do_analysis(self):
         """Perform T-test analysis."""
         diff_exp_analysis = self._dataset.diff_expression_analysis(
-            method=self._parameters["method"],
-            group1=self._parameters["group1"],
-            group2=self._parameters["group2"],
-            column=self._parameters["column"],
+            method=self._parameters[ANALYSIS_PARAMETERS.DEA_TWOGROUPS_METHOD],
+            group1=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
+            group2=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
+            column=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_COLUMN],
         )
         return diff_exp_analysis, None
 
@@ -715,8 +812,9 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
         method = st.selectbox(
             "Differential Analysis using:",
             options=["independent t-test", "paired t-test"],
+            key=ANALYSIS_PARAMETERS.DEA_TWOGROUPS_METHOD,
         )
-        parameters["method"] = method
+        parameters[ANALYSIS_PARAMETERS.DEA_TWOGROUPS_METHOD] = method
 
         fdr_method = st.selectbox(
             "FDR method",
@@ -726,41 +824,39 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
                 "fdr_bh": "Benjamini-Hochberg",
                 "bonferroni": "Bonferroni",
             }[x],
+            key=ANALYSIS_PARAMETERS.DEA_TWOGROUPS_FDR_METHOD,
         )
-        parameters["fdr_method"] = fdr_method
+        parameters[ANALYSIS_PARAMETERS.DEA_TWOGROUPS_FDR_METHOD] = fdr_method
 
         self._parameters.update(parameters)
 
     def _do_analysis(self) -> Tuple[ResultObject, None]:
         """Run the differential expression analysis between two groups and return the corresponding results object."""
-        # TODO: This is the place, where the new workflow of run/fetch DEA, filter significance, create plot should live. 1. self._dataset.get_dea(**parameters1), 2. dea.get_signficance(result, parameters2), 3. plot_volcano(result, significance, parameters3)
-        # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
-        # thus overwriting the default values set therein.
-        # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
-        # or refactor it so that all default values are `None` and the class sets the defaults programmatically.
-        if self._parameters["method"] in ["independent t-test", "paired t-test"]:
-            dea = DifferentialExpressionAnalysisTTest(
-                self._dataset.mat,
-                self._dataset.preprocessing_info[
-                    PreprocessingStateKeys.LOG2_TRANSFORMED
-                ],
-            )
-            dea_result = dea.perform(
-                test_type=DeaTestTypes.INDEPENDENT
-                if self._parameters["method"] == "independent t-test"
-                else DeaTestTypes.PAIRED,
-                group1=self._parameters["group1"],
-                group2=self._parameters["group2"],
-                grouping_column=self._parameters["column"],
-                metadata=self._dataset.metadata,
-                fdr_method=self._parameters["fdr_method"],
-            )
+
+        test_type = {
+            "independent t-test": DeaTestTypes.INDEPENDENT,
+            "paired t-test": DeaTestTypes.PAIRED,
+        }[self._parameters[ANALYSIS_PARAMETERS.DEA_TWOGROUPS_METHOD]]
+
+        dea = DifferentialExpressionAnalysisTTest(
+            self._dataset.mat,
+            self._dataset.preprocessing_info[PreprocessingStateKeys.LOG2_TRANSFORMED],
+        )
+        dea_result = dea.perform(
+            test_type=test_type,
+            group1=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
+            group2=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
+            grouping_column=self._parameters[ANALYSIS_PARAMETERS.TWOGROUP_COLUMN],
+            metadata=self._dataset.metadata,
+            fdr_method=self._parameters[ANALYSIS_PARAMETERS.DEA_TWOGROUPS_FDR_METHOD],
+        )
 
         return DifferentialExpressionTwoGroupsResult(
             dea_result,
             preprocessing=self._dataset.preprocessing_info,
             method=self._parameters,
-        ), None
+            is_plottable=True,
+        ), None  # None is for backwards compatibility
 
 
 ANALYSIS_OPTIONS = {
@@ -783,54 +879,55 @@ ANALYSIS_OPTIONS = {
 class DifferentialExpressionTwoGroupsResult(ResultObject):
     """Implementation of the ResultObject for the differential expression analysis between two groups."""
 
-    def __init__(
-        self,
-        dataframe: pd.DataFrame,
-        preprocessing: Dict,
-        method: Dict,
-        plottable: bool = True,
-    ):
-        super().__init__(
-            dataframe, plottable=plottable, preprocessing=preprocessing, method=method
-        )
-
-    def _get_data_annotation_options(self, name: str = "tmp") -> Dict:
+    def _get_data_annotation_options(self, name: str = "") -> Dict:
         """Function to get the data annotation options for the differential expression analysis between two groups.
 
         Parameters fetched are: qvalue_cutoff, log2fc_cutoff, flip_xaxis.
         """
         return {
-            "qvalue_cutoff": st.number_input(
+            RESULT_PARAMETERS.QVALUE_CUTOFF: st.number_input(
                 "Q-value cutoff",
                 0.0,
                 1.0,
-                st.session_state.get(
-                    f"{name}_qvalue_cutoff",
-                    self.data_annotation_options.get("qvalue_cutoff", 0.05),
+                self._initialize_widget(
+                    RESULT_PARAMETERS.QVALUE_CUTOFF,
+                    name,
+                    self._data_annotation_options,
+                    0.05,
                 ),
                 0.01,
                 format="%.2f",
-                key=f"{name}_qvalue_cutoff",
+                key=self._create_temporary_sessionstate_key(
+                    RESULT_PARAMETERS.QVALUE_CUTOFF, name
+                ),
             ),
-            "log2fc_cutoff": st.number_input(
+            RESULT_PARAMETERS.LOG2FC_CUTOFF: st.number_input(
                 "Log2FC cutoff",
                 0.0,
                 10.0,
-                st.session_state.get(
-                    f"{name}_log2fc_cutoff",
-                    self.data_annotation_options.get("log2fc_cutoff", 1.0),
+                self._initialize_widget(
+                    RESULT_PARAMETERS.LOG2FC_CUTOFF,
+                    name,
+                    self._data_annotation_options,
+                    1.0,
                 ),
                 0.1,
                 format="%.1f",
-                key=f"{name}_log2fc_cutoff",
-            ),
-            "flip_xaxis": st.checkbox(
-                "Flip groups",
-                st.session_state.get(
-                    f"{name}_flip_xaxis",
-                    self.data_annotation_options.get("flip_xaxis", False),
+                key=self._create_temporary_sessionstate_key(
+                    RESULT_PARAMETERS.LOG2FC_CUTOFF, name
                 ),
-                key=f"{name}_flip_xaxis",
+            ),
+            RESULT_PARAMETERS.FLIP_XAXIS: st.checkbox(
+                "Flip groups",
+                self._initialize_widget(
+                    RESULT_PARAMETERS.FLIP_XAXIS,
+                    name,
+                    self._data_annotation_options,
+                    False,
+                ),
+                key=self._create_temporary_sessionstate_key(
+                    RESULT_PARAMETERS.FLIP_XAXIS, name
+                ),
             ),
         }
 
@@ -852,19 +949,19 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
             Whether to flip the x-axis. This determines the new column name for the fold change column, stored in log2name.
         """
         formatted_df = prepare_result_df(
-            statistics_results=self.dataframe,
+            statistics_results_df=self.dataframe,
             feature_to_repr_map=st.session_state[
                 StateKeys.DATASET
             ]._feature_to_repr_map,
-            group1=self.method["group1"],
-            group2=self.method["group2"],
+            group1=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
+            group2=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
             qvalue_cutoff=qvalue_cutoff,
             log2fc_cutoff=log2fc_cutoff,
             flip_xaxis=flip_xaxis,
         )
         return formatted_df
 
-    def _get_plot_options(self, name: str = "tmp") -> Dict:
+    def _get_plot_options(self, name: str = "") -> Dict:
         """Function to get the plot options for the differential expression analysis between two groups.
 
         Parameters fetched are: drawlines, label_significant, renderer. Additionally the standard layout options are fetched.
@@ -873,35 +970,47 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
             renderer_options = ["webgl", "svg"]
             return {
                 **{
-                    "drawlines": st.checkbox(
+                    RESULT_PARAMETERS.DRAWLINES: st.checkbox(
                         "Draw significance and fold change lines",
-                        st.session_state.get(
-                            f"{name}_drawlines",
-                            self.display_options.get("drawlines", True),
+                        self._initialize_widget(
+                            RESULT_PARAMETERS.DRAWLINES,
+                            name,
+                            self._display_options,
+                            True,
                         ),
-                        key=f"{name}_drawlines",
+                        key=self._create_temporary_sessionstate_key(
+                            RESULT_PARAMETERS.DRAWLINES, name
+                        ),
                     ),
-                    "label_significant": st.checkbox(
+                    RESULT_PARAMETERS.LABEL_SIGNIFICANT: st.checkbox(
                         "Label significant points",
-                        st.session_state.get(
-                            f"{name}_label_significant",
-                            self.display_options.get("label_significant", True),
+                        self._initialize_widget(
+                            RESULT_PARAMETERS.LABEL_SIGNIFICANT,
+                            name,
+                            self._display_options,
+                            True,
                         ),
-                        key=f"{name}_label_significant",
+                        key=self._create_temporary_sessionstate_key(
+                            RESULT_PARAMETERS.LABEL_SIGNIFICANT, name
+                        ),
                     ),
-                    "renderer": st.radio(
-                        "Renderer",
+                    RESULT_PARAMETERS.RENDERER: st.radio(
+                        "Renderer (Choose svg before download to maintain quality.)",
                         renderer_options,
                         index=renderer_options.index(
-                            st.session_state.get(
-                                f"{name}_renderer",
-                                self.display_options.get("renderer", "webgl"),
+                            self._initialize_widget(
+                                RESULT_PARAMETERS.RENDERER,
+                                name,
+                                self._display_options,
+                                "webgl",
                             )
                         ),
-                        key=f"{name}_renderer",
+                        key=self._create_temporary_sessionstate_key(
+                            RESULT_PARAMETERS.RENDERER, name
+                        ),
                     ),
                 },
-                **self.get_standard_layout_options(name=name),
+                **self._get_standard_layout_options(name=name),
             }
 
     def _update_plot(
@@ -909,7 +1018,7 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         drawlines: bool,
         label_significant: bool,
         renderer: Literal["webgl", "svg"],
-        **kwargs,
+        **layout_options,
     ) -> Figure:
         """Function to update the plot for the differential expression analysis between two groups.
 
@@ -924,13 +1033,17 @@ class DifferentialExpressionTwoGroupsResult(ResultObject):
         renderer : Whether to use the webgl (better for web display) or svg (required for proper svg download) rendering engine."""
         return _plot_volcano(
             df_plot=self.annotated_dataframe,
-            group1=self.method["group1"],
-            group2=self.method["group2"],
-            qvalue_cutoff=self.data_annotation_options["qvalue_cutoff"],
-            log2fc_cutoff=self.data_annotation_options["log2fc_cutoff"],
-            flip_xaxis=self.data_annotation_options["flip_xaxis"],
+            group1=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
+            group2=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
+            qvalue_cutoff=self._data_annotation_options[
+                RESULT_PARAMETERS.QVALUE_CUTOFF
+            ],
+            log2fc_cutoff=self._data_annotation_options[
+                RESULT_PARAMETERS.LOG2FC_CUTOFF
+            ],
+            flip_xaxis=self._data_annotation_options[RESULT_PARAMETERS.FLIP_XAXIS],
             drawlines=drawlines,
             label_significant=label_significant,
             renderer=renderer,
-            **kwargs,
+            **layout_options,
         )

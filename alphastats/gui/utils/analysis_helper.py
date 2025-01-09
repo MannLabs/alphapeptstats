@@ -1,4 +1,5 @@
 import io
+from copy import deepcopy
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
@@ -64,8 +65,8 @@ def display_results(
         name = "tmp"
     display_column, widget_column = st.columns((1, 1))
     results.display_object(
-        display_column=display_column,
-        widget_column=widget_column,
+        st_display_column=display_column,
+        st_widget_column=widget_column,
         data_annotation_editable=editable_annotation,
         display_editable=True,
         name=name,
@@ -217,7 +218,7 @@ def _save_analysis_to_session_state(
     """Save analysis with method and parameters to session state to show on results page."""
     st.session_state[StateKeys.ANALYSIS_LIST] += [
         (
-            analysis_results.copy(),
+            deepcopy(analysis_results),
             method,
             parameters,
         )
