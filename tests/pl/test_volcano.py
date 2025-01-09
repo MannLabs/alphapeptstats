@@ -26,7 +26,7 @@ valid_feature_to_repr_map = {
 
 
 def test_plot_volcano():
-    fig, df, log2name = plot_volcano(
+    fig, df = plot_volcano(
         statistics_results=valid_statistics_results.copy(),
         feature_to_repr_map=valid_feature_to_repr_map,
         group1="mutant",
@@ -40,7 +40,7 @@ def test_plot_volcano():
     if show_figures:
         fig.show()
 
-    assert all(el in df.columns for el in ["label", "significant", log2name])
+    assert all(el in df.columns for el in ["label", "significant", "log2(mutant/ctrl)"])
 
     assert "mutant/ctrl" in fig.layout.xaxis.title.text
     annotation_texts = [annotation.text for annotation in fig.layout.annotations]
