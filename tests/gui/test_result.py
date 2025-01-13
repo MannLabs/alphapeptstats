@@ -9,7 +9,6 @@ def MinimalDifferentialExpressionTwoGroupsResult(
 
     from alphastats.dataset.keys import Cols
     from alphastats.gui.utils.result import DifferentialExpressionTwoGroupsResult
-    from alphastats.gui.utils.ui_helper import StateKeys
     from alphastats.tl.differential_expression_analysis import DeaColumns
 
     valid_statistics_results = pd.DataFrame(
@@ -31,11 +30,6 @@ def MinimalDifferentialExpressionTwoGroupsResult(
     }
     valid_method = {"group1": "mutant", "group2": "ctrl"}
 
-    class DummyDataset:
-        def __init__(self):
-            self._feature_to_repr_map = valid_feature_to_repr_map
-
-    st.session_state[StateKeys.DATASET] = DummyDataset()
     c1, c2 = st.columns((1, 2))
     if "a" not in st.session_state:
         st.session_state["a"] = DifferentialExpressionTwoGroupsResult(
@@ -43,6 +37,7 @@ def MinimalDifferentialExpressionTwoGroupsResult(
             preprocessing={},
             method=valid_method,
             is_plottable=True,
+            feature_to_repr_map=valid_feature_to_repr_map,
         )
     (
         st.session_state["a"].display_object(

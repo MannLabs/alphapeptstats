@@ -9,9 +9,8 @@ import streamlit as st
 
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.ui_helper import (
-    ANALYSIS_PARAMETERS,
-    RESULT_PARAMETERS,
-    StateKeys,
+    AnalysisParameters,
+    ResultParameters,
 )
 from alphastats.pl.volcano import _plot_volcano, prepare_result_df
 
@@ -40,6 +39,7 @@ class ResultComponent(ABC):  # move to new file
         dataframe: pd.DataFrame,
         preprocessing: dict,
         method: dict,
+        feature_to_repr_map: dict,
         *,
         is_plottable: bool,
     ) -> None:
@@ -51,6 +51,7 @@ class ResultComponent(ABC):  # move to new file
             is_plottable (bool): If the analysis is plottable.
             preprocessing (Dict): The preprocessing information.
             method (Dict): The method used for the analysis.
+            feature_to_repr_map (Dict): The feature to representation mapping.
 
         Raises:
         ------
@@ -62,6 +63,7 @@ class ResultComponent(ABC):  # move to new file
         self._is_plottable = is_plottable
         self.preprocessing = preprocessing
         self.method = method
+        self.feature_to_repr_map = feature_to_repr_map
 
         self.plot: Figure | None = None
         self._data_annotation_options = {}
@@ -73,25 +75,23 @@ class ResultComponent(ABC):  # move to new file
         )
 
     def _apply_data_annotation_options(self, name: str = "") -> None:
-        """Function to get and apply all options for data annotation.
+        """Get and apply all options for data annotation.
 
         This sets the data_annotation_options and updates the annotated_dataframe.
         """
         self._data_annotation_options = self._get_data_annotation_options(name=name)
-        self.annotated_dataframe = self._update_data_annotation(
-            **self._data_annotation_options
-        )
+        self.annotated_dataframe = self._annotate_data(**self._data_annotation_options)
 
     @abstractmethod
     def _get_data_annotation_options(self, name: str = "") -> dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_data_annotation as kwargs."""
 
     @abstractmethod
-    def _update_data_annotation(self, **kwargs) -> pd.DataFrame:
+    def _annotate_data(self, **kwargs) -> pd.DataFrame:
         """Implementations of this function should create the dataframe that can then directly be used by the _update_plot method to update the plot."""
 
     def _apply_display_options(self, name: str = "") -> None:
-        """Function to get and apply all display options.
+        """Get and apply all display options.
 
         This sets the display_options and parameterizes and updates the plot if plot is the selection made.
         """
@@ -99,13 +99,13 @@ class ResultComponent(ABC):  # move to new file
             display_selection_options = [
                 self.DisplaySelection.RAW_DATAFRAME,
                 self.DisplaySelection.ANNOTATED_DATAFRAME,
-            ]  # string constants
+            ]
         else:
             display_selection_options = [
                 self.DisplaySelection.RAW_DATAFRAME,
                 self.DisplaySelection.ANNOTATED_DATAFRAME,
                 self.DisplaySelection.PLOT,
-            ]  # string constants
+            ]
 
         display_selection = st.radio(
             "Select display",
@@ -121,14 +121,14 @@ class ResultComponent(ABC):  # move to new file
         self._display_selection = display_selection
         if display_selection == self.DisplaySelection.PLOT:
             self._display_options = self._get_plot_options(name=name)
-            self.plot = self._update_plot(**self._display_options)
+            self.plot = self._create_plot(**self._display_options)
 
     @abstractmethod
     def _get_plot_options(self, name: str = "") -> dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_plot as kwargs."""
 
     @abstractmethod
-    def _update_plot(self, **kwargs) -> Figure:
+    def _create_plot(self, **kwargs) -> Figure:
         """Implementations of this function should use the annotated_dataframe attribute and kwargs to create the plot that can then directly be displayed by the _display_object method."""
 
     def _display_object(self) -> None:
@@ -149,7 +149,7 @@ class ResultComponent(ABC):  # move to new file
         data_annotation_editable: bool = False,
         display_editable: bool = False,
     ) -> None:
-        """Function to display the object.
+        """Display the object, optionally with widgets.
 
         The function will display the object in the display column and the options in the widget column.
         The boolean flags are intended for controlling behaviour in different sections of the application.
@@ -179,62 +179,62 @@ class ResultComponent(ABC):  # move to new file
                 if data_annotation_editable:
                     self._apply_data_annotation_options(name=name)
                     if not display_editable and self._is_plottable:
-                        self.plot = self._update_plot(**self._display_options)
+                        self.plot = self._create_plot(**self._display_options)
                 if display_editable:
                     self._apply_display_options(name=name)
         with st_display_column:
             self._display_object()
 
     def _get_standard_layout_options(self, name: str = "") -> dict:
-        """Function to get the standard layout options for the plot.
+        """Get the standard layout options for the plot.
 
         This can be used by the _get_plot_options method to get the standard layout options for the plot and then passed as kwargs to the _update_plot > plotting function > Figure.update.
         """
         return {
-            RESULT_PARAMETERS.HEIGHT: st.number_input(
+            ResultParameters.HEIGHT: st.number_input(
                 "Height",
                 200,
                 1000,
                 self._initialize_widget(
-                    RESULT_PARAMETERS.HEIGHT, name, self._display_options, 500
+                    ResultParameters.HEIGHT, name, self._display_options, 500
                 ),
                 10,
-                key=self._create_temporary_sessionstate_key(
-                    RESULT_PARAMETERS.HEIGHT, name
+                key=self._create_temporary_session_state_key(
+                    ResultParameters.HEIGHT, name
                 ),
             ),
-            RESULT_PARAMETERS.WIDTH: st.number_input(
+            ResultParameters.WIDTH: st.number_input(
                 "Width",
                 200,
                 1000,
                 self._initialize_widget(
-                    RESULT_PARAMETERS.WIDTH, name, self._display_options, 500
+                    ResultParameters.WIDTH, name, self._display_options, 500
                 ),
                 10,
-                key=self._create_temporary_sessionstate_key(
-                    RESULT_PARAMETERS.WIDTH, name
+                key=self._create_temporary_session_state_key(
+                    ResultParameters.WIDTH, name
                 ),
             ),
-            RESULT_PARAMETERS.SHOWLEGEND: st.checkbox(
+            ResultParameters.SHOWLEGEND: st.checkbox(
                 "Show legend",
                 self._initialize_widget(
-                    RESULT_PARAMETERS.SHOWLEGEND,
+                    ResultParameters.SHOWLEGEND,
                     name,
                     self._display_options,
                     default=False,
                 ),
-                key=self._create_temporary_sessionstate_key(
-                    RESULT_PARAMETERS.SHOWLEGEND, name
+                key=self._create_temporary_session_state_key(
+                    ResultParameters.SHOWLEGEND, name
                 ),
             ),
         }
 
-    def _create_temporary_sessionstate_key(
+    def _create_temporary_session_state_key(
         self,
         parameter_name: str,
         result_id: str,
     ) -> str:
-        """Function to create the temporary session state key for a widget.
+        """Create the temporary session state key for a widget.
 
         Parameters
         ----------
@@ -253,7 +253,9 @@ class ResultComponent(ABC):  # move to new file
         parameter_dictionary: dict,
         default: bool | float | str | list,
     ) -> bool | float | str | list:
-        """The behaviour we want to achieve for widgets created in the context of results is the following.
+        """Return the value for a widget based on session_state, stored values or a default.
+
+        The behaviour we want to achieve for widgets created in the context of results is the following.
 
         - be initialized from the parameters stored in the dictionary, hence persistent
         - be changeable by only one click
@@ -274,7 +276,7 @@ class ResultComponent(ABC):  # move to new file
 
         """
         return st.session_state.get(
-            self._create_temporary_sessionstate_key(parameter_name, result_id),
+            self._create_temporary_session_state_key(parameter_name, result_id),
             parameter_dictionary.get(
                 parameter_name,
                 default,
@@ -291,60 +293,60 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
         Parameters fetched are: qvalue_cutoff, log2fc_cutoff, flip_xaxis.
         """
         return {
-            RESULT_PARAMETERS.QVALUE_CUTOFF: st.number_input(
+            ResultParameters.QVALUE_CUTOFF: st.number_input(
                 "Q-value cutoff",
                 0.0,
                 1.0,
                 self._initialize_widget(
-                    RESULT_PARAMETERS.QVALUE_CUTOFF,
+                    ResultParameters.QVALUE_CUTOFF,
                     name,
                     self._data_annotation_options,
                     0.05,
                 ),
                 0.01,
                 format="%.2f",
-                key=self._create_temporary_sessionstate_key(
-                    RESULT_PARAMETERS.QVALUE_CUTOFF, name
+                key=self._create_temporary_session_state_key(
+                    ResultParameters.QVALUE_CUTOFF, name
                 ),
             ),
-            RESULT_PARAMETERS.LOG2FC_CUTOFF: st.number_input(
+            ResultParameters.LOG2FC_CUTOFF: st.number_input(
                 "Log2FC cutoff",
                 0.0,
                 10.0,
                 self._initialize_widget(
-                    RESULT_PARAMETERS.LOG2FC_CUTOFF,
+                    ResultParameters.LOG2FC_CUTOFF,
                     name,
                     self._data_annotation_options,
                     1.0,
                 ),
                 0.1,
                 format="%.1f",
-                key=self._create_temporary_sessionstate_key(
-                    RESULT_PARAMETERS.LOG2FC_CUTOFF, name
+                key=self._create_temporary_session_state_key(
+                    ResultParameters.LOG2FC_CUTOFF, name
                 ),
             ),
-            RESULT_PARAMETERS.FLIP_XAXIS: st.checkbox(
+            ResultParameters.FLIP_XAXIS: st.checkbox(
                 "Flip groups",
                 self._initialize_widget(
-                    RESULT_PARAMETERS.FLIP_XAXIS,
+                    ResultParameters.FLIP_XAXIS,
                     name,
                     self._data_annotation_options,
                     default=False,
                 ),
-                key=self._create_temporary_sessionstate_key(
-                    RESULT_PARAMETERS.FLIP_XAXIS, name
+                key=self._create_temporary_session_state_key(
+                    ResultParameters.FLIP_XAXIS, name
                 ),
             ),
         }
 
-    def _update_data_annotation(
+    def _annotate_data(
         self,
         qvalue_cutoff: float,
         log2fc_cutoff: float,
         *,
         flip_xaxis: bool,
     ) -> pd.DataFrame:
-        """Function to update the data annotation for the differential expression analysis between two groups.
+        """Update the data annotation for the differential expression analysis between two groups.
 
         Parameters
         ----------
@@ -358,76 +360,74 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
         """
         return prepare_result_df(
             statistics_results_df=self.dataframe,
-            feature_to_repr_map=st.session_state[  # noqa: SLF001
-                StateKeys.DATASET
-            ]._feature_to_repr_map,  # TODO: make these mappings public
-            group1=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
-            group2=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
+            feature_to_repr_map=self.feature_to_repr_map,
+            group1=self.method[AnalysisParameters.TWOGROUP_GROUP1],
+            group2=self.method[AnalysisParameters.TWOGROUP_GROUP2],
             qvalue_cutoff=qvalue_cutoff,
             log2fc_cutoff=log2fc_cutoff,
             flip_xaxis=flip_xaxis,
         )
 
     def _get_plot_options(self, name: str = "") -> dict:
-        """Function to get the plot options for the differential expression analysis between two groups.
+        """Get the plot options for the differential expression analysis between two groups.
 
-        Parameters fetched are: drawlines, label_significant, renderer. Additionally the standard layout options are fetched.
+        Parameters fetched are: draw_lines, label_significant, renderer. Additionally the standard layout options are fetched.
         Note: renderer is important to make sure that pdf and svg downloads of the plot are actually vetorized and not a png set into a vectorized frame.
         """
         with st.expander("Display options"):
             renderer_options = ["webgl", "svg"]
             return {
-                RESULT_PARAMETERS.DRAWLINES: st.checkbox(
+                ResultParameters.DRAW_LINES: st.checkbox(
                     "Draw significance and fold change lines",
                     self._initialize_widget(
-                        RESULT_PARAMETERS.DRAWLINES,
+                        ResultParameters.DRAW_LINES,
                         name,
                         self._display_options,
                         default=True,
                     ),
-                    key=self._create_temporary_sessionstate_key(
-                        RESULT_PARAMETERS.DRAWLINES, name
+                    key=self._create_temporary_session_state_key(
+                        ResultParameters.DRAW_LINES, name
                     ),
                 ),
-                RESULT_PARAMETERS.LABEL_SIGNIFICANT: st.checkbox(
+                ResultParameters.LABEL_SIGNIFICANT: st.checkbox(
                     "Label significant points",
                     self._initialize_widget(
-                        RESULT_PARAMETERS.LABEL_SIGNIFICANT,
+                        ResultParameters.LABEL_SIGNIFICANT,
                         name,
                         self._display_options,
                         default=True,
                     ),
-                    key=self._create_temporary_sessionstate_key(
-                        RESULT_PARAMETERS.LABEL_SIGNIFICANT, name
+                    key=self._create_temporary_session_state_key(
+                        ResultParameters.LABEL_SIGNIFICANT, name
                     ),
                 ),
-                RESULT_PARAMETERS.RENDERER: st.radio(
+                ResultParameters.RENDERER: st.radio(
                     "Renderer (Choose svg before download to maintain quality.)",
                     renderer_options,
                     index=renderer_options.index(
                         self._initialize_widget(
-                            RESULT_PARAMETERS.RENDERER,
+                            ResultParameters.RENDERER,
                             name,
                             self._display_options,
                             "webgl",
                         )
                     ),
-                    key=self._create_temporary_sessionstate_key(
-                        RESULT_PARAMETERS.RENDERER, name
+                    key=self._create_temporary_session_state_key(
+                        ResultParameters.RENDERER, name
                     ),
                 ),
                 **self._get_standard_layout_options(name=name),
             }
 
-    def _update_plot(
+    def _create_plot(
         self,
         renderer: Literal["webgl", "svg"],
         *,
-        drawlines: bool,
+        draw_lines: bool,
         label_significant: bool,
         **layout_options,
     ) -> Figure:
-        """Function to update the plot for the differential expression analysis between two groups.
+        """Update the plot for the differential expression analysis between two groups.
 
         It additionally uses the data_annotation_options to get the qvalue_cutoff, log2fc_cutoff and flip_xaxis parameters and the method to get the group1 and group2 parameters.
 
@@ -435,7 +435,7 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
         ----------
         renderer : str
             Whether to use the webgl (better for web display) or svg (required for proper svg download) rendering engine.
-        drawlines : bool
+        draw_lines : bool
             Whether to draw the significance and fold change lines.
         label_significant : bool
             Whether to label significant points.
@@ -445,16 +445,12 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
         """
         return _plot_volcano(
             df_plot=self.annotated_dataframe,
-            group1=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP1],
-            group2=self.method[ANALYSIS_PARAMETERS.TWOGROUP_GROUP2],
-            qvalue_cutoff=self._data_annotation_options[
-                RESULT_PARAMETERS.QVALUE_CUTOFF
-            ],
-            log2fc_cutoff=self._data_annotation_options[
-                RESULT_PARAMETERS.LOG2FC_CUTOFF
-            ],
-            flip_xaxis=self._data_annotation_options[RESULT_PARAMETERS.FLIP_XAXIS],
-            drawlines=drawlines,
+            group1=self.method[AnalysisParameters.TWOGROUP_GROUP1],
+            group2=self.method[AnalysisParameters.TWOGROUP_GROUP2],
+            qvalue_cutoff=self._data_annotation_options[ResultParameters.QVALUE_CUTOFF],
+            log2fc_cutoff=self._data_annotation_options[ResultParameters.LOG2FC_CUTOFF],
+            flip_xaxis=self._data_annotation_options[ResultParameters.FLIP_XAXIS],
+            draw_lines=draw_lines,
             label_significant=label_significant,
             renderer=renderer,
             **layout_options,

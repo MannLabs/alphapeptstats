@@ -26,7 +26,7 @@ def plot_volcano(  # noqa: PLR0913
     log2fc_cutoff: float | None = 1,
     renderer: Literal["webgl", "svg"] = "webgl",
     *,
-    drawlines: bool = True,
+    draw_lines: bool = True,
     label_significant: bool = True,
     flip_xaxis: bool = False,
 ) -> tuple(go.Figure, pd.DataFrame):
@@ -48,7 +48,7 @@ def plot_volcano(  # noqa: PLR0913
         The fold cutoff for the log2 fold changes.
     renderer : Literal['webgl', 'svg']
         The renderer to use for the plot. webgl or svg.
-    drawlines : bool, default=True
+    draw_lines : bool, default=True
         Whether to draw the significance and fold change cutoff lines.
     label_significant : bool, default=True
         Whether to label significant points.
@@ -79,7 +79,7 @@ def plot_volcano(  # noqa: PLR0913
         group2=group2,
         qvalue_cutoff=qvalue_cutoff,
         log2fc_cutoff=log2fc_cutoff,
-        drawlines=drawlines,
+        draw_lines=draw_lines,
         label_significant=label_significant,
         flip_xaxis=flip_xaxis,
         renderer=renderer,
@@ -95,7 +95,7 @@ def _plot_volcano(  # noqa: PLR0913
     log2fc_cutoff: float | None,
     renderer: Literal["webgl", "svg"],
     *,
-    drawlines: bool,
+    draw_lines: bool,
     label_significant: bool,
     flip_xaxis: bool,
     **layout_options,
@@ -118,7 +118,7 @@ def _plot_volcano(  # noqa: PLR0913
         The fold cutoff for the log2 fold changes.
     renderer : Literal['webgl', 'svg']
         The renderer to use for the plot. webgl or svg.
-    drawlines : bool
+    draw_lines : bool
         Whether to draw the significance and fold change cutoff lines.
     label_significant : bool
         Whether to label significant points.
@@ -182,7 +182,7 @@ def _plot_volcano(  # noqa: PLR0913
         showarrow=False,
     )
 
-    if drawlines:
+    if draw_lines:
         fig.add_hline(
             y=-np.log10(qvalue_cutoff),
             line_width=1,

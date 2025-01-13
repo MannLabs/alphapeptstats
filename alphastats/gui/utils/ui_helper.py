@@ -156,7 +156,7 @@ class StateKeys(metaclass=ConstantsClass):
     ORGANISM = "organism"  # TODO this is essentially a constant
 
 
-class ANALYSIS_PARAMETERS(metaclass=ConstantsClass):
+class AnalysisParameters(metaclass=ConstantsClass):
     TWOGROUP_GROUP1 = "group1"
     TWOGROUP_GROUP2 = "group2"
     DEA_TWOGROUPS_METHOD = "method"
@@ -164,13 +164,13 @@ class ANALYSIS_PARAMETERS(metaclass=ConstantsClass):
     TWOGROUP_COLUMN = "column"
 
 
-class RESULT_PARAMETERS(metaclass=ConstantsClass):
+class ResultParameters(metaclass=ConstantsClass):
     WIDTH = "width"
     HEIGHT = "height"
     SHOWLEGEND = "showlegend"
     QVALUE_CUTOFF = "qvalue_cutoff"
     LOG2FC_CUTOFF = "log2fc_cutoff"
     FLIP_XAXIS = "flip_xaxis"
-    DRAWLINES = "drawlines"
+    DRAW_LINES = "draw_lines"
     LABEL_SIGNIFICANT = "label_significant"
     RENDERER = "renderer"

@@ -90,11 +90,11 @@ def _display(
 
     name_pretty = name.replace(" ", "_").lower()
 
-    try:
+    if isinstance(analysis_result, ResultComponent):
         display_function(
             analysis_result, editable_annotation=editable_annotation, name=name
         )
-    except TypeError:
+    else:
         display_function(analysis_result)
 
     c1, c2, c3 = st.columns([1, 1, 1])
