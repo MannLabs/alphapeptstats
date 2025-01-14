@@ -40,20 +40,23 @@ def llm_with_conversation(llm_integration):
     """Setup LLM with a sample conversation history"""
     # Add various message types to conversation history
     llm_integration._all_messages = [
-        {"role": "system", "content": "System message"},
-        {"role": "user", "content": "User message 1"},
-        {"role": "assistant", "content": "Assistant message 1"},
+        {"role": "system", "content": "System message", "pinned": True},
+        {"role": "user", "content": "User message 1", "pinned": False},
+        {"role": "assistant", "content": "Assistant message 1", "pinned": False},
         {
             "role": "assistant",
             "content": "Assistant with tool calls",
             "tool_calls": [
                 {"id": "123", "type": "function", "function": {"name": "test"}}
             ],
+            "pinned": False,
         },
-        {"role": "tool", "content": "Tool response"},
-        {"role": "user", "content": "User message 2"},
-        {"role": "assistant", "content": "Assistant message 2"},
+        {"role": "tool", "content": "Tool response", "pinned": False},
+        {"role": "user", "content": "User message 2", "pinned": False},
+        {"role": "assistant", "content": "Assistant message 2", "pinned": False},
     ]
+
+    llm_integration._messages = llm_integration._all_messages[0:3].copy()
 
     # Add some artifacts
     llm_integration._artifacts = {
@@ -147,7 +150,11 @@ def test_append_message(llm_integration):
 
     assert len(llm_integration._messages) == 2  # Including system message
     assert len(llm_integration._all_messages) == 2
-    assert llm_integration._messages[-1] == {"role": "user", "content": "Test message"}
+    assert llm_integration._messages[-1] == {
+        "role": "user",
+        "content": "Test message",
+        "pinned": False,
+    }
 
 
 def test_append_message_with_tool_calls(llm_integration):
@@ -181,12 +188,13 @@ def test_truncate_conversation_history(
     message_content = "Test " * message_length
     llm_integration._max_tokens = max_tokens
     for _ in range(num_messages):
-        llm_integration._append_message("user", message_content)
+        llm_integration._append_message("user", message_content.strip())
 
     llm_integration._truncate_conversation_history()
 
     # Adding 1 to account for the initial system message
     assert len(llm_integration._messages) <= expected_messages + 1
+    assert llm_integration._messages[0]["role"] == "system"
 
 
 def test_chat_completion_success(llm_integration, mock_chat_completion):
@@ -199,14 +207,17 @@ def test_chat_completion_success(llm_integration, mock_chat_completion):
         {
             "content": "Test system message",
             "role": "system",
+            "pinned": True,
         },
         {
             "content": "Test prompt",
             "role": "user",
+            "pinned": False,
         },
         {
             "content": "Test response",
             "role": "assistant",
+            "pinned": False,
         },
     ]
 
@@ -372,7 +383,7 @@ def test_handle_function_calls(
     mock_execute_function.assert_called_once_with("test_function", {"arg1": "value1"})
 
     expected_messages = [
-        {"role": "system", "content": "Test system message"},
+        {"role": "system", "content": "Test system message", "pinned": True},
         {
             "role": "assistant",
             "content": 'Calling function: test_function with arguments: {"arg1": "value1"}',
@@ -385,11 +396,13 @@ def test_handle_function_calls(
                     type="function",
                 )
             ],
+            "pinned": False,
         },
         {
             "role": "tool",
             "content": '{"result": "some_function_result", "artifact_id": "test_function_test-id"}',
             "tool_call_id": "test-id",
+            "pinned": False,
         },
     ]
     mock_openai_client.return_value.chat.completions.create.assert_called_once_with(
@@ -407,17 +420,33 @@ def test_get_print_view_default(llm_with_conversation):
 
     # Should only include user and assistant messages without tool_calls
     assert print_view == [
-        {"artifacts": [], "content": "User message 1", "role": "user"},
+        {
+            "artifacts": [],
+            "content": "User message 1",
+            "role": "user",
+            "in_context": True,
+            "pinned": False,
+        },
         {
             "artifacts": ["Artifact for message 2"],
             "content": "Assistant message 1",
             "role": "assistant",
+            "in_context": True,
+            "pinned": False,
         },
-        {"artifacts": [], "content": "User message 2", "role": "user"},
+        {
+            "artifacts": [],
+            "content": "User message 2",
+            "role": "user",
+            "in_context": False,
+            "pinned": False,
+        },
         {
             "artifacts": ["Artifact for message 6"],
             "content": "Assistant message 2",
             "role": "assistant",
+            "in_context": False,
+            "pinned": False,
         },
     ]
 
@@ -428,23 +457,53 @@ def test_get_print_view_show_all(llm_with_conversation):
 
     # Should only include user and assistant messages without tool_calls
     assert print_view == [
-        {"artifacts": [], "content": "System message", "role": "system"},
-        {"artifacts": [], "content": "User message 1", "role": "user"},
+        {
+            "artifacts": [],
+            "content": "System message",
+            "role": "system",
+            "in_context": True,
+            "pinned": True,
+        },
+        {
+            "artifacts": [],
+            "content": "User message 1",
+            "role": "user",
+            "in_context": True,
+            "pinned": False,
+        },
         {
             "artifacts": ["Artifact for message 2"],
             "content": "Assistant message 1",
             "role": "assistant",
+            "in_context": True,
+            "pinned": False,
         },
-        {"artifacts": [], "content": "Assistant with tool calls", "role": "assistant"},
+        {
+            "artifacts": [],
+            "content": "Assistant with tool calls",
+            "role": "assistant",
+            "in_context": False,
+            "pinned": False,
+        },
         {
             "artifacts": ["Tool artifact 1", "Tool artifact 2"],
             "content": "Tool response",
             "role": "tool",
+            "in_context": False,
+            "pinned": False,
         },
-        {"artifacts": [], "content": "User message 2", "role": "user"},
+        {
+            "artifacts": [],
+            "content": "User message 2",
+            "role": "user",
+            "in_context": False,
+            "pinned": False,
+        },
         {
             "artifacts": ["Artifact for message 6"],
             "content": "Assistant message 2",
             "role": "assistant",
+            "in_context": False,
+            "pinned": False,
         },
     ]
