@@ -197,6 +197,25 @@ def test_truncate_conversation_history(
     assert llm_integration._messages[0]["role"] == "system"
 
 
+def test_estimate_tokens_gpt(llm_integration):
+    """Test token estimation for a given message"""
+    message_content = "Test message"
+    tokens = llm_integration.estimate_tokens([{"content": message_content}])
+
+    assert tokens == 2
+
+
+def test_estimate_tokens_ollama(llm_integration):
+    """Test token estimation for a given message with Ollama model, falls back on average chars per token"""
+    llm_integration._model = Models.OLLAMA_31_8B
+    message_content = "Test message"
+    tokens = llm_integration.estimate_tokens(
+        [{"content": message_content}], average_chars_per_token=3.6
+    )
+
+    assert tokens == 12 / 3.6
+
+
 def test_chat_completion_success(llm_integration, mock_chat_completion):
     """Test successful chat completion"""
     llm_integration._client.chat.completions.create.return_value = mock_chat_completion
