@@ -80,6 +80,7 @@ class AbstractAnalysis(ABC):
         """Raise ValueError for methods that do not tolerate NaNs if there are any."""
         if not self._works_with_nans and self._dataset.mat.isnan().values.any():
             raise ValueError("This analysis does not work with NaN values.")
+        # TODO: raises attribute error for isnan during wald analysis
 
     def _pre_analysis_check(self) -> None:  # noqa: B027
         """Perform pre-analysis check, raise ValueError on fail."""
@@ -327,6 +328,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
         Returns a tuple(figure, analysis_object, parameters) where figure is the plot,
         analysis_object is the underlying object, parameters is a dictionary of the parameters used.
         """
+        # TODO: This is the place, where the new workflow of run/fetch DEA, filter significance, create plot should live. 1. self._dataset.get_dea(**parameters1), 2. dea.get_signficance(result, parameters2), 3. plot_volcano(result, significance, parameters3)
         # Note that currently, values that are not set by they UI would still be passed as None to the VolcanoPlot class,
         # thus overwriting the default values set therein.
         # If we introduce optional parameters in the UI, either use `inspect` to get the defaults from the class,
@@ -380,6 +382,8 @@ class DendrogramAnalysis(AbstractAnalysis):
 
 class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
     """Widget for differential expression analysis."""
+
+    # TODO: This functionality will disappear and become a part of the VolcanoPlot class. This will produce a widget to select whether the result should be displayed as table or as plot.
 
     def show_widget(self):
         """Show the widget and gather parameters."""
