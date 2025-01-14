@@ -136,6 +136,9 @@ def init_session_state() -> None:
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
 
+    if StateKeys.MAX_TOKENS not in st.session_state:
+        st.session_state[StateKeys.MAX_TOKENS] = 10000
+
 
 class StateKeys(metaclass=ConstantsClass):
     USER_SESSION_ID = "user_session_id"
@@ -152,5 +155,6 @@ class StateKeys(metaclass=ConstantsClass):
     LLM_INTEGRATION = "llm_integration"
     ANNOTATION_STORE = "annotation_store"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
+    MAX_TOKENS = "max_tokens"
 
     ORGANISM = "organism"  # TODO this is essentially a constant

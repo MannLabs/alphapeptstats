@@ -82,6 +82,14 @@ def llm_config():
                 else:
                     st.error(f"Connection to {model_name} failed: {str(error)}")
 
+        st.number_input(
+            "Max tokens",
+            value=st.session_state[StateKeys.MAX_TOKENS],
+            min_value=1,
+            max_value=100000,
+            key=StateKeys.MAX_TOKENS,
+        )
+
         if current_model != st.session_state[StateKeys.MODEL_NAME]:
             st.rerun(scope="app")
 
@@ -216,6 +224,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
             base_url=OLLAMA_BASE_URL,
             dataset=st.session_state[StateKeys.DATASET],
             genes_of_interest=list(regulated_genes_dict.keys()),
+            max_tokens=st.session_state[StateKeys.MAX_TOKENS],
         )
 
         st.session_state[StateKeys.LLM_INTEGRATION][model_name] = llm_integration
@@ -249,6 +258,13 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     for message in llm_integration.get_print_view(show_all=show_all):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            st.markdown(
+                f"*estimated tokens: {str(llm_integration.estimate_tokens([message]))}*"
+            )
+            if not message["in_context"]:
+                st.markdown(
+                    "**This message is no longer in context due to token limitations.**"
+                )
             for artifact in message["artifacts"]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)

@@ -2,10 +2,12 @@
 
 import json
 import logging
+import warnings
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
+import tiktoken
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
@@ -67,6 +69,7 @@ class LLMIntegration:
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
         genes_of_interest: Optional[List[str]] = None,
+        max_tokens=100000,
     ):
         self._model = model_name
 
@@ -81,6 +84,7 @@ class LLMIntegration:
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
         self._genes_of_interest = genes_of_interest
+        self._max_tokens = max_tokens
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -141,7 +145,42 @@ class LLMIntegration:
 
         self._truncate_conversation_history()
 
-    def _truncate_conversation_history(self, max_tokens: int = 100000):
+    def estimate_tokens(
+        self, messages: List[Dict[str, str]], average_chars_per_token: float = 3.6
+    ) -> int:
+        """
+        Estimate the number of tokens in a list of messages.
+
+        Parameters
+        ----------
+        messages : List[Dict[str, str]]
+            A list of messages to estimate the number of tokens for
+        average_chars_per_token : float, optional
+            The average number of characters per token, by default 3.6
+
+        Returns
+        -------
+        int
+            The estimated number of tokens
+        """
+        try:
+            enc = tiktoken.encoding_for_model(self._model)
+            total_tokens = sum(
+                [len(enc.encode(message["content"])) for message in messages if message]
+            )
+        except KeyError:
+            total_tokens = sum(
+                [
+                    len(message["content"]) / average_chars_per_token
+                    for message in messages
+                    if message
+                ]
+            )
+        return total_tokens
+
+    def _truncate_conversation_history(
+        self, average_chars_per_token: float = 3.6
+    ) -> None:
         """
         Truncate the conversation history to stay within token limits.
 
@@ -149,15 +188,31 @@ class LLMIntegration:
         ----------
         max_tokens : int, optional
             The maximum number of tokens to keep in history, by default 100000
+        average_chars_per_token : float, optional
+            The average number of characters per token, by default 3.6. Normal english language has 4 per token. Every ID included in the text is 1 token per character. Parsed uniprot entries are between 3.6 and 3.9 judging from experience with https://platform.openai.com/tokenizer.
         """
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
-        total_tokens = sum(
-            len(message["content"].split()) for message in self._messages if message
-        )
-        while total_tokens > max_tokens and len(self._messages) > 1:
+        total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
+        while total_tokens > self._max_tokens and len(self._messages) > 1:
+            warnings.warn(
+                f"Truncating conversation history to stay within token limits.\nRemoved message:\n{self._messages[0]['role']}: {self._messages[0]['content'][0:min(30, len(self._messages[0]['content']))]}..."
+            )
             removed_message = self._messages.pop(0)
-            total_tokens -= len(removed_message["content"].split())
+            while (
+                removed_message["role"] == "assistant"
+                and self._messages[0]["role"] == "tool"
+            ):
+                # This is required as the chat completion fails if there are tool outputs without corresponding tool calls in the message history.
+                warnings.warn(
+                    f"Removing corresponsing tool output as well.\nRemoved message:\n{self._messages[0]['role']}: {self._messages[0]['content'][0:min(30, len(self._messages[0]['content']))]}..."
+                )
+                self._messages.pop(0)
+                if len(self._messages) == 0:
+                    raise ValueError(
+                        "Truncating conversation history failed, as the tool replies exceeded the token limit. Please increase the token limit and reset the LLM analysis."
+                    )
+            total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
 
     def _parse_model_response(
         self, response: ChatCompletion
@@ -279,12 +334,14 @@ class LLMIntegration:
                 continue
             if not show_all and "tool_calls" in role_content_dict:
                 continue
+            in_context = role_content_dict in self._messages
 
             print_view.append(
                 {
                     "role": role_content_dict["role"],
                     "content": role_content_dict["content"],
                     "artifacts": self._artifacts.get(message_idx, []),
+                    "in_context": in_context,
                 }
             )
         return print_view
@@ -357,9 +414,10 @@ class LLMIntegration:
         for message in self._messages:
             role = message["role"].capitalize()
             content = message["content"]
+            tokens = self.estimate_tokens([message])
 
             if role == "Assistant" and "tool_calls" in message:
-                display(Markdown(f"**{role}**: {content}"))
+                display(Markdown(f"**{role}**: {content} *({str(tokens)} tokens)*"))
                 for tool_call in message["tool_calls"]:
                     function_name = tool_call.function.name
                     function_args = tool_call.function.arguments
@@ -372,14 +430,20 @@ class LLMIntegration:
                 if artifact_id and artifact_id in self._artifacts:
                     artifact = self._artifacts[artifact_id]
                     display(
-                        Markdown(f"**Function Result** (Artifact ID: {artifact_id}):")
+                        Markdown(
+                            f"**Function Result** (Artifact ID: {artifact_id}, *{str(tokens)} tokens*):"
+                        )
                     )
                     self._display_artifact(artifact)
                 else:
-                    display(Markdown(f"**Function Result**: {content}"))
+                    display(
+                        Markdown(
+                            f"**Function Result** *({str(tokens)} tokens)*: {content}"
+                        )
+                    )
 
             else:
-                display(Markdown(f"**{role}**: {content}"))
+                display(Markdown(f"**{role}**: {content} *({str(tokens)} tokens)*"))
 
     def _display_artifact(self, artifact):
         """

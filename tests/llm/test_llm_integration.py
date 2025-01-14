@@ -179,10 +179,11 @@ def test_truncate_conversation_history(
     """Test conversation history truncation with different scenarios"""
     # Add multiple messages
     message_content = "Test " * message_length
+    llm_integration._max_tokens = max_tokens
     for _ in range(num_messages):
         llm_integration._append_message("user", message_content)
 
-    llm_integration._truncate_conversation_history(max_tokens=max_tokens)
+    llm_integration._truncate_conversation_history()
 
     # Adding 1 to account for the initial system message
     assert len(llm_integration._messages) <= expected_messages + 1
