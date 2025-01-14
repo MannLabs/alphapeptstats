@@ -160,9 +160,13 @@ with c1:
     if c1.button("Gather UniProt data for selected proteins"):
         gather_uniprot_data(selected_regulated_genes)
 
-if not st.session_state[StateKeys.ANNOTATION_STORE]:
-    st.info("No UniProt data found. Please run UniProt data fetching first.")
-    st.stop()
+if any(
+    feature not in st.session_state[StateKeys.ANNOTATION_STORE]
+    for feature in selected_regulated_genes
+):
+    st.info(
+        "No UniProt data stored for some proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
+    )
 
 
 model_name = st.session_state[StateKeys.MODEL_NAME]
