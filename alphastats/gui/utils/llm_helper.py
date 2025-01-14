@@ -206,6 +206,10 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
             options=list(regulated_genes_dict.keys()),
             format_func=lambda x: feature_to_repr_map[x],
         )
+        uniprot_url = "https://www.uniprot.org/uniprotkb/"
+        st.markdown(
+            f"[Uniprot link]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
+        )
         st.markdown(f"Text generated from feature id {preview_feature}:")
         st.markdown(
             format_uniprot_annotation(
