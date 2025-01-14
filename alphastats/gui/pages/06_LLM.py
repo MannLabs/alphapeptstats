@@ -235,7 +235,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
         )
 
         with st.spinner("Processing initial prompt..."):
-            llm_integration.chat_completion(initial_prompt)
+            llm_integration.chat_completion(initial_prompt, pinned=True)
 
         st.rerun(scope="app")
     except AuthenticationError:
@@ -246,7 +246,11 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
 
 
 @st.fragment
-def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
+def llm_chat(
+    llm_integration: LLMIntegration,
+    show_all: bool = False,
+    show_inidvidual_tokens: bool = False,
+):
     """The chat interface for the LLM analysis."""
 
     # TODO dump to file -> static file name, plus button to do so
@@ -255,12 +259,23 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
 
     # no. tokens spent
+    total_tokens = 0
+    pinned_tokens = 0
     for message in llm_integration.get_print_view(show_all=show_all):
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(message[MessageKeys.CONTENT])
-            st.markdown(
-                f"*estimated tokens: {str(llm_integration.estimate_tokens([message]))}*"
-            )
+            tokens = llm_integration.estimate_tokens([message])
+            if message[MessageKeys.IN_CONTEXT]:
+                total_tokens += tokens
+            if message[MessageKeys.PINNED]:
+                pinned_tokens += tokens
+            if message[MessageKeys.PINNED] or show_inidvidual_tokens:
+                token_message = ""
+                if message[MessageKeys.PINNED]:
+                    token_message += ":pushpin: "
+                if show_inidvidual_tokens:
+                    token_message += f"*estimated tokens: {str(tokens)}*"
+                st.markdown(token_message)
             if not message[MessageKeys.IN_CONTEXT]:
                 st.markdown(
                     "**This message is no longer in context due to token limitations.**"
@@ -275,6 +290,10 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
                 elif not isinstance(artifact, str):
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)
+
+    st.markdown(
+        f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
+    )
 
     if prompt := st.chat_input("Say something"):
         with st.chat_message(Roles.USER):
@@ -294,10 +313,22 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
     )
 
 
-show_all = st.checkbox(
-    "Show system messages",
-    key="show_system_messages",
-    help="Show all messages in the chat interface.",
-)
+c1, c2 = st.columns((1, 2))
+with c1:
+    show_all = st.checkbox(
+        "Show system messages",
+        key="show_system_messages",
+        help="Show all messages in the chat interface.",
+    )
+with c2:
+    show_inidvidual_tokens = st.checkbox(
+        "Show individual token estimates",
+        key="show_individual_tokens",
+        help="Show individual token estimates for each message.",
+    )
 
-llm_chat(st.session_state[StateKeys.LLM_INTEGRATION][model_name], show_all)
+llm_chat(
+    st.session_state[StateKeys.LLM_INTEGRATION][model_name],
+    show_all,
+    show_inidvidual_tokens,
+)

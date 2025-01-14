@@ -49,6 +49,7 @@ class MessageKeys(metaclass=ConstantsClass):
     ARTIFACT_ID = "artifact_id"
     IN_CONTEXT = "in_context"
     ARTIFACTS = "artifacts"
+    PINNED = "pinned"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -115,7 +116,7 @@ class LLMIntegration:
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
         if system_message is not None:
-            self._append_message("system", system_message)
+            self._append_message("system", system_message, pinned=True)
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -150,11 +151,13 @@ class LLMIntegration:
         *,
         tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
         tool_call_id: Optional[str] = None,
+        pinned: bool = False,
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
             MessageKeys.ROLE: role,
             MessageKeys.CONTENT: content,
+            MessageKeys.PINNED: pinned,
         }
 
         if tool_calls is not None:
@@ -222,19 +225,28 @@ class LLMIntegration:
         # TODO: find out how messages can be None type and handle them earlier
         total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
         while total_tokens > self._max_tokens and len(self._messages) > 1:
+            oldest_unpinned = -1
+            for message_idx, message in enumerate(self._messages):
+                if not message[MessageKeys.PINNED]:
+                    oldest_unpinned = message_idx
+                    break
+            if oldest_unpinned == -1:
+                raise ValueError(
+                    "Truncating conversation history failed, as all messages are pinned. Please increase the token limit and reset the LLM analysis, or unpin messages."
+                )
+            removed_message = self._messages.pop(oldest_unpinned)
             warnings.warn(
-                f"Truncating conversation history to stay within token limits.\nRemoved message:\n{self._messages[0][MessageKeys.ROLE]}: {self._messages[0][MessageKeys.CONTENT][0:min(30, len(self._messages[0][MessageKeys.CONTENT]))]}..."
+                f"Truncating conversation history to stay within token limits.\nRemoved message:\n{removed_message[MessageKeys.ROLE]}: {removed_message[MessageKeys.CONTENT][0:min(30, len(removed_message[MessageKeys.CONTENT]))]}..."
             )
-            removed_message = self._messages.pop(0)
             while (
                 removed_message[MessageKeys.ROLE] == Roles.ASSISTANT
-                and self._messages[0][MessageKeys.ROLE] == Roles.TOOL
+                and self._messages[oldest_unpinned][MessageKeys.ROLE] == Roles.TOOL
             ):
                 # This is required as the chat completion fails if there are tool outputs without corresponding tool calls in the message history.
+                removed_toolmessage = self._messages.pop(oldest_unpinned)
                 warnings.warn(
-                    f"Removing corresponsing tool output as well.\nRemoved message:\n{self._messages[0][MessageKeys.ROLE]}: {self._messages[0][MessageKeys.CONTENT][0:min(30, len(self._messages[0][MessageKeys.CONTENT]))]}..."
+                    f"Removing corresponsing tool output as well.\nRemoved message:\n{removed_toolmessage[MessageKeys.ROLE]}: {removed_toolmessage[MessageKeys.CONTENT][0:min(30, len(removed_toolmessage[MessageKeys.CONTENT]))]}..."
                 )
-                self._messages.pop(0)
                 if len(self._messages) == 0:
                     raise ValueError(
                         "Truncating conversation history failed, as the tool replies exceeded the token limit. Please increase the token limit and reset the LLM analysis."
@@ -374,6 +386,7 @@ class LLMIntegration:
                     MessageKeys.CONTENT: role_content_dict[MessageKeys.CONTENT],
                     MessageKeys.ARTIFACTS: self._artifacts.get(message_idx, []),
                     MessageKeys.IN_CONTEXT: in_context,
+                    MessageKeys.PINNED: role_content_dict[MessageKeys.PINNED],
                 }
             )
         return print_view
@@ -393,7 +406,9 @@ class LLMIntegration:
             chatlog += "----------\n"
         return chatlog
 
-    def chat_completion(self, prompt: str, role: str = "user") -> None:
+    def chat_completion(
+        self, prompt: str, role: str = Roles.USER, *, pinned=False
+    ) -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
 
@@ -403,13 +418,15 @@ class LLMIntegration:
             The user's input prompt
         role : str, optional
             The role of the message sender, by default "user"
+        pinned : bool, optional
+            Whether the prompt and assistant reply should be pinned, by default False
 
         Returns
         -------
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
         """
-        self._append_message(role, prompt)
+        self._append_message(role, prompt, pinned=pinned)
 
         try:
             response = self._chat_completion_create()
@@ -424,7 +441,7 @@ class LLMIntegration:
 
                 content, _ = self._handle_function_calls(tool_calls)
 
-            self._append_message(Roles.ASSISTANT, content)
+            self._append_message(Roles.ASSISTANT, content, pinned=pinned)
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
