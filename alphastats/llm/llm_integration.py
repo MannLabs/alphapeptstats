@@ -173,7 +173,7 @@ class LLMIntegration:
 
     def estimate_tokens(
         self, messages: List[Dict[str, str]], average_chars_per_token: float = 3.6
-    ) -> int:
+    ) -> float:
         """
         Estimate the number of tokens in a list of messages.
 
@@ -186,7 +186,7 @@ class LLMIntegration:
 
         Returns
         -------
-        int
+        float
             The estimated number of tokens
         """
         try:
@@ -214,10 +214,10 @@ class LLMIntegration:
         """
         Truncate the conversation history to stay within token limits.
 
+        In the process pinned messages are preserved. If a tool call is removed, corresponding tool outputs are also removed, as this would otherwise raise an error in the chat completion.
+
         Parameters
         ----------
-        max_tokens : int, optional
-            The maximum number of tokens to keep in history, by default 100000
         average_chars_per_token : float, optional
             The average number of characters per token, by default 3.6. Normal english language has 4 per token. Every ID included in the text is 1 token per character. Parsed uniprot entries are between 3.6 and 3.9 judging from experience with https://platform.openai.com/tokenizer.
         """
@@ -232,11 +232,11 @@ class LLMIntegration:
                     break
             if oldest_unpinned == -1:
                 raise ValueError(
-                    "Truncating conversation history failed, as all messages are pinned. Please increase the token limit and reset the LLM analysis, or unpin messages."
+                    "Truncating conversation history failed, as all remaining messages are pinned. Please increase the token limit and reset the LLM analysis, or unpin messages."
                 )
             removed_message = self._messages.pop(oldest_unpinned)
             warnings.warn(
-                f"Truncating conversation history to stay within token limits.\nRemoved message:\n{removed_message[MessageKeys.ROLE]}: {removed_message[MessageKeys.CONTENT][0:min(30, len(removed_message[MessageKeys.CONTENT]))]}..."
+                f"Truncating conversation history to stay within token limits.\nRemoved message:{removed_message[MessageKeys.ROLE]}: {removed_message[MessageKeys.CONTENT][0:min(30, len(removed_message[MessageKeys.CONTENT]))]}..."
             )
             while (
                 removed_message[MessageKeys.ROLE] == Roles.ASSISTANT
@@ -245,11 +245,11 @@ class LLMIntegration:
                 # This is required as the chat completion fails if there are tool outputs without corresponding tool calls in the message history.
                 removed_toolmessage = self._messages.pop(oldest_unpinned)
                 warnings.warn(
-                    f"Removing corresponsing tool output as well.\nRemoved message:\n{removed_toolmessage[MessageKeys.ROLE]}: {removed_toolmessage[MessageKeys.CONTENT][0:min(30, len(removed_toolmessage[MessageKeys.CONTENT]))]}..."
+                    f"Removing corresponsing tool output as well.\nRemoved message:{removed_toolmessage[MessageKeys.ROLE]}: {removed_toolmessage[MessageKeys.CONTENT][0:min(30, len(removed_toolmessage[MessageKeys.CONTENT]))]}..."
                 )
                 if len(self._messages) == 0:
                     raise ValueError(
-                        "Truncating conversation history failed, as the tool replies exceeded the token limit. Please increase the token limit and reset the LLM analysis."
+                        "Truncating conversation history failed, as the most recent artifacts exceeded the token limit. Please increase the token limit and reset the LLM analysis."
                     )
             total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
 
