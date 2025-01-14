@@ -20,7 +20,7 @@ from alphastats.gui.utils.ui_helper import (
     init_session_state,
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.plots.plot_utils import PlotlyObject
 
@@ -277,6 +277,11 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
                     st.write(artifact)
 
     if prompt := st.chat_input("Say something"):
+        with st.chat_message(Roles.USER):
+            st.markdown(prompt)
+            st.markdown(
+                f"*estimated tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
+            )
         with st.spinner("Processing prompt..."):
             llm_integration.chat_completion(prompt)
         st.rerun(scope="fragment")
