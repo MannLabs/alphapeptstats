@@ -48,7 +48,7 @@ class MessageKeys(metaclass=ConstantsClass):
     RESULT = "result"
     ARTIFACT_ID = "artifact_id"
     IN_CONTEXT = "in_context"
-    ARTIFACTS = "artifacts"  # TODO: Find out where this is written
+    ARTIFACTS = "artifacts"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -372,7 +372,7 @@ class LLMIntegration:
                 {
                     MessageKeys.ROLE: role_content_dict[MessageKeys.ROLE],
                     MessageKeys.CONTENT: role_content_dict[MessageKeys.CONTENT],
-                    MessageKeys.ARTIFACT_ID: self._artifacts.get(message_idx, []),
+                    MessageKeys.ARTIFACTS: self._artifacts.get(message_idx, []),
                     MessageKeys.IN_CONTEXT: in_context,
                 }
             )
