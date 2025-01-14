@@ -137,12 +137,16 @@ with c1:
 
     with c11:
         selected_upregulated_genes = create_protein_editor(
-            upregulated_genes_df, "Upregulated Proteins"
+            upregulated_genes_df,
+            "Upregulated Proteins",
+            st.session_state[StateKeys.DATASET]._feature_to_repr_map,
         )
 
     with c12:
         selected_downregulated_genes = create_protein_editor(
-            downregulated_genes_df, "Downregulated Proteins"
+            downregulated_genes_df,
+            "Downregulated Proteins",
+            st.session_state[StateKeys.DATASET]._feature_to_repr_map,
         )
 
     # Combine the selected genes into a new regulated_genes_dict
