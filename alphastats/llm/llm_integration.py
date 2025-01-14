@@ -13,6 +13,7 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,
@@ -26,7 +27,7 @@ from alphastats.llm.prompts import get_tool_call_message
 logger = logging.getLogger(__name__)
 
 
-class Models:
+class Models(metaclass=ConstantsClass):
     """Names of the available models.
 
     Note that this will be directly passed to the OpenAI client.
@@ -35,6 +36,28 @@ class Models:
     GPT4O = "gpt-4o"
     OLLAMA_31_70B = "llama3.1:70b"
     OLLAMA_31_8B = "llama3.1:8b"  # for testing only
+
+
+class MessageKeys(metaclass=ConstantsClass):
+    """Keys for the message dictionary."""
+
+    ROLE = "role"
+    CONTENT = "content"
+    TOOL_CALLS = "tool_calls"
+    TOOL_CALL_ID = "tool_call_id"
+    RESULT = "result"
+    ARTIFACT_ID = "artifact_id"
+    IN_CONTEXT = "in_context"
+    ARTIFACTS = "artifacts"  # TODO: Find out where this is written
+
+
+class Roles(metaclass=ConstantsClass):
+    """Names of the available roles."""
+
+    USER = "user"
+    ASSISTANT = "assistant"  # might show as tool-call in error messages
+    TOOL = "tool"
+    SYSTEM = "system"
 
 
 class LLMIntegration:
@@ -130,15 +153,15 @@ class LLMIntegration:
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
-            "role": role,
-            "content": content,
+            MessageKeys.ROLE: role,
+            MessageKeys.CONTENT: content,
         }
 
         if tool_calls is not None:
-            message["tool_calls"] = tool_calls
+            message[MessageKeys.TOOL_CALLS] = tool_calls
 
         if tool_call_id is not None:
-            message["tool_call_id"] = tool_call_id
+            message[MessageKeys.TOOL_CALL_ID] = tool_call_id
 
         self._messages.append(message)
         self._all_messages.append(message)
@@ -166,12 +189,16 @@ class LLMIntegration:
         try:
             enc = tiktoken.encoding_for_model(self._model)
             total_tokens = sum(
-                [len(enc.encode(message["content"])) for message in messages if message]
+                [
+                    len(enc.encode(message[MessageKeys.CONTENT]))
+                    for message in messages
+                    if message
+                ]
             )
         except KeyError:
             total_tokens = sum(
                 [
-                    len(message["content"]) / average_chars_per_token
+                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
                     for message in messages
                     if message
                 ]
@@ -196,16 +223,16 @@ class LLMIntegration:
         total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
         while total_tokens > self._max_tokens and len(self._messages) > 1:
             warnings.warn(
-                f"Truncating conversation history to stay within token limits.\nRemoved message:\n{self._messages[0]['role']}: {self._messages[0]['content'][0:min(30, len(self._messages[0]['content']))]}..."
+                f"Truncating conversation history to stay within token limits.\nRemoved message:\n{self._messages[0][MessageKeys.ROLE]}: {self._messages[0][MessageKeys.CONTENT][0:min(30, len(self._messages[0][MessageKeys.CONTENT]))]}..."
             )
             removed_message = self._messages.pop(0)
             while (
-                removed_message["role"] == "assistant"
-                and self._messages[0]["role"] == "tool"
+                removed_message[MessageKeys.ROLE] == Roles.ASSISTANT
+                and self._messages[0][MessageKeys.ROLE] == Roles.TOOL
             ):
                 # This is required as the chat completion fails if there are tool outputs without corresponding tool calls in the message history.
                 warnings.warn(
-                    f"Removing corresponsing tool output as well.\nRemoved message:\n{self._messages[0]['role']}: {self._messages[0]['content'][0:min(30, len(self._messages[0]['content']))]}..."
+                    f"Removing corresponsing tool output as well.\nRemoved message:\n{self._messages[0][MessageKeys.ROLE]}: {self._messages[0][MessageKeys.CONTENT][0:min(30, len(self._messages[0][MessageKeys.CONTENT]))]}..."
                 )
                 self._messages.pop(0)
                 if len(self._messages) == 0:
@@ -288,7 +315,7 @@ class LLMIntegration:
         new_artifacts = {}
 
         tool_call_message = get_tool_call_message(tool_calls)
-        self._append_message("assistant", tool_call_message, tool_calls=tool_calls)
+        self._append_message(Roles.ASSISTANT, tool_call_message, tool_calls=tool_calls)
 
         for tool_call in tool_calls:
             function_name = tool_call.function.name
@@ -303,9 +330,12 @@ class LLMIntegration:
             new_artifacts[artifact_id] = function_result
 
             content = json.dumps(
-                {"result": str(function_result), "artifact_id": artifact_id}
+                {
+                    MessageKeys.RESULT: str(function_result),
+                    MessageKeys.ARTIFACT_ID: artifact_id,
+                }
             )
-            self._append_message("tool", content, tool_call_id=tool_call.id)
+            self._append_message(Roles.TOOL, content, tool_call_id=tool_call.id)
 
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
@@ -330,18 +360,20 @@ class LLMIntegration:
 
         print_view = []
         for message_idx, role_content_dict in enumerate(self._all_messages):
-            if not show_all and (role_content_dict["role"] in ["tool", "system"]):
+            if not show_all and (
+                role_content_dict[MessageKeys.ROLE] in [Roles.TOOL, Roles.SYSTEM]
+            ):
                 continue
-            if not show_all and "tool_calls" in role_content_dict:
+            if not show_all and MessageKeys.TOOL_CALLS in role_content_dict:
                 continue
             in_context = role_content_dict in self._messages
 
             print_view.append(
                 {
-                    "role": role_content_dict["role"],
-                    "content": role_content_dict["content"],
-                    "artifacts": self._artifacts.get(message_idx, []),
-                    "in_context": in_context,
+                    MessageKeys.ROLE: role_content_dict[MessageKeys.ROLE],
+                    MessageKeys.CONTENT: role_content_dict[MessageKeys.CONTENT],
+                    MessageKeys.ARTIFACT_ID: self._artifacts.get(message_idx, []),
+                    MessageKeys.IN_CONTEXT: in_context,
                 }
             )
         return print_view
@@ -351,12 +383,12 @@ class LLMIntegration:
         messages = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            if message["role"] == "tool":
+            if message[MessageKeys.ROLE] == Roles.TOOL:
                 continue
-            chatlog += f"{message['role'].capitalize()}: {message['content']}\n"
-            if len(message["artifacts"]) > 0:
+            chatlog += f"{message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
+            if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
-            for artifact in message["artifacts"]:
+            for artifact in message[MessageKeys.ARTIFACTS]:
                 chatlog += f"Artifact: {artifact}\n"
             chatlog += "----------\n"
         return chatlog
@@ -392,11 +424,11 @@ class LLMIntegration:
 
                 content, _ = self._handle_function_calls(tool_calls)
 
-            self._append_message("assistant", content)
+            self._append_message(Roles.ASSISTANT, content)
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
-            self._append_message("system", error_message)
+            self._append_message(Roles.SYSTEM, error_message)
 
     # TODO this seems to be for notebooks?
     # we need some "export mode" where everything is shown
@@ -412,13 +444,17 @@ class LLMIntegration:
         None
         """
         for message in self._messages:
-            role = message["role"].capitalize()
-            content = message["content"]
+            role = message[MessageKeys.ROLE]
+            content = message[MessageKeys.CONTENT]
             tokens = self.estimate_tokens([message])
 
-            if role == "Assistant" and "tool_calls" in message:
-                display(Markdown(f"**{role}**: {content} *({str(tokens)} tokens)*"))
-                for tool_call in message["tool_calls"]:
+            if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
+                display(
+                    Markdown(
+                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
+                    )
+                )
+                for tool_call in message[MessageKeys.TOOL_CALLS]:
                     function_name = tool_call.function.name
                     function_args = tool_call.function.arguments
                     display(Markdown(f"*Function Call*: `{function_name}`"))
@@ -426,7 +462,7 @@ class LLMIntegration:
 
             elif role == "Tool":
                 tool_result = json.loads(content)
-                artifact_id = tool_result.get("artifact_id")
+                artifact_id = tool_result.get(MessageKeys.ARTIFACT_ID)
                 if artifact_id and artifact_id in self._artifacts:
                     artifact = self._artifacts[artifact_id]
                     display(

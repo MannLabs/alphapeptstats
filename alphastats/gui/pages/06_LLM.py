@@ -20,7 +20,7 @@ from alphastats.gui.utils.ui_helper import (
     init_session_state,
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, Models
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.plots.plot_utils import PlotlyObject
 
@@ -83,7 +83,7 @@ def llm_config():
                     st.error(f"Connection to {model_name} failed: {str(error)}")
 
         st.number_input(
-            "Max tokens",
+            "Maximal number of tokens",
             value=st.session_state[StateKeys.MAX_TOKENS],
             min_value=1,
             max_value=100000,
@@ -256,16 +256,16 @@ def llm_chat(llm_integration: LLMIntegration, show_all: bool = False):
 
     # no. tokens spent
     for message in llm_integration.get_print_view(show_all=show_all):
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        with st.chat_message(message[MessageKeys.ROLE]):
+            st.markdown(message[MessageKeys.CONTENT])
             st.markdown(
                 f"*estimated tokens: {str(llm_integration.estimate_tokens([message]))}*"
             )
-            if not message["in_context"]:
+            if not message[MessageKeys.IN_CONTEXT]:
                 st.markdown(
                     "**This message is no longer in context due to token limitations.**"
                 )
-            for artifact in message["artifacts"]:
+            for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)
                 elif isinstance(
