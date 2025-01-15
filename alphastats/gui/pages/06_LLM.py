@@ -85,8 +85,8 @@ def llm_config():
         st.number_input(
             "Maximal number of tokens",
             value=st.session_state[StateKeys.MAX_TOKENS],
-            min_value=1,
-            max_value=100000,
+            min_value=2000,
+            max_value=128000,  # TODO: set this automatically based on the selected model
             key=StateKeys.MAX_TOKENS,
         )
 
@@ -269,17 +269,19 @@ def llm_chat(
                 total_tokens += tokens
             if message[MessageKeys.PINNED]:
                 pinned_tokens += tokens
-            if message[MessageKeys.PINNED] or show_individual_tokens:
+            if (
+                message[MessageKeys.PINNED]
+                or not message[MessageKeys.IN_CONTEXT]
+                or show_individual_tokens
+            ):
                 token_message = ""
                 if message[MessageKeys.PINNED]:
                     token_message += ":pushpin: "
+                if not message[MessageKeys.IN_CONTEXT]:
+                    token_message += ":x: "
                 if show_individual_tokens:
-                    token_message += f"*estimated tokens: {str(tokens)}*"
+                    token_message += f"*tokens: {str(tokens)}*"
                 st.markdown(token_message)
-            if not message[MessageKeys.IN_CONTEXT]:
-                st.markdown(
-                    "**This message is no longer in context due to token limitations.**"
-                )
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)
@@ -298,9 +300,10 @@ def llm_chat(
     if prompt := st.chat_input("Say something"):
         with st.chat_message(Roles.USER):
             st.markdown(prompt)
-            st.markdown(
-                f"*estimated tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
-            )
+            if show_individual_tokens:
+                st.markdown(
+                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
+                )
         with st.spinner("Processing prompt..."):
             llm_integration.chat_completion(prompt)
         st.rerun(scope="fragment")
@@ -310,6 +313,10 @@ def llm_chat(
         llm_integration.get_chat_log_txt(),
         f"chat_log_{model_name}.txt",
         "text/plain",
+    )
+
+    st.markdown(
+        "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
     )
 
 

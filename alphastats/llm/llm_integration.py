@@ -116,7 +116,7 @@ class LLMIntegration:
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
         if system_message is not None:
-            self._append_message("system", system_message, pinned=True)
+            self._append_message("system", system_message, pin_message=True)
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -151,13 +151,13 @@ class LLMIntegration:
         *,
         tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
         tool_call_id: Optional[str] = None,
-        pinned: bool = False,
+        pin_message: bool = False,
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
             MessageKeys.ROLE: role,
             MessageKeys.CONTENT: content,
-            MessageKeys.PINNED: pinned,
+            MessageKeys.PINNED: pin_message,
         }
 
         if tool_calls is not None:
@@ -199,7 +199,7 @@ class LLMIntegration:
                 ]
             )
         except KeyError:
-            # if the model is not in the tiktoken library a key error is raised by encoding_for_model, we use a rough estimate instead
+            # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
             total_tokens = sum(
                 [
                     len(message[MessageKeys.CONTENT]) / average_chars_per_token
@@ -224,8 +224,10 @@ class LLMIntegration:
         """
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
-        total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
-        while total_tokens > self._max_tokens:
+        while (
+            self.estimate_tokens(self._messages, average_chars_per_token)
+            > self._max_tokens
+        ):
             if len(self._messages) == 1:
                 raise ValueError(
                     "Truncating conversation history failed, as the only remaining message exceeds the token limit. Please increase the token limit and reset the LLM analysis."
@@ -256,7 +258,6 @@ class LLMIntegration:
                     raise ValueError(
                         "Truncating conversation history failed, as the artifact from the last call exceeds the token limit. Please increase the token limit and reset the LLM analysis."
                     )
-            total_tokens = self.estimate_tokens(self._messages, average_chars_per_token)
 
     def _parse_model_response(
         self, response: ChatCompletion
@@ -376,22 +377,22 @@ class LLMIntegration:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
-        for message_idx, role_content_dict in enumerate(self._all_messages):
+        for message_idx, message in enumerate(self._all_messages):
             if not show_all and (
-                role_content_dict[MessageKeys.ROLE] in [Roles.TOOL, Roles.SYSTEM]
+                message[MessageKeys.ROLE] in [Roles.TOOL, Roles.SYSTEM]
             ):
                 continue
-            if not show_all and MessageKeys.TOOL_CALLS in role_content_dict:
+            if not show_all and MessageKeys.TOOL_CALLS in message:
                 continue
-            in_context = role_content_dict in self._messages
+            in_context = message in self._messages
 
             print_view.append(
                 {
-                    MessageKeys.ROLE: role_content_dict[MessageKeys.ROLE],
-                    MessageKeys.CONTENT: role_content_dict[MessageKeys.CONTENT],
+                    MessageKeys.ROLE: message[MessageKeys.ROLE],
+                    MessageKeys.CONTENT: message[MessageKeys.CONTENT],
                     MessageKeys.ARTIFACTS: self._artifacts.get(message_idx, []),
                     MessageKeys.IN_CONTEXT: in_context,
-                    MessageKeys.PINNED: role_content_dict[MessageKeys.PINNED],
+                    MessageKeys.PINNED: message[MessageKeys.PINNED],
                 }
             )
         return print_view
@@ -431,7 +432,7 @@ class LLMIntegration:
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
         """
-        self._append_message(role, prompt, pinned=pin_message)
+        self._append_message(role, prompt, pin_message=pin_message)
 
         try:
             response = self._chat_completion_create()
@@ -446,7 +447,7 @@ class LLMIntegration:
 
                 content, _ = self._handle_function_calls(tool_calls)
 
-            self._append_message(Roles.ASSISTANT, content, pinned=pin_message)
+            self._append_message(Roles.ASSISTANT, content, pin_message=pin_message)
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
