@@ -177,7 +177,7 @@ display_uniprot(
 st.markdown("##### Prompts generated based on analysis input")
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
-        "",
+        " ",
         value=get_system_message(st.session_state[StateKeys.DATASET]),
         height=150,
         disabled=llm_integration_set_for_model,
@@ -187,7 +187,7 @@ with st.expander("System message", expanded=False):
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
     initial_prompt = st.text_area(
-        "",
+        " ",
         value=get_initial_prompt(
             plot_parameters,
             list(map(feature_to_repr_map.get, upregulated_genes)),
@@ -266,12 +266,12 @@ def llm_chat(
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(message[MessageKeys.CONTENT])
-            tokens = llm_integration.estimate_tokens([message])
             if message[MessageKeys.PINNED] or show_inidvidual_tokens:
                 token_message = ""
                 if message[MessageKeys.PINNED]:
                     token_message += ":pushpin: "
                 if show_inidvidual_tokens:
+                    tokens = llm_integration.estimate_tokens([message])
                     token_message += f"*estimated tokens: {str(tokens)}*"
                 st.markdown(token_message)
             if not message[MessageKeys.IN_CONTEXT]:
@@ -333,7 +333,6 @@ with c2:
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
     )
-
 llm_chat(
     st.session_state[StateKeys.LLM_INTEGRATION][model_name],
     show_all,
