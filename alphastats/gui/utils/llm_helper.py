@@ -12,7 +12,7 @@ from alphastats.llm.uniprot_utils import (
 )
 
 
-def create_protein_editor(
+def protein_selector(
     df: pd.DataFrame, title: str, feature_to_repr_map: Dict
 ) -> List[str]:
     """Creates a data editor for protein selection and returns the selected proteins.
@@ -26,6 +26,7 @@ def create_protein_editor(
         selected_proteins (List[str]): A list of selected proteins.
     """
     st.write(title)
+    df = df.copy()
     df.insert(
         0,
         "Gene",
@@ -37,7 +38,7 @@ def create_protein_editor(
         column_config={
             "Selected": st.column_config.CheckboxColumn(
                 "Include?",
-                help="Uncheck to exclude this gene from analysis",
+                help="Check to include this gene in analysis",
                 default=True,
             ),
             "Gene": st.column_config.TextColumn(
@@ -208,7 +209,7 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
         )
         uniprot_url = "https://www.uniprot.org/uniprotkb/"
         st.markdown(
-            f"[Uniprot link]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
+            f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
         )
         st.markdown(f"Text generated from feature id {preview_feature}:")
         st.markdown(

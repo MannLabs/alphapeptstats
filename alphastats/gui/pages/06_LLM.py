@@ -11,9 +11,9 @@ from alphastats.gui.utils.analysis_helper import (
     gather_uniprot_data,
 )
 from alphastats.gui.utils.llm_helper import (
-    create_protein_editor,
     display_uniprot,
     llm_connection_test,
+    protein_selector,
     set_api_key,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -136,14 +136,14 @@ with c1:
     c11, c12 = st.columns((1, 1), gap="medium")
 
     with c11:
-        selected_upregulated_genes = create_protein_editor(
+        selected_upregulated_genes = protein_selector(
             upregulated_genes_df,
             "Upregulated Proteins",
             st.session_state[StateKeys.DATASET]._feature_to_repr_map,
         )
 
     with c12:
-        selected_downregulated_genes = create_protein_editor(
+        selected_downregulated_genes = protein_selector(
             downregulated_genes_df,
             "Downregulated Proteins",
             st.session_state[StateKeys.DATASET]._feature_to_repr_map,
