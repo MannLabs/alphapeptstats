@@ -259,16 +259,13 @@ def llm_chat(
     # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
 
     # no. tokens spent
-    total_tokens = 0
-    pinned_tokens = 0
-    for message in llm_integration.get_print_view(show_all=show_all):
+    messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
+        show_all=show_all, return_token_counts=True
+    )
+    for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(message[MessageKeys.CONTENT])
             tokens = llm_integration.estimate_tokens([message])
-            if message[MessageKeys.IN_CONTEXT]:
-                total_tokens += tokens
-            if message[MessageKeys.PINNED]:
-                pinned_tokens += tokens
             if message[MessageKeys.PINNED] or show_inidvidual_tokens:
                 token_message = ""
                 if message[MessageKeys.PINNED]:

@@ -367,18 +367,28 @@ class LLMIntegration:
         logger.info(".. done")
         return result
 
-    def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
+    def get_print_view(
+        self, show_all=False, return_token_counts=False
+    ) -> List[Dict[str, Any]]:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
+        total_tokens = 0
+        pinned_tokens = 0
         for message_idx, role_content_dict in enumerate(self._all_messages):
+            tokens = self.estimate_tokens([role_content_dict])
+            in_context = role_content_dict in self._messages
+            if in_context:
+                total_tokens += tokens
+            if role_content_dict[MessageKeys.PINNED]:
+                pinned_tokens += tokens
+
             if not show_all and (
                 role_content_dict[MessageKeys.ROLE] in [Roles.TOOL, Roles.SYSTEM]
             ):
                 continue
             if not show_all and MessageKeys.TOOL_CALLS in role_content_dict:
                 continue
-            in_context = role_content_dict in self._messages
 
             print_view.append(
                 {
@@ -389,6 +399,9 @@ class LLMIntegration:
                     MessageKeys.PINNED: role_content_dict[MessageKeys.PINNED],
                 }
             )
+
+        if return_token_counts:
+            return print_view, total_tokens, pinned_tokens
         return print_view
 
     def get_chat_log_txt(self) -> str:
