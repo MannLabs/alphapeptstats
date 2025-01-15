@@ -235,7 +235,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
         )
 
         with st.spinner("Processing initial prompt..."):
-            llm_integration.chat_completion(initial_prompt, pinned=True)
+            llm_integration.chat_completion(initial_prompt, pin_message=True)
 
         st.rerun(scope="app")
     except AuthenticationError:
@@ -249,7 +249,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
 def llm_chat(
     llm_integration: LLMIntegration,
     show_all: bool = False,
-    show_inidvidual_tokens: bool = False,
+    show_individual_tokens: bool = False,
 ):
     """The chat interface for the LLM analysis."""
 
@@ -269,11 +269,11 @@ def llm_chat(
                 total_tokens += tokens
             if message[MessageKeys.PINNED]:
                 pinned_tokens += tokens
-            if message[MessageKeys.PINNED] or show_inidvidual_tokens:
+            if message[MessageKeys.PINNED] or show_individual_tokens:
                 token_message = ""
                 if message[MessageKeys.PINNED]:
                     token_message += ":pushpin: "
-                if show_inidvidual_tokens:
+                if show_individual_tokens:
                     token_message += f"*estimated tokens: {str(tokens)}*"
                 st.markdown(token_message)
             if not message[MessageKeys.IN_CONTEXT]:
