@@ -100,94 +100,95 @@ if StateKeys.LLM_INPUT not in st.session_state:
 volcano_plot, plot_parameters = st.session_state[StateKeys.LLM_INPUT]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
-c1, c2 = st.columns((2, 1))
 
-with c2:
+c1, c2, c3 = st.columns((1, 1, 1))
+
+with c3:
+    st.markdown("##### Volcano plot")
     display_figure(volcano_plot.plot)
 
-with c1:
-    regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
-    regulated_genes_dict = dict(
-        zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
-    )
+regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
+regulated_genes_dict = dict(
+    zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
+)
 
-    if not regulated_genes_dict:
-        st.text("No genes of interest found.")
-        st.stop()
+if not regulated_genes_dict:
+    st.text("No genes of interest found.")
+    st.stop()
 
-    # Separate upregulated and downregulated genes
-    upregulated_genes = [
-        key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
-    ]
-    downregulated_genes = [
-        key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
-    ]
+# Separate upregulated and downregulated genes
+upregulated_genes = [
+    key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
+]
+downregulated_genes = [
+    key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
+]
 
-    # Create dataframes with checkboxes for selection
-    if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
-        st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
-    upregulated_genes_df = pd.DataFrame(
-        {
-            "Gene": [
-                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
-                for protein in upregulated_genes
-            ],
-            "Selected": [
-                protein in st.session_state[StateKeys.SELECTED_GENES_UP]
-                for protein in upregulated_genes
-            ],
-            "Protein": upregulated_genes,
-        }
-    )
-
-    if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
-        st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
-    downregulated_genes_df = pd.DataFrame(
-        {
-            "Gene": [
-                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
-                for protein in downregulated_genes
-            ],
-            "Selected": [
-                protein in st.session_state[StateKeys.SELECTED_GENES_DOWN]
-                for protein in downregulated_genes
-            ],
-            "Protein": downregulated_genes,
-        }
-    )
-
-    st.markdown("##### Genes of interest")
-    c11, c12 = st.columns((1, 1), gap="medium")
-
-    with c11:
-        st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
-            upregulated_genes_df,
-            "Upregulated Proteins",
-        )
-
-    with c12:
-        st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
-            downregulated_genes_df,
-            "Downregulated Proteins",
-        )
-
-    # Combine the selected genes into a new regulated_genes_dict
-    selected_regulated_genes = (
-        st.session_state[StateKeys.SELECTED_GENES_UP]
-        + st.session_state[StateKeys.SELECTED_GENES_DOWN]
-    )
-    regulated_genes_dict = {
-        gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
-        for gene in selected_regulated_genes
+# Create dataframes with checkboxes for selection
+if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
+    st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
+upregulated_genes_df = pd.DataFrame(
+    {
+        "Gene": [
+            st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+            for protein in upregulated_genes
+        ],
+        "Selected": [
+            protein in st.session_state[StateKeys.SELECTED_GENES_UP]
+            for protein in upregulated_genes
+        ],
+        "Protein": upregulated_genes,
     }
+)
 
-    # If no genes are selected, stop the script
-    if not regulated_genes_dict:
-        st.text("No genes selected for analysis.")
-        st.stop()
+if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
+    st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
+downregulated_genes_df = pd.DataFrame(
+    {
+        "Gene": [
+            st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+            for protein in downregulated_genes
+        ],
+        "Selected": [
+            protein in st.session_state[StateKeys.SELECTED_GENES_DOWN]
+            for protein in downregulated_genes
+        ],
+        "Protein": downregulated_genes,
+    }
+)
 
-    if c1.button("Gather UniProt data for selected proteins"):
-        gather_uniprot_data(selected_regulated_genes)
+
+with c1:
+    st.markdown("##### Genes of interest")
+    st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
+        upregulated_genes_df,
+        "Upregulated Proteins",
+    )
+
+with c2:
+    st.markdown("##### ")
+    st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
+        downregulated_genes_df,
+        "Downregulated Proteins",
+    )
+
+# Combine the selected genes into a new regulated_genes_dict
+selected_regulated_genes = (
+    st.session_state[StateKeys.SELECTED_GENES_UP]
+    + st.session_state[StateKeys.SELECTED_GENES_DOWN]
+)
+regulated_genes_dict = {
+    gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
+    for gene in selected_regulated_genes
+}
+
+# If no genes are selected, stop the script
+if not regulated_genes_dict:
+    st.text("No genes selected for analysis.")
+    st.stop()
+
+if st.button("Gather UniProt data for selected proteins"):
+    gather_uniprot_data(selected_regulated_genes)
 
 if any(
     feature not in st.session_state[StateKeys.ANNOTATION_STORE]

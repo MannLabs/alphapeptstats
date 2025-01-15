@@ -24,12 +24,15 @@ def protein_selector(df: pd.DataFrame, title: str) -> List[str]:
         selected_proteins (List[str]): A list of selected proteins.
     """
     st.write(title)
-    if st.button("Select all", help=f"Select all {title} for analysis"):
-        st.session_state[StateKeys.SELECTED_GENES_UP] = df["Protein"].tolist()
-        st.rerun()
-    if st.button("Select none", help=f"Select no {title} for analysis"):
-        st.session_state[StateKeys.SELECTED_GENES_UP] = []
-        st.rerun()
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        if st.button("Select all", help=f"Select all {title} for analysis"):
+            st.session_state[StateKeys.SELECTED_GENES_UP] = df["Protein"].tolist()
+            st.rerun()
+    with c2:
+        if st.button("Select none", help=f"Select no {title} for analysis"):
+            st.session_state[StateKeys.SELECTED_GENES_UP] = []
+            st.rerun()
     edited_df = st.data_editor(
         df,
         column_config={
