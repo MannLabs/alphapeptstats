@@ -52,6 +52,29 @@ def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
     return edited_df.loc[edited_df["Selected"], "Protein"].tolist()
 
 
+def get_df_for_protein_selector(
+    proteins: List[str], selected: List[str]
+) -> pd.DataFrame:
+    """Create a DataFrame for the protein selector.
+
+    Args:
+        proteins (List[str]): A list of proteins.
+
+    Returns:
+        pd.DataFrame: A DataFrame with 'Gene', 'Selected', 'Protein' columns.
+    """
+    return pd.DataFrame(
+        {
+            "Gene": [
+                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+                for protein in proteins
+            ],
+            "Selected": [protein in selected for protein in proteins],
+            "Protein": proteins,
+        }
+    )
+
+
 def get_display_proteins_html(
     protein_ids: List[str], is_upregulated: True, annotation_store, feature_to_repr_map
 ) -> str:

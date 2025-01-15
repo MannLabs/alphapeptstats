@@ -12,6 +12,7 @@ from alphastats.gui.utils.analysis_helper import (
 )
 from alphastats.gui.utils.llm_helper import (
     display_uniprot,
+    get_df_for_protein_selector,
     llm_connection_test,
     protein_selector,
     set_api_key,
@@ -127,34 +128,14 @@ downregulated_genes = [
 # Create dataframes with checkboxes for selection
 if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
     st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
-upregulated_genes_df = pd.DataFrame(
-    {
-        "Gene": [
-            st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
-            for protein in upregulated_genes
-        ],
-        "Selected": [
-            protein in st.session_state[StateKeys.SELECTED_GENES_UP]
-            for protein in upregulated_genes
-        ],
-        "Protein": upregulated_genes,
-    }
+upregulated_genes_df = get_df_for_protein_selector(
+    upregulated_genes, st.session_state[StateKeys.SELECTED_GENES_UP]
 )
 
 if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
     st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
-downregulated_genes_df = pd.DataFrame(
-    {
-        "Gene": [
-            st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
-            for protein in downregulated_genes
-        ],
-        "Selected": [
-            protein in st.session_state[StateKeys.SELECTED_GENES_DOWN]
-            for protein in downregulated_genes
-        ],
-        "Protein": downregulated_genes,
-    }
+downregulated_genes_df = get_df_for_protein_selector(
+    downregulated_genes, st.session_state[StateKeys.SELECTED_GENES_DOWN]
 )
 
 
@@ -175,13 +156,13 @@ with c2:
     )
 
 # Combine the selected genes into a new regulated_genes_dict
-selected_regulated_genes = (
+selected_genes = (
     st.session_state[StateKeys.SELECTED_GENES_UP]
     + st.session_state[StateKeys.SELECTED_GENES_DOWN]
 )
 regulated_genes_dict = {
     gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
-    for gene in selected_regulated_genes
+    for gene in selected_genes
 }
 
 # If no genes are selected, stop the script
@@ -190,11 +171,11 @@ if not regulated_genes_dict:
     st.stop()
 
 if st.button("Gather UniProt data for selected proteins"):
-    gather_uniprot_data(selected_regulated_genes)
+    gather_uniprot_data(selected_genes)
 
 if any(
     feature not in st.session_state[StateKeys.ANNOTATION_STORE]
-    for feature in selected_regulated_genes
+    for feature in selected_genes
 ):
     st.info(
         "No UniProt data stored for some proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
