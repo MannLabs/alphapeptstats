@@ -124,35 +124,60 @@ with c1:
     ]
 
     # Create dataframes with checkboxes for selection
+    if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
+        st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
     upregulated_genes_df = pd.DataFrame(
-        {"Protein": upregulated_genes, "Selected": [True] * len(upregulated_genes)}
+        {
+            "Gene": [
+                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+                for protein in upregulated_genes
+            ],
+            "Selected": [
+                protein in st.session_state[StateKeys.SELECTED_GENES_UP]
+                for protein in upregulated_genes
+            ],
+            "Protein": upregulated_genes,
+        }
     )
 
+    if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
+        st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
     downregulated_genes_df = pd.DataFrame(
-        {"Protein": downregulated_genes, "Selected": [True] * len(downregulated_genes)}
+        {
+            "Gene": [
+                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+                for protein in downregulated_genes
+            ],
+            "Selected": [
+                protein in st.session_state[StateKeys.SELECTED_GENES_DOWN]
+                for protein in downregulated_genes
+            ],
+            "Protein": downregulated_genes,
+        }
     )
 
     st.markdown("##### Genes of interest")
     c11, c12 = st.columns((1, 1), gap="medium")
 
     with c11:
-        selected_upregulated_genes = protein_selector(
+        st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
             upregulated_genes_df,
             "Upregulated Proteins",
-            st.session_state[StateKeys.DATASET]._feature_to_repr_map,
         )
 
     with c12:
-        selected_downregulated_genes = protein_selector(
+        st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
             downregulated_genes_df,
             "Downregulated Proteins",
-            st.session_state[StateKeys.DATASET]._feature_to_repr_map,
         )
 
     # Combine the selected genes into a new regulated_genes_dict
-    selected_regulated_genes = selected_upregulated_genes + selected_downregulated_genes
+    selected_regulated_genes = (
+        st.session_state[StateKeys.SELECTED_GENES_UP]
+        + st.session_state[StateKeys.SELECTED_GENES_DOWN]
+    )
     regulated_genes_dict = {
-        gene: "up" if gene in selected_upregulated_genes else "down"
+        gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
         for gene in selected_regulated_genes
     }
 
@@ -202,8 +227,18 @@ with st.expander("Initial prompt", expanded=True):
         "",
         value=get_initial_prompt(
             plot_parameters,
-            list(map(feature_to_repr_map.get, selected_upregulated_genes)),
-            list(map(feature_to_repr_map.get, selected_downregulated_genes)),
+            list(
+                map(
+                    feature_to_repr_map.get,
+                    st.session_state[StateKeys.SELECTED_GENES_UP],
+                )
+            ),
+            list(
+                map(
+                    feature_to_repr_map.get,
+                    st.session_state[StateKeys.SELECTED_GENES_DOWN],
+                )
+            ),
         ),
         height=200,
         disabled=llm_integration_set_for_model,

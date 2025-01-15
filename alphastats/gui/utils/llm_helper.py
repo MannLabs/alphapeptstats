@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
@@ -12,27 +12,24 @@ from alphastats.llm.uniprot_utils import (
 )
 
 
-def protein_selector(
-    df: pd.DataFrame, title: str, feature_to_repr_map: Dict
-) -> List[str]:
+@st.fragment
+def protein_selector(df: pd.DataFrame, title: str) -> List[str]:
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
-        df: DataFrame containing protein data with 'Protein' and 'Selected' columns
+        df: DataFrame containing protein data with 'Gene', 'Selected', 'Protein' columns
         title: Title to display above the editor
-        feature_to_repr_map: A dictionary mapping protein IDs to their representations
 
     Returns:
         selected_proteins (List[str]): A list of selected proteins.
     """
     st.write(title)
-    df = df.copy()
-    df.insert(
-        0,
-        "Gene",
-        [feature_to_repr_map[protein] for protein in df["Protein"]],
-    )
-    df.insert(2, "Protein", df.pop("Protein"))
+    if st.button("Select all", help=f"Select all {title} for analysis"):
+        st.session_state[StateKeys.SELECTED_GENES_UP] = df["Protein"].tolist()
+        st.rerun()
+    if st.button("Select none", help=f"Select no {title} for analysis"):
+        st.session_state[StateKeys.SELECTED_GENES_UP] = []
+        st.rerun()
     edited_df = st.data_editor(
         df,
         column_config={
@@ -51,8 +48,7 @@ def protein_selector(
         hide_index=True,
     )
     # Extract the selected genes
-    selected_proteins = edited_df.loc[edited_df["Selected"], "Protein"].tolist()
-    return selected_proteins
+    return edited_df.loc[edited_df["Selected"], "Protein"].tolist()
 
 
 def get_display_proteins_html(
@@ -204,7 +200,11 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
         # TODO: Fix desync on rerun (widget state not updated on rerun, value becomes ind0)
         preview_feature = st.selectbox(
             "Feature id",
-            options=list(regulated_genes_dict.keys()),
+            options=[
+                feature
+                for feature in regulated_genes_dict
+                if feature in st.session_state[StateKeys.ANNOTATION_STORE]
+            ],
             format_func=lambda x: feature_to_repr_map[x],
         )
         uniprot_url = "https://www.uniprot.org/uniprotkb/"

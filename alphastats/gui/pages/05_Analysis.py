@@ -91,6 +91,8 @@ def show_start_llm_button(analysis_method: str) -> None:
     if submitted:
         if StateKeys.LLM_INTEGRATION in st.session_state:
             del st.session_state[StateKeys.LLM_INTEGRATION]
+            st.session_state[StateKeys.SELECTED_GENES_UP] = None
+            st.session_state[StateKeys.SELECTED_GENES_DOWN] = None
         st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
 
         st.toast("LLM analysis created!", icon="✅")
