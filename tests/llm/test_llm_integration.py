@@ -180,7 +180,7 @@ def test_append_message_with_tool_calls(llm_integration):
         (10, 20, 100, 5),  # Should truncate to 5 messages
     ],
 )
-def test_truncate_conversation_history(
+def test_truncate_conversation_history_success(
     llm_integration, num_messages, message_length, max_tokens, expected_messages
 ):
     """Test conversation history truncation with different scenarios"""
@@ -195,6 +195,52 @@ def test_truncate_conversation_history(
     # Adding 1 to account for the initial system message
     assert len(llm_integration._messages) <= expected_messages + 1
     assert llm_integration._messages[0]["role"] == "system"
+
+
+def test_truncate_conversation_history_pinned_too_large(llm_integration):
+    """Test conversation history truncation with pinned messages that exceed the token limit"""
+    # Add multiple messages
+    message_content = "Test " * 100
+    llm_integration._max_tokens = 200
+    llm_integration._append_message("user", message_content.strip(), pin_message=True)
+    llm_integration._append_message("user", message_content.strip(), pin_message=False)
+    with pytest.raises(ValueError, match=r".*all remaining messages are pinned.*"):
+        llm_integration._append_message(
+            "assistant", message_content.strip(), pin_message=True
+        )
+
+
+def test_truncate_conversation_history_tool_output_popped(llm_integration):
+    message_content = "Test " * 50
+    llm_integration._max_tokens = 120
+    # removal of assistant would suffice for total tokens, but tool output should be dropped as well
+    llm_integration._append_message("assistant", message_content.strip())
+    llm_integration._append_message("tool", message_content.strip())
+    with pytest.warns(
+        UserWarning, match=r".*Truncating conversation history.*"
+    ), pytest.warns(UserWarning, match=r".*Removing corresponsing tool.*"):
+        llm_integration._append_message("user", message_content.strip())
+
+    assert len(llm_integration._messages) == 2
+    assert llm_integration._messages[0]["role"] == "system"
+    assert llm_integration._messages[1]["role"] == "user"
+
+
+def test_truncate_conversation_history_last_tool_output_error(llm_integration):
+    message_content = "Test " * 50
+    llm_integration._max_tokens = 100
+    # removal of assistant would suffice for total tokens, but tool output should be dropped as well
+    llm_integration._append_message("assistant", message_content.strip())
+    with pytest.raises(ValueError, match=r".*last call exceeds the token limit.*"):
+        llm_integration._append_message("tool", message_content.strip())
+
+
+def test_truncate_conversation_history_single_large_message(llm_integration):
+    llm_integration._max_tokens = 1
+    with pytest.raises(
+        ValueError, match=r".*only remaining message exceeds the token limit*"
+    ):
+        llm_integration._truncate_conversation_history()
 
 
 def test_estimate_tokens_gpt(llm_integration):
