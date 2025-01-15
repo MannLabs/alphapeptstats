@@ -163,6 +163,7 @@ with c1:
     st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
         upregulated_genes_df,
         "Upregulated Proteins",
+        state_key=StateKeys.SELECTED_GENES_UP,
     )
 
 with c2:
@@ -170,6 +171,7 @@ with c2:
     st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
         downregulated_genes_df,
         "Downregulated Proteins",
+        state_key=StateKeys.SELECTED_GENES_DOWN,
     )
 
 # Combine the selected genes into a new regulated_genes_dict

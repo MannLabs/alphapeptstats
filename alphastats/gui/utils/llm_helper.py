@@ -13,7 +13,7 @@ from alphastats.llm.uniprot_utils import (
 
 
 @st.fragment
-def protein_selector(df: pd.DataFrame, title: str) -> List[str]:
+def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
@@ -25,14 +25,12 @@ def protein_selector(df: pd.DataFrame, title: str) -> List[str]:
     """
     st.write(title)
     c1, c2 = st.columns([1, 1])
-    with c1:
-        if st.button("Select all", help=f"Select all {title} for analysis"):
-            st.session_state[StateKeys.SELECTED_GENES_UP] = df["Protein"].tolist()
-            st.rerun()
-    with c2:
-        if st.button("Select none", help=f"Select no {title} for analysis"):
-            st.session_state[StateKeys.SELECTED_GENES_UP] = []
-            st.rerun()
+    if c1.button("Select all", help=f"Select all {title} for analysis"):
+        st.session_state[state_key] = df["Protein"].tolist()
+        st.rerun()
+    if c2.button("Select none", help=f"Select no {title} for analysis"):
+        st.session_state[state_key] = []
+        st.rerun()
     edited_df = st.data_editor(
         df,
         column_config={
@@ -210,14 +208,15 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
             ],
             format_func=lambda x: feature_to_repr_map[x],
         )
-        uniprot_url = "https://www.uniprot.org/uniprotkb/"
-        st.markdown(
-            f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
-        )
-        st.markdown(f"Text generated from feature id {preview_feature}:")
-        st.markdown(
-            format_uniprot_annotation(
-                st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
-                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+        if preview_feature is not None:
+            uniprot_url = "https://www.uniprot.org/uniprotkb/"
+            st.markdown(
+                f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
             )
-        )
+            st.markdown(f"Text generated from feature id {preview_feature}:")
+            st.markdown(
+                format_uniprot_annotation(
+                    st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
+                    fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                )
+            )
