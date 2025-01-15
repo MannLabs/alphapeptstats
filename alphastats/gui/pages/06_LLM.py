@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pandas as pd
 import streamlit as st
@@ -292,14 +293,23 @@ def llm_chat(
         f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
     )
 
+    if st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
+        st.warning("Warnings during last chat completion:")
+        for warning in st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
+            st.warning(str(warning.message).replace("\n", "\n\n"))
+
     if prompt := st.chat_input("Say something"):
         with st.chat_message(Roles.USER):
             st.markdown(prompt)
             st.markdown(
                 f"*estimated tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
             )
-        with st.spinner("Processing prompt..."):
+        with st.spinner("Processing prompt..."), warnings.catch_warnings(
+            record=True
+        ) as caught_warnings:
             llm_integration.chat_completion(prompt)
+            st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = caught_warnings
+
         st.rerun(scope="fragment")
 
     st.download_button(

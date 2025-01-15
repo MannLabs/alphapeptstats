@@ -247,7 +247,7 @@ class LLMIntegration:
                 warnings.warn(
                     f"Removing corresponsing tool output as well.\nRemoved message:{removed_toolmessage[MessageKeys.ROLE]}: {removed_toolmessage[MessageKeys.CONTENT][0:min(30, len(removed_toolmessage[MessageKeys.CONTENT]))]}..."
                 )
-                if len(self._messages) == 0:
+                if len(self._messages) == oldest_unpinned:
                     raise ValueError(
                         "Truncating conversation history failed, as the most recent artifacts exceeded the token limit. Please increase the token limit and reset the LLM analysis."
                     )
