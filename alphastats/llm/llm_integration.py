@@ -368,8 +368,8 @@ class LLMIntegration:
         return result
 
     def get_print_view(
-        self, show_all=False, return_token_counts=False
-    ) -> List[Dict[str, Any]]:
+        self, show_all=False
+    ) -> Tuple[List[Dict[str, Any]], float, float]:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
@@ -400,13 +400,11 @@ class LLMIntegration:
                 }
             )
 
-        if return_token_counts:
-            return print_view, total_tokens, pinned_tokens
-        return print_view
+        return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
         """Get a chat log in text format for saving. It excludes tool replies, as they are usually also represented in the artifacts."""
-        messages = self.get_print_view(show_all=True)
+        messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
             if message[MessageKeys.ROLE] == Roles.TOOL:

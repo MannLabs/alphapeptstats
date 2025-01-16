@@ -250,7 +250,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
 def llm_chat(
     llm_integration: LLMIntegration,
     show_all: bool = False,
-    show_inidvidual_tokens: bool = False,
+    show_individual_tokens: bool = False,
 ):
     """The chat interface for the LLM analysis."""
 
@@ -261,16 +261,16 @@ def llm_chat(
 
     # no. tokens spent
     messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
-        show_all=show_all, return_token_counts=True
+        show_all=show_all
     )
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(message[MessageKeys.CONTENT])
-            if message[MessageKeys.PINNED] or show_inidvidual_tokens:
+            if message[MessageKeys.PINNED] or show_individual_tokens:
                 token_message = ""
                 if message[MessageKeys.PINNED]:
                     token_message += ":pushpin: "
-                if show_inidvidual_tokens:
+                if show_individual_tokens:
                     tokens = llm_integration.estimate_tokens([message])
                     token_message += f"*estimated tokens: {str(tokens)}*"
                 st.markdown(token_message)
