@@ -1,6 +1,6 @@
 import io
 from copy import deepcopy
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
@@ -251,14 +251,14 @@ def gather_parameters_and_do_analysis(
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
 
-def gather_uniprot_data(features: list) -> None:
+def gather_uniprot_data(features: List[str]) -> None:
     """
     Gathers UniProt data for a list of features and stores it in the session state.
 
     Features that are already in the session state are skipped.
 
     Args:
-        features (list): A list of features for which UniProt data needs to be gathered.
+        features (List[str]): A list of features for which UniProt data needs to be gathered.
     Returns:
         None
     """
