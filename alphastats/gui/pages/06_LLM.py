@@ -116,6 +116,7 @@ regulated_genes_df = volcano_plot.annotated_dataframe[
 ]
 regulated_genes_dict = dict(
     zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["significant"].tolist())
+)
 
 if not regulated_genes_dict:
     st.text("No genes of interest found.")
