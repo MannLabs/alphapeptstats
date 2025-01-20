@@ -1,11 +1,13 @@
 import streamlit as st
 
-from alphastats.gui.utils.analysis import PlottingOptions, StatisticOptions
+from alphastats.gui.utils.analysis import (
+    NewAnalysisOptions,
+    PlottingOptions,
+    StatisticOptions,
+)
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
     gather_parameters_and_do_analysis,
-    gather_uniprot_data,
-    get_regulated_features,
 )
 from alphastats.gui.utils.ui_helper import (
     StateKeys,
@@ -49,16 +51,18 @@ c1, c2 = st.columns([0.33, 0.67])
 with c1:
     plotting_options = PlottingOptions.get_values()
     statistic_options = StatisticOptions.get_values()
+    new_options = NewAnalysisOptions.get_values()
     analysis_method = st.selectbox(
         "Analysis",
         options=["<select>"]
+        + new_options
         + ["------- plots ------------"]
         + plotting_options
         + ["------- statistics -------"]
         + statistic_options,
     )
 
-    if analysis_method in plotting_options:
+    if analysis_method in plotting_options or analysis_method in new_options:
         analysis_result, analysis_object, parameters = (
             gather_parameters_and_do_analysis(analysis_method)
         )
@@ -87,16 +91,17 @@ def show_start_llm_button(analysis_method: str) -> None:
 
     submitted = st.button(
         f"Analyse with LLM ... {msg}",
-        disabled=(analysis_method != PlottingOptions.VOLCANO_PLOT),
-        help="Interpret the current analysis with an LLM (available for 'Volcano Plot' only).",
+        disabled=(
+            analysis_method != NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS
+        ),
+        help="Interpret the current analysis with an LLM (available for 'Differential Analysis Two Groups' only).",
     )
     if submitted:
         if StateKeys.LLM_INTEGRATION in st.session_state:
             del st.session_state[StateKeys.LLM_INTEGRATION]
-        st.session_state[StateKeys.LLM_INPUT] = (analysis_object, parameters)
-        regulated_features = get_regulated_features(analysis_object)
-        # TODO: Add confirmation prompt if an excessive number of proteins is to be looked up.
-        gather_uniprot_data(regulated_features)
+            st.session_state[StateKeys.SELECTED_GENES_UP] = None
+            st.session_state[StateKeys.SELECTED_GENES_DOWN] = None
+        st.session_state[StateKeys.LLM_INPUT] = (analysis_result, parameters)
 
         st.toast("LLM analysis created!", icon="✅")
         st.page_link("pages/06_LLM.py", label="=> Go to LLM page..")

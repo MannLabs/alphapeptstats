@@ -57,7 +57,7 @@ class Test_DifferentialExpressionAnalysis:
     def setup_method(self):
         """Setup testable DifferentialExpressionAnalysis instance."""
         mat = pd.DataFrame(np.zeros((3, 3)))
-        self.dea = TestableDifferentialExpressionAnalysis(mat, True)
+        self.dea = TestableDifferentialExpressionAnalysis(mat, is_log2_transformed=True)
 
     def teardown_method(self):
         """Teardown testable DifferentialExpressionAnalysis instance."""
@@ -189,7 +189,7 @@ def test_dea_two_groups_perform_success(mock_run_statistical_test):
     """Test successful execution of DifferentialExpressionAnalysisTwoGroups."""
     mock_run_statistical_test.return_value = valid_dea_output
     dea = TestableDifferentialExpressionAnalysisTwoGroups(
-        valid_data_input_two_groups, True
+        valid_data_input_two_groups, is_log2_transformed=True
     )
     dea.perform(**valid_parameter_input_two_groups)
     assert mock_run_statistical_test.called_once()
@@ -198,7 +198,7 @@ def test_dea_two_groups_perform_success(mock_run_statistical_test):
 def test_dea_two_groups_validation_missing_sample():
     """Test KeyError if sample is missing from data input."""
     dea = TestableDifferentialExpressionAnalysisTwoGroups(
-        valid_data_input_two_groups.drop(index="sample1"), True
+        valid_data_input_two_groups.drop(index="sample1"), is_log2_transformed=True
     )
     with pytest.raises(KeyError, match="sample1"):
         dea._validate_input(**valid_parameter_input_two_groups)
@@ -210,7 +210,7 @@ def test_dea_two_groups_validation_missing_sample():
 def test_dea_two_groups_validation_calls_get_groups(mock_get_group_members):
     """Test that get_group_members is called during validation."""
     dea = TestableDifferentialExpressionAnalysisTwoGroups(
-        valid_data_input_two_groups, True
+        valid_data_input_two_groups, is_log2_transformed=True
     )
     mock_get_group_members.return_value = ["sample1", "sample2"], ["sample3", "sample4"]
     dea._validate_input(**valid_parameter_input_two_groups)
@@ -286,7 +286,9 @@ def test_dea_ttest_perform_runs():
         columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
         index=["gene1", "gene2", "gene3", "zerogene"],
     )
-    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups, True)
+    dea = DifferentialExpressionAnalysisTTest(
+        valid_data_input_two_groups, is_log2_transformed=True
+    )
     with pytest.warns(UserWarning, match="only NaN values"):
         result = dea.perform(
             **valid_parameter_input_two_groups,
@@ -309,7 +311,9 @@ def test_dea_ttest_perform_runs_log():
         columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
         index=["gene1", "gene2", "gene3"],
     )
-    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups, False)
+    dea = DifferentialExpressionAnalysisTTest(
+        valid_data_input_two_groups, is_log2_transformed=False
+    )
     with pytest.warns(UserWarning, match="log2 transformation"):
         result = dea.perform(
             **valid_parameter_input_two_groups,
@@ -323,7 +327,9 @@ def test_dea_ttest_perform_runs_log():
 
 def test_dea_ttest_validation_wrong_stats_method():
     """Test ValueError if stats method is not recognized."""
-    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups, True)
+    dea = DifferentialExpressionAnalysisTTest(
+        valid_data_input_two_groups, is_log2_transformed=True
+    )
     with pytest.raises(
         ValueError,
         match="test_type must be either 'independent' for scipy.stats.ttest_ind or 'paired' for scipy.stats.ttest_rel.",
@@ -339,7 +345,9 @@ def test_dea_ttest_validation_wrong_stats_method():
 
 def test_dea_ttest_validation_wrong_fdr_method():
     """Test ValueError if fdr method is not recognized."""
-    dea = DifferentialExpressionAnalysisTTest(valid_data_input_two_groups, True)
+    dea = DifferentialExpressionAnalysisTTest(
+        valid_data_input_two_groups, is_log2_transformed=True
+    )
     with pytest.raises(
         ValueError, match="fdr_method must be one of 'fdr_bh', 'bonferroni'."
     ):

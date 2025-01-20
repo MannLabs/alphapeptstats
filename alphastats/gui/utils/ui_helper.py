@@ -131,6 +131,12 @@ def init_session_state() -> None:
     if StateKeys.ANNOTATION_STORE not in st.session_state:
         st.session_state[StateKeys.ANNOTATION_STORE] = {}
 
+    if StateKeys.SELECTED_GENES_UP not in st.session_state:
+        st.session_state[StateKeys.SELECTED_GENES_UP] = None
+
+    if StateKeys.SELECTED_GENES_DOWN not in st.session_state:
+        st.session_state[StateKeys.SELECTED_GENES_DOWN] = None
+
     if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
         st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
@@ -154,7 +160,29 @@ class StateKeys(metaclass=ConstantsClass):
     LLM_INPUT = "llm_input"
     LLM_INTEGRATION = "llm_integration"
     ANNOTATION_STORE = "annotation_store"
+    SELECTED_GENES_UP = "selected_genes_up"
+    SELECTED_GENES_DOWN = "selected_genes_down"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     MAX_TOKENS = "max_tokens"
 
     ORGANISM = "organism"  # TODO this is essentially a constant
+
+
+class AnalysisParameters(metaclass=ConstantsClass):
+    TWOGROUP_GROUP1 = "group1"
+    TWOGROUP_GROUP2 = "group2"
+    DEA_TWOGROUPS_METHOD = "method"
+    DEA_TWOGROUPS_FDR_METHOD = "fdr_method"
+    TWOGROUP_COLUMN = "column"
+
+
+class ResultParameters(metaclass=ConstantsClass):
+    WIDTH = "width"
+    HEIGHT = "height"
+    SHOWLEGEND = "showlegend"
+    QVALUE_CUTOFF = "qvalue_cutoff"
+    LOG2FC_CUTOFF = "log2fc_cutoff"
+    FLIP_XAXIS = "flip_xaxis"
+    DRAW_LINES = "draw_lines"
+    LABEL_SIGNIFICANT = "label_significant"
+    RENDERER = "renderer"
