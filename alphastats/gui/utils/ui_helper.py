@@ -162,3 +162,23 @@ class StateKeys(metaclass=ConstantsClass):
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
 
     ORGANISM = "organism"  # TODO this is essentially a constant
+
+
+class AnalysisParameters(metaclass=ConstantsClass):
+    TWOGROUP_GROUP1 = "group1"
+    TWOGROUP_GROUP2 = "group2"
+    DEA_TWOGROUPS_METHOD = "method"
+    DEA_TWOGROUPS_FDR_METHOD = "fdr_method"
+    TWOGROUP_COLUMN = "column"
+
+
+class ResultParameters(metaclass=ConstantsClass):
+    WIDTH = "width"
+    HEIGHT = "height"
+    SHOWLEGEND = "showlegend"
+    QVALUE_CUTOFF = "qvalue_cutoff"
+    LOG2FC_CUTOFF = "log2fc_cutoff"
+    FLIP_XAXIS = "flip_xaxis"
+    DRAW_LINES = "draw_lines"
+    LABEL_SIGNIFICANT = "label_significant"
+    RENDERER = "renderer"

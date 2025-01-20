@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 
 import pandas as pd
 import streamlit as st
@@ -6,6 +7,7 @@ from openai import AuthenticationError
 
 from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import plotly_object
+from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
     gather_uniprot_data,
@@ -98,7 +100,8 @@ if StateKeys.LLM_INPUT not in st.session_state:
     st.info("Create a Volcano plot first using the 'Analysis' page.")
     st.stop()
 
-volcano_plot, plot_parameters = st.session_state[StateKeys.LLM_INPUT]
+volcano_plot: ResultComponent = st.session_state[StateKeys.LLM_INPUT][0]
+plot_parameters: Dict = st.session_state[StateKeys.LLM_INPUT][1]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 
@@ -108,9 +111,11 @@ with c3:
     st.markdown("##### Volcano plot")
     display_figure(volcano_plot.plot)
 
-regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
+regulated_genes_df = volcano_plot.annotated_dataframe[
+    volcano_plot.annotated_dataframe["significant"] != "non_sig"
+]
 regulated_genes_dict = dict(
-    zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
+    zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["significant"].tolist())
 )
 
 if not regulated_genes_dict:
