@@ -193,31 +193,31 @@ class ResultComponent(ABC):  # move to new file
         return {
             ResultParameters.HEIGHT: st.number_input(
                 "Height",
-                200,
-                1000,
-                self._initialize_widget(
+                min_value=200,
+                max_value=1000,
+                value=self._initialize_widget(
                     ResultParameters.HEIGHT, name, self._display_options, 500
                 ),
-                10,
+                step=10,
                 key=self._create_temporary_session_state_key(
                     ResultParameters.HEIGHT, name
                 ),
             ),
             ResultParameters.WIDTH: st.number_input(
                 "Width",
-                200,
-                1000,
-                self._initialize_widget(
+                min_value=200,
+                max_value=1000,
+                value=self._initialize_widget(
                     ResultParameters.WIDTH, name, self._display_options, 500
                 ),
-                10,
+                step=10,
                 key=self._create_temporary_session_state_key(
                     ResultParameters.WIDTH, name
                 ),
             ),
             ResultParameters.SHOWLEGEND: st.checkbox(
                 "Show legend",
-                self._initialize_widget(
+                value=self._initialize_widget(
                     ResultParameters.SHOWLEGEND,
                     name,
                     self._display_options,
@@ -295,15 +295,15 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
         return {
             ResultParameters.QVALUE_CUTOFF: st.number_input(
                 "Q-value cutoff",
-                0.0,
-                1.0,
-                self._initialize_widget(
+                min_value=0.0,
+                max_value=1.0,
+                value=self._initialize_widget(
                     ResultParameters.QVALUE_CUTOFF,
                     name,
                     self._data_annotation_options,
                     0.05,
                 ),
-                0.01,
+                step=0.01,
                 format="%.2f",
                 key=self._create_temporary_session_state_key(
                     ResultParameters.QVALUE_CUTOFF, name
@@ -311,15 +311,15 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
             ),
             ResultParameters.LOG2FC_CUTOFF: st.number_input(
                 "Log2FC cutoff",
-                0.0,
-                10.0,
-                self._initialize_widget(
+                min_value=0.0,
+                max_value=10.0,
+                value=self._initialize_widget(
                     ResultParameters.LOG2FC_CUTOFF,
                     name,
                     self._data_annotation_options,
                     1.0,
                 ),
-                0.1,
+                step=0.1,
                 format="%.1f",
                 key=self._create_temporary_session_state_key(
                     ResultParameters.LOG2FC_CUTOFF, name
@@ -327,7 +327,7 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
             ),
             ResultParameters.FLIP_XAXIS: st.checkbox(
                 "Flip groups",
-                self._initialize_widget(
+                value=self._initialize_widget(
                     ResultParameters.FLIP_XAXIS,
                     name,
                     self._data_annotation_options,
@@ -379,7 +379,7 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
             return {
                 ResultParameters.DRAW_LINES: st.checkbox(
                     "Draw significance and fold change lines",
-                    self._initialize_widget(
+                    value=self._initialize_widget(
                         ResultParameters.DRAW_LINES,
                         name,
                         self._display_options,
@@ -391,7 +391,7 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
                 ),
                 ResultParameters.LABEL_SIGNIFICANT: st.checkbox(
                     "Label significant points",
-                    self._initialize_widget(
+                    value=self._initialize_widget(
                         ResultParameters.LABEL_SIGNIFICANT,
                         name,
                         self._display_options,
@@ -403,7 +403,7 @@ class DifferentialExpressionTwoGroupsResult(ResultComponent):
                 ),
                 ResultParameters.RENDERER: st.radio(
                     "Renderer (Choose svg before download to maintain quality.)",
-                    renderer_options,
+                    options=renderer_options,
                     index=renderer_options.index(
                         self._initialize_widget(
                             ResultParameters.RENDERER,
