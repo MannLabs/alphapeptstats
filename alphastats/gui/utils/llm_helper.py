@@ -128,7 +128,10 @@ def display_uniprot(
 ):
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
-    c1, c2, c3, c4, c5 = st.columns((1, 1, 1, 2, 1))
+    st.markdown(
+        "We reccomend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretaiton of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
+    )
+    c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
     if c1.button("Select all"):
         st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = all_fields
         st.rerun(scope="fragment")
@@ -154,14 +157,14 @@ def display_uniprot(
         )
         st.markdown(f"Total tokens: {tokens:.0f}")
     with c5:
-        integrate_uniprot = st.checkbox(
+        st.checkbox(
             "Integrate into initial prompt",
             help="Not implemented yet, but will adjust the initial prompt to include the output from Uniprot already and the system message to avoid calling the tool function again for the genes included.",
             key=StateKeys.INTEGRATE_UNIPROT,
+            disabled=disabled,
         )
-        if integrate_uniprot:
-            st.toast("Not implemented yet.", icon="⚠️")
-        # TODO: Implement this
+    if c6.button("Update prompt", disabled=disabled):
+        st.rerun(scope="app")
     c1, c2 = st.columns((1, 3))
     with c1, st.expander("Show options", expanded=True):
         selected_fields = []
@@ -169,7 +172,6 @@ def display_uniprot(
             if st.checkbox(
                 field,
                 value=field in st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
-                disabled=disabled,
             ):
                 selected_fields.append(field)
         if set(selected_fields) != set(
