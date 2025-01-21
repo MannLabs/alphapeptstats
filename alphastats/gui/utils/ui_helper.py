@@ -139,6 +139,9 @@ def init_session_state() -> None:
     if StateKeys.MAX_TOKENS not in st.session_state:
         st.session_state[StateKeys.MAX_TOKENS] = 10000
 
+    if StateKeys.INTEGRATE_UNIPROT not in st.session_state:
+        st.session_state[StateKeys.INTEGRATE_UNIPROT] = False
+
 
 class StateKeys(metaclass=ConstantsClass):
     USER_SESSION_ID = "user_session_id"
@@ -156,5 +159,6 @@ class StateKeys(metaclass=ConstantsClass):
     ANNOTATION_STORE = "annotation_store"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     MAX_TOKENS = "max_tokens"
+    INTEGRATE_UNIPROT = "integrate_uniprot"
 
     ORGANISM = "organism"  # TODO this is essentially a constant

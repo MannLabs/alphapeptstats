@@ -4,7 +4,7 @@ from typing import List, Optional
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
-from alphastats.llm.llm_integration import LLMIntegration
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
@@ -119,10 +119,16 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 
 # TODO: Write test for this display
 @st.fragment
-def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
+def display_uniprot(
+    regulated_genes_dict,
+    feature_to_repr_map,
+    model_name: str = Models.OLLAMA_31_70B,
+    *,
+    disabled=False,
+):
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
-    c1, c2, c3, c4 = st.columns((1, 1, 3, 1))
+    c1, c2, c3, c4, c5 = st.columns((1, 1, 1, 2, 1))
     if c1.button("Select all"):
         st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = all_fields
         st.rerun(scope="fragment")
@@ -134,12 +140,27 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
         st.rerun(scope="fragment")
-    if c4.button(
-        "Integrate into initial prompt",
-        type="primary",
-        help="Not implemented yet, but will adjust the initial prompt to include the output from Uniprot already and the system message to avoid calling the tool function again for the genes included.",
-    ):
-        st.toast("Not implemented yet.", icon="⚠️")
+    with c4:
+        texts = [
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+            )
+            for feature in regulated_genes_dict
+        ]
+        dummy_model = LLMIntegration(model_name, api_key="lorem", load_tools=False)
+        tokens = dummy_model.estimate_tokens(
+            [{MessageKeys.CONTENT: text} for text in texts]
+        )
+        st.markdown(f"Total tokens: {tokens:.0f}")
+    with c5:
+        integrate_uniprot = st.checkbox(
+            "Integrate into initial prompt",
+            help="Not implemented yet, but will adjust the initial prompt to include the output from Uniprot already and the system message to avoid calling the tool function again for the genes included.",
+            key=StateKeys.INTEGRATE_UNIPROT,
+        )
+        if integrate_uniprot:
+            st.toast("Not implemented yet.", icon="⚠️")
         # TODO: Implement this
     c1, c2 = st.columns((1, 3))
     with c1, st.expander("Show options", expanded=True):

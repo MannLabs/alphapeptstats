@@ -170,6 +170,7 @@ st.markdown("##### Select which information from Uniprot to supply to the LLM")
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
+    model_name=model_name,
     disabled=llm_integration_set_for_model,
 )
 
