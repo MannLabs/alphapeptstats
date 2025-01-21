@@ -5,15 +5,15 @@ from alphastats.gui.utils.analysis_helper import (
     gather_uniprot_data,
     get_regulated_features,
 )
+from alphastats.gui.utils.result import ResultComponent
 from alphastats.gui.utils.ui_helper import StateKeys
-from alphastats.plots.plot_utils import PlotlyObject
 
 
 def test_get_regulated_features_some():
-    mock_plotly_object = MagicMock(spec=PlotlyObject)
-    mock_plotly_object.res = {
+    mock_plotly_object = MagicMock(spec=ResultComponent)
+    mock_plotly_object.annotated_dataframe = {
         Cols.INDEX: ["feature1", "feature2", "feature3"],
-        "label": ["label1", "", "label2"],
+        "significant": ["up", "non_sig", "down"],
     }
 
     regulated_features = get_regulated_features(mock_plotly_object)
@@ -21,10 +21,10 @@ def test_get_regulated_features_some():
 
 
 def test_get_regulated_features_none():
-    mock_plotly_object = MagicMock(spec=PlotlyObject)
-    mock_plotly_object.res = {
+    mock_plotly_object = MagicMock(spec=ResultComponent)
+    mock_plotly_object.annotated_dataframe = {
         Cols.INDEX: ["feature1", "feature2", "feature3"],
-        "label": ["", "", ""],
+        "significant": ["non_sig", "non_sig", "non_sig"],
     }
 
     regulated_features = get_regulated_features(mock_plotly_object)
@@ -32,10 +32,10 @@ def test_get_regulated_features_none():
 
 
 def test_get_regulated_features_all():
-    mock_plotly_object = MagicMock(spec=PlotlyObject)
-    mock_plotly_object.res = {
+    mock_plotly_object = MagicMock(spec=ResultComponent)
+    mock_plotly_object.annotated_dataframe = {
         Cols.INDEX: ["feature1", "feature2", "feature3"],
-        "label": ["label1", "label2", "label3"],
+        "significant": ["up", "up", "down"],
     }
 
     regulated_features = get_regulated_features(mock_plotly_object)

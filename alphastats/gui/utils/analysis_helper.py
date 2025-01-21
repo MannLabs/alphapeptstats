@@ -1,14 +1,18 @@
 import io
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from copy import deepcopy
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import streamlit as st
+from plotly.graph_objects import Figure
 from stqdm import stqdm
 
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
+    NewAnalysisOptions,
     PlottingOptions,
+    ResultComponent,
     StatisticOptions,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -26,6 +30,7 @@ def display_analysis_result_with_buttons(
     parameters: Optional[Dict],
     show_save_button=True,
     name: str = None,
+    editable_annotation: bool = True,
 ) -> None:
     """A fragment to display a statistical analysis and download options."""
 
@@ -35,6 +40,9 @@ def display_analysis_result_with_buttons(
     elif analysis_method in StatisticOptions.get_values():
         display_function = _display_df
         download_function = show_button_download_df
+    elif analysis_method in NewAnalysisOptions.get_values():
+        display_function = display_results
+        download_function = _show_buttons_download_results
     else:
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
@@ -46,11 +54,27 @@ def display_analysis_result_with_buttons(
         name=name,
         display_function=display_function,
         download_function=download_function,
+        editable_annotation=editable_annotation,
+    )
+
+
+def display_results(
+    results: ResultComponent, editable_annotation: bool, name: str
+) -> None:
+    if name is None:
+        name = "tmp"
+    display_column, widget_column = st.columns((1, 1))
+    results.display_object(
+        st_display_column=display_column,
+        st_widget_column=widget_column,
+        data_annotation_editable=editable_annotation,
+        display_editable=True,
+        name=name,
     )
 
 
 def _display(
-    analysis_result: Union[PlotlyObject, pd.DataFrame],
+    analysis_result: Union[PlotlyObject, pd.DataFrame, ResultComponent],
     *,
     analysis_method: str,
     display_function: Callable,
@@ -58,16 +82,23 @@ def _display(
     parameters: Dict,
     name: str,
     show_save_button: bool,
+    editable_annotation: bool,
 ) -> None:
     """Display analysis results and download options."""
-    display_function(analysis_result)
-
-    c1, c2, c3 = st.columns([1, 1, 1])
-
     if name is None:
         name = analysis_method
 
     name_pretty = name.replace(" ", "_").lower()
+
+    if isinstance(analysis_result, ResultComponent):
+        display_function(
+            analysis_result, editable_annotation=editable_annotation, name=name
+        )
+    else:
+        display_function(analysis_result)
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+
     with c1:
         if show_save_button and st.button("Save to results page.."):
             _save_analysis_to_session_state(
@@ -91,16 +122,34 @@ def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
         # calling plot.update_layout is vital here as it enables the savefig function to work
-        st.plotly_chart(plot.update_layout(plot_bgcolor="white"))
+        st.plotly_chart(plot.update())
     except Exception:
         st.pyplot(plot)
 
 
-def _show_buttons_download_figure(analysis_result: PlotlyObject, name: str) -> None:
+def _show_buttons_download_results(analysis_result: ResultComponent, name: str) -> None:
+    """Show buttons to download results as pdf, svg or csv."""
+    _show_buttons_download_figure(analysis_result.plot, name)
+    show_button_download_df(
+        analysis_result.dataframe,
+        file_name=f"{name}_raw_results.csv",
+        label="Download raw results as .csv",
+    )
+    show_button_download_df(
+        analysis_result.annotated_dataframe,
+        file_name=f"{name}_anotated_results.csv",
+        label="Download annotated results as .csv",
+    )
+
+
+def _show_buttons_download_figure(
+    analysis_result: Union[PlotlyObject, Figure], name: str
+) -> None:
     """Show buttons to download figure as .pdf or .svg."""
     # TODO We have to check for all scatter plotly figures, which renderer they use.
     #  Default is webgl, which is good for browser performance, but looks horrendous in svg download
     #  rerendering with svg as renderer could be a method of PlotlyObject to invoke prior to saving as svg
+
     _show_button_download_figure(analysis_result, name, "pdf")
     _show_button_download_figure(analysis_result, name, "svg")
 
@@ -162,14 +211,14 @@ def _show_button_download_analysis_and_preprocessing_info(
 
 
 def _save_analysis_to_session_state(
-    analysis_results: Union[PlotlyObject, pd.DataFrame],
+    analysis_results: Union[PlotlyObject, pd.DataFrame, ResultComponent],
     method: str,
     parameters: Dict,
 ):
     """Save analysis with method and parameters to session state to show on results page."""
     st.session_state[StateKeys.ANALYSIS_LIST] += [
         (
-            analysis_results,
+            deepcopy(analysis_results),
             method,
             parameters,
         )
@@ -202,14 +251,14 @@ def gather_parameters_and_do_analysis(
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
 
-def gather_uniprot_data(features: list) -> None:
+def gather_uniprot_data(features: List[str]) -> None:
     """
     Gathers UniProt data for a list of features and stores it in the session state.
 
     Features that are already in the session state are skipped.
 
     Args:
-        features (list): A list of features for which UniProt data needs to be gathered.
+        features (List[str]): A list of features for which UniProt data needs to be gathered.
     Returns:
         None
     """
@@ -226,7 +275,7 @@ def gather_uniprot_data(features: list) -> None:
         )
 
 
-def get_regulated_features(analysis_object: PlotlyObject) -> list:
+def get_regulated_features(analysis_object: ResultComponent) -> list:
     """
     Retrieve regulated features from the analysis object.
     This function extracts features that are labeled (i.e., have a non-empty label)
@@ -240,9 +289,10 @@ def get_regulated_features(analysis_object: PlotlyObject) -> list:
     # TODO: add a method to the AbstractAnalysis class to retrieve regulated features upon analysis to store in the session state. This function here only works for volcano plots.
     regulated_features = [
         feature
-        for feature, label in zip(
-            analysis_object.res[Cols.INDEX], analysis_object.res["label"]
+        for feature, significance in zip(
+            analysis_object.annotated_dataframe[Cols.INDEX],
+            analysis_object.annotated_dataframe["significant"],
         )
-        if label != ""
+        if significance != "non_sig"
     ]
     return regulated_features

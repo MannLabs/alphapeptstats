@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 
+import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
@@ -9,6 +10,69 @@ from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
 )
+
+
+@st.fragment
+def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
+    """Creates a data editor for protein selection and returns the selected proteins.
+
+    Args:
+        df: DataFrame containing protein data with 'Gene', 'Selected', 'Protein' columns
+        title: Title to display above the editor
+
+    Returns:
+        selected_proteins (List[str]): A list of selected proteins.
+    """
+    st.write(title)
+    c1, c2 = st.columns([1, 1])
+    if c1.button("Select all", help=f"Select all {title} for analysis"):
+        st.session_state[state_key] = df["Protein"].tolist()
+        st.rerun()
+    if c2.button("Select none", help=f"Select no {title} for analysis"):
+        st.session_state[state_key] = []
+        st.rerun()
+    edited_df = st.data_editor(
+        df,
+        column_config={
+            "Selected": st.column_config.CheckboxColumn(
+                "Include?",
+                help="Check to include this gene in analysis",
+                default=True,
+            ),
+            "Gene": st.column_config.TextColumn(
+                "Gene",
+                help="The gene name to be included in the analysis",
+                width="medium",
+            ),
+        },
+        disabled=["Gene"],
+        hide_index=True,
+    )
+    # Extract the selected genes
+    return edited_df.loc[edited_df["Selected"], "Protein"].tolist()
+
+
+def get_df_for_protein_selector(
+    proteins: List[str], selected: List[str]
+) -> pd.DataFrame:
+    """Create a DataFrame for the protein selector.
+
+    Args:
+        proteins (List[str]): A list of proteins.
+
+    Returns:
+        pd.DataFrame: A DataFrame with 'Gene', 'Selected', 'Protein' columns.
+    """
+    return pd.DataFrame(
+        {
+            "Gene": [
+                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+                for protein in proteins
+            ],
+            "Selected": [protein in selected for protein in proteins],
+            "Protein": proteins,
+        }
+    )
 
 
 def get_display_proteins_html(
@@ -183,13 +247,22 @@ def display_uniprot(
         # TODO: Fix desync on rerun (widget state not updated on rerun, value becomes ind0)
         preview_feature = st.selectbox(
             "Feature id",
-            options=list(regulated_genes_dict.keys()),
+            options=[
+                feature
+                for feature in regulated_genes_dict
+                if feature in st.session_state[StateKeys.ANNOTATION_STORE]
+            ],
             format_func=lambda x: feature_to_repr_map[x],
         )
-        st.markdown(f"Text generated from feature id {preview_feature}:")
-        st.markdown(
-            format_uniprot_annotation(
-                st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
-                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+        if preview_feature is not None:
+            uniprot_url = "https://www.uniprot.org/uniprotkb/"
+            st.markdown(
+                f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
             )
-        )
+            st.markdown(f"Text generated from feature id {preview_feature}:")
+            st.markdown(
+                format_uniprot_annotation(
+                    st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
+                    fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                )
+            )

@@ -42,4 +42,5 @@ for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
         parameters=parameters,
         show_save_button=False,
         name=name,
+        editable_annotation=False,
     )
