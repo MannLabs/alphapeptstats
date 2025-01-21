@@ -1,5 +1,6 @@
 import os
 import warnings
+from typing import Dict
 
 import pandas as pd
 import streamlit as st
@@ -7,13 +8,16 @@ from openai import AuthenticationError
 
 from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import plotly_object
+from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
+    gather_uniprot_data,
 )
 from alphastats.gui.utils.llm_helper import (
     display_uniprot,
-    get_display_proteins_html,
+    get_df_for_protein_selector,
     llm_connection_test,
+    protein_selector,
     set_api_key,
 )
 from alphastats.gui.utils.ui_helper import (
@@ -86,8 +90,8 @@ def llm_config():
         st.number_input(
             "Maximal number of tokens",
             value=st.session_state[StateKeys.MAX_TOKENS],
-            min_value=1,
-            max_value=100000,
+            min_value=2000,
+            max_value=128000,  # TODO: set this automatically based on the selected model
             key=StateKeys.MAX_TOKENS,
         )
 
@@ -105,60 +109,91 @@ if StateKeys.LLM_INPUT not in st.session_state:
     st.info("Create a Volcano plot first using the 'Analysis' page.")
     st.stop()
 
-volcano_plot, plot_parameters = st.session_state[StateKeys.LLM_INPUT]
+volcano_plot: ResultComponent = st.session_state[StateKeys.LLM_INPUT][0]
+plot_parameters: Dict = st.session_state[StateKeys.LLM_INPUT][1]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
-c1, c2 = st.columns((1, 2))
 
-with c2:
+c1, c2, c3 = st.columns((1, 1, 1))
+
+with c3:
+    st.markdown("##### Volcano plot")
     display_figure(volcano_plot.plot)
 
+regulated_genes_df = volcano_plot.annotated_dataframe[
+    volcano_plot.annotated_dataframe["significant"] != "non_sig"
+]
+regulated_genes_dict = dict(
+    zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["significant"].tolist())
+)
+
+if not regulated_genes_dict:
+    st.text("No genes of interest found.")
+    st.stop()
+
+# Separate upregulated and downregulated genes
+upregulated_genes = [
+    key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
+]
+downregulated_genes = [
+    key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
+]
+
+# Create dataframes with checkboxes for selection
+if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
+    st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
+upregulated_genes_df = get_df_for_protein_selector(
+    upregulated_genes, st.session_state[StateKeys.SELECTED_GENES_UP]
+)
+
+if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
+    st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
+downregulated_genes_df = get_df_for_protein_selector(
+    downregulated_genes, st.session_state[StateKeys.SELECTED_GENES_DOWN]
+)
+
+
 with c1:
-    regulated_genes_df = volcano_plot.res[volcano_plot.res["label"] != ""]
-    regulated_genes_dict = dict(
-        zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["color"].tolist())
+    st.markdown("##### Genes of interest")
+    st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
+        upregulated_genes_df,
+        "Upregulated Proteins",
+        state_key=StateKeys.SELECTED_GENES_UP,
     )
 
-    if not regulated_genes_dict:
-        st.text("No genes of interest found.")
-        st.stop()
+with c2:
+    st.markdown("##### ")
+    st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
+        downregulated_genes_df,
+        "Downregulated Proteins",
+        state_key=StateKeys.SELECTED_GENES_DOWN,
+    )
 
-    upregulated_genes = [
-        key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
-    ]
-    downregulated_genes = [
-        key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
-    ]
+# Combine the selected genes into a new regulated_genes_dict
+selected_genes = (
+    st.session_state[StateKeys.SELECTED_GENES_UP]
+    + st.session_state[StateKeys.SELECTED_GENES_DOWN]
+)
+regulated_genes_dict = {
+    gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
+    for gene in selected_genes
+}
 
-    st.markdown("##### Genes of interest")
-    c11, c12 = st.columns((1, 2), gap="medium")
-    with c11:
-        st.write("Upregulated genes")
-        st.markdown(
-            get_display_proteins_html(
-                upregulated_genes,
-                True,
-                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
-                feature_to_repr_map=st.session_state[
-                    StateKeys.DATASET
-                ]._feature_to_repr_map,
-            ),
-            unsafe_allow_html=True,
-        )
+# If no genes are selected, stop the script
+if not regulated_genes_dict:
+    st.text("No genes selected for analysis.")
+    st.stop()
 
-    with c12:
-        st.write("Downregulated genes")
-        st.markdown(
-            get_display_proteins_html(
-                downregulated_genes,
-                False,
-                annotation_store=st.session_state[StateKeys.ANNOTATION_STORE],
-                feature_to_repr_map=st.session_state[
-                    StateKeys.DATASET
-                ]._feature_to_repr_map,
-            ),
-            unsafe_allow_html=True,
-        )
+if st.button("Gather UniProt data for selected proteins"):
+    gather_uniprot_data(selected_genes)
+
+if any(
+    feature not in st.session_state[StateKeys.ANNOTATION_STORE]
+    for feature in selected_genes
+):
+    st.info(
+        "No UniProt data stored for some proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
+    )
 
 
 model_name = st.session_state[StateKeys.MODEL_NAME]
@@ -190,8 +225,18 @@ with st.expander("Initial prompt", expanded=True):
         " ",
         value=get_initial_prompt(
             plot_parameters,
-            list(map(feature_to_repr_map.get, upregulated_genes)),
-            list(map(feature_to_repr_map.get, downregulated_genes)),
+            list(
+                map(
+                    feature_to_repr_map.get,
+                    st.session_state[StateKeys.SELECTED_GENES_UP],
+                )
+            ),
+            list(
+                map(
+                    feature_to_repr_map.get,
+                    st.session_state[StateKeys.SELECTED_GENES_DOWN],
+                )
+            ),
         ),
         height=200,
         disabled=llm_integration_set_for_model,
@@ -236,7 +281,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
         )
 
         with st.spinner("Processing initial prompt..."):
-            llm_integration.chat_completion(initial_prompt, pinned=True)
+            llm_integration.chat_completion(initial_prompt, pin_message=True)
 
         st.rerun(scope="app")
     except AuthenticationError:
@@ -266,18 +311,20 @@ def llm_chat(
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(message[MessageKeys.CONTENT])
-            if message[MessageKeys.PINNED] or show_individual_tokens:
+            if (
+                message[MessageKeys.PINNED]
+                or not message[MessageKeys.IN_CONTEXT]
+                or show_individual_tokens
+            ):
                 token_message = ""
                 if message[MessageKeys.PINNED]:
                     token_message += ":pushpin: "
+                if not message[MessageKeys.IN_CONTEXT]:
+                    token_message += ":x: "
                 if show_individual_tokens:
                     tokens = llm_integration.estimate_tokens([message])
-                    token_message += f"*estimated tokens: {str(tokens)}*"
+                    token_message += f"*tokens: {str(tokens)}*"
                 st.markdown(token_message)
-            if not message[MessageKeys.IN_CONTEXT]:
-                st.markdown(
-                    "**This message is no longer in context due to token limitations.**"
-                )
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact)
@@ -301,9 +348,10 @@ def llm_chat(
     if prompt := st.chat_input("Say something"):
         with st.chat_message(Roles.USER):
             st.markdown(prompt)
-            st.markdown(
-                f"*estimated tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
-            )
+            if show_individual_tokens:
+                st.markdown(
+                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
+                )
         with st.spinner("Processing prompt..."), warnings.catch_warnings(
             record=True
         ) as caught_warnings:
@@ -317,6 +365,10 @@ def llm_chat(
         llm_integration.get_chat_log_txt(),
         f"chat_log_{model_name}.txt",
         "text/plain",
+    )
+
+    st.markdown(
+        "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
     )
 
 

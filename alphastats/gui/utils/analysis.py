@@ -9,8 +9,18 @@ import streamlit as st
 
 from alphastats.dataset.dataset import DataSet
 from alphastats.dataset.keys import Cols, ConstantsClass
+from alphastats.dataset.preprocessing import PreprocessingStateKeys
+from alphastats.gui.utils.result import (
+    DifferentialExpressionTwoGroupsResult,
+    ResultComponent,
+)
+from alphastats.gui.utils.ui_helper import AnalysisParameters
 from alphastats.plots.plot_utils import PlotlyObject
 from alphastats.plots.volcano_plot import VolcanoPlot
+from alphastats.tl.differential_expression_analysis import (
+    DeaTestTypes,
+    DifferentialExpressionAnalysisTTest,
+)
 
 
 class PlottingOptions(metaclass=ConstantsClass):
@@ -35,8 +45,13 @@ class StatisticOptions(metaclass=ConstantsClass):
     ANCOVA = "ANCOVA"
 
 
-# TODO rename to AnalysisComponent
-class AbstractAnalysis(ABC):
+class NewAnalysisOptions(metaclass=ConstantsClass):
+    """Keys for the new analysis options, the order determines order in UI."""
+
+    DIFFERENTIAL_EXPRESSION_TWO_GROUPS = "Differential Expression Analysis (Two Groups)"
+
+
+class AnalysisComponent(ABC):
     """Abstract class for analysis widgets."""
 
     _works_with_nans = True
@@ -73,7 +88,9 @@ class AbstractAnalysis(ABC):
     @abstractmethod
     def _do_analysis(
         self,
-    ) -> Tuple[Union[PlotlyObject, pd.DataFrame], Optional[VolcanoPlot]]:
+    ) -> Tuple[
+        Union[PlotlyObject, pd.DataFrame, ResultComponent], Optional[VolcanoPlot]
+    ]:
         pass
 
     def _nan_check(self) -> None:  # noqa: B027
@@ -87,7 +104,7 @@ class AbstractAnalysis(ABC):
         pass
 
 
-class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
+class AbstractGroupCompareAnalysis(AnalysisComponent, ABC):
     """Abstract class for group comparison analysis widgets."""
 
     def show_widget(self):
@@ -96,13 +113,20 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
         metadata = self._dataset.metadata
 
         default_option = "<select>"
+        metadata_groups = metadata.columns.to_list()
         custom_group_option = "Custom groups from samples .."
 
+        options = [default_option] + metadata_groups + [custom_group_option]
         grouping_variable = st.selectbox(
             "Grouping variable",
-            options=[default_option]
-            + metadata.columns.to_list()
-            + [custom_group_option],
+            options=options,
+            index=options.index(
+                st.session_state.get(
+                    AnalysisParameters.TWOGROUP_COLUMN,
+                    default_option if len(metadata_groups) == 0 else metadata_groups[0],
+                )
+            ),
+            key=AnalysisParameters.TWOGROUP_COLUMN,
         )
 
         column = None
@@ -114,18 +138,28 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
             unique_values = metadata[grouping_variable].unique().tolist()
 
             column = grouping_variable
-            group1 = st.selectbox("Group 1", options=unique_values)
-            group2 = st.selectbox("Group 2", options=list(reversed(unique_values)))
+            group1 = st.selectbox(
+                "Group 1",
+                options=unique_values,
+                key=AnalysisParameters.TWOGROUP_GROUP1,
+            )
+            group2 = st.selectbox(
+                "Group 2",
+                options=list(reversed(unique_values)),
+                key=AnalysisParameters.TWOGROUP_GROUP2,
+            )
 
         else:
             group1 = st.multiselect(
                 "Group 1 samples:",
                 options=metadata[Cols.SAMPLE].to_list(),
+                key=AnalysisParameters.TWOGROUP_GROUP1 + "multi",
             )
 
             group2 = st.multiselect(
                 "Group 2 samples:",
                 options=list(reversed(metadata[Cols.SAMPLE].to_list())),
+                key=AnalysisParameters.TWOGROUP_GROUP2 + "multi",
             )
 
             intersection_list = list(set(group1).intersection(set(group2)))
@@ -135,13 +169,21 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
                     + str(intersection_list)
                 )
 
-        self._parameters.update({"group1": group1, "group2": group2})
+        self._parameters.update(
+            {
+                AnalysisParameters.TWOGROUP_GROUP1: group1,
+                AnalysisParameters.TWOGROUP_GROUP2: group2,
+            }
+        )
         if column is not None:
-            self._parameters["column"] = column
+            self._parameters[AnalysisParameters.TWOGROUP_COLUMN] = column
 
     def _pre_analysis_check(self):
         """Raise if selected groups are different."""
-        if self._parameters["group1"] == self._parameters["group2"]:
+        if (
+            self._parameters[AnalysisParameters.TWOGROUP_GROUP1]
+            == self._parameters[AnalysisParameters.TWOGROUP_GROUP2]
+        ):
             raise (
                 ValueError(
                     "Group 1 and Group 2 can not be the same. Please select different groups."
@@ -149,7 +191,7 @@ class AbstractGroupCompareAnalysis(AbstractAnalysis, ABC):
             )
 
 
-class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
+class AbstractDimensionReductionAnalysis(AnalysisComponent, ABC):
     """Abstract class for dimension reduction analysis widgets."""
 
     def show_widget(self):
@@ -165,7 +207,7 @@ class AbstractDimensionReductionAnalysis(AbstractAnalysis, ABC):
         self._parameters.update({"circle": circle, "group": group})
 
 
-class AbstractIntensityPlot(AbstractAnalysis, ABC):
+class AbstractIntensityPlot(AnalysisComponent, ABC):
     """Abstract class for intensity plot analysis widgets."""
 
     def show_widget(self):
@@ -339,10 +381,10 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             metadata=self._dataset.metadata,
             preprocessing_info=self._dataset.preprocessing_info,
             feature_to_repr_map=self._dataset._feature_to_repr_map,
-            group1=self._parameters["group1"],
-            group2=self._parameters["group2"],
-            column=self._parameters["column"],
-            method=self._parameters["method"],
+            group1=self._parameters[AnalysisParameters.TWOGROUP_GROUP1],
+            group2=self._parameters[AnalysisParameters.TWOGROUP_GROUP2],
+            column=self._parameters[AnalysisParameters.TWOGROUP_COLUMN],
+            method=self._parameters[AnalysisParameters.DEA_TWOGROUPS_METHOD],
             labels=self._parameters["labels"],
             min_fc=self._parameters["min_fc"],
             alpha=self._parameters["alpha"],
@@ -358,7 +400,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
         return volcano_plot.plot, volcano_plot
 
 
-class ClustermapAnalysis(AbstractAnalysis):
+class ClustermapAnalysis(AnalysisComponent):
     """Widget for Clustermap analysis."""
 
     _works_with_nans = False
@@ -369,7 +411,7 @@ class ClustermapAnalysis(AbstractAnalysis):
         return clustermap, None
 
 
-class DendrogramAnalysis(AbstractAnalysis):
+class DendrogramAnalysis(AnalysisComponent):
     """Widget for Dendrogram analysis."""
 
     _works_with_nans = False
@@ -398,20 +440,20 @@ class DifferentialExpressionAnalysis(AbstractGroupCompareAnalysis):
 
         super().show_widget()
 
-        self._parameters.update({"method": method})
+        self._parameters.update({AnalysisParameters.DEA_TWOGROUPS_METHOD: method})
 
     def _do_analysis(self):
         """Perform T-test analysis."""
         diff_exp_analysis = self._dataset.diff_expression_analysis(
-            method=self._parameters["method"],
-            group1=self._parameters["group1"],
-            group2=self._parameters["group2"],
-            column=self._parameters["column"],
+            method=self._parameters[AnalysisParameters.DEA_TWOGROUPS_METHOD],
+            group1=self._parameters[AnalysisParameters.TWOGROUP_GROUP1],
+            group2=self._parameters[AnalysisParameters.TWOGROUP_GROUP2],
+            column=self._parameters[AnalysisParameters.TWOGROUP_COLUMN],
         )
         return diff_exp_analysis, None
 
 
-class TukeyTestAnalysis(AbstractAnalysis):
+class TukeyTestAnalysis(AnalysisComponent):
     """Widget for Tukey-Test analysis."""
 
     def show_widget(self):
@@ -467,7 +509,7 @@ class AnovaAnalysis(AbstractGroupCompareAnalysis):
         return anova_analysis, None
 
 
-class AncovaAnalysis(AbstractAnalysis):
+class AncovaAnalysis(AnalysisComponent):
     """Widget for Ancova analysis."""
 
     def show_widget(self):
@@ -500,6 +542,67 @@ class AncovaAnalysis(AbstractAnalysis):
         return ancova_analysis, None
 
 
+class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
+    """Widget for Differential expression analysis between two groups."""
+
+    def show_widget(self):
+        """Show the widget and gather parameters."""
+        super().show_widget()
+
+        parameters = {}
+        method = st.selectbox(
+            "Differential Analysis using:",
+            options=["independent t-test", "paired t-test"],
+            key=AnalysisParameters.DEA_TWOGROUPS_METHOD,
+        )
+        parameters[AnalysisParameters.DEA_TWOGROUPS_METHOD] = method
+
+        fdr_method = st.selectbox(
+            "FDR method",
+            options=["fdr_bh", "bonferroni"],
+            index=0,
+            format_func=lambda x: {
+                "fdr_bh": "Benjamini-Hochberg",
+                "bonferroni": "Bonferroni",
+            }[x],
+            key=AnalysisParameters.DEA_TWOGROUPS_FDR_METHOD,
+        )
+        parameters[AnalysisParameters.DEA_TWOGROUPS_FDR_METHOD] = fdr_method
+
+        self._parameters.update(parameters)
+
+    def _do_analysis(self) -> Tuple[ResultComponent, None]:
+        """Run the differential expression analysis between two groups and return the corresponding results object."""
+
+        test_type = {
+            "independent t-test": DeaTestTypes.INDEPENDENT,
+            "paired t-test": DeaTestTypes.PAIRED,
+        }[self._parameters[AnalysisParameters.DEA_TWOGROUPS_METHOD]]
+
+        dea = DifferentialExpressionAnalysisTTest(
+            self._dataset.mat,
+            is_log2_transformed=self._dataset.preprocessing_info[
+                PreprocessingStateKeys.LOG2_TRANSFORMED
+            ],
+        )
+        dea_result = dea.perform(
+            test_type=test_type,
+            group1=self._parameters[AnalysisParameters.TWOGROUP_GROUP1],
+            group2=self._parameters[AnalysisParameters.TWOGROUP_GROUP2],
+            grouping_column=self._parameters[AnalysisParameters.TWOGROUP_COLUMN],
+            metadata=self._dataset.metadata,
+            fdr_method=self._parameters[AnalysisParameters.DEA_TWOGROUPS_FDR_METHOD],
+        )
+
+        return DifferentialExpressionTwoGroupsResult(
+            dea_result,
+            preprocessing=self._dataset.preprocessing_info,
+            method=self._parameters,
+            feature_to_repr_map=self._dataset._feature_to_repr_map,
+            is_plottable=True,
+        ), None  # None is for backwards compatibility
+
+
 ANALYSIS_OPTIONS = {
     PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
     PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
@@ -513,4 +616,5 @@ ANALYSIS_OPTIONS = {
     StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
     StatisticOptions.ANOVA: AnovaAnalysis,
     StatisticOptions.ANCOVA: AncovaAnalysis,
+    NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS: DifferentialExpressionTwoGroupsAnalysis,
 }
