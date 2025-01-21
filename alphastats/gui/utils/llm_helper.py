@@ -210,7 +210,7 @@ def display_uniprot(
     with c4:
         texts = [
             format_uniprot_annotation(
-                st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                st.session_state[StateKeys.ANNOTATION_STORE].get(feature, {}),
                 fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
             )
             for feature in regulated_genes_dict
