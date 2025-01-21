@@ -24,6 +24,9 @@ def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
         selected_proteins (List[str]): A list of selected proteins.
     """
     st.write(title)
+    if len(df) == 0:
+        st.markdown("No significant proteins.")
+        return []
     c1, c2 = st.columns([1, 1])
     if c1.button("Select all", help=f"Select all {title} for analysis"):
         st.session_state[state_key] = df["Protein"].tolist()
