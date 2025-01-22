@@ -2,15 +2,18 @@
 
 import json
 import logging
+import warnings
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
+import tiktoken
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,
@@ -24,7 +27,7 @@ from alphastats.llm.prompts import get_tool_call_message
 logger = logging.getLogger(__name__)
 
 
-class Models:
+class Models(metaclass=ConstantsClass):
     """Names of the available models.
 
     Note that this will be directly passed to the OpenAI client.
@@ -33,6 +36,29 @@ class Models:
     GPT4O = "gpt-4o"
     OLLAMA_31_70B = "llama3.1:70b"
     OLLAMA_31_8B = "llama3.1:8b"  # for testing only
+
+
+class MessageKeys(metaclass=ConstantsClass):
+    """Keys for the message dictionary."""
+
+    ROLE = "role"
+    CONTENT = "content"
+    TOOL_CALLS = "tool_calls"
+    TOOL_CALL_ID = "tool_call_id"
+    RESULT = "result"
+    ARTIFACT_ID = "artifact_id"
+    IN_CONTEXT = "in_context"
+    ARTIFACTS = "artifacts"
+    PINNED = "pinned"
+
+
+class Roles(metaclass=ConstantsClass):
+    """Names of the available roles."""
+
+    USER = "user"
+    ASSISTANT = "assistant"  # might show as tool-call in error messages
+    TOOL = "tool"
+    SYSTEM = "system"
 
 
 class LLMIntegration:
@@ -67,6 +93,7 @@ class LLMIntegration:
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
         genes_of_interest: Optional[List[str]] = None,
+        max_tokens=100000,
     ):
         self._model = model_name
 
@@ -81,6 +108,7 @@ class LLMIntegration:
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
         self._genes_of_interest = genes_of_interest
+        self._max_tokens = max_tokens
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -88,7 +116,7 @@ class LLMIntegration:
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
         if system_message is not None:
-            self._append_message("system", system_message)
+            self._append_message("system", system_message, pin_message=True)
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
@@ -123,41 +151,113 @@ class LLMIntegration:
         *,
         tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
         tool_call_id: Optional[str] = None,
+        pin_message: bool = False,
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
-            "role": role,
-            "content": content,
+            MessageKeys.ROLE: role,
+            MessageKeys.CONTENT: content,
+            MessageKeys.PINNED: pin_message,
         }
 
         if tool_calls is not None:
-            message["tool_calls"] = tool_calls
+            message[MessageKeys.TOOL_CALLS] = tool_calls
 
         if tool_call_id is not None:
-            message["tool_call_id"] = tool_call_id
+            message[MessageKeys.TOOL_CALL_ID] = tool_call_id
 
         self._messages.append(message)
         self._all_messages.append(message)
 
         self._truncate_conversation_history()
 
-    def _truncate_conversation_history(self, max_tokens: int = 100000):
+    def estimate_tokens(
+        self, messages: List[Dict[str, str]], average_chars_per_token: float = 3.6
+    ) -> float:
         """
-        Truncate the conversation history to stay within token limits.
+        Estimate the number of tokens in a list of messages.
 
         Parameters
         ----------
-        max_tokens : int, optional
-            The maximum number of tokens to keep in history, by default 100000
+        messages : List[Dict[str, str]]
+            A list of messages to estimate the number of tokens for
+        average_chars_per_token : float, optional
+            The average number of characters per token, by default 3.6
+
+        Returns
+        -------
+        float
+            The estimated number of tokens
+        """
+        try:
+            enc = tiktoken.encoding_for_model(self._model)
+            total_tokens = sum(
+                [
+                    len(enc.encode(message[MessageKeys.CONTENT]))
+                    for message in messages
+                    if message
+                ]
+            )
+        except KeyError:
+            # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
+            total_tokens = sum(
+                [
+                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
+                    for message in messages
+                    if message
+                ]
+            )
+        return total_tokens
+
+    def _truncate_conversation_history(
+        self, average_chars_per_token: float = 3.6
+    ) -> None:
+        """
+        Truncate the conversation history to stay within token limits.
+
+        In the process pinned messages are preserved. If a tool call is removed, corresponding tool outputs are also removed, as this would otherwise raise an error in the chat completion.
+
+        Parameters
+        ----------
+        average_chars_per_token : float, optional
+            The average number of characters per token, by default 3.6. Normal english language has 4 per token. Every ID included in the text is 1 token per character. Parsed uniprot entries are between 3.6 and 3.9 judging from experience with https://platform.openai.com/tokenizer.
         """
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
-        total_tokens = sum(
-            len(message["content"].split()) for message in self._messages if message
-        )
-        while total_tokens > max_tokens and len(self._messages) > 1:
-            removed_message = self._messages.pop(0)
-            total_tokens -= len(removed_message["content"].split())
+        while (
+            self.estimate_tokens(self._messages, average_chars_per_token)
+            > self._max_tokens
+        ):
+            if len(self._messages) == 1:
+                raise ValueError(
+                    "Truncating conversation history failed, as the only remaining message exceeds the token limit. Please increase the token limit and reset the LLM analysis."
+                )
+            oldest_not_pinned = -1
+            for message_idx, message in enumerate(self._messages):
+                if not message[MessageKeys.PINNED]:
+                    oldest_not_pinned = message_idx
+                    break
+            if oldest_not_pinned == -1:
+                raise ValueError(
+                    "Truncating conversation history failed, as all remaining messages are pinned. Please increase the token limit and reset the LLM analysis, or unpin messages."
+                )
+            removed_message = self._messages.pop(oldest_not_pinned)
+            warnings.warn(
+                f"Truncating conversation history to stay within token limits.\nRemoved message:{removed_message[MessageKeys.ROLE]}: {removed_message[MessageKeys.CONTENT][0:30]}..."
+            )
+            while (
+                removed_message[MessageKeys.ROLE] == Roles.ASSISTANT
+                and self._messages[oldest_not_pinned][MessageKeys.ROLE] == Roles.TOOL
+            ):
+                # This is required as the chat completion fails if there are tool outputs without corresponding tool calls in the message history.
+                removed_toolmessage = self._messages.pop(oldest_not_pinned)
+                warnings.warn(
+                    f"Removing corresponsing tool output as well.\nRemoved message:{removed_toolmessage[MessageKeys.ROLE]}: {removed_toolmessage[MessageKeys.CONTENT][0:30]}..."
+                )
+                if len(self._messages) == oldest_not_pinned:
+                    raise ValueError(
+                        "Truncating conversation history failed, as the artifact from the last call exceeds the token limit. Please increase the token limit and reset the LLM analysis."
+                    )
 
     def _parse_model_response(
         self, response: ChatCompletion
@@ -233,7 +333,7 @@ class LLMIntegration:
         new_artifacts = {}
 
         tool_call_message = get_tool_call_message(tool_calls)
-        self._append_message("assistant", tool_call_message, tool_calls=tool_calls)
+        self._append_message(Roles.ASSISTANT, tool_call_message, tool_calls=tool_calls)
 
         for tool_call in tool_calls:
             function_name = tool_call.function.name
@@ -248,9 +348,12 @@ class LLMIntegration:
             new_artifacts[artifact_id] = function_result
 
             content = json.dumps(
-                {"result": str(function_result), "artifact_id": artifact_id}
+                {
+                    MessageKeys.RESULT: str(function_result),
+                    MessageKeys.ARTIFACT_ID: artifact_id,
+                }
             )
-            self._append_message("tool", content, tool_call_id=tool_call.id)
+            self._append_message(Roles.TOOL, content, tool_call_id=tool_call.id)
 
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
@@ -274,17 +377,22 @@ class LLMIntegration:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
-        for message_idx, role_content_dict in enumerate(self._all_messages):
-            if not show_all and (role_content_dict["role"] in ["tool", "system"]):
+        for message_idx, message in enumerate(self._all_messages):
+            if not show_all and (
+                message[MessageKeys.ROLE] in [Roles.TOOL, Roles.SYSTEM]
+            ):
                 continue
-            if not show_all and "tool_calls" in role_content_dict:
+            if not show_all and MessageKeys.TOOL_CALLS in message:
                 continue
+            in_context = message in self._messages
 
             print_view.append(
                 {
-                    "role": role_content_dict["role"],
-                    "content": role_content_dict["content"],
-                    "artifacts": self._artifacts.get(message_idx, []),
+                    MessageKeys.ROLE: message[MessageKeys.ROLE],
+                    MessageKeys.CONTENT: message[MessageKeys.CONTENT],
+                    MessageKeys.ARTIFACTS: self._artifacts.get(message_idx, []),
+                    MessageKeys.IN_CONTEXT: in_context,
+                    MessageKeys.PINNED: message[MessageKeys.PINNED],
                 }
             )
         return print_view
@@ -294,17 +402,19 @@ class LLMIntegration:
         messages = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            if message["role"] == "tool":
+            if message[MessageKeys.ROLE] == Roles.TOOL:
                 continue
-            chatlog += f"{message['role'].capitalize()}: {message['content']}\n"
-            if len(message["artifacts"]) > 0:
+            chatlog += f"{message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
+            if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
-            for artifact in message["artifacts"]:
+            for artifact in message[MessageKeys.ARTIFACTS]:
                 chatlog += f"Artifact: {artifact}\n"
             chatlog += "----------\n"
         return chatlog
 
-    def chat_completion(self, prompt: str, role: str = "user") -> None:
+    def chat_completion(
+        self, prompt: str, role: str = Roles.USER, *, pin_message=False
+    ) -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
 
@@ -314,13 +424,15 @@ class LLMIntegration:
             The user's input prompt
         role : str, optional
             The role of the message sender, by default "user"
+        pin_message : bool, optional
+            Whether the prompt and assistant reply should be pinned, by default False
 
         Returns
         -------
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
         """
-        self._append_message(role, prompt)
+        self._append_message(role, prompt, pin_message=pin_message)
 
         try:
             response = self._chat_completion_create()
@@ -335,11 +447,11 @@ class LLMIntegration:
 
                 content, _ = self._handle_function_calls(tool_calls)
 
-            self._append_message("assistant", content)
+            self._append_message(Roles.ASSISTANT, content, pin_message=pin_message)
 
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
-            self._append_message("system", error_message)
+            self._append_message(Roles.SYSTEM, error_message)
 
     # TODO this seems to be for notebooks?
     # we need some "export mode" where everything is shown
@@ -355,31 +467,46 @@ class LLMIntegration:
         None
         """
         for message in self._messages:
-            role = message["role"].capitalize()
-            content = message["content"]
+            role = message[MessageKeys.ROLE]
+            content = message[MessageKeys.CONTENT]
+            tokens = self.estimate_tokens([message])
 
-            if role == "Assistant" and "tool_calls" in message:
-                display(Markdown(f"**{role}**: {content}"))
-                for tool_call in message["tool_calls"]:
+            if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
+                display(
+                    Markdown(
+                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
+                    )
+                )
+                for tool_call in message[MessageKeys.TOOL_CALLS]:
                     function_name = tool_call.function.name
                     function_args = tool_call.function.arguments
                     display(Markdown(f"*Function Call*: `{function_name}`"))
                     display(Markdown(f"*Arguments*: ```json\n{function_args}\n```"))
 
-            elif role == "Tool":
+            elif role == Roles.TOOL:
                 tool_result = json.loads(content)
-                artifact_id = tool_result.get("artifact_id")
+                artifact_id = tool_result.get(MessageKeys.ARTIFACT_ID)
                 if artifact_id and artifact_id in self._artifacts:
                     artifact = self._artifacts[artifact_id]
                     display(
-                        Markdown(f"**Function Result** (Artifact ID: {artifact_id}):")
+                        Markdown(
+                            f"**Function Result** (Artifact ID: {artifact_id}, *{str(tokens)} tokens*):"
+                        )
                     )
                     self._display_artifact(artifact)
                 else:
-                    display(Markdown(f"**Function Result**: {content}"))
+                    display(
+                        Markdown(
+                            f"**Function Result** *({str(tokens)} tokens)*: {content}"
+                        )
+                    )
 
             else:
-                display(Markdown(f"**{role}**: {content}"))
+                display(
+                    Markdown(
+                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
+                    )
+                )
 
     def _display_artifact(self, artifact):
         """

@@ -142,6 +142,9 @@ def init_session_state() -> None:
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
 
+    if StateKeys.MAX_TOKENS not in st.session_state:
+        st.session_state[StateKeys.MAX_TOKENS] = 10000
+
 
 class StateKeys(metaclass=ConstantsClass):
     USER_SESSION_ID = "user_session_id"
@@ -160,6 +163,7 @@ class StateKeys(metaclass=ConstantsClass):
     SELECTED_GENES_UP = "selected_genes_up"
     SELECTED_GENES_DOWN = "selected_genes_down"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
+    MAX_TOKENS = "max_tokens"
 
     ORGANISM = "organism"  # TODO this is essentially a constant
 
