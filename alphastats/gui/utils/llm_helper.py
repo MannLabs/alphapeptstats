@@ -226,7 +226,7 @@ def display_uniprot(
     with c5:
         st.checkbox(
             "Integrate into initial prompt",
-            help="Not implemented yet, but will adjust the initial prompt to include the output from Uniprot already and the system message to avoid calling the tool function again for the genes included.",
+            help="If this is ticked and the initial prompt is updated, the Uniprot information will be included in the prompt and the instructions regarding uniprot will change to onl;y look up more information if explicitly asked to do so. Make sure that the total tokens are below the message limit of your LLM.",
             key=StateKeys.INTEGRATE_UNIPROT,
             disabled=disabled,
         )
