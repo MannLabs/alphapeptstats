@@ -26,6 +26,7 @@ from alphastats.gui.utils.ui_helper import (
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
+from alphastats.llm.uniprot_utils import format_uniprot_annotation
 from alphastats.plots.plot_utils import PlotlyObject
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -205,6 +206,7 @@ st.markdown("##### Select which information from Uniprot to supply to the LLM")
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
+    model_name=model_name,
     disabled=llm_integration_set_for_model,
 )
 
@@ -220,6 +222,18 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
+    if st.session_state[StateKeys.INTEGRATE_UNIPROT]:
+        texts = [
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+            )
+            for feature in regulated_genes_dict
+        ]
+        uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
+    else:
+        uniprot_info = ""
+
     initial_prompt = st.text_area(
         "",
         value=get_initial_prompt(
@@ -236,6 +250,7 @@ with st.expander("Initial prompt", expanded=True):
                     st.session_state[StateKeys.SELECTED_GENES_DOWN],
                 )
             ),
+            uniprot_info,
         ),
         height=200,
         disabled=llm_integration_set_for_model,

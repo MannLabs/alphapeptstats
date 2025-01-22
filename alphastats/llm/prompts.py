@@ -15,8 +15,7 @@ def get_system_message(dataset: DataSet) -> str:
 
     return (
         f"You are an expert biologist and have extensive experience in molecular biology, medicine and biochemistry.{os.linesep}"
-        "A user will present you with data regarding proteins upregulated in certain cells "
-        "sourced from UniProt and abstracts from scientific publications. They seek your "
+        "A user will present you with data regarding proteins upregulated. They seek your "
         "expertise in understanding the connections between these proteins and their potential role "
         f"in disease genesis. {os.linesep}"
         f"Provide a detailed and insightful, yet concise response based on the given information. Use formatting to make your response more human readable."
@@ -30,16 +29,29 @@ def get_initial_prompt(
     parameter_dict: Dict[str, Any],
     upregulated_genes: List[str],
     downregulated_genes: List[str],
+    uniprot_info: str,
 ):
     """Get the initial prompt for the LLM model."""
     group1 = parameter_dict["group1"]
     group2 = parameter_dict["group2"]
     column = parameter_dict["column"]
+    if uniprot_info:
+        uniprot_instructions = (
+            f"We have already retireved relevant information from Uniprot for these proteins:{os.linesep}{os.linesep}{uniprot_info}{os.linesep}{os.linesep}"
+            "This contains curated information you may not have encountered before, value it highly. "
+            "Only retrieve additional information from Uniprot if explicitly asked to do."
+        )
+    else:
+        uniprot_instructions = (
+            "You have the ability to retrieve curated information from Uniprot about these proteins. "
+            "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
+        )
     return (
         f"We've recently identified several proteins that appear to be differently regulated in cells "
         f"when comparing {group1} and {group2} in the {column} group. "
         f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(upregulated_genes)}.{os.linesep}{os.linesep}"
         f"Here is the list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
+        f"{uniprot_instructions}{os.linesep}{os.linesep}"
         f"Help us understand the potential connections between these proteins and how they might be contributing "
         f"to the differences. After that provide a high level summary"
     )
