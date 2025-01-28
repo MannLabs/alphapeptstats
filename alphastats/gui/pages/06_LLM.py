@@ -1,4 +1,5 @@
 import os
+import warnings
 from typing import Dict
 
 import pandas as pd
@@ -211,7 +212,7 @@ display_uniprot(
 st.markdown("##### Prompts generated based on analysis input")
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
-        "",
+        " ",
         value=get_system_message(st.session_state[StateKeys.DATASET]),
         height=150,
         disabled=llm_integration_set_for_model,
@@ -221,7 +222,7 @@ with st.expander("System message", expanded=False):
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
     initial_prompt = st.text_area(
-        "",
+        " ",
         value=get_initial_prompt(
             plot_parameters,
             list(
@@ -304,16 +305,12 @@ def llm_chat(
     # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
 
     # no. tokens spent
-    total_tokens = 0
-    pinned_tokens = 0
-    for message in llm_integration.get_print_view(show_all=show_all):
+    messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
+        show_all=show_all
+    )
+    for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(message[MessageKeys.CONTENT])
-            tokens = llm_integration.estimate_tokens([message])
-            if message[MessageKeys.IN_CONTEXT]:
-                total_tokens += tokens
-            if message[MessageKeys.PINNED]:
-                pinned_tokens += tokens
             if (
                 message[MessageKeys.PINNED]
                 or not message[MessageKeys.IN_CONTEXT]
@@ -325,6 +322,7 @@ def llm_chat(
                 if not message[MessageKeys.IN_CONTEXT]:
                     token_message += ":x: "
                 if show_individual_tokens:
+                    tokens = llm_integration.estimate_tokens([message])
                     token_message += f"*tokens: {str(tokens)}*"
                 st.markdown(token_message)
             for artifact in message[MessageKeys.ARTIFACTS]:
@@ -342,6 +340,11 @@ def llm_chat(
         f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
     )
 
+    if st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
+        st.warning("Warnings during last chat completion:")
+        for warning in st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
+            st.warning(str(warning.message).replace("\n", "\n\n"))
+
     if prompt := st.chat_input("Say something"):
         with st.chat_message(Roles.USER):
             st.markdown(prompt)
@@ -349,8 +352,12 @@ def llm_chat(
                 st.markdown(
                     f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
                 )
-        with st.spinner("Processing prompt..."):
+        with st.spinner("Processing prompt..."), warnings.catch_warnings(
+            record=True
+        ) as caught_warnings:
             llm_integration.chat_completion(prompt)
+            st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = caught_warnings
+
         st.rerun(scope="fragment")
 
     st.download_button(
@@ -378,7 +385,6 @@ with c2:
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
     )
-
 llm_chat(
     st.session_state[StateKeys.LLM_INTEGRATION][model_name],
     show_all,
