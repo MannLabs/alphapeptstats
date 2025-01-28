@@ -493,7 +493,7 @@ class LLMIntegration:
                     display(Markdown(f"*Function Call*: `{function_name}`"))
                     display(Markdown(f"*Arguments*: ```json\n{function_args}\n```"))
 
-            elif role == "Tool":
+            elif role == Roles.TOOL:
                 tool_result = json.loads(content)
                 artifact_id = tool_result.get(MessageKeys.ARTIFACT_ID)
                 if artifact_id and artifact_id in self._artifacts:
@@ -512,7 +512,11 @@ class LLMIntegration:
                     )
 
             else:
-                display(Markdown(f"**{role}**: {content} *({str(tokens)} tokens)*"))
+                display(
+                    Markdown(
+                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
+                    )
+                )
 
     def _display_artifact(self, artifact):
         """
