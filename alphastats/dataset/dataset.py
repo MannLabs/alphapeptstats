@@ -112,11 +112,6 @@ class DataSet:
 
         print("DataSet has been created.")
 
-    @property
-    def inverse_rawinput_rename_dict(self) -> Dict:
-        """Return the inverse dict on rawinput harmonization, i.e. mapping internal representation to original data."""
-        return self._data_harmonizer.inverse_rawinput_rename_dict
-
     def _get_init_dataset(
         self,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict]:
