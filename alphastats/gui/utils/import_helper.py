@@ -250,8 +250,8 @@ def show_button_download_metadata_template_file(loader: BaseLoader) -> None:
     buffer = io.BytesIO()
 
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        # Write each dataframe to a different worksheet.
-        dataset.metadata.to_excel(writer, sheet_name="Sheet1", index=False)
+        # rename harmonized back to original values
+        dataset.metadata.rename(columns=dataset.inverse_rawinput_rename_dict).to_excel(writer, sheet_name="Sheet1", index=False)
 
     st.download_button(
         label="Download Excel template for metadata",

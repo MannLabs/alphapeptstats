@@ -20,6 +20,9 @@ class DataHarmonizer:
 
         self._rawinput_rename_dict = _rawinput_rename_dict
 
+        # Note: we can assume that the mapping is 1:1 as collisions will raise later anyway on the actual renaming
+        self.inverse_rawinput_rename_dict = {v:k for k, v in self._rawinput_rename_dict.items()}
+
         self._metadata_rename_dict = (
             {
                 sample_column_name: Cols.SAMPLE,
