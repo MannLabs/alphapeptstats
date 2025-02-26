@@ -14,7 +14,6 @@ from alphastats.loader.base_loader import BaseLoader
 from alphastats.loader.maxquant_loader import MaxQuantLoader
 
 
-
 def load_proteomics_data(uploaded_file, intensity_column, index_column, software):
     """Load software file into loader object."""
     loader = SOFTWARE_OPTIONS.get(software)["loader_function"](
@@ -253,8 +252,9 @@ def show_button_download_metadata_template_file(loader: BaseLoader) -> None:
 
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         # map the internal column name to something else to avoid collisions
-        dataset.metadata.rename(columns={Cols.SAMPLE: "sample"}).to_excel(writer, sheet_name="Sheet1", index=False)
-
+        dataset.metadata.rename(columns={Cols.SAMPLE: "sample"}).to_excel(
+            writer, sheet_name="Sheet1", index=False
+        )
 
     st.download_button(
         label="Download Excel template for metadata",
