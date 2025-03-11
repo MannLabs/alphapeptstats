@@ -7,6 +7,7 @@ from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
 from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.session_manager import SessionManager
 from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
@@ -14,6 +15,11 @@ from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 
 def sidebar_info():
+    if st.sidebar.button(
+        "Save session", help="Saves the session to be able to load it later."
+    ):
+        SessionManager().save()
+
     _display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
     st.sidebar.markdown("AlphaPeptStats Version " + str(__version__))
