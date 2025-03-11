@@ -9,9 +9,9 @@ from cloudpickle import cloudpickle
 
 from alphastats.gui.utils.state_keys import StateKeys
 
-STATE_SAVE_FOLDER = Path(__file__).absolute().parent.parent.parent / "sessions"
+STATE_SAVE_FOLDER = Path(__file__).absolute().parent.parent.parent.parent / "sessions"
 
-
+# extension for pickled state
 _EXT = "cpkl"
 
 
@@ -43,7 +43,7 @@ class SessionManager:
                 [
                     f.name
                     for f in Path(save_folder_path).glob(f"*.{_EXT}")
-                    if f.isfile()
+                    if f.is_file()
                 ],
                 reverse=True,
             )
@@ -59,9 +59,10 @@ class SessionManager:
 
         file_path = self._save_folder_path / file_name
         with file_path.open("wb") as f:
+            # built-in pickle does not support the complext data types or lambdas
             cloudpickle.dump(target, f)
 
-        st.sidebar.success(f"Session state saved to {file_path}")
+        st.sidebar.success(f"Session saved to {file_path}")
 
     def load(self, file_name: str) -> None:
         """Load a saved session state from `file_name`."""
