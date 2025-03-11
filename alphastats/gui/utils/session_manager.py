@@ -13,7 +13,9 @@ from alphastats.gui.utils.state_keys import StateKeys
 
 STATE_SAVE_FOLDER = Path(__file__).absolute().parent.parent.parent.parent / "sessions"
 
-# extension for pickled state
+
+# prefix and extension for pickled state
+_PREFIX = "session_"
 _EXT = "cpkl"
 
 
@@ -58,7 +60,7 @@ class SessionManager:
         self._copy(session_state.to_dict(), target)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
-        file_name = f"state_{timestamp}.{_EXT}"
+        file_name = f"{_PREFIX}{timestamp}.{_EXT}"
 
         file_path = self._save_folder_path / file_name
         with file_path.open("wb") as f:

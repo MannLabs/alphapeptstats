@@ -48,9 +48,10 @@ from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/rese
 
 
 st.markdown("""### Load previous session""")
-file_to_load = st.selectbox(
+c1, _ = st.columns([0.25, 0.75])
+file_to_load = c1.selectbox(
     options=SessionManager.get_saved_sessions(STATE_SAVE_FOLDER),
-    label="Select a session to load",
+    label=f"Select a session to load (from {STATE_SAVE_FOLDER})",
 )
 
 if st.button("Load"):
