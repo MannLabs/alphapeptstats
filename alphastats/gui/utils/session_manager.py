@@ -6,34 +6,10 @@ from pathlib import Path
 import pytz
 import streamlit as st
 from cloudpickle import cloudpickle
-from dataset.keys import ConstantsClass
 
-STATE_SAVE_FOLDER = "/Users/mschwoerer/work/alphaX/alphapeptstats/"
+from alphastats.gui.utils.state_keys import StateKeys
 
-
-class StateKeys(metaclass=ConstantsClass):
-    """Keys for accessing the session state."""
-
-    USER_SESSION_ID = "user_session_id"
-    DATASET = "dataset"
-
-    WORKFLOW = "workflow"
-
-    ANALYSIS_LIST = "analysis_list"
-
-    # LLM
-    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
-    MODEL_NAME = "model_name"
-    LLM_INPUT = "llm_input"
-    LLM_INTEGRATION = "llm_integration"
-    ANNOTATION_STORE = "annotation_store"
-    SELECTED_GENES_UP = "selected_genes_up"
-    SELECTED_GENES_DOWN = "selected_genes_down"
-    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    MAX_TOKENS = "max_tokens"
-    RECENT_CHAT_WARNINGS = "recent_chat_warnings"
-
-    ORGANISM = "organism"  # TODO: this is essentially a constant
+STATE_SAVE_FOLDER = Path(__file__).absolute().parent.parent.parent / "sessions"
 
 
 _EXT = "cpkl"
@@ -45,6 +21,8 @@ class SessionManager:
     def __init__(self, save_path: str = STATE_SAVE_FOLDER):
         """Initialize the session manager with a save folder path."""
         self._save_folder_path = Path(save_path)
+
+        self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _copy(source: dict, target: dict) -> None:
