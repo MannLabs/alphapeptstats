@@ -15,8 +15,8 @@ from alphastats.gui.utils.analysis import (
     ResultComponent,
     StatisticOptions,
 )
+from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.gui.utils.ui_helper import (
-    StateKeys,
     show_button_download_df,
 )
 from alphastats.llm.uniprot_utils import get_annotations_for_feature

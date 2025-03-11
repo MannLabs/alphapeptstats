@@ -7,7 +7,7 @@ from alphastats.gui.utils.llm_helper import (
     llm_connection_test,
     set_api_key,
 )
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 
 
 @pytest.fixture

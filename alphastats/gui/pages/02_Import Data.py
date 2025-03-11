@@ -10,10 +10,12 @@ from alphastats.gui.utils.import_helper import (
     uploaded_file_to_df,
 )
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.gui.utils.ui_helper import (
+from alphastats.gui.utils.state_keys import (
     StateKeys,
     empty_session_state,
     init_session_state,
+)
+from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 

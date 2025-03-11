@@ -1,6 +1,6 @@
 from streamlit.testing.v1 import AppTest
 
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 
 from .conftest import APP_FOLDER, create_dataset_alphapept
 

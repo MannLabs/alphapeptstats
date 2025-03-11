@@ -20,9 +20,11 @@ from alphastats.gui.utils.llm_helper import (
     protein_selector,
     set_api_key,
 )
-from alphastats.gui.utils.ui_helper import (
+from alphastats.gui.utils.state_keys import (
     StateKeys,
     init_session_state,
+)
+from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles

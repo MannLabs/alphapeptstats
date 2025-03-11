@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.dataset.dataset import DataSet
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.llm.enrichment_analysis import get_enrichment_data
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,

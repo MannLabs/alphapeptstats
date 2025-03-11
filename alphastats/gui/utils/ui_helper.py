@@ -1,5 +1,4 @@
 import base64
-import uuid
 
 import pandas as pd
 import streamlit as st
@@ -7,6 +6,7 @@ import streamlit as st
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
+from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
@@ -86,15 +86,6 @@ def show_button_download_df(
     )
 
 
-def empty_session_state():
-    """
-    remove all variables to avoid conflicts
-    """
-    for key in st.session_state:
-        del st.session_state[key]
-    st.empty()
-
-
 class DefaultStates(metaclass=ConstantsClass):
     SELECTED_UNIPROT_FIELDS = [
         ExtractedUniprotFields.NAME,
@@ -108,68 +99,6 @@ class DefaultStates(metaclass=ConstantsClass):
         PREPROCESSING_STEPS.LOG2_TRANSFORM,
         PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
     ]
-
-
-def init_session_state() -> None:
-    """Initialize the session state if not done yet."""
-
-    if StateKeys.USER_SESSION_ID not in st.session_state:
-        st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
-
-    if StateKeys.ORGANISM not in st.session_state:
-        st.session_state[StateKeys.ORGANISM] = 9606  # human
-
-    if StateKeys.WORKFLOW not in st.session_state:
-        st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW.copy()
-
-    if StateKeys.ANALYSIS_LIST not in st.session_state:
-        st.session_state[StateKeys.ANALYSIS_LIST] = []
-
-    if StateKeys.LLM_INTEGRATION not in st.session_state:
-        st.session_state[StateKeys.LLM_INTEGRATION] = {}
-
-    if StateKeys.ANNOTATION_STORE not in st.session_state:
-        st.session_state[StateKeys.ANNOTATION_STORE] = {}
-
-    if StateKeys.SELECTED_GENES_UP not in st.session_state:
-        st.session_state[StateKeys.SELECTED_GENES_UP] = None
-
-    if StateKeys.SELECTED_GENES_DOWN not in st.session_state:
-        st.session_state[StateKeys.SELECTED_GENES_DOWN] = None
-
-    if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
-            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
-        )
-
-    if StateKeys.MAX_TOKENS not in st.session_state:
-        st.session_state[StateKeys.MAX_TOKENS] = 10000
-
-    if StateKeys.RECENT_CHAT_WARNINGS not in st.session_state:
-        st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = []
-
-
-class StateKeys(metaclass=ConstantsClass):
-    USER_SESSION_ID = "user_session_id"
-    DATASET = "dataset"
-
-    WORKFLOW = "workflow"
-
-    ANALYSIS_LIST = "analysis_list"
-
-    # LLM
-    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
-    MODEL_NAME = "model_name"
-    LLM_INPUT = "llm_input"
-    LLM_INTEGRATION = "llm_integration"
-    ANNOTATION_STORE = "annotation_store"
-    SELECTED_GENES_UP = "selected_genes_up"
-    SELECTED_GENES_DOWN = "selected_genes_down"
-    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    MAX_TOKENS = "max_tokens"
-    RECENT_CHAT_WARNINGS = "recent_chat_warnings"
-
-    ORGANISM = "organism"  # TODO this is essentially a constant
 
 
 class AnalysisParameters(metaclass=ConstantsClass):

@@ -9,7 +9,8 @@ from alphastats.gui.utils.preprocessing_helper import (
     run_preprocessing,
     update_workflow,
 )
-from alphastats.gui.utils.ui_helper import StateKeys, init_session_state, sidebar_info
+from alphastats.gui.utils.state_keys import StateKeys, init_session_state
+from alphastats.gui.utils.ui_helper import sidebar_info
 
 st.set_page_config(layout="wide")
 init_session_state()

@@ -3,9 +3,11 @@ import streamlit as st
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
 )
-from alphastats.gui.utils.ui_helper import (
+from alphastats.gui.utils.state_keys import (
     StateKeys,
     init_session_state,
+)
+from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 

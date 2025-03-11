@@ -6,7 +6,7 @@ from alphastats.gui.utils.analysis_helper import (
     get_regulated_features,
 )
 from alphastats.gui.utils.result import ResultComponent
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 
 
 def test_get_regulated_features_some():

@@ -2,9 +2,11 @@ import os
 
 import streamlit as st
 
+from alphastats.gui.utils.state_keys import (
+    init_session_state,
+)
 from alphastats.gui.utils.ui_helper import (
     img_to_bytes,
-    init_session_state,
     sidebar_info,
 )
 
