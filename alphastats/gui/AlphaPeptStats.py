@@ -2,10 +2,10 @@ import os
 
 import streamlit as st
 
+from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER, SessionManager
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
-from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER, SessionManager
 from alphastats.gui.utils.ui_helper import (
     img_to_bytes,
     sidebar_info,
@@ -54,7 +54,8 @@ file_to_load = st.selectbox(
 )
 
 if st.button("Load"):
-    SessionManager().load(file_to_load)
+    loaded_file_path = SessionManager().load(file_to_load, st.session_state)
+    st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
 
 
 ##

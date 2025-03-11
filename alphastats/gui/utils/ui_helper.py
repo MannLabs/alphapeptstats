@@ -6,8 +6,8 @@ import streamlit as st
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
-from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.gui.utils.session_manager import SessionManager
+from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
@@ -18,7 +18,8 @@ def sidebar_info():
     if st.sidebar.button(
         "Save session", help="Saves the session to be able to load it later."
     ):
-        SessionManager().save()
+        saved_file_path = SessionManager().save(st.session_state)
+        st.sidebar.success(f"Session saved to {saved_file_path}")
 
     _display_sidebar_html_table()
     st.sidebar.markdown("\n\n")

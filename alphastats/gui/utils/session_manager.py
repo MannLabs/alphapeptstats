@@ -1,11 +1,13 @@
 """Module for saving and loading session state."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from pathlib import Path
 
 import pytz
-import streamlit as st
 from cloudpickle import cloudpickle
+from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats.gui.utils.state_keys import StateKeys
 
@@ -25,7 +27,7 @@ class SessionManager:
         self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
-    def _copy(source: dict, target: dict) -> None:
+    def _copy(source: dict, target: dict | SessionStateProxy) -> None:
         """Copy a session state from source to target, only considering custom keys."""
         target.update(
             {
@@ -50,10 +52,11 @@ class SessionManager:
         except FileNotFoundError as e:
             raise ValueError(f"The folder {save_folder_path} does not exist.") from e
 
-    def save(self) -> None:
+    def save(self, session_state: SessionStateProxy) -> str:
         """Save the current session state to a file."""
         target = {}
-        self._copy(st.session_state.to_dict(), target)
+        self._copy(session_state.to_dict(), target)
+
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
         file_name = f"state_{timestamp}.{_EXT}"
 
@@ -62,17 +65,17 @@ class SessionManager:
             # built-in pickle does not support the complext data types or lambdas
             cloudpickle.dump(target, f)
 
-        st.sidebar.success(f"Session saved to {file_path}")
+        return str(file_path)
 
-    def load(self, file_name: str) -> None:
+    def load(self, file_name: str, session_state: SessionStateProxy) -> str:
         """Load a saved session state from `file_name`."""
         file_path = self._save_folder_path / file_name
 
         if file_path.exists():
             with file_path.open("rb") as f:
                 loaded_state = cloudpickle.load(f)
-                self._copy(loaded_state, st.session_state)
+                self._copy(loaded_state, session_state)
         else:
             raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")
 
-        st.toast(f"Session state loaded from {file_path}", icon="✅")
+        return str(file_path)
