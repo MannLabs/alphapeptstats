@@ -2,7 +2,7 @@ import os
 
 import streamlit as st
 
-from alphastats.gui.utils.state_keys import (
+from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
