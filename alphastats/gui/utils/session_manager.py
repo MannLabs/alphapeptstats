@@ -10,6 +10,7 @@ from cloudpickle import cloudpickle
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
 
 STATE_SAVE_FOLDER = Path(__file__).absolute().parent.parent.parent.parent / "sessions"
 
@@ -25,8 +26,6 @@ class SessionManager:
     def __init__(self, save_path: str = STATE_SAVE_FOLDER):
         """Initialize the session manager with a save folder path."""
         self._save_folder_path = Path(save_path)
-
-        self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _copy(source: dict, target: dict | SessionStateProxy) -> None:
@@ -56,16 +55,18 @@ class SessionManager:
 
     def save(self, session_state: SessionStateProxy) -> str:
         """Save the current session state to a file."""
-        target = {}
-        self._copy(session_state.to_dict(), target)
+        state_data_to_save = {}
+        self._copy(session_state.to_dict(), state_data_to_save)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
         file_name = f"{_PREFIX}{timestamp}.{_EXT}"
 
+        self._save_folder_path.mkdir(parents=True, exist_ok=True)
+
         file_path = self._save_folder_path / file_name
         with file_path.open("wb") as f:
-            # built-in pickle does not support the complext data types or lambdas
-            cloudpickle.dump(target, f)
+            # built-in pickle does not support complex data types or lambdas
+            cloudpickle.dump(state_data_to_save, f)
 
         return str(file_path)
 
@@ -75,9 +76,13 @@ class SessionManager:
 
         if file_path.exists():
             with file_path.open("rb") as f:
-                loaded_state = cloudpickle.load(f)
-                self._copy(loaded_state, session_state)
-        else:
-            raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")
+                loaded_state_data = cloudpickle.load(f)
 
-        return str(file_path)
+            # clean and init first to have a defined state
+            empty_session_state()
+            init_session_state()
+            self._copy(loaded_state_data, session_state)
+
+            return str(file_path)
+
+        raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")

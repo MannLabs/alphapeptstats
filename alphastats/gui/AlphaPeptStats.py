@@ -54,7 +54,10 @@ file_to_load = c1.selectbox(
     label=f"Select a session to load (from {STATE_SAVE_FOLDER})",
 )
 
-if st.button("Load"):
+if st.button(
+    "Load",
+    help="Load the selected session. Note that this will overwrite the current session.",
+):
     loaded_file_path = SessionManager().load(file_to_load, st.session_state)
     st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
 

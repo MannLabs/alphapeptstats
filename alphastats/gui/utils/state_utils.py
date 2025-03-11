@@ -4,8 +4,7 @@ import uuid
 
 import streamlit as st
 
-from alphastats.gui.utils.state_keys import StateKeys
-from alphastats.gui.utils.ui_helper import DefaultStates
+from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
 
 
 def empty_session_state() -> None:

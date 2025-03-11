@@ -1,6 +1,8 @@
 """Keys and helper functions for the session state."""
 
 from alphastats.dataset.keys import ConstantsClass
+from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
+from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 
 class StateKeys(metaclass=ConstantsClass):
@@ -26,3 +28,20 @@ class StateKeys(metaclass=ConstantsClass):
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
     ORGANISM = "organism"  # TODO: this is essentially a constant
+
+
+class DefaultStates(metaclass=ConstantsClass):
+    """Default values for some UI components."""
+
+    SELECTED_UNIPROT_FIELDS = [
+        ExtractedUniprotFields.NAME,
+        ExtractedUniprotFields.GENE,
+        ExtractedUniprotFields.FUNCTIONCOMM,
+    ]
+    WORKFLOW = [
+        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
+        PREPROCESSING_STEPS.SUBSET,
+        PREPROCESSING_STEPS.REPLACE_ZEROES,
+        PREPROCESSING_STEPS.LOG2_TRANSFORM,
+        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
+    ]

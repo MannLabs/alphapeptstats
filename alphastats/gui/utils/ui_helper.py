@@ -5,10 +5,8 @@ import streamlit as st
 
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
-from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
 from alphastats.gui.utils.session_manager import SessionManager
 from alphastats.gui.utils.state_keys import StateKeys
-from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
@@ -91,21 +89,6 @@ def show_button_download_df(
         "text/csv",
         key=f"download-csv-{file_name}",
     )
-
-
-class DefaultStates(metaclass=ConstantsClass):
-    SELECTED_UNIPROT_FIELDS = [
-        ExtractedUniprotFields.NAME,
-        ExtractedUniprotFields.GENE,
-        ExtractedUniprotFields.FUNCTIONCOMM,
-    ]
-    WORKFLOW = [
-        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
-        PREPROCESSING_STEPS.SUBSET,
-        PREPROCESSING_STEPS.REPLACE_ZEROES,
-        PREPROCESSING_STEPS.LOG2_TRANSFORM,
-        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
-    ]
 
 
 class AnalysisParameters(metaclass=ConstantsClass):
