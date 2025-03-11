@@ -8,6 +8,7 @@ import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
 from alphastats.loader.base_loader import BaseLoader
 from alphastats.loader.maxquant_loader import MaxQuantLoader
@@ -250,8 +251,10 @@ def show_button_download_metadata_template_file(loader: BaseLoader) -> None:
     buffer = io.BytesIO()
 
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        # Write each dataframe to a different worksheet.
-        dataset.metadata.to_excel(writer, sheet_name="Sheet1", index=False)
+        # map the internal column name to something else to avoid collisions
+        dataset.metadata.rename(columns={Cols.SAMPLE: "sample"}).to_excel(
+            writer, sheet_name="Sheet1", index=False
+        )
 
     st.download_button(
         label="Download Excel template for metadata",

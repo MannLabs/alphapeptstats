@@ -373,18 +373,27 @@ class LLMIntegration:
         logger.info(".. done")
         return result
 
-    def get_print_view(self, show_all=False) -> List[Dict[str, Any]]:
+    def get_print_view(
+        self, show_all=False
+    ) -> Tuple[List[Dict[str, Any]], float, float]:
         """Get a structured view of the conversation history for display purposes."""
 
         print_view = []
+        total_tokens = 0
+        pinned_tokens = 0
         for message_idx, message in enumerate(self._all_messages):
+            tokens = self.estimate_tokens([message])
+            in_context = message in self._messages
+            if in_context:
+                total_tokens += tokens
+            if message[MessageKeys.PINNED]:
+                pinned_tokens += tokens
             if not show_all and (
                 message[MessageKeys.ROLE] in [Roles.TOOL, Roles.SYSTEM]
             ):
                 continue
             if not show_all and MessageKeys.TOOL_CALLS in message:
                 continue
-            in_context = message in self._messages
 
             print_view.append(
                 {
@@ -395,11 +404,12 @@ class LLMIntegration:
                     MessageKeys.PINNED: message[MessageKeys.PINNED],
                 }
             )
-        return print_view
+
+        return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
         """Get a chat log in text format for saving. It excludes tool replies, as they are usually also represented in the artifacts."""
-        messages = self.get_print_view(show_all=True)
+        messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
             if message[MessageKeys.ROLE] == Roles.TOOL:
@@ -483,7 +493,7 @@ class LLMIntegration:
                     display(Markdown(f"*Function Call*: `{function_name}`"))
                     display(Markdown(f"*Arguments*: ```json\n{function_args}\n```"))
 
-            elif role == "Tool":
+            elif role == Roles.TOOL:
                 tool_result = json.loads(content)
                 artifact_id = tool_result.get(MessageKeys.ARTIFACT_ID)
                 if artifact_id and artifact_id in self._artifacts:
@@ -502,7 +512,11 @@ class LLMIntegration:
                     )
 
             else:
-                display(Markdown(f"**{role}**: {content} *({str(tokens)} tokens)*"))
+                display(
+                    Markdown(
+                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
+                    )
+                )
 
     def _display_artifact(self, artifact):
         """

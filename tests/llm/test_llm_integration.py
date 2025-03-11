@@ -481,7 +481,7 @@ def test_handle_function_calls(
 
 def test_get_print_view_default(llm_with_conversation):
     """Test get_print_view with default settings (show_all=False)"""
-    print_view = llm_with_conversation.get_print_view()
+    print_view, _, _ = llm_with_conversation.get_print_view()
 
     # Should only include user and assistant messages without tool_calls
     assert print_view == [
@@ -518,7 +518,7 @@ def test_get_print_view_default(llm_with_conversation):
 
 def test_get_print_view_show_all(llm_with_conversation):
     """Test get_print_view with default settings (show_all=True)"""
-    print_view = llm_with_conversation.get_print_view(show_all=True)
+    print_view, _, _ = llm_with_conversation.get_print_view(show_all=True)
 
     # Should only include user and assistant messages without tool_calls
     assert print_view == [
