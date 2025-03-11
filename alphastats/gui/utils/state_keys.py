@@ -1,4 +1,4 @@
-"""Keys and helper functions for the session state."""
+"""Keys functions for the session state."""
 
 from alphastats.dataset.keys import ConstantsClass
 
