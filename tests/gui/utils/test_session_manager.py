@@ -60,9 +60,10 @@ def test_save(mock_session_state, tmp_path):
 
     session_manager = SessionManager(str(tmp_path))
 
-    file_path = session_manager.save(mock_session_state)
+    file_path = session_manager.save(mock_session_state, "some_name")
 
     assert Path(file_path).exists()
+    assert "some_name" in file_path
 
 
 @patch("alphastats.gui.utils.session_manager.empty_session_state")

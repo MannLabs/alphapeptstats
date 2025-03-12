@@ -19,7 +19,7 @@ STATE_SAVE_FOLDER_PATH = (
 
 
 # prefix and extension for pickled state
-_PREFIX = "session_"
+_PREFIX = "session"
 _EXT = "cpkl"
 
 
@@ -60,18 +60,18 @@ class SessionManager:
             reverse=True,
         )
 
-    def save(self, session_state: SessionStateProxy) -> str:
+    def save(self, session_state: SessionStateProxy, session_name: str = "") -> str:
         """Save the current `session_state` to a file, returning the file path.
 
         Only considering keys in `StateKeys` are saved.
         """
         state_data_to_save = {}
         self._copy(session_state.to_dict(), state_data_to_save)
+        self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
-        file_name = f"{_PREFIX}{timestamp}-{__version__}.{_EXT}"
-
-        self._save_folder_path.mkdir(parents=True, exist_ok=True)
+        session_name = f"_{session_name}" if session_name else ""
+        file_name = f"{_PREFIX}_{timestamp}{session_name}_v{__version__}.{_EXT}"
 
         file_path = self._save_folder_path / file_name
         with file_path.open("wb") as f:

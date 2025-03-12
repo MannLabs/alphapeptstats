@@ -13,11 +13,22 @@ from alphastats.gui.utils.state_keys import StateKeys
 
 
 def sidebar_info():
+    st.sidebar.markdown("### Save session")
+    session_name = st.sidebar.text_input(
+        "Session name",
+        max_chars=32,
+        placeholder="(optional)",
+        help="Optional name of the session to save. Needs to be alphanumeric.",
+        value="",
+    )
     if st.sidebar.button(
-        "Save session", help="Saves the session to be able to load it later."
+        "Save session",
+        help="Saves the session to be able to load it later. Note that if AlphaPeptStats is running in a hosted environment, the session might become visible to others.",
+        disabled=session_name != "" and not session_name.isalnum(),
     ):
-        saved_file_path = SessionManager().save(st.session_state)
+        saved_file_path = SessionManager().save(st.session_state, session_name)
         st.sidebar.success(f"Session saved to {saved_file_path}")
+    st.sidebar.divider()
 
     _display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
@@ -60,6 +71,8 @@ def _display_sidebar_html_table():
         html_string += "<tr><td>" + key + "</td><td>" + str(values) + "</td>" + "</tr>"
 
     html_string += "</table>"
+
+    st.sidebar.markdown("### DateSet info")
     st.sidebar.markdown(html_string, unsafe_allow_html=True)
 
 
