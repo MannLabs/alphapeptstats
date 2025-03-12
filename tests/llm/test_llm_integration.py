@@ -243,21 +243,32 @@ def test_truncate_conversation_history_single_large_message(llm_integration):
         llm_integration._truncate_conversation_history()
 
 
-def test_estimate_tokens_gpt(llm_integration):
+def test_estimate_tokens_gpt():
     """Test token estimation for a given message"""
     message_content = "Test message"
-    tokens = llm_integration.estimate_tokens([{"content": message_content}])
+    tokens = LLMIntegration.estimate_tokens(
+        [{"content": message_content}], model=Models.GPT4O
+    )
 
     assert tokens == 2
 
 
-def test_estimate_tokens_ollama(llm_integration):
+def test_estimate_tokens_ollama():
     """Test token estimation for a given message with Ollama model, falls back on average chars per token"""
-    llm_integration._model = Models.OLLAMA_31_8B
     message_content = "Test message"
-    tokens = llm_integration.estimate_tokens(
-        [{"content": message_content}], average_chars_per_token=3.6
+    tokens = LLMIntegration.estimate_tokens(
+        [{"content": message_content}],
+        model=Models.OLLAMA_31_8B,
+        average_chars_per_token=3.6,
     )
+
+    assert tokens == 12 / 3.6
+
+
+def test_estimate_tokens_default():
+    """Test token estimation for a given message with Ollama model, falls back on average chars per token"""
+    message_content = "Test message"
+    tokens = LLMIntegration.estimate_tokens([{"content": message_content}])
 
     assert tokens == 12 / 3.6
 
