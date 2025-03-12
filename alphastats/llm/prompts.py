@@ -50,10 +50,10 @@ def get_initial_prompt(
         f"We've recently identified several proteins that appear to be differently regulated in cells "
         f"when comparing {group1} and {group2} in the {column} group. "
         f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(upregulated_genes)}.{os.linesep}{os.linesep}"
-        f"Here is the list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
+        f"Here is a comma-separated list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
         f"{uniprot_instructions}{os.linesep}{os.linesep}"
         f"Help us understand the potential connections between these proteins and how they might be contributing "
-        f"to the differences. After that provide a high level summary"
+        f"to the differences. After that provide a high level summary."
     )
 
 
