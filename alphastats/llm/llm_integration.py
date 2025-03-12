@@ -354,7 +354,9 @@ class LLMIntegration:
 
             content = json.dumps(
                 {
-                    MessageKeys.RESULT: str(function_result),
+                    MessageKeys.RESULT: self._str_repr(
+                        function_result, function_name, function_args
+                    ),
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
@@ -366,6 +368,32 @@ class LLMIntegration:
         response = self._chat_completion_create()
 
         return self._parse_model_response(response)
+
+    @staticmethod
+    def _str_repr(function_result: Any, function_name: str, function_args: Dict) -> str:
+        """Create a string representation of the function result.
+
+        Parameters
+        ----------
+        function_result : Any
+            The result of the function call
+        function_name : str
+            The name of the function
+        function_args : Dict
+            The arguments passed to the function
+
+        Returns
+        -------
+        str
+            A string representation of the function result
+        """
+        result_type = type(function_result)
+        if result_type in [pd.DataFrame, list, tuple, set, int, float, str]:
+            return str(function_result)
+        elif result_type is dict:
+            return json.dumps(function_result)
+        else:
+            return f"Function {function_name} with arguments {json.dumps(function_args)} returned a {result_type}. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
 
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
