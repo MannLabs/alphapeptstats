@@ -2,7 +2,7 @@ import os
 
 import streamlit as st
 
-from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER, SessionManager
+from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER_PATH, SessionManager
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
@@ -48,18 +48,25 @@ from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/rese
 
 
 st.markdown("""### Load previous session""")
-c1, _ = st.columns([0.25, 0.75])
-file_to_load = c1.selectbox(
-    options=SessionManager.get_saved_sessions(STATE_SAVE_FOLDER),
-    label=f"Select a session to load (from {STATE_SAVE_FOLDER})",
-)
+saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
 
-if st.button(
-    "Load",
-    help="Load the selected session. Note that this will overwrite the current session.",
-):
-    loaded_file_path = SessionManager().load(file_to_load, st.session_state)
-    st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
+if not saved_sessions:
+    st.write(
+        f"No saved sessions found in {STATE_SAVE_FOLDER_PATH}. Use the 'Save session' button onm the left to save a session."
+    )
+else:
+    c1, _ = st.columns([0.25, 0.75])
+    file_to_load = c1.selectbox(
+        options=saved_sessions,
+        label=f"Select a session to load (from {STATE_SAVE_FOLDER_PATH})",
+    )
+
+    if st.button(
+        "Load",
+        help="Load the selected session. Note that this will overwrite the current session.",
+    ):
+        loaded_file_path = SessionManager().load(file_to_load, st.session_state)
+        st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
 
 
 ##
