@@ -20,7 +20,7 @@ def mock_openai_client():
 
 
 @pytest.fixture
-def llm_integration(mock_openai_client):
+def llm_integration(mock_openai_client) -> LLMIntegration:
     """Fixture providing a basic LLM instance with test configuration"""
     dataset = Mock()
     dataset.plot_intensity = Mock(return_value="Plot created")
@@ -36,7 +36,7 @@ def llm_integration(mock_openai_client):
 
 
 @pytest.fixture
-def llm_with_conversation(llm_integration):
+def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
     """Setup LLM with a sample conversation history"""
     # Add various message types to conversation history
     llm_integration._all_messages = [
@@ -144,7 +144,7 @@ def test_initialization_invalid_model():
         LLMIntegration(model_name="invalid-model")
 
 
-def test_append_message(llm_integration):
+def test_append_message(llm_integration: LLMIntegration):
     """Test message appending functionality"""
     llm_integration._append_message("user", "Test message")
 
@@ -157,7 +157,7 @@ def test_append_message(llm_integration):
     }
 
 
-def test_append_message_with_tool_calls(llm_integration):
+def test_append_message_with_tool_calls(llm_integration: LLMIntegration):
     """Test message appending with tool calls"""
     tool_calls = [
         ChatCompletionMessageToolCall(
@@ -273,7 +273,7 @@ def test_estimate_tokens_default():
     assert tokens == 12 / 3.6
 
 
-def test_chat_completion_success(llm_integration, mock_chat_completion):
+def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_completion):
     """Test successful chat completion"""
     llm_integration._client.chat.completions.create.return_value = mock_chat_completion
 
@@ -298,7 +298,7 @@ def test_chat_completion_success(llm_integration, mock_chat_completion):
     ]
 
 
-def test_chat_completion_with_error(llm_integration):
+def test_chat_completion_with_error(llm_integration: LLMIntegration):
     """Test chat completion with error handling"""
     llm_integration._client.chat.completions.create.side_effect = ArithmeticError(
         "Test error"
@@ -312,7 +312,9 @@ def test_chat_completion_with_error(llm_integration):
     )
 
 
-def test_parse_model_response(llm_integration, mock_tool_call_completion):
+def test_parse_model_response(
+    llm_integration: LLMIntegration, mock_tool_call_completion
+):
     """Test parsing model response with tool calls"""
     content, tool_calls = llm_integration._parse_model_response(
         mock_tool_call_completion
@@ -324,7 +326,7 @@ def test_parse_model_response(llm_integration, mock_tool_call_completion):
     assert tool_calls[0].type == "function"
 
 
-def test_chat_completion_with_content_and_tool_calls(llm_integration):
+def test_chat_completion_with_content_and_tool_calls(llm_integration: LLMIntegration):
     """Test that chat completion raises error when receiving both content and tool calls"""
     mock_response = Mock(spec=ChatCompletion)
     mock_response.choices = [
@@ -359,7 +361,7 @@ def test_chat_completion_with_content_and_tool_calls(llm_integration):
     ],
 )
 def test_execute_general_function(
-    llm_integration,
+    llm_integration: LLMIntegration,
     mock_general_function_mapping,
     function_name,
     function_args,
@@ -374,7 +376,7 @@ def test_execute_general_function(
         assert result == expected_result
 
 
-def test_execute_dataset_function(llm_integration):
+def test_execute_dataset_function(llm_integration: LLMIntegration):
     """Test execution of a function from the dataset"""
     result = llm_integration._execute_function("custom_function", {"param1": "value1"})
 
@@ -382,7 +384,7 @@ def test_execute_dataset_function(llm_integration):
     llm_integration._dataset.custom_function.assert_called_once_with(param1="value1")
 
 
-def test_execute_dataset_function_with_dots(llm_integration):
+def test_execute_dataset_function_with_dots(llm_integration: LLMIntegration):
     """Test execution of a dataset function when name contains dots"""
     result = llm_integration._execute_function(
         "dataset.custom_function", {"param1": "value1"}
@@ -393,7 +395,7 @@ def test_execute_dataset_function_with_dots(llm_integration):
 
 
 @skip  # TODO fix this test
-def test_execute_nonexistent_function(llm_integration):
+def test_execute_nonexistent_function(llm_integration: LLMIntegration):
     """Test execution of a non-existent function"""
 
     result = llm_integration._execute_function(
@@ -404,7 +406,9 @@ def test_execute_nonexistent_function(llm_integration):
     assert "not implemented or dataset not available" in result
 
 
-def test_execute_function_with_error(llm_integration, mock_general_function_mapping):
+def test_execute_function_with_error(
+    llm_integration: LLMIntegration, mock_general_function_mapping
+):
     """Test handling of function execution errors"""
 
     def failing_function(**kwargs):
@@ -490,7 +494,7 @@ def test_handle_function_calls(
     assert llm_integration._messages == expected_messages
 
 
-def test_get_print_view_default(llm_with_conversation):
+def test_get_print_view_default(llm_with_conversation: LLMIntegration):
     """Test get_print_view with default settings (show_all=False)"""
     print_view, _, _ = llm_with_conversation.get_print_view()
 
@@ -527,7 +531,7 @@ def test_get_print_view_default(llm_with_conversation):
     ]
 
 
-def test_get_print_view_show_all(llm_with_conversation):
+def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
     """Test get_print_view with default settings (show_all=True)"""
     print_view, _, _ = llm_with_conversation.get_print_view(show_all=True)
 
