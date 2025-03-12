@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
@@ -189,7 +189,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 def display_uniprot(
     regulated_genes_dict,
     feature_to_repr_map,
-    model_name: str = Models.OLLAMA_31_70B,
+    model_name: str,
     *,
     disabled=False,
 ):
@@ -218,9 +218,8 @@ def display_uniprot(
             )
             for feature in regulated_genes_dict
         ]
-        dummy_model = LLMIntegration(model_name, api_key="lorem", load_tools=False)
-        tokens = dummy_model.estimate_tokens(
-            [{MessageKeys.CONTENT: text} for text in texts]
+        tokens = LLMIntegration.estimate_tokens(
+            [{MessageKeys.CONTENT: text} for text in texts], model=model_name
         )
         st.markdown(f"Total tokens: {tokens:.0f}")
     with c5:

@@ -337,7 +337,9 @@ def llm_chat(
                 if not message[MessageKeys.IN_CONTEXT]:
                     token_message += ":x: "
                 if show_individual_tokens:
-                    tokens = llm_integration.estimate_tokens([message])
+                    tokens = llm_integration.estimate_tokens(
+                        [message], model=model_name
+                    )
                     token_message += f"*tokens: {str(tokens)}*"
                 st.markdown(token_message)
             for artifact in message[MessageKeys.ARTIFACTS]:
@@ -365,7 +367,7 @@ def llm_chat(
             st.markdown(prompt)
             if show_individual_tokens:
                 st.markdown(
-                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}]))}*"
+                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
                 )
         with st.spinner("Processing prompt..."), warnings.catch_warnings(
             record=True
