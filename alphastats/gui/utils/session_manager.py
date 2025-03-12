@@ -75,7 +75,7 @@ class SessionManager:
 
         file_path = self._save_folder_path / file_name
         with file_path.open("wb") as f:
-            # built-in pickle does not support complex data types or lambdas
+            # using cloudpickle as built-in pickle does not support complex data types or lambdas
             cloudpickle.dump(state_data_to_save, f)
 
         return str(file_path)

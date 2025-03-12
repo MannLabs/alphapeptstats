@@ -33,9 +33,10 @@ def test_copy(mock_session_state):
     """Test that the session state is copied correctly."""
 
     already_present_dict = {"already_present_key": "already_present_value"}  # preserved
-    target = already_present_dict | {
-        StateKeys.DATASET: "some_other_dataset"
-    }  # overwritten
+    target = {
+        **already_present_dict,
+        StateKeys.DATASET: "some_other_dataset",  # overwritten
+    }
 
     session_manager = SessionManager()
 
