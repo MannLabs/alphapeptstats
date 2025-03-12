@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
-from alphastats.llm.llm_integration import LLMIntegration
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
@@ -24,6 +24,9 @@ def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
         selected_proteins (List[str]): A list of selected proteins.
     """
     st.write(title)
+    if len(df) == 0:
+        st.markdown("No significant proteins.")
+        return []
     c1, c2 = st.columns([1, 1])
     if c1.button("Select all", help=f"Select all {title} for analysis"):
         st.session_state[state_key] = df["Protein"].tolist()
@@ -183,10 +186,19 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 
 # TODO: Write test for this display
 @st.fragment
-def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
+def display_uniprot(
+    regulated_genes_dict,
+    feature_to_repr_map,
+    model_name: str,
+    *,
+    disabled=False,
+):
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
-    c1, c2, c3, c4 = st.columns((1, 1, 3, 1))
+    st.markdown(
+        "We reccomend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretaiton of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
+    )
+    c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
     if c1.button("Select all"):
         st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = all_fields
         st.rerun(scope="fragment")
@@ -198,13 +210,27 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
         st.rerun(scope="fragment")
-    if c4.button(
-        "Integrate into initial prompt",
-        type="primary",
-        help="Not implemented yet, but will adjust the initial prompt to include the output from Uniprot already and the system message to avoid calling the tool function again for the genes included.",
-    ):
-        st.toast("Not implemented yet.", icon="⚠️")
-        # TODO: Implement this
+    with c4:
+        texts = [
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE].get(feature, {}),
+                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+            )
+            for feature in regulated_genes_dict
+        ]
+        tokens = LLMIntegration.estimate_tokens(
+            [{MessageKeys.CONTENT: text} for text in texts], model=model_name
+        )
+        st.markdown(f"Total tokens: {tokens:.0f}")
+    with c5:
+        st.checkbox(
+            "Integrate into initial prompt",
+            help="If this is ticked and the initial prompt is updated, the Uniprot information will be included in the prompt and the instructions regarding uniprot will change to onl;y look up more information if explicitly asked to do so. Make sure that the total tokens are below the message limit of your LLM.",
+            key=StateKeys.INTEGRATE_UNIPROT,
+            disabled=disabled,
+        )
+    if c6.button("Update prompt", disabled=disabled):
+        st.rerun(scope="app")
     c1, c2 = st.columns((1, 3))
     with c1, st.expander("Show options", expanded=True):
         selected_fields = []
@@ -212,7 +238,6 @@ def display_uniprot(regulated_genes_dict, feature_to_repr_map, disabled=False):
             if st.checkbox(
                 field,
                 value=field in st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
-                disabled=disabled,
             ):
                 selected_fields.append(field)
         if set(selected_fields) != set(
