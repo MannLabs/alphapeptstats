@@ -42,7 +42,7 @@ def test_copy(mock_session_state):
 
     # when
     session_manager._copy(mock_session_state.to_dict(), target)
-    assert target == EXPECTED_STATE | already_present_dict
+    assert target == {**EXPECTED_STATE, **already_present_dict}
 
 
 def test_get_saved_sessions(tmp_path):
