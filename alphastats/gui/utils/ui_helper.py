@@ -5,15 +5,31 @@ import streamlit as st
 
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
-from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
+from alphastats.gui.utils.session_manager import SessionManager
 from alphastats.gui.utils.state_keys import StateKeys
-from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
 
 
 def sidebar_info():
+    st.sidebar.markdown("### Save session")
+    session_name = st.sidebar.text_input(
+        "Session name",
+        max_chars=32,
+        placeholder="(optional)",
+        help="Optional name of the session to save. Needs to be alphanumeric.",
+        value="",
+    )
+    if st.sidebar.button(
+        "Save session",
+        help="Saves the session to be able to load it later. Note that if AlphaPeptStats is running in a hosted environment, the session might become visible to others.",
+        disabled=session_name != "" and not session_name.isalnum(),
+    ):
+        saved_file_path = SessionManager().save(st.session_state, session_name)
+        st.sidebar.success(f"Session saved to {saved_file_path}")
+    st.sidebar.divider()
+
     _display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
     st.sidebar.markdown("AlphaPeptStats Version " + str(__version__))
@@ -55,6 +71,8 @@ def _display_sidebar_html_table():
         html_string += "<tr><td>" + key + "</td><td>" + str(values) + "</td>" + "</tr>"
 
     html_string += "</table>"
+
+    st.sidebar.markdown("### DateSet info")
     st.sidebar.markdown(html_string, unsafe_allow_html=True)
 
 
@@ -84,21 +102,6 @@ def show_button_download_df(
         "text/csv",
         key=f"download-csv-{file_name}",
     )
-
-
-class DefaultStates(metaclass=ConstantsClass):
-    SELECTED_UNIPROT_FIELDS = [
-        ExtractedUniprotFields.NAME,
-        ExtractedUniprotFields.GENE,
-        ExtractedUniprotFields.FUNCTIONCOMM,
-    ]
-    WORKFLOW = [
-        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
-        PREPROCESSING_STEPS.SUBSET,
-        PREPROCESSING_STEPS.REPLACE_ZEROES,
-        PREPROCESSING_STEPS.LOG2_TRANSFORM,
-        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
-    ]
 
 
 class AnalysisParameters(metaclass=ConstantsClass):

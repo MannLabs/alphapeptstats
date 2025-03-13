@@ -28,8 +28,6 @@ def _finalize_data_loading(
     """Finalize the data loading process."""
     st.session_state[StateKeys.DATASET] = dataset
 
-    sidebar_info()
-
     st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
 
 

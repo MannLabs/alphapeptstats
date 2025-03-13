@@ -17,3 +17,5 @@ build_pyinstaller
 **/.ipynb_checkpoints
 
 **/*secrets.toml
+
+sessions/
