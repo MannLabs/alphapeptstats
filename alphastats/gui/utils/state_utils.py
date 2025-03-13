@@ -48,5 +48,8 @@ def init_session_state() -> None:  # noqa: C901
     if StateKeys.MAX_TOKENS not in st.session_state:
         st.session_state[StateKeys.MAX_TOKENS] = 10000
 
+    if StateKeys.INTEGRATE_UNIPROT not in st.session_state:
+        st.session_state[StateKeys.INTEGRATE_UNIPROT] = False
+
     if StateKeys.RECENT_CHAT_WARNINGS not in st.session_state:
         st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = []

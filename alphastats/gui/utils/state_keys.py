@@ -1,4 +1,4 @@
-"""Keys and helper functions for the session state."""
+"""Keys functions for the session state."""
 
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
@@ -25,6 +25,7 @@ class StateKeys(metaclass=ConstantsClass):
     SELECTED_GENES_DOWN = "selected_genes_down"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     MAX_TOKENS = "max_tokens"
+    INTEGRATE_UNIPROT = "integrate_uniprot"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
     ORGANISM = "organism"  # TODO: this is essentially a constant

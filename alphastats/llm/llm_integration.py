@@ -171,8 +171,11 @@ class LLMIntegration:
 
         self._truncate_conversation_history()
 
+    @staticmethod
     def estimate_tokens(
-        self, messages: List[Dict[str, str]], average_chars_per_token: float = 3.6
+        messages: List[Dict[str, str]],
+        model: str = "model",
+        average_chars_per_token: float = 3.6,
     ) -> float:
         """
         Estimate the number of tokens in a list of messages.
@@ -181,6 +184,8 @@ class LLMIntegration:
         ----------
         messages : List[Dict[str, str]]
             A list of messages to estimate the number of tokens for
+        model : str, optional
+            The model to use for tokenization, by default "model", could be for example "gpt-4o"
         average_chars_per_token : float, optional
             The average number of characters per token, by default 3.6
 
@@ -190,7 +195,7 @@ class LLMIntegration:
             The estimated number of tokens
         """
         try:
-            enc = tiktoken.encoding_for_model(self._model)
+            enc = tiktoken.encoding_for_model(model)
             total_tokens = sum(
                 [
                     len(enc.encode(message[MessageKeys.CONTENT]))
@@ -225,7 +230,7 @@ class LLMIntegration:
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
         while (
-            self.estimate_tokens(self._messages, average_chars_per_token)
+            self.estimate_tokens(self._messages, self._model, average_chars_per_token)
             > self._max_tokens
         ):
             if len(self._messages) == 1:
@@ -382,7 +387,7 @@ class LLMIntegration:
         total_tokens = 0
         pinned_tokens = 0
         for message_idx, message in enumerate(self._all_messages):
-            tokens = self.estimate_tokens([message])
+            tokens = self.estimate_tokens([message], self._model)
             in_context = message in self._messages
             if in_context:
                 total_tokens += tokens
@@ -479,7 +484,7 @@ class LLMIntegration:
         for message in self._messages:
             role = message[MessageKeys.ROLE]
             content = message[MessageKeys.CONTENT]
-            tokens = self.estimate_tokens([message])
+            tokens = self.estimate_tokens([message], self._model)
 
             if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
                 display(
