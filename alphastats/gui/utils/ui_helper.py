@@ -100,22 +100,6 @@ class DefaultStates(metaclass=ConstantsClass):
         PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
     ]
 
-# TODO: Add these to the refactored init and state
-def init_session_state() -> None:
-    """Initialize the session state if not done yet."""
-
-    if StateKeys.INTEGRATE_UNIPROT not in st.session_state:
-        st.session_state[StateKeys.INTEGRATE_UNIPROT] = False
-
-    if StateKeys.RECENT_CHAT_WARNINGS not in st.session_state:
-        st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = []
-
-
-class StateKeys(metaclass=ConstantsClass):
-    INTEGRATE_UNIPROT = "integrate_uniprot"
-    RECENT_CHAT_WARNINGS = "recent_chat_warnings"
-# End TODO
-
 
 class AnalysisParameters(metaclass=ConstantsClass):
     TWOGROUP_GROUP1 = "group1"
