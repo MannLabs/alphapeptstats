@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +13,15 @@ from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 from alphastats import __version__
 from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
+
+
+class SavedSessionKeys:
+    """Keys for the saved session data."""
+
+    STATE = "state"
+    META = "meta"
+    VERSION = "version"
+
 
 STATE_SAVE_FOLDER_PATH = (
     Path(__file__).absolute().parent.parent.parent.parent / "sessions"
@@ -71,12 +81,17 @@ class SessionManager:
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
         session_name = f"_{session_name}" if session_name else ""
-        file_name = f"{_PREFIX}_{timestamp}{session_name}_v{__version__}.{_EXT}"
+        file_name = f"{_PREFIX}_{timestamp}{session_name}.{_EXT}"
+
+        data_to_dump = {
+            SavedSessionKeys.STATE: state_data_to_save,
+            SavedSessionKeys.META: {SavedSessionKeys.VERSION: __version__},
+        }
 
         file_path = self._save_folder_path / file_name
         with file_path.open("wb") as f:
             # using cloudpickle as built-in pickle does not support complex data types or lambdas
-            cloudpickle.dump(state_data_to_save, f)
+            cloudpickle.dump(data_to_dump, f)
 
         return str(file_path)
 
@@ -89,7 +104,17 @@ class SessionManager:
 
         if file_path.exists():
             with file_path.open("rb") as f:
-                loaded_state_data = cloudpickle.load(f)
+                loaded_data = cloudpickle.load(f)
+
+            loaded_state_data = loaded_data[SavedSessionKeys.STATE]
+
+            if (
+                version := loaded_data[SavedSessionKeys.META][SavedSessionKeys.VERSION]
+            ) != __version__:
+                logging.warning(
+                    f"Version mismatch: Session {file_name} was saved with version {version}, but current version is {__version__}."
+                    f"This might lead to unexpected behavior."
+                )
 
             # clean and init first to have a defined state
             empty_session_state()
