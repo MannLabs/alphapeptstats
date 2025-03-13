@@ -445,8 +445,6 @@ class LLMIntegration:
         messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            if message[MessageKeys.ROLE] == Roles.TOOL:
-                continue
             chatlog += f"{message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
             if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
