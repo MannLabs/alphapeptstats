@@ -1,6 +1,6 @@
 from streamlit.testing.v1 import AppTest
 
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 
 from .conftest import APP_FOLDER, create_dataset_alphapept
 
@@ -25,7 +25,7 @@ def test_page_04_loads_with_input():
 
     assert not at.exception
     assert at.columns[0].selectbox.len == 3
-    assert at.button.len == 2
+    assert at.button.len == 3
 
 
 def test_page_04_runs_preprocessreset_alphapept():

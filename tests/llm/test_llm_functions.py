@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 
 from alphastats.dataset.dataset import DataSet
-from alphastats.gui.utils.ui_helper import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_annotation_from_store_by_feature_list,

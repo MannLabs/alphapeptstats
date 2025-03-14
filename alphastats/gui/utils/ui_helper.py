@@ -1,19 +1,35 @@
 import base64
-import uuid
 
 import pandas as pd
 import streamlit as st
 
 from alphastats import __version__
 from alphastats.dataset.keys import ConstantsClass
-from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
-from alphastats.llm.uniprot_utils import ExtractedUniprotFields
+from alphastats.gui.utils.session_manager import SessionManager
+from alphastats.gui.utils.state_keys import StateKeys
 
 # TODO add logo above the options when issue is closed
 # https://github.com/streamlit/streamlit/issues/4984
 
 
 def sidebar_info():
+    st.sidebar.markdown("### Save session")
+    session_name = st.sidebar.text_input(
+        "Session name",
+        max_chars=32,
+        placeholder="(optional)",
+        help="Optional name of the session to save. Needs to be alphanumeric.",
+        value="",
+    )
+    if st.sidebar.button(
+        "Save session",
+        help="Saves the session to be able to load it later. Note that if AlphaPeptStats is running in a hosted environment, the session might become visible to others.",
+        disabled=session_name != "" and not session_name.isalnum(),
+    ):
+        saved_file_path = SessionManager().save(st.session_state, session_name)
+        st.sidebar.success(f"Session saved to {saved_file_path}")
+    st.sidebar.divider()
+
     _display_sidebar_html_table()
     st.sidebar.markdown("\n\n")
     st.sidebar.markdown("AlphaPeptStats Version " + str(__version__))
@@ -55,6 +71,8 @@ def _display_sidebar_html_table():
         html_string += "<tr><td>" + key + "</td><td>" + str(values) + "</td>" + "</tr>"
 
     html_string += "</table>"
+
+    st.sidebar.markdown("### DateSet info")
     st.sidebar.markdown(html_string, unsafe_allow_html=True)
 
 
@@ -84,96 +102,6 @@ def show_button_download_df(
         "text/csv",
         key=f"download-csv-{file_name}",
     )
-
-
-def empty_session_state():
-    """
-    remove all variables to avoid conflicts
-    """
-    for key in st.session_state:
-        del st.session_state[key]
-    st.empty()
-
-
-class DefaultStates(metaclass=ConstantsClass):
-    SELECTED_UNIPROT_FIELDS = [
-        ExtractedUniprotFields.NAME,
-        ExtractedUniprotFields.GENE,
-        ExtractedUniprotFields.FUNCTIONCOMM,
-    ]
-    WORKFLOW = [
-        PREPROCESSING_STEPS.REMOVE_CONTAMINATIONS,
-        PREPROCESSING_STEPS.SUBSET,
-        PREPROCESSING_STEPS.REPLACE_ZEROES,
-        PREPROCESSING_STEPS.LOG2_TRANSFORM,
-        PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
-    ]
-
-
-def init_session_state() -> None:
-    """Initialize the session state if not done yet."""
-
-    if StateKeys.USER_SESSION_ID not in st.session_state:
-        st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
-
-    if StateKeys.ORGANISM not in st.session_state:
-        st.session_state[StateKeys.ORGANISM] = 9606  # human
-
-    if StateKeys.WORKFLOW not in st.session_state:
-        st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW.copy()
-
-    if StateKeys.ANALYSIS_LIST not in st.session_state:
-        st.session_state[StateKeys.ANALYSIS_LIST] = []
-
-    if StateKeys.LLM_INTEGRATION not in st.session_state:
-        st.session_state[StateKeys.LLM_INTEGRATION] = {}
-
-    if StateKeys.ANNOTATION_STORE not in st.session_state:
-        st.session_state[StateKeys.ANNOTATION_STORE] = {}
-
-    if StateKeys.SELECTED_GENES_UP not in st.session_state:
-        st.session_state[StateKeys.SELECTED_GENES_UP] = None
-
-    if StateKeys.SELECTED_GENES_DOWN not in st.session_state:
-        st.session_state[StateKeys.SELECTED_GENES_DOWN] = None
-
-    if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
-            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
-        )
-
-    if StateKeys.MAX_TOKENS not in st.session_state:
-        st.session_state[StateKeys.MAX_TOKENS] = 10000
-
-    if StateKeys.INTEGRATE_UNIPROT not in st.session_state:
-        st.session_state[StateKeys.INTEGRATE_UNIPROT] = False
-
-    if StateKeys.RECENT_CHAT_WARNINGS not in st.session_state:
-        st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = []
-
-
-class StateKeys(metaclass=ConstantsClass):
-    USER_SESSION_ID = "user_session_id"
-    DATASET = "dataset"
-
-    WORKFLOW = "workflow"
-
-    ANALYSIS_LIST = "analysis_list"
-
-    # LLM
-    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
-    MODEL_NAME = "model_name"
-    LLM_INPUT = "llm_input"
-    LLM_INTEGRATION = "llm_integration"
-    ANNOTATION_STORE = "annotation_store"
-    SELECTED_GENES_UP = "selected_genes_up"
-    SELECTED_GENES_DOWN = "selected_genes_down"
-    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    MAX_TOKENS = "max_tokens"
-    INTEGRATE_UNIPROT = "integrate_uniprot"
-    RECENT_CHAT_WARNINGS = "recent_chat_warnings"
-
-    ORGANISM = "organism"  # TODO this is essentially a constant
 
 
 class AnalysisParameters(metaclass=ConstantsClass):

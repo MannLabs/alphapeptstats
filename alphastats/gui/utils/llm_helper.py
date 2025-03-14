@@ -4,7 +4,7 @@ from typing import List, Optional
 import pandas as pd
 import streamlit as st
 
-from alphastats.gui.utils.ui_helper import DefaultStates, StateKeys
+from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,

@@ -10,10 +10,14 @@ from alphastats.gui.utils.import_helper import (
     uploaded_file_to_df,
 )
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
-from alphastats.gui.utils.ui_helper import (
+from alphastats.gui.utils.state_keys import (
     StateKeys,
+)
+from alphastats.gui.utils.state_utils import (
     empty_session_state,
     init_session_state,
+)
+from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 
@@ -23,8 +27,6 @@ def _finalize_data_loading(
 ) -> None:
     """Finalize the data loading process."""
     st.session_state[StateKeys.DATASET] = dataset
-
-    sidebar_info()
 
     st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
 

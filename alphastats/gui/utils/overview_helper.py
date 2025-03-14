@@ -2,7 +2,8 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.dataset.dataset import DataSet
-from alphastats.gui.utils.ui_helper import StateKeys, show_button_download_df
+from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.ui_helper import show_button_download_df
 
 
 # @st.cache_data  # TODO check if caching is sensible here and if so, reimplement with dataset-hash

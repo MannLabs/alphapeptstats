@@ -36,6 +36,7 @@ exclude = [
 ignore = [
     #
     "PD002", #pandas-use-of-inplace-argument # TODO revisit
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
 
     # same as pyproject.toml
     "E501",  # Line too long  (ruff wraps code, but not docstrings)
