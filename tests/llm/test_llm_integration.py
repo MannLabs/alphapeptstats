@@ -2,6 +2,7 @@ from unittest import skip
 from unittest.mock import Mock, patch
 
 import pandas as pd
+import plotly.graph_objects as go
 import pytest
 from openai.types.chat import (
     ChatCompletion,
@@ -587,3 +588,31 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "pinned": False,
         },
     ]
+
+
+@pytest.mark.parametrize(
+    "function_result, function_name, function_args, output",
+    [
+        ("result", "function_name", {"arg1": "value1"}, "result"),
+        ([1, 2, 3], "function_name", {"arg1": "value1"}, str([1, 2, 3])),
+        ({"arg1": "value1"}, "function_name", {"arg1": "value1"}, '{"arg1": "value1"}'),
+        (
+            go.Figure(),
+            "function_name",
+            {"arg1": "value1"},
+            'Function function_name with arguments {"arg1": "value1"} returned a <class '
+            + "'plotly.graph_objs._figure.Figure'>. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.",
+        ),
+        (
+            pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"]),
+            "function_name",
+            {"arg1": "value1"},
+            r'{"a":{"0":1},"b":{"0":2},"c":{"0":3}}',
+        ),
+    ],
+)
+def test_str_repr(function_result, function_name, function_args, output):
+    assert (
+        LLMIntegration._str_repr(function_result, function_name, function_args)
+        == output
+    )
