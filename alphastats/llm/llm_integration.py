@@ -388,10 +388,12 @@ class LLMIntegration:
             A string representation of the function result
         """
         result_type = type(function_result)
-        if result_type in [pd.DataFrame, list, tuple, set, int, float, str]:
+        if result_type in [list, tuple, set, int, float, str, bool]:
             return str(function_result)
         elif result_type is dict:
             return json.dumps(function_result)
+        elif result_type is pd.DataFrame:
+            return function_result.to_json()
         else:
             return f"Function {function_name} with arguments {json.dumps(function_args)} returned a {result_type}. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
 
