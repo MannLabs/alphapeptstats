@@ -593,26 +593,55 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
 @pytest.mark.parametrize(
     "function_result, function_name, function_args, output",
     [
-        ("result", "function_name", {"arg1": "value1"}, "result"),
-        ([1, 2, 3], "function_name", {"arg1": "value1"}, str([1, 2, 3])),
-        ({"arg1": "value1"}, "function_name", {"arg1": "value1"}, '{"arg1": "value1"}'),
         (
-            go.Figure(),
-            "function_name",
+            "primitive_result",
+            "some_function_name",
             {"arg1": "value1"},
-            'Function function_name with arguments {"arg1": "value1"} returned a <class '
-            + "'plotly.graph_objs._figure.Figure'>. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.",
+            "primitive_result",
+        ),
+        ([1, 2, 3], "some_function_name", {"returns": "primitive list"}, "[1, 2, 3]"),
+        (
+            ("arg1", 1),
+            "some_function_name",
+            {"returns": "a tuple with primitive values"},
+            "('arg1', 1)",
+        ),
+        (
+            {"arg1": "value1"},
+            "some_function_name",
+            {"returns": "a dictionary with primitive values"},
+            "{'arg1': 'value1'}",
+        ),
+        (
+            ("DataFrame", pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])),
+            "some_function_name",
+            {"returns": "a tuple with non-primitive elements"},
+            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.',
+        ),
+        (
+            {"DataFrame": pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])},
+            "some_function_name",
+            {"returns": "a dictionary with non-primitive values"},
+            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive elements"} returned a dictionary, containing 1 values, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.',
         ),
         (
             pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"]),
-            "function_name",
+            "some_function_name",
             {"arg1": "value1"},
             r'{"a":{"0":1},"b":{"0":2},"c":{"0":3}}',
+        ),
+        (
+            go.Figure(),
+            "some_function_name",
+            {"arg1": "value1"},
+            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.',
         ),
     ],
 )
 def test_str_repr(function_result, function_name, function_args, output):
     assert (
-        LLMIntegration._str_repr(function_result, function_name, function_args)
+        LLMIntegration._create_string_representation(
+            function_result, function_name, function_args
+        )
         == output
     )

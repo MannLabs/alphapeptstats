@@ -354,7 +354,7 @@ class LLMIntegration:
 
             content = json.dumps(
                 {
-                    MessageKeys.RESULT: self._str_repr(
+                    MessageKeys.RESULT: self._create_string_representation(
                         function_result, function_name, function_args
                     ),
                     MessageKeys.ARTIFACT_ID: artifact_id,
@@ -370,7 +370,9 @@ class LLMIntegration:
         return self._parse_model_response(response)
 
     @staticmethod
-    def _str_repr(function_result: Any, function_name: str, function_args: Dict) -> str:
+    def _create_string_representation(
+        function_result: Any, function_name: str, function_args: Dict
+    ) -> str:
         """Create a string representation of the function result.
 
         Parameters
@@ -387,13 +389,26 @@ class LLMIntegration:
         str
             A string representation of the function result
         """
-        result_type = type(function_result)
-        if result_type in [list, tuple, set, int, float, str, bool]:
+        result_type = type(function_result).__name__
+        primitive_types = (int, float, str, bool)
+        simple_iterable_types = (list, tuple, set)
+        if isinstance(function_result, primitive_types):
             return str(function_result)
-        elif result_type is dict:
-            return json.dumps(function_result)
-        elif result_type is pd.DataFrame:
+        elif isinstance(function_result, pd.DataFrame):
             return function_result.to_json()
+        elif isinstance(function_result, dict):
+            if all(
+                isinstance(element, primitive_types)
+                for element in function_result.values()
+            ):
+                return str(function_result)
+            else:
+                return f"Function {function_name} with arguments {json.dumps(function_args)} returned a dictionary, containing {len(function_result)} values, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
+        elif isinstance(function_result, simple_iterable_types):
+            if all(isinstance(element, primitive_types) for element in function_result):
+                return str(function_result)
+            else:
+                return f"Function {function_name} with arguments {json.dumps(function_args)} returned a {result_type}, containing {len(function_result)} elements, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
         else:
             return f"Function {function_name} with arguments {json.dumps(function_args)} returned a {result_type}. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
 
@@ -443,7 +458,7 @@ class LLMIntegration:
         return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
-        """Get a chat log in text format for saving. It excludes tool replies, as they are usually also represented in the artifacts."""
+        """Get a chat log in text format for saving."""
         messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
