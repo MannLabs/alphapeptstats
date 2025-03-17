@@ -15,16 +15,17 @@ EXPECTED_STATE = {
 }
 
 
+class MockSessionState(SessionStateProxy):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def to_dict(self):
+        return self.__dict__
+
+
 @pytest.fixture
 def mock_session_state():
     """Return a mock session state."""
-
-    class MockSessionState(SessionStateProxy):
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-        def to_dict(self):
-            return self.__dict__
 
     return MockSessionState(ignored_key="ignored_value", **EXPECTED_STATE)
 
@@ -78,7 +79,7 @@ def test_save_and_load(
 
     file_path = session_manager.save(mock_session_state)
 
-    target = {}
+    target = MockSessionState()
 
     # when
     session_manager.load(Path(file_path).name, target)
