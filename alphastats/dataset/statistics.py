@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import Dict, Tuple, Union
 
 import pandas as pd
@@ -93,7 +92,6 @@ class Statistics:
             tukey=tukey,
         ).perform()
 
-    @lru_cache(maxsize=20)
     def ancova(
         self, protein_id: str, covar: Union[str, list], between: str
     ) -> pd.DataFrame:
