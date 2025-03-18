@@ -23,22 +23,19 @@ if not st.session_state[StateKeys.SAVED_ANALYSES]:
     st.info("No analysis saved yet.")
     st.stop()
 
-for n, (key, saved_analysis) in enumerate(
-    st.session_state[StateKeys.SAVED_ANALYSES].items()
-):
-    count = n + 1
-
+for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
     analysis_result = saved_analysis["result"]
     method = saved_analysis["method"]
     parameters = saved_analysis["parameters"]
+    number = saved_analysis["number"]
 
     st.markdown("\n\n\n")
-    st.markdown(f"#### #{count}: {method} [{key}]")
+    st.markdown(f"#### #{number}: {method} [{key}]")
     st.markdown(f"Parameters used for analysis: `{parameters}`")
 
-    name = f"{method}_{count}"
+    name = f"{method}_{number}"
 
-    if st.button(f"❌ Remove analysis #{count}", key=f"remove_{name}"):
+    if st.button(f"❌ Remove analysis #{number}", key=f"remove_{name}"):
         del st.session_state[StateKeys.SAVED_ANALYSES][key]
         st.rerun()
 

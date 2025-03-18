@@ -222,6 +222,7 @@ def _save_analysis_to_session_state(
         "result": deepcopy(analysis_results),
         "method": method,
         "parameters": parameters,
+        "number": len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
     }
 
 
