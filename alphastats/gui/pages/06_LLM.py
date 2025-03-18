@@ -1,13 +1,10 @@
 import os
-import warnings
 from typing import Dict
 
-import pandas as pd
 import streamlit as st
 from openai import AuthenticationError
 
 from alphastats.dataset.keys import Cols
-from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
@@ -18,6 +15,7 @@ from alphastats.gui.utils.llm_helper import (
     OLLAMA_BASE_URL,
     display_uniprot,
     get_df_for_protein_selector,
+    llm_chat,
     protein_selector,
 )
 from alphastats.gui.utils.state_keys import DefaultStates, LLMKeys, StateKeys
@@ -27,13 +25,12 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Roles
+from alphastats.llm.llm_integration import LLMIntegration
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
     get_uniprot_state_key,
 )
-from alphastats.plots.plot_utils import PlotlyObject
 
 st.set_page_config(layout="wide")
 init_session_state()
@@ -296,89 +293,6 @@ if not llm_integration_set_for_model:
         st.stop()
 
 
-@st.fragment
-def llm_chat(
-    llm_integration: LLMIntegration,
-    show_all: bool = False,
-    show_individual_tokens: bool = False,
-):
-    """The chat interface for the LLM analysis."""
-
-    # TODO dump to file -> static file name, plus button to do so
-    # Ideas: save chat as txt, without encoding objects, just put a replacement string.
-    # Offer bulk download of zip with all figures (via plotly download as svg.).
-    # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
-
-    # no. tokens spent
-    messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
-        show_all=show_all
-    )
-    for message in messages:
-        with st.chat_message(message[MessageKeys.ROLE]):
-            st.markdown(message[MessageKeys.CONTENT])
-            if (
-                message[MessageKeys.PINNED]
-                or not message[MessageKeys.IN_CONTEXT]
-                or show_individual_tokens
-            ):
-                token_message = ""
-                if message[MessageKeys.PINNED]:
-                    token_message += ":pushpin: "
-                if not message[MessageKeys.IN_CONTEXT]:
-                    token_message += ":x: "
-                if show_individual_tokens:
-                    tokens = llm_integration.estimate_tokens(
-                        [message], model=model_name
-                    )
-                    token_message += f"*tokens: {str(tokens)}*"
-                st.markdown(token_message)
-            for artifact in message[MessageKeys.ARTIFACTS]:
-                if isinstance(artifact, pd.DataFrame):
-                    st.dataframe(artifact)
-                elif isinstance(
-                    artifact, (PlotlyObject, plotly_object)
-                ):  # TODO can there be non-plotly types here
-                    st.plotly_chart(artifact)
-                elif not isinstance(artifact, str):
-                    st.warning("Don't know how to display artifact:")
-                    st.write(artifact)
-
-    st.markdown(
-        f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
-    )
-
-    if selected_llm_chat.get(LLMKeys.RECENT_CHAT_WARNINGS):
-        st.warning("Warnings during last chat completion:")
-        for warning in selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS]:
-            st.warning(str(warning.message).replace("\n", "\n\n"))
-
-    if prompt := st.chat_input("Say something"):
-        with st.chat_message(Roles.USER):
-            st.markdown(prompt)
-            if show_individual_tokens:
-                st.markdown(
-                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
-                )
-        with st.spinner("Processing prompt..."), warnings.catch_warnings(
-            record=True
-        ) as caught_warnings:
-            llm_integration.chat_completion(prompt)
-            selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS] = caught_warnings
-
-        st.rerun(scope="fragment")
-
-    st.download_button(
-        "Download chat log",
-        llm_integration.get_chat_log_txt(),
-        f"chat_log_{model_name}.txt",
-        "text/plain",
-    )
-
-    st.markdown(
-        "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
-    )
-
-
 c1, c2 = st.columns((1, 2))
 with c1:
     show_all = st.checkbox(
@@ -395,6 +309,7 @@ with c2:
 
 llm_chat(
     selected_llm_chat[model_name],
+    selected_analysis_key,
     show_all,
     show_inidvidual_tokens,
 )
