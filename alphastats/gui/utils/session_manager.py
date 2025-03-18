@@ -21,6 +21,8 @@ class SavedSessionKeys:
     STATE = "state"
     META = "meta"
     VERSION = "version"
+    TIMESTAMP = "timestamp"
+    NAME = "name"
 
 
 STATE_SAVE_FOLDER_PATH = (
@@ -85,7 +87,11 @@ class SessionManager:
 
         data_to_dump = {
             SavedSessionKeys.STATE: state_data_to_save,
-            SavedSessionKeys.META: {SavedSessionKeys.VERSION: __version__},
+            SavedSessionKeys.META: {
+                SavedSessionKeys.VERSION: __version__,
+                SavedSessionKeys.TIMESTAMP: timestamp,
+                SavedSessionKeys.NAME: session_name,
+            },
         }
 
         file_path = self._save_folder_path / file_name
@@ -107,6 +113,10 @@ class SessionManager:
                 loaded_data = cloudpickle.load(f)
 
             loaded_state_data = loaded_data[SavedSessionKeys.STATE]
+
+            logging.info(
+                f"Loaded session {file_name} from {self._save_folder_path}: {loaded_data[SavedSessionKeys.META]}"
+            )
 
             if (
                 version := loaded_data[SavedSessionKeys.META][SavedSessionKeys.VERSION]
