@@ -20,9 +20,7 @@ from alphastats.gui.utils.llm_helper import (
     get_df_for_protein_selector,
     protein_selector,
 )
-from alphastats.gui.utils.state_keys import (
-    StateKeys,
-)
+from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
@@ -103,17 +101,21 @@ downregulated_genes = [
     key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
 ]
 
+if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
+    st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
+selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
+
 # Create dataframes with checkboxes for selection
-if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
-    st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
+if selected_llm_chat.get(LLMKeys.SELECTED_GENES_UP) is None:
+    selected_llm_chat[LLMKeys.SELECTED_GENES_UP] = upregulated_genes
 upregulated_genes_df = get_df_for_protein_selector(
-    upregulated_genes, st.session_state[StateKeys.SELECTED_GENES_UP]
+    upregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
 )
 
-if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
-    st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
+if selected_llm_chat.get(LLMKeys.SELECTED_GENES_DOWN) is None:
+    selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN] = downregulated_genes
 downregulated_genes_df = get_df_for_protein_selector(
-    downregulated_genes, st.session_state[StateKeys.SELECTED_GENES_DOWN]
+    downregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
 )
 
 
@@ -135,11 +137,11 @@ with c2:
 
 # Combine the selected genes into a new regulated_genes_dict
 selected_genes = (
-    st.session_state[StateKeys.SELECTED_GENES_UP]
-    + st.session_state[StateKeys.SELECTED_GENES_DOWN]
+    selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
+    + selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
 )
 regulated_genes_dict = {
-    gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
+    gene: "up" if gene in selected_llm_chat[LLMKeys.SELECTED_GENES_UP] else "down"
     for gene in selected_genes
 }
 
@@ -162,8 +164,7 @@ if any(
 
 model_name = st.session_state[StateKeys.MODEL_NAME]
 llm_integration_set_for_model = (
-    st.session_state.get(StateKeys.LLM_INTEGRATION, {}).get(model_name, None)
-    is not None
+    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION, {}).get(model_name, None) is not None
 )
 
 st.markdown("##### Select which information from Uniprot to supply to the LLM")
@@ -190,7 +191,7 @@ with st.expander("Initial prompt", expanded=True):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
-                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                fields=selected_llm_chat[StateKeys.SELECTED_UNIPROT_FIELDS],
             )
             for feature in regulated_genes_dict
         ]
@@ -205,13 +206,13 @@ with st.expander("Initial prompt", expanded=True):
             list(
                 map(
                     feature_to_repr_map.get,
-                    st.session_state[StateKeys.SELECTED_GENES_UP],
+                    selected_llm_chat[LLMKeys.SELECTED_GENES_UP],
                 )
             ),
             list(
                 map(
                     feature_to_repr_map.get,
-                    st.session_state[StateKeys.SELECTED_GENES_DOWN],
+                    selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN],
                 )
             ),
             uniprot_info,
@@ -232,11 +233,11 @@ llm_reset = c2.button(
     "❌ Reset LLM analysis ...", disabled=not llm_integration_set_for_model
 )
 if llm_reset:
-    del st.session_state[StateKeys.LLM_INTEGRATION]
+    del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
     st.rerun()
 
 
-if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
+if not llm_integration_set_for_model:
     if not llm_submitted:
         st.stop()
 
@@ -251,7 +252,7 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
             max_tokens=st.session_state[StateKeys.MAX_TOKENS],
         )
 
-        st.session_state[StateKeys.LLM_INTEGRATION][model_name] = llm_integration
+        selected_llm_chat[LLMKeys.LLM_INTEGRATION][model_name] = llm_integration
 
         st.toast(
             f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!",
@@ -320,9 +321,9 @@ def llm_chat(
         f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
     )
 
-    if st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
+    if selected_llm_chat.get(LLMKeys.RECENT_CHAT_WARNINGS):
         st.warning("Warnings during last chat completion:")
-        for warning in st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
+        for warning in selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS]:
             st.warning(str(warning.message).replace("\n", "\n\n"))
 
     if prompt := st.chat_input("Say something"):
@@ -336,7 +337,7 @@ def llm_chat(
             record=True
         ) as caught_warnings:
             llm_integration.chat_completion(prompt)
-            st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = caught_warnings
+            selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS] = caught_warnings
 
         st.rerun(scope="fragment")
 
@@ -366,7 +367,7 @@ with c2:
         help="Show individual token estimates for each message.",
     )
 llm_chat(
-    st.session_state[StateKeys.LLM_INTEGRATION][model_name],
+    selected_llm_chat[LLMKeys.LLM_INTEGRATION][model_name],
     show_all,
     show_inidvidual_tokens,
 )
