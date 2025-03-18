@@ -34,7 +34,6 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_GENES_UP = "selected_genes_up"
     SELECTED_GENES_DOWN = "selected_genes_down"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    MAX_TOKENS = "max_tokens"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
 
