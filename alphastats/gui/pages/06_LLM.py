@@ -50,17 +50,28 @@ if StateKeys.DATASET not in st.session_state:
 def _pretty_print_analysis(key: str) -> str:
     """Pretty print the analysis key."""
     analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
-    return f"[{key}] {analysis['method']} {analysis['parameters']}"
+    return (
+        f"[{key}] #{analysis['number']} {analysis['method']} {analysis['parameters']}"
+    )
 
+
+saved_analyses_keys = [
+    k
+    for k, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
+    if analysis["method"] in LLM_ENABLED_ANALYSIS
+]
+
+if not saved_analyses_keys:
+    st.info(
+        f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
+    )
+    st.stop()
 
 selected_analysis_key = st.selectbox(
     "Select result to discuss",
-    [
-        k
-        for k, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
-        if analysis["method"] in LLM_ENABLED_ANALYSIS
-    ],
+    saved_analyses_keys,
     format_func=_pretty_print_analysis,
+    index=None if len(saved_analyses_keys) > 1 else 0,
 )
 selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
     selected_analysis_key, None
@@ -69,9 +80,7 @@ selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
 st.markdown("#### Analysis Input")
 
 if selected_analysis is None:
-    st.info(
-        f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
-    )
+    st.info("Select analysis first in the dropdown")
     st.stop()
 
 volcano_plot: ResultComponent = selected_analysis["result"]
@@ -107,6 +116,14 @@ downregulated_genes = [
 if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
     st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
 selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
+
+# TODO gather all selected_llm_chat-inits in a method
+if LLMKeys.RECENT_CHAT_WARNINGS not in selected_llm_chat:
+    selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS] = []
+if selected_llm_chat.get(LLMKeys.SELECTED_UNIPROT_FIELDS) is None:
+    selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
+        DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+    )
 
 # Create dataframes with checkboxes for selection
 if selected_llm_chat.get(LLMKeys.SELECTED_GENES_UP) is None:
@@ -171,10 +188,6 @@ model_name = st.session_state[StateKeys.MODEL_NAME]
 llm_integration_set_for_model = selected_llm_chat.get(model_name, None) is not None
 
 st.markdown("##### Select which information from Uniprot to supply to the LLM")
-if selected_llm_chat.get(LLMKeys.SELECTED_UNIPROT_FIELDS) is None:
-    selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
-        DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
-    )
 
 display_uniprot(
     regulated_genes_dict,
@@ -230,6 +243,10 @@ with st.expander("Initial prompt", expanded=True):
         disabled=llm_integration_set_for_model,
     )
 
+    # a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
+    st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
+        LLMKeys.SELECTED_UNIPROT_FIELDS
+    ].copy()
 
 st.markdown(f"##### LLM Analysis with {model_name}")
 
@@ -375,11 +392,6 @@ with c2:
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
     )
-
-# a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
-st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
-    LLMKeys.SELECTED_UNIPROT_FIELDS
-].copy()
 
 llm_chat(
     selected_llm_chat[model_name],
