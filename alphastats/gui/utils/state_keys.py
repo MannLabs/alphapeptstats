@@ -25,7 +25,6 @@ class StateKeys(metaclass=ConstantsClass):
 
     ANNOTATION_STORE = "annotation_store"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    INTEGRATE_UNIPROT = "integrate_uniprot"
 
 
 class LLMKeys(metaclass=ConstantsClass):
@@ -36,7 +35,6 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_GENES_DOWN = "selected_genes_down"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     MAX_TOKENS = "max_tokens"
-    INTEGRATE_UNIPROT = "integrate_uniprot"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
 

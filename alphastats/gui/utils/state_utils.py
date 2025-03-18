@@ -34,13 +34,5 @@ def init_session_state() -> None:
     if StateKeys.ANNOTATION_STORE not in st.session_state:
         st.session_state[StateKeys.ANNOTATION_STORE] = {}
 
-    if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
-            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
-        )
-
     if StateKeys.MAX_TOKENS not in st.session_state:
         st.session_state[StateKeys.MAX_TOKENS] = 10000
-
-    if StateKeys.INTEGRATE_UNIPROT not in st.session_state:
-        st.session_state[StateKeys.INTEGRATE_UNIPROT] = False

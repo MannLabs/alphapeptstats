@@ -20,7 +20,7 @@ from alphastats.gui.utils.llm_helper import (
     get_df_for_protein_selector,
     protein_selector,
 )
-from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
+from alphastats.gui.utils.state_keys import DefaultStates, LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
@@ -29,7 +29,10 @@ from alphastats.gui.utils.ui_helper import (
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Roles
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
-from alphastats.llm.uniprot_utils import format_uniprot_annotation
+from alphastats.llm.uniprot_utils import (
+    format_uniprot_annotation,
+    get_uniprot_state_key,
+)
 from alphastats.plots.plot_utils import PlotlyObject
 
 st.set_page_config(layout="wide")
@@ -160,7 +163,7 @@ if any(
     for feature in selected_genes
 ):
     st.info(
-        "No UniProt data stored for some proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
+        "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
     )
 
 
@@ -170,10 +173,16 @@ llm_integration_set_for_model = (
 )
 
 st.markdown("##### Select which information from Uniprot to supply to the LLM")
+if selected_llm_chat.get(LLMKeys.SELECTED_UNIPROT_FIELDS) is None:
+    selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
+        DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+    )
+
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
     model_name=model_name,
+    selected_analysis_key=selected_analysis_key,
     disabled=llm_integration_set_for_model,
 )
 
@@ -189,11 +198,11 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state[StateKeys.INTEGRATE_UNIPROT]:
+    if st.session_state[get_uniprot_state_key(selected_analysis_key)]:
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
-                fields=selected_llm_chat[StateKeys.SELECTED_UNIPROT_FIELDS],
+                fields=selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
             )
             for feature in regulated_genes_dict
         ]
@@ -368,6 +377,12 @@ with c2:
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
     )
+
+# a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
+st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
+    LLMKeys.SELECTED_UNIPROT_FIELDS
+].copy()
+
 llm_chat(
     selected_llm_chat[LLMKeys.LLM_INTEGRATION][model_name],
     show_all,
