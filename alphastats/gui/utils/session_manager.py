@@ -56,13 +56,11 @@ class SessionManager:
         The restriction to the keys in `StateKeys` is to avoid storing unnecessary data, and avoids
         potential issues when using different versions (e.g. new widgets).
         """
+        keys_to_save = StateKeys.get_values()
+        keys_to_save.remove(StateKeys.OPENAI_API_KEY)  # do not store key on disk
+
         target.update(
-            {
-                key: value
-                for key, value in source.items()
-                if key in StateKeys.get_values()
-                and key != StateKeys.OPENAI_API_KEY  # no not store key on disk
-            }
+            {key: value for key, value in source.items() if key in keys_to_save}
         )
 
     @staticmethod
