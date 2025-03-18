@@ -92,7 +92,7 @@ def protein_selector(
     st.write(title)
     if len(df) == 0:
         st.markdown("No significant proteins.")
-        st.stop()
+        return []
     c1, c2 = st.columns([1, 1])
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
         selected_analysis_key

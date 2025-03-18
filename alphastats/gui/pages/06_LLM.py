@@ -168,9 +168,7 @@ if any(
 
 
 model_name = st.session_state[StateKeys.MODEL_NAME]
-llm_integration_set_for_model = (
-    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION, {}).get(model_name, None) is not None
-)
+llm_integration_set_for_model = selected_llm_chat.get(model_name, None) is not None
 
 st.markdown("##### Select which information from Uniprot to supply to the LLM")
 if selected_llm_chat.get(LLMKeys.SELECTED_UNIPROT_FIELDS) is None:
@@ -244,7 +242,7 @@ llm_reset = c2.button(
     "❌ Reset LLM analysis ...", disabled=not llm_integration_set_for_model
 )
 if llm_reset:
-    del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
+    del selected_llm_chat[model_name]
     st.rerun()
 
 
@@ -263,7 +261,7 @@ if not llm_integration_set_for_model:
             max_tokens=st.session_state[StateKeys.MAX_TOKENS],
         )
 
-        selected_llm_chat[LLMKeys.LLM_INTEGRATION][model_name] = llm_integration
+        selected_llm_chat[model_name] = llm_integration
 
         st.toast(
             f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!",
@@ -384,7 +382,7 @@ st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
 ].copy()
 
 llm_chat(
-    selected_llm_chat[LLMKeys.LLM_INTEGRATION][model_name],
+    selected_llm_chat[model_name],
     show_all,
     show_inidvidual_tokens,
 )
