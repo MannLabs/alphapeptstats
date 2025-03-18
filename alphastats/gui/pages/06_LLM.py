@@ -121,18 +121,20 @@ downregulated_genes_df = get_df_for_protein_selector(
 
 with c1:
     st.markdown("##### Genes of interest")
-    st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
+    protein_selector(
         upregulated_genes_df,
         "Upregulated Proteins",
-        state_key=StateKeys.SELECTED_GENES_UP,
+        selected_analysis_key,
+        state_key=LLMKeys.SELECTED_GENES_UP,
     )
 
 with c2:
     st.markdown("##### ")
-    st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
+    protein_selector(
         downregulated_genes_df,
         "Downregulated Proteins",
-        state_key=StateKeys.SELECTED_GENES_DOWN,
+        selected_analysis_key,
+        state_key=LLMKeys.SELECTED_GENES_DOWN,
     )
 
 # Combine the selected genes into a new regulated_genes_dict
