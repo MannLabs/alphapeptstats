@@ -1,5 +1,6 @@
 import io
 from copy import deepcopy
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
@@ -216,13 +217,12 @@ def _save_analysis_to_session_state(
     parameters: Dict,
 ):
     """Save analysis with method and parameters to session state to show on results page."""
-    st.session_state[StateKeys.ANALYSIS_LIST] += [
-        (
-            deepcopy(analysis_results),
-            method,
-            parameters,
-        )
-    ]
+    analysis_key = datetime.now()  # could depend on data and parameters one day
+    st.session_state[StateKeys.SAVED_ANALYSES][analysis_key] = {
+        "result": deepcopy(analysis_results),
+        "method": method,
+        "parameters": parameters,
+    }
 
 
 def gather_parameters_and_do_analysis(

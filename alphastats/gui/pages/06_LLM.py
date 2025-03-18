@@ -14,6 +14,8 @@ from alphastats.gui.utils.analysis_helper import (
     gather_uniprot_data,
 )
 from alphastats.gui.utils.llm_helper import (
+    LLM_ENABLED_ANALYSIS,
+    OLLAMA_BASE_URL,
     display_uniprot,
     get_df_for_protein_selector,
     protein_selector,
@@ -32,9 +34,6 @@ from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import format_uniprot_annotation
 from alphastats.plots.plot_utils import PlotlyObject
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-
-
 st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
@@ -46,14 +45,36 @@ if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
 
+
+def _pretty_print_analysis(key: str) -> str:
+    """Pretty print the analysis key."""
+    analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
+    return f"[{key}] {analysis['method']} {analysis['parameters']}"
+
+
+selected_analysis_key = st.selectbox(
+    "Select result to discuss",
+    [
+        k
+        for k, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
+        if analysis["method"] in LLM_ENABLED_ANALYSIS
+    ],
+    format_func=_pretty_print_analysis,
+)
+selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
+    selected_analysis_key, None
+)
+
 st.markdown("#### Analysis Input")
 
-if StateKeys.LLM_INPUT not in st.session_state:
-    st.info("Create a Volcano plot first using the 'Analysis' page.")
+if selected_analysis is None:
+    st.info(
+        f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
+    )
     st.stop()
 
-volcano_plot: ResultComponent = st.session_state[StateKeys.LLM_INPUT][0]
-plot_parameters: Dict = st.session_state[StateKeys.LLM_INPUT][1]
+volcano_plot: ResultComponent = selected_analysis["result"]
+plot_parameters: Dict = selected_analysis["parameters"]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 

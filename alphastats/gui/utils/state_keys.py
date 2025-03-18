@@ -13,7 +13,7 @@ class StateKeys(metaclass=ConstantsClass):
 
     WORKFLOW = "workflow"
 
-    ANALYSIS_LIST = "analysis_list"
+    SAVED_ANALYSES = "saved_analyses"
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
