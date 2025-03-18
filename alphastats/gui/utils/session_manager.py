@@ -61,6 +61,7 @@ class SessionManager:
                 key: value
                 for key, value in source.items()
                 if key in StateKeys.get_values()
+                and key != StateKeys.OPENAI_API_KEY  # no not store key on disk
             }
         )
 
