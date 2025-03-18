@@ -16,9 +16,7 @@ from alphastats.gui.utils.analysis_helper import (
 from alphastats.gui.utils.llm_helper import (
     display_uniprot,
     get_df_for_protein_selector,
-    llm_connection_test,
     protein_selector,
-    set_api_key,
 )
 from alphastats.gui.utils.state_keys import (
     StateKeys,
@@ -29,7 +27,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Roles
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import format_uniprot_annotation
 from alphastats.plots.plot_utils import PlotlyObject
@@ -47,66 +45,6 @@ st.markdown("## LLM")
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
-
-
-@st.fragment
-def llm_config():
-    """Show the configuration options for the LLM analysis."""
-    c1, _ = st.columns((1, 2))
-    with c1:
-        current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
-
-        models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
-        model_name = st.selectbox(
-            "Select LLM",
-            models,
-            index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
-            if current_model is not None
-            else 0,
-        )
-        st.session_state[StateKeys.MODEL_NAME] = model_name
-
-        base_url = None
-        if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
-            api_key = st.text_input(
-                "Enter OpenAI API Key and press Enter", type="password"
-            )
-            set_api_key(api_key)
-        elif st.session_state[StateKeys.MODEL_NAME] in [
-            Models.OLLAMA_31_70B,
-            Models.OLLAMA_31_8B,
-        ]:
-            base_url = OLLAMA_BASE_URL
-            st.info(f"Expecting Ollama API at {base_url}.")
-
-        test_connection = st.button("Test connection")
-        if test_connection:
-            with st.spinner(f"Testing connection to {model_name}.."):
-                error = llm_connection_test(
-                    model_name=st.session_state[StateKeys.MODEL_NAME],
-                    api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                    base_url=base_url,
-                )
-                if error is None:
-                    st.success(f"Connection to {model_name} successful!")
-                else:
-                    st.error(f"Connection to {model_name} failed: {str(error)}")
-
-        st.number_input(
-            "Maximal number of tokens",
-            value=st.session_state[StateKeys.MAX_TOKENS],
-            min_value=2000,
-            max_value=128000,  # TODO: set this automatically based on the selected model
-            key=StateKeys.MAX_TOKENS,
-        )
-
-        if current_model != st.session_state[StateKeys.MODEL_NAME]:
-            st.rerun(scope="app")
-
-
-st.markdown("#### Configure LLM")
-llm_config()
-
 
 st.markdown("#### Analysis Input")
 
