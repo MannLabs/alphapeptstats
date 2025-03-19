@@ -77,6 +77,32 @@ def llm_config():
             st.rerun(scope="app")
 
 
+def pretty_print_analysis(key: str) -> str:
+    """Pretty print an analysis referenced by `key`."""
+    analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
+    return (
+        f"[{key}] #{analysis['number']} {analysis['method']} {analysis['parameters']}"
+    )
+
+
+def init_llm_chat_state(
+    selected_llm_chat: dict, upregulated_genes: list, downregulated_genes: list
+) -> None:
+    """Initialize the state for a given llm_chat."""
+    if LLMKeys.RECENT_CHAT_WARNINGS not in selected_llm_chat:
+        selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS] = []
+
+    if selected_llm_chat.get(LLMKeys.SELECTED_UNIPROT_FIELDS) is None:
+        selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
+            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+        )
+
+    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_UP) is None:
+        selected_llm_chat[LLMKeys.SELECTED_GENES_UP] = upregulated_genes
+    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_DOWN) is None:
+        selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN] = downregulated_genes
+
+
 @st.fragment
 def protein_selector(
     df: pd.DataFrame, title: str, selected_analysis_key: str, state_key: str
@@ -275,7 +301,7 @@ def display_uniprot(
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
     st.markdown(
-        "We reccomend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretaiton of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
+        "We reccommend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
     )
     c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
