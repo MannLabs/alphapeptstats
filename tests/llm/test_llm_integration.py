@@ -616,13 +616,13 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             ("DataFrame", pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])),
             "some_function_name",
             {"returns": "a tuple with non-primitive elements"},
-            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.',
+            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
         ),
         (
             {"DataFrame": pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])},
             "some_function_name",
             {"returns": "a dictionary with non-primitive values"},
-            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive elements"} returned a dictionary, containing 1 values, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.',
+            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive values"} returned a dict, containing 1 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
         ),
         (
             pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"]),
@@ -634,7 +634,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             go.Figure(),
             "some_function_name",
             {"arg1": "value1"},
-            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments.',
+            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
         ),
     ],
 )

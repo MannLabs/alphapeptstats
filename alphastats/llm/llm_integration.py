@@ -392,6 +392,10 @@ class LLMIntegration:
         result_type = type(function_result).__name__
         primitive_types = (int, float, str, bool)
         simple_iterable_types = (list, tuple, set)
+
+        iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
+        single_artifact_description = "Function {} with arguments {} returned a {}."
+        LLM_instructions = " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with."
         if isinstance(function_result, primitive_types):
             return str(function_result)
         elif isinstance(function_result, pd.DataFrame):
@@ -403,14 +407,35 @@ class LLMIntegration:
             ):
                 return str(function_result)
             else:
-                return f"Function {function_name} with arguments {json.dumps(function_args)} returned a dictionary, containing {len(function_result)} values, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
+                return (
+                    iterable_artifact_description.format(
+                        function_name,
+                        json.dumps(function_args),
+                        result_type,
+                        len(function_result),
+                    )
+                    + LLM_instructions
+                )
         elif isinstance(function_result, simple_iterable_types):
             if all(isinstance(element, primitive_types) for element in function_result):
                 return str(function_result)
             else:
-                return f"Function {function_name} with arguments {json.dumps(function_args)} returned a {result_type}, containing {len(function_result)} elements, some of which are non-trivial to represent as text. There is currently no text representation for this collection that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
+                return (
+                    iterable_artifact_description.format(
+                        function_name,
+                        json.dumps(function_args),
+                        result_type,
+                        len(function_result),
+                    )
+                    + LLM_instructions
+                )
         else:
-            return f"Function {function_name} with arguments {json.dumps(function_args)} returned a {result_type}. There is currently no text representation for this object that you would be able to interpret meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the function and the arguments."
+            return (
+                single_artifact_description.format(
+                    function_name, json.dumps(function_args), result_type
+                )
+                + LLM_instructions
+            )
 
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
