@@ -28,7 +28,7 @@ if not st.session_state[StateKeys.SAVED_ANALYSES]:
 for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
     analysis_result = saved_analysis[SavedAnalysisKeys.RESULT]
     method = saved_analysis[SavedAnalysisKeys.METHOD]
-    parameters = saved_analysis[SavedAnalysisKeys.NUMBER]
+    parameters = saved_analysis[SavedAnalysisKeys.PARAMETERS]
     number = saved_analysis[SavedAnalysisKeys.NUMBER]
 
     st.markdown("\n\n\n")
