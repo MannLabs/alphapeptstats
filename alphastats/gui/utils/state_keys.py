@@ -24,7 +24,9 @@ class StateKeys(metaclass=ConstantsClass):
     LLM_CHATS = "llm_chats"
 
     ANNOTATION_STORE = "annotation_store"
+    SELECED_ANALYSIS = "selected_analysis"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
+    INCLUDE_UNIPROT = "include_uniprot"
 
 
 class LLMKeys(metaclass=ConstantsClass):
@@ -35,6 +37,7 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_GENES_DOWN = "selected_genes_down"
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
+    INCLUDE_UNIPROT = "include_uniprot"
 
 
 class DefaultStates(metaclass=ConstantsClass):

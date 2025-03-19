@@ -18,6 +18,7 @@ from alphastats.gui.utils.llm_helper import (
     OLLAMA_BASE_URL,
     display_uniprot,
     get_df_for_protein_selector,
+    on_select_fill_state,
     protein_selector,
 )
 from alphastats.gui.utils.state_keys import DefaultStates, LLMKeys, StateKeys
@@ -31,7 +32,6 @@ from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Roles
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
-    get_uniprot_state_key,
 )
 from alphastats.plots.plot_utils import PlotlyObject
 
@@ -72,6 +72,8 @@ selected_analysis_key = st.selectbox(
     saved_analyses_keys,
     format_func=_pretty_print_analysis,
     index=None if len(saved_analyses_keys) > 1 else 0,
+    on_change=on_select_fill_state,
+    key=StateKeys.SELECED_ANALYSIS,
 )
 selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
     selected_analysis_key, None
@@ -209,7 +211,7 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state[get_uniprot_state_key(selected_analysis_key)]:
+    if st.session_state[StateKeys.INCLUDE_UNIPROT]:
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
