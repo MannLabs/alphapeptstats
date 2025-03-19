@@ -195,8 +195,9 @@ st.write(
     "The prompts are generated based on the above selection on genes and Uniprot information."
 )
 if st.button(
-    "Update prompts with genes and uniprot information",
+    "Update prompts with selected genes and UniProt information",
     disabled=llm_integration_set_for_model,
+    help="Regenerate system message and initial prompt based on current selections",
 ):
     st.rerun(scope="app")
 

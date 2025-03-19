@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
+import pytz
 import tiktoken
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
@@ -168,7 +169,9 @@ class LLMIntegration:
         if tool_call_id is not None:
             message[MessageKeys.TOOL_CALL_ID] = tool_call_id
 
-        message[MessageKeys.TIMESTAMP] = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        message[MessageKeys.TIMESTAMP] = datetime.now(tz=pytz.utc).strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        )
 
         self._messages.append(message)
         self._all_messages.append(message)
