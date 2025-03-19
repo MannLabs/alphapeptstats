@@ -37,7 +37,7 @@ class LLMKeys(metaclass=ConstantsClass):
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
 
-class SavedAnalysisKeys:
+class SavedAnalysisKeys(metaclass=ConstantsClass):
     """Keys for saved analyses in session state."""
 
     RESULT = "result"

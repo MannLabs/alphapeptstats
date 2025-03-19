@@ -304,7 +304,9 @@ def display_uniprot(
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
     st.markdown(
-        "We recommend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
+        "We recommend providing at least limited information from Uniprot for all proteins as part of the initial "
+        "prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to "
+        "include while chatting for on-the-fly demand for more information."
     )
     c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
@@ -461,7 +463,7 @@ def show_llm_chat(
     if selected_analysis_session_state.get(LLMKeys.RECENT_CHAT_WARNINGS):
         st.warning("Warnings during last chat completion:")
         for warning in selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS]:
-            st.warning(warning)  # str(warning.message).replace("\n", "\n\n"))
+            st.warning(str(warning.message).replace("\n", "\n\n"))
 
     if show_prompt and (prompt := st.chat_input("Say something")):
         with st.chat_message(Roles.USER):
@@ -477,10 +479,6 @@ def show_llm_chat(
             selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS] = (
                 caught_warnings
             )
-
-        selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS].append(
-            "some warning"
-        )
 
         st.rerun(scope="fragment")
 
