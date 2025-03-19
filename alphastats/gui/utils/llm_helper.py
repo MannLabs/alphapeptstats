@@ -24,7 +24,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 @st.fragment
 def llm_config():
-    """Show the configuration options for the LLM analysis."""
+    """Show the configuration options for the LLM interpretation."""
     c1, _ = st.columns((1, 2))
     with c1:
         current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
@@ -265,7 +265,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
     """
     Retrieves and formats UniProt information for a list of regulated features.
 
-    Note: The information is retrieved from the `annotation_store` in the `session_state`, which is filled when the LLM analysis is set up from the anlaysis page.
+    Note: The information is retrieved from the `annotation_store` in the `session_state`, which is filled when the LLM interpretation is set up from the anlaysis page.
 
     Args:
         regulated_features (list): A list of features for which UniProt information is to be retrieved.
@@ -301,7 +301,7 @@ def display_uniprot(
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
     st.markdown(
-        "We reccommend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
+        "We recommend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
     )
     c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
@@ -403,7 +403,7 @@ def llm_chat(
     show_individual_tokens: bool = False,
     show_prompt: bool = True,
 ):
-    """The chat interface for the LLM analysis."""
+    """The chat interface for the LLM interpretation."""
 
     # TODO dump to file -> static file name, plus button to do so
     # Ideas: save chat as txt, without encoding objects, just put a replacement string.
