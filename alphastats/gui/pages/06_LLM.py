@@ -64,7 +64,7 @@ if not (
     st.stop()
 
 selected_analysis_key = st.selectbox(
-    "Select result to interpret with LLM",
+    "Select analysis to interpret with LLM",
     saved_analyses_keys,
     format_func=pretty_print_analysis,
     index=None if len(saved_analyses_keys) > 1 else 0,
