@@ -5,18 +5,22 @@ from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
-from dataset.plotting import plotly_object
-from gui.utils.state_keys import SavedAnalysisKeys
-from plots.plot_utils import PlotlyObject
 
+from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
-from alphastats.gui.utils.state_keys import DefaultStates, LLMKeys, StateKeys
+from alphastats.gui.utils.state_keys import (
+    DefaultStates,
+    LLMKeys,
+    SavedAnalysisKeys,
+    StateKeys,
+)
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
     get_uniprot_state_key,
 )
+from alphastats.plots.plot_utils import PlotlyObject
 
 LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
 
