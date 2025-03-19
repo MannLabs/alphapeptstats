@@ -5,6 +5,7 @@ from alphastats.gui.utils.analysis_helper import (
 )
 from alphastats.gui.utils.llm_helper import show_llm_chat
 from alphastats.gui.utils.state_keys import (
+    SavedAnalysisKeys,
     StateKeys,
 )
 from alphastats.gui.utils.state_utils import (
@@ -25,10 +26,10 @@ if not st.session_state[StateKeys.SAVED_ANALYSES]:
     st.stop()
 
 for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
-    analysis_result = saved_analysis["result"]
-    method = saved_analysis["method"]
-    parameters = saved_analysis["parameters"]
-    number = saved_analysis["number"]
+    analysis_result = saved_analysis[SavedAnalysisKeys.RESULT]
+    method = saved_analysis[SavedAnalysisKeys.METHOD]
+    parameters = saved_analysis[SavedAnalysisKeys.NUMBER]
+    number = saved_analysis[SavedAnalysisKeys.NUMBER]
 
     st.markdown("\n\n\n")
     st.markdown(f"#### #{number}: {method} [{key}]")

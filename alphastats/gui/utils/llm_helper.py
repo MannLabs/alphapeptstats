@@ -6,6 +6,7 @@ from typing import List, Optional
 import pandas as pd
 import streamlit as st
 from dataset.plotting import plotly_object
+from gui.utils.state_keys import SavedAnalysisKeys
 from plots.plot_utils import PlotlyObject
 
 from alphastats.gui.utils.analysis import NewAnalysisOptions
@@ -80,9 +81,7 @@ def llm_config():
 def pretty_print_analysis(key: str) -> str:
     """Pretty print an analysis referenced by `key`."""
     analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
-    return (
-        f"[{key}] #{analysis['number']} {analysis['method']} {analysis['parameters']}"
-    )
+    return f"[{key}] #{analysis[SavedAnalysisKeys.NUMBER]} {analysis[SavedAnalysisKeys.METHOD]} {analysis[SavedAnalysisKeys.PARAMETERS]}"
 
 
 def init_llm_chat_state(

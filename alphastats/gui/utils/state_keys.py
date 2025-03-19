@@ -37,6 +37,15 @@ class LLMKeys(metaclass=ConstantsClass):
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
 
+class SavedAnalysisKeys:
+    """Keys for saved analyses in session state."""
+
+    RESULT = "result"
+    METHOD = "method"
+    PARAMETERS = "parameters"
+    NUMBER = "number"
+
+
 class DefaultStates(metaclass=ConstantsClass):
     """Default values for some UI components."""
 

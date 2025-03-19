@@ -20,7 +20,7 @@ from alphastats.gui.utils.llm_helper import (
     protein_selector,
     show_llm_chat,
 )
-from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
+from alphastats.gui.utils.state_keys import LLMKeys, SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
@@ -54,7 +54,7 @@ if not (
     saved_analyses_keys := [
         key
         for key, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
-        if analysis["method"] in LLM_ENABLED_ANALYSIS
+        if analysis[SavedAnalysisKeys.METHOD] in LLM_ENABLED_ANALYSIS
     ]
 ):
     st.info(
@@ -84,8 +84,8 @@ selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
 model_name = st.session_state[StateKeys.MODEL_NAME]
 llm_integration_set_for_model = selected_llm_chat.get(model_name, None) is not None
 
-volcano_plot: ResultComponent = selected_analysis["result"]
-plot_parameters: Dict = selected_analysis["parameters"]
+volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
+plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 

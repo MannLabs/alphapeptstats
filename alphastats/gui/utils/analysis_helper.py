@@ -16,7 +16,7 @@ from alphastats.gui.utils.analysis import (
     ResultComponent,
     StatisticOptions,
 )
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.ui_helper import (
     show_button_download_df,
 )
@@ -222,10 +222,10 @@ def _save_analysis_to_session_state(
     """Save analysis with method and parameters to session state to show on results page."""
     analysis_key = datetime.now()  # could depend on data and parameters one day
     st.session_state[StateKeys.SAVED_ANALYSES][analysis_key] = {
-        "result": deepcopy(analysis_results),
-        "method": method,
-        "parameters": parameters,
-        "number": len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
+        SavedAnalysisKeys.RESULT: deepcopy(analysis_results),
+        SavedAnalysisKeys.METHOD: method,
+        SavedAnalysisKeys.PARAMETERS: parameters,
+        SavedAnalysisKeys.NUMBER: len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
     }
 
 
