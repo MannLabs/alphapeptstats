@@ -36,3 +36,6 @@ def init_session_state() -> None:
 
     if StateKeys.MAX_TOKENS not in st.session_state:
         st.session_state[StateKeys.MAX_TOKENS] = 10000
+
+    if StateKeys.MODEL_NAME not in st.session_state:
+        st.session_state[StateKeys.MODEL_NAME] = "n/a"
