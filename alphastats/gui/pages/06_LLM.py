@@ -179,16 +179,6 @@ st.markdown(
 if st.button("Fetch UniProt data for selected proteins"):
     gather_uniprot_data(selected_genes)
 
-if any(
-    feature not in st.session_state[StateKeys.ANNOTATION_STORE]
-    for feature in selected_genes
-):
-    st.info(
-        "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
-    )
-    # TODO stop here or do not supply any uniprot information to LLM if it is not complete
-
-
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
@@ -204,6 +194,11 @@ st.markdown("##### System and initial prompt")
 st.write(
     "The prompts are generated based on the above selection on genes and Uniprot information."
 )
+if st.button(
+    "Update prompts with genes and uniprot information",
+    disabled=llm_integration_set_for_model,
+):
+    st.rerun(scope="app")
 
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
@@ -216,7 +211,7 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state[get_uniprot_state_key(selected_analysis_key)]:
+    if st.session_state.get(get_uniprot_state_key(selected_analysis_key), None):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],

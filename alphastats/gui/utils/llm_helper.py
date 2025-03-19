@@ -294,7 +294,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 # TODO: Write test for this display
 @st.fragment
 def display_uniprot(
-    regulated_genes_dict,
+    regulated_genes_dict: dict,
     feature_to_repr_map,
     model_name: str,
     selected_analysis_key: str,
@@ -303,6 +303,15 @@ def display_uniprot(
 ):
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
+    if any(
+        feature not in st.session_state[StateKeys.ANNOTATION_STORE]
+        for feature in regulated_genes_dict
+    ):
+        st.info(
+            "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
+        )
+        return
+
     st.markdown(
         "We recommend providing at least limited information from Uniprot for all proteins as part of the initial "
         "prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to "
@@ -354,8 +363,7 @@ def display_uniprot(
             ],  # st.session_state.get(get_uniprot_state_key(selected_analysis_key), False),
             disabled=disabled,
         )
-    if c6.button("Update prompt", disabled=disabled):
-        st.rerun(scope="app")
+
     c1, c2 = st.columns((1, 3))
     with c1, st.expander("Show options", expanded=True):
         selected_fields = []
