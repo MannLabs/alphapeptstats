@@ -1,4 +1,5 @@
-from unittest import skip
+from datetime import datetime
+from unittest import mock, skip
 from unittest.mock import Mock, patch
 
 import pandas as pd
@@ -10,6 +11,7 @@ from openai.types.chat import (
 )
 from openai.types.chat.chat_completion_message_tool_call import Function
 
+import alphastats.llm.llm_integration
 from alphastats.llm.llm_integration import LLMIntegration, Models
 
 
@@ -40,9 +42,24 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
     """Setup LLM with a sample conversation history"""
     # Add various message types to conversation history
     llm_integration._all_messages = [
-        {"role": "system", "content": "System message", "pinned": True},
-        {"role": "user", "content": "User message 1", "pinned": False},
-        {"role": "assistant", "content": "Assistant message 1", "pinned": False},
+        {
+            "role": "system",
+            "content": "System message",
+            "pinned": True,
+            "timestamp": "2022-01-01T00:00:00",
+        },
+        {
+            "role": "user",
+            "content": "User message 1",
+            "pinned": False,
+            "timestamp": "2022-01-01T00:00:00",
+        },
+        {
+            "role": "assistant",
+            "content": "Assistant message 1",
+            "pinned": False,
+            "timestamp": "2022-01-01T00:00:00",
+        },
         {
             "role": "assistant",
             "content": "Assistant with tool calls",
@@ -50,10 +67,26 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
                 {"id": "123", "type": "function", "function": {"name": "test"}}
             ],
             "pinned": False,
+            "timestamp": "2022-01-01T00:00:00",
         },
-        {"role": "tool", "content": "Tool response", "pinned": False},
-        {"role": "user", "content": "User message 2", "pinned": False},
-        {"role": "assistant", "content": "Assistant message 2", "pinned": False},
+        {
+            "role": "tool",
+            "content": "Tool response",
+            "pinned": False,
+            "timestamp": "2022-01-01T00:00:00",
+        },
+        {
+            "role": "user",
+            "content": "User message 2",
+            "pinned": False,
+            "timestamp": "2022-01-01T00:00:00",
+        },
+        {
+            "role": "assistant",
+            "content": "Assistant message 2",
+            "pinned": False,
+            "timestamp": "2022-01-01T00:00:00",
+        },
     ]
 
     llm_integration._messages = llm_integration._all_messages[0:3].copy()
@@ -144,8 +177,12 @@ def test_initialization_invalid_model():
         LLMIntegration(model_name="invalid-model")
 
 
-def test_append_message(llm_integration: LLMIntegration):
+@patch(f"{alphastats.llm.llm_integration.__name__}.datetime")
+def test_append_message(mock_datetime, llm_integration: LLMIntegration):
     """Test message appending functionality"""
+
+    mock_datetime.now.return_value = datetime(2022, 1, 1, 0, 0, 0)
+
     llm_integration._append_message("user", "Test message")
 
     assert len(llm_integration._messages) == 2  # Including system message
@@ -154,6 +191,7 @@ def test_append_message(llm_integration: LLMIntegration):
         "role": "user",
         "content": "Test message",
         "pinned": False,
+        "timestamp": "2022-01-01T00:00:00",
     }
 
 
@@ -284,16 +322,19 @@ def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_comp
             "content": "Test system message",
             "role": "system",
             "pinned": True,
+            "timestamp": mock.ANY,
         },
         {
             "content": "Test prompt",
             "role": "user",
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "content": "Test response",
             "role": "assistant",
             "pinned": False,
+            "timestamp": mock.ANY,
         },
     ]
 
@@ -463,7 +504,12 @@ def test_handle_function_calls(
     mock_execute_function.assert_called_once_with("test_function", {"arg1": "value1"})
 
     expected_messages = [
-        {"role": "system", "content": "Test system message", "pinned": True},
+        {
+            "role": "system",
+            "content": "Test system message",
+            "pinned": True,
+            "timestamp": mock.ANY,
+        },
         {
             "role": "assistant",
             "content": 'Calling function: test_function with arguments: {"arg1": "value1"}',
@@ -477,12 +523,14 @@ def test_handle_function_calls(
                 )
             ],
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "role": "tool",
             "content": '{"result": "some_function_result", "artifact_id": "test_function_test-id"}',
             "tool_call_id": "test-id",
             "pinned": False,
+            "timestamp": mock.ANY,
         },
     ]
     mock_openai_client.return_value.chat.completions.create.assert_called_once_with(
@@ -506,6 +554,7 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "role": "user",
             "in_context": True,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 2"],
@@ -513,6 +562,7 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "role": "assistant",
             "in_context": True,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": [],
@@ -520,6 +570,7 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "role": "user",
             "in_context": False,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 6"],
@@ -527,6 +578,7 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "role": "assistant",
             "in_context": False,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
     ]
 
@@ -543,6 +595,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "system",
             "in_context": True,
             "pinned": True,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": [],
@@ -550,6 +603,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "user",
             "in_context": True,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 2"],
@@ -557,6 +611,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "assistant",
             "in_context": True,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": [],
@@ -564,6 +619,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "assistant",
             "in_context": False,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": ["Tool artifact 1", "Tool artifact 2"],
@@ -571,6 +627,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "tool",
             "in_context": False,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": [],
@@ -578,6 +635,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "user",
             "in_context": False,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 6"],
@@ -585,5 +643,6 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "role": "assistant",
             "in_context": False,
             "pinned": False,
+            "timestamp": mock.ANY,
         },
     ]
