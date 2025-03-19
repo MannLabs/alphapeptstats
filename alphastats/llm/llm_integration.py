@@ -3,6 +3,7 @@
 import json
 import logging
 import warnings
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -50,6 +51,7 @@ class MessageKeys(metaclass=ConstantsClass):
     IN_CONTEXT = "in_context"
     ARTIFACTS = "artifacts"
     PINNED = "pinned"
+    TIMESTAMP = "timestamp"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -165,6 +167,8 @@ class LLMIntegration:
 
         if tool_call_id is not None:
             message[MessageKeys.TOOL_CALL_ID] = tool_call_id
+
+        message[MessageKeys.TIMESTAMP] = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
 
         self._messages.append(message)
         self._all_messages.append(message)
@@ -407,6 +411,7 @@ class LLMIntegration:
                     MessageKeys.ARTIFACTS: self._artifacts.get(message_idx, []),
                     MessageKeys.IN_CONTEXT: in_context,
                     MessageKeys.PINNED: message[MessageKeys.PINNED],
+                    MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
 
@@ -419,7 +424,7 @@ class LLMIntegration:
         for message in messages:
             if message[MessageKeys.ROLE] == Roles.TOOL:
                 continue
-            chatlog += f"{message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
+            chatlog += f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
             if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
             for artifact in message[MessageKeys.ARTIFACTS]:

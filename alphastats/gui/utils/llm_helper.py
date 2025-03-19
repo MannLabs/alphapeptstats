@@ -428,7 +428,9 @@ def show_llm_chat(
     )
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
-            st.markdown(message[MessageKeys.CONTENT])
+            st.markdown(
+                f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.CONTENT]}"
+            )
             if (
                 message[MessageKeys.PINNED]
                 or not message[MessageKeys.IN_CONTEXT]
