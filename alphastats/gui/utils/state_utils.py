@@ -3,9 +3,9 @@
 import uuid
 
 import streamlit as st
-from llm.llm_integration import Models
 
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
+from alphastats.llm.llm_integration import Models
 
 
 def empty_session_state() -> None:
