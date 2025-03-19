@@ -3,7 +3,7 @@ import streamlit as st
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
 )
-from alphastats.gui.utils.llm_helper import llm_chat
+from alphastats.gui.utils.llm_helper import show_llm_chat
 from alphastats.gui.utils.state_keys import (
     StateKeys,
 )
@@ -36,7 +36,11 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
 
     name = f"{method}_{number}"
 
-    if st.button(f"❌ Remove analysis #{number}", key=f"remove_{name}"):
+    if st.button(
+        f"❌ Remove analysis #{number}",
+        key=f"remove_{name}",
+        help="Also removes the associated LLM chat",
+    ):
         del st.session_state[StateKeys.SAVED_ANALYSES][key]
         st.rerun()
 
@@ -55,9 +59,9 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
         .get(st.session_state[StateKeys.MODEL_NAME])
     ) is not None:
         with st.expander("LLM Chat (read-only)", expanded=False):
-            llm_chat(llm_integration, key)
+            show_llm_chat(llm_integration, key)
     else:
         st.write("No LLM chat available yet for this analysis.")
 
     # passing parameters is not possible yet https://github.com/streamlit/streamlit/issues/8112
-    st.page_link("pages/06_LLM.py", label="Create/Continue chat...")
+    st.page_link("pages/06_LLM.py", label="=> Create/Continue chat...")

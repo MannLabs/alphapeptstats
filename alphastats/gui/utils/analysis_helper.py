@@ -101,7 +101,10 @@ def _display(
     c1, c2, c3 = st.columns([1, 1, 1])
 
     with c1:
-        if show_save_button and st.button("Save to results page.."):
+        if show_save_button and st.button(
+            "💾 Save analysis to results page..",
+            help="This will save the analysis to the results page and allow LLM interpretation.",
+        ):
             _save_analysis_to_session_state(
                 analysis_result, analysis_method, parameters
             )

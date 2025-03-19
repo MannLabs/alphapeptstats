@@ -396,7 +396,7 @@ def display_uniprot(
 
 
 @st.fragment
-def llm_chat(
+def show_llm_chat(
     llm_integration: LLMIntegration,
     selected_analysis_key: str,
     show_all: bool = False,
@@ -410,7 +410,7 @@ def llm_chat(
     # Offer bulk download of zip with all figures (via plotly download as svg.).
     # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
 
-    # TODO show errors by defualt
+    # TODO show errors by default
     # e.g. {"result": "Error executing get_uniprot_info_for_search_string: 'st.session_state has no key "selected_uniprot_fields".
 
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][

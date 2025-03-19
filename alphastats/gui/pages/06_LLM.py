@@ -16,9 +16,9 @@ from alphastats.gui.utils.llm_helper import (
     display_uniprot,
     get_df_for_protein_selector,
     init_llm_chat_state,
-    llm_chat,
     pretty_print_analysis,
     protein_selector,
+    show_llm_chat,
 )
 from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
@@ -60,7 +60,7 @@ if not (
     st.info(
         f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
     )
-    st.page_link("pages/04_Analysis.py", label="Goto Analysis page...")
+    st.page_link("pages/05_Analysis.py", label="=> Goto Analysis page...")
     st.stop()
 
 selected_analysis_key = st.selectbox(
@@ -320,7 +320,7 @@ with c2:
         help="Show individual token estimates for each message.",
     )
 
-llm_chat(
+show_llm_chat(
     selected_llm_chat[model_name],
     selected_analysis_key,
     show_all,
