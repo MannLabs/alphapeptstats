@@ -119,6 +119,11 @@ class LLMIntegration:
         self._metadata = None if dataset is None else dataset.metadata
         self._genes_of_interest = genes_of_interest
         self._max_tokens = max_tokens
+        self._token_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -218,6 +223,9 @@ class LLMIntegration:
                 ]
             )
         except KeyError:
+            logger.warning(
+                f"Model {model} not found in tiktoken library, using rough estimate."
+            )
             # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
             total_tokens = sum(
                 [
@@ -460,6 +468,13 @@ class LLMIntegration:
             tools=self._tools,
         )
         logger.info(".. done")
+
+        if hasattr(result, "usage") and result.usage:
+            self._token_usage["prompt_tokens"] += result.usage.prompt_tokens
+            self._token_usage["completion_tokens"] += result.usage.completion_tokens
+            self._token_usage["total_tokens"] += result.usage.total_tokens
+            logger.info(f"Token usage: {result.usage.total_tokens} tokens")
+
         return result
 
     def get_print_view(
@@ -470,7 +485,20 @@ class LLMIntegration:
         print_view = []
         total_tokens = 0
         pinned_tokens = 0
+        api_call_count = 0
+
+        tools_tokens = 0
+        if self._tools:
+            tools_str = json.dumps(self._tools)
+            tools_tokens = self.estimate_tokens(
+                [{MessageKeys.ROLE: "system", MessageKeys.CONTENT: tools_str}],
+                self._model,
+            )
+
         for message_idx, message in enumerate(self._all_messages):
+            if message[MessageKeys.ROLE] == Roles.ASSISTANT:
+                api_call_count += 1
+
             tokens = self.estimate_tokens([message], self._model)
             in_context = message in self._messages
             if in_context:
@@ -494,6 +522,8 @@ class LLMIntegration:
                     MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
+
+        total_tokens += tools_tokens * api_call_count
 
         return print_view, total_tokens, pinned_tokens
 
@@ -625,3 +655,13 @@ class LLMIntegration:
             display(HTML(pio.to_html(artifact, full_html=False)))
         else:
             display(Markdown(f"```\n{str(artifact)}\n```"))
+
+    def get_token_usage(self) -> Dict[str, int]:
+        """Get the actual token usage as reported by the OpenAI API.
+
+        Returns
+        -------
+        Dict[str, int]
+            A dictionary containing prompt_tokens, completion_tokens, and total_tokens
+        """
+        return self._token_usage
