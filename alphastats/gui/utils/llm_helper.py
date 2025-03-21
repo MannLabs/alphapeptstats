@@ -903,9 +903,15 @@ def show_llm_chat(
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)
 
-    st.markdown(
-        f"*total tokens in context: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
-    )
+    token_usage = llm_integration.get_token_usage()
+    if token_usage["total_tokens"] > 0:
+        st.markdown(
+            f"*Tokens used: {token_usage['total_tokens']} (prompt: {token_usage['prompt_tokens']}, completion: {token_usage['completion_tokens']}), pinned messages: {str(pinned_tokens)}*"
+        )
+    else:
+        st.markdown(
+            f"*Estimated tokens in context: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
+        )
 
     if selected_analysis_session_state.get(LLMKeys.RECENT_CHAT_WARNINGS):
         st.warning("Warnings during last chat completion:")

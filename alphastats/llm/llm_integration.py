@@ -231,6 +231,11 @@ class LLMIntegration:
         self._metadata = None if dataset is None else dataset.metadata
         self._genes_of_interest = genes_of_interest
         self._max_tokens = max_tokens
+        self._token_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -702,6 +707,24 @@ class LLMIntegration:
             + NO_REPRESENTATION_PROMPT
         )
 
+    def _chat_completion_create(self) -> ChatCompletion:
+        """Create a chat completion based on the current conversation history."""
+        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
+        result = self._client.chat.completions.create(
+            model=self._model,
+            messages=self._messages,
+            tools=self._tools,
+        )
+        logger.info(".. done")
+
+        if hasattr(result, "usage") and result.usage:
+            self._token_usage["prompt_tokens"] += result.usage.prompt_tokens
+            self._token_usage["completion_tokens"] += result.usage.completion_tokens
+            self._token_usage["total_tokens"] += result.usage.total_tokens
+            logger.info(f"Token usage: {result.usage.total_tokens} tokens")
+
+        return result
+
     def get_print_view(
         self, show_all=False
     ) -> Tuple[List[Dict[str, Any]], float, float]:
@@ -738,6 +761,8 @@ class LLMIntegration:
                     MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
+
+        total_tokens += tools_tokens * api_call_count
 
         return print_view, total_tokens, pinned_tokens
 
@@ -826,3 +851,13 @@ class LLMIntegration:
             display(HTML(pio.to_html(artifact, full_html=False)))
         else:
             display(Markdown(f"```\n{str(artifact)}\n```"))
+
+    def get_token_usage(self) -> Dict[str, int]:
+        """Get the actual token usage as reported by the OpenAI API.
+
+        Returns
+        -------
+        Dict[str, int]
+            A dictionary containing prompt_tokens, completion_tokens, and total_tokens
+        """
+        return self._token_usage
