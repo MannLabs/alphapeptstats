@@ -364,27 +364,18 @@ class LLMIntegration:
                                     250  # Placeholder token count for an image
                                 )
         except KeyError:
-            for message in messages:
-                if message and MessageKeys.CONTENT in message:
-                    content = message[MessageKeys.CONTENT]
-                    if isinstance(content, str):
-                        total_tokens += len(content) / average_chars_per_token
-                    elif isinstance(content, list):
-                        for part in content:
-                            if (
-                                isinstance(part, dict)
-                                and part.get("type") == "text"
-                                and isinstance(part.get("text"), str)
-                            ):
-                                total_tokens += (
-                                    len(part["text"]) / average_chars_per_token
-                                )
-                            elif (
-                                isinstance(part, dict)
-                                and part.get("type") == "image_url"
-                            ):
-                                total_tokens += 250  # Placeholder
-        return int(total_tokens)
+            logger.warning(
+                f"Model {model} not found in tiktoken library, using rough estimate."
+            )
+            # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
+            total_tokens = sum(
+                [
+                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
+                    for message in messages
+                    if message
+                ]
+            )
+        return total_tokens
 
     def _truncate(
         self, messages: List[Dict[str, Any]], average_chars_per_token: float = 3.6
