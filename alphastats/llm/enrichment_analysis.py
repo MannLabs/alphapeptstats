@@ -23,21 +23,22 @@ def _get_functional_annotation_string(
     Returns:
         pd.DataFrame: The functional annotation data.
     """
-    identifiers = "%0d".join(identifiers)
+    params = {
+        "identifiers": "%0d".join(identifiers),  # your protein list
+        "species": species_id,  # NCBI/STRING taxon identifier
+        "caller_identity": "alphapeptstats",  # your app name
+    }
     if background_identifiers:
-        background_identifiers = "&background_string_identifiers=" + "%0d".join(
-            background_identifiers
-        )
-    url = f"https://string-db.org/api/json/enrichment?identifiers={identifiers}{background_identifiers}&species={int(species_id)}&caller_identity=alphapeptstats"
-    response = requests.get(url)
+        params["background_string_identifiers"] = "%0d".join(background_identifiers)
+    url = "https://string-db.org/api/json/enrichment"
+    response = requests.post(url, data=params)
 
     if response.status_code == 200:
         data = response.json()
         df = pd.DataFrame(data)
         return df
     else:
-        print(f"Request failed with status code {response.status_code}")
-        return None
+        raise ValueError(f"Request failed with status code {response.status_code}")
 
 
 def _map_representation_to_string(
@@ -76,17 +77,15 @@ def _map_representation_to_string(
 
     response = requests.post(request_url, data=params)
     if response.status_code == 200:
-        print(response.text)
         results = response.text.strip()
         string_identifiers = []
         for line in results.split("\n"):
             string_identifiers.append(line.split("\t")[2])
         return string_identifiers
     else:
-        print(
+        raise ValueError(
             f"Request to map string identifiers failed with status code {response.status_code}"
         )
-        return None
 
 
 def _get_functional_annotation_gprofiler(identifiers: List[str]) -> pd.DataFrame:
