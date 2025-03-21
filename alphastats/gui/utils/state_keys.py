@@ -40,6 +40,15 @@ class LLMKeys(metaclass=ConstantsClass):
     INCLUDE_UNIPROT = "include_uniprot"
 
 
+class SavedAnalysisKeys(metaclass=ConstantsClass):
+    """Keys for saved analyses in session state."""
+
+    RESULT = "result"
+    METHOD = "method"
+    PARAMETERS = "parameters"
+    NUMBER = "number"
+
+
 class DefaultStates(metaclass=ConstantsClass):
     """Default values for some UI components."""
 

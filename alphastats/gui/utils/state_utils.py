@@ -5,6 +5,7 @@ import uuid
 import streamlit as st
 
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
+from alphastats.llm.llm_integration import Models
 
 
 def empty_session_state() -> None:
@@ -36,3 +37,8 @@ def init_session_state() -> None:
 
     if StateKeys.MAX_TOKENS not in st.session_state:
         st.session_state[StateKeys.MAX_TOKENS] = 10000
+
+    if StateKeys.MODEL_NAME not in st.session_state:
+        st.session_state[StateKeys.MODEL_NAME] = (
+            Models.GPT4O
+        )  # TDOO: change to None: this is just for convenience now

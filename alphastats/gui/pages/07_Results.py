@@ -3,7 +3,9 @@ import streamlit as st
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
 )
+from alphastats.gui.utils.llm_helper import show_llm_chat
 from alphastats.gui.utils.state_keys import (
+    SavedAnalysisKeys,
     StateKeys,
 )
 from alphastats.gui.utils.state_utils import (
@@ -24,18 +26,22 @@ if not st.session_state[StateKeys.SAVED_ANALYSES]:
     st.stop()
 
 for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
-    analysis_result = saved_analysis["result"]
-    method = saved_analysis["method"]
-    parameters = saved_analysis["parameters"]
-    number = saved_analysis["number"]
+    analysis_result = saved_analysis[SavedAnalysisKeys.RESULT]
+    method = saved_analysis[SavedAnalysisKeys.METHOD]
+    parameters = saved_analysis[SavedAnalysisKeys.PARAMETERS]
+    number = saved_analysis[SavedAnalysisKeys.NUMBER]
 
     st.markdown("\n\n\n")
-    st.markdown(f"#### #{number}: {method} [{key}]")
+    st.markdown(f"### #{number}: {method} [{key}]")
     st.markdown(f"Parameters used for analysis: `{parameters}`")
 
     name = f"{method}_{number}"
 
-    if st.button(f"❌ Remove analysis #{number}", key=f"remove_{name}"):
+    if st.button(
+        f"❌ Remove analysis #{number}",
+        key=f"remove_{name}",
+        help="Also removes the associated LLM chat",
+    ):
         del st.session_state[StateKeys.SAVED_ANALYSES][key]
         st.rerun()
 
@@ -47,3 +53,16 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
         name=name,
         editable_annotation=False,
     )
+    st.markdown("#### LLM Chat")
+    if (
+        llm_integration := st.session_state.get(StateKeys.LLM_CHATS, {})
+        .get(key, {})
+        .get(st.session_state[StateKeys.MODEL_NAME])
+    ) is not None:
+        with st.expander("LLM Chat (read-only)", expanded=False):
+            show_llm_chat(llm_integration, key)
+    else:
+        st.write("No LLM chat available yet for this analysis.")
+
+    # passing parameters is not possible yet https://github.com/streamlit/streamlit/issues/8112
+    st.page_link("pages/06_LLM.py", label="=> Create/Continue chat...")

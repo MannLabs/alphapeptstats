@@ -1,17 +1,25 @@
 import os
+import warnings
 from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
 
+from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
-from alphastats.gui.utils.state_keys import DefaultStates, LLMKeys, StateKeys
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
+from alphastats.gui.utils.state_keys import (
+    DefaultStates,
+    LLMKeys,
+    SavedAnalysisKeys,
+    StateKeys,
+)
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
 )
+from alphastats.plots.plot_utils import PlotlyObject
 
 LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
 
@@ -20,7 +28,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 @st.fragment
 def llm_config():
-    """Show the configuration options for the LLM analysis."""
+    """Show the configuration options for the LLM interpretation."""
     c1, _ = st.columns((1, 2))
     with c1:
         current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
@@ -71,6 +79,30 @@ def llm_config():
 
         if current_model != st.session_state[StateKeys.MODEL_NAME]:
             st.rerun(scope="app")
+
+
+def pretty_print_analysis(key: str) -> str:
+    """Pretty print an analysis referenced by `key`."""
+    analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
+    return f"[{key}] #{analysis[SavedAnalysisKeys.NUMBER]} {analysis[SavedAnalysisKeys.METHOD]} {analysis[SavedAnalysisKeys.PARAMETERS]}"
+
+
+def init_llm_chat_state(
+    selected_llm_chat: dict, upregulated_genes: list, downregulated_genes: list
+) -> None:
+    """Initialize the state for a given llm_chat."""
+    if LLMKeys.RECENT_CHAT_WARNINGS not in selected_llm_chat:
+        selected_llm_chat[LLMKeys.RECENT_CHAT_WARNINGS] = []
+
+    if selected_llm_chat.get(LLMKeys.SELECTED_UNIPROT_FIELDS) is None:
+        selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
+            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
+        )
+
+    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_UP) is None:
+        selected_llm_chat[LLMKeys.SELECTED_GENES_UP] = upregulated_genes
+    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_DOWN) is None:
+        selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN] = downregulated_genes
 
 
 @st.fragment
@@ -235,7 +267,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
     """
     Retrieves and formats UniProt information for a list of regulated features.
 
-    Note: The information is retrieved from the `annotation_store` in the `session_state`, which is filled when the LLM analysis is set up from the anlaysis page.
+    Note: The information is retrieved from the `annotation_store` in the `session_state`, which is filled when the LLM interpretation is set up from the anlaysis page.
 
     Args:
         regulated_features (list): A list of features for which UniProt information is to be retrieved.
@@ -261,7 +293,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 # TODO: Write test for this display
 @st.fragment
 def display_uniprot(
-    regulated_genes_dict,
+    regulated_genes_dict: dict,
     feature_to_repr_map,
     model_name: str,
     selected_analysis_key: str,
@@ -270,8 +302,19 @@ def display_uniprot(
 ):
     """Display the interface for selecting fields from UniProt information, including a preview of the selected fields."""
     all_fields = ExtractedUniprotFields.get_values()
+    if any(
+        feature not in st.session_state[StateKeys.ANNOTATION_STORE]
+        for feature in regulated_genes_dict
+    ):
+        st.info(
+            "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
+        )
+        return
+
     st.markdown(
-        "We reccomend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretaiton of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
+        "We recommend providing at least limited information from Uniprot for all proteins as part of the initial "
+        "prompt to avoid misinterpretation of gene names or ids by the LLM. You can edit the selection of fields to "
+        "include while chatting for on-the-fly demand for more information."
     )
     c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
@@ -311,8 +354,6 @@ def display_uniprot(
             on_change=on_change_save_state,
         )
 
-    if c6.button("Update prompt", disabled=disabled):
-        st.rerun(scope="app")
     c1, c2 = st.columns((1, 3))
     with c1, st.expander("Show options", expanded=True):
         selected_fields = []
@@ -375,3 +416,99 @@ def on_change_save_state():
         StateKeys.INCLUDE_UNIPROT
     ]
     st.toast("State saved.", icon="💾")
+
+
+@st.fragment
+def show_llm_chat(
+    llm_integration: LLMIntegration,
+    selected_analysis_key: str,
+    show_all: bool = False,
+    show_individual_tokens: bool = False,
+    show_prompt: bool = True,
+):
+    """The chat interface for the LLM interpretation."""
+
+    # TODO dump to file -> static file name, plus button to do so
+    # Ideas: save chat as txt, without encoding objects, just put a replacement string.
+    # Offer bulk download of zip with all figures (via plotly download as svg.).
+    # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
+
+    # TODO show errors by default
+    # e.g. {"result": "Error executing get_uniprot_info_for_search_string: 'st.session_state has no key "selected_uniprot_fields".
+
+    selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
+        selected_analysis_key
+    ]
+    model_name = llm_integration._model
+    # no. tokens spent
+    messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
+        show_all=show_all
+    )
+    for message in messages:
+        with st.chat_message(message[MessageKeys.ROLE]):
+            st.markdown(
+                f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.CONTENT]}"
+            )
+            if (
+                message[MessageKeys.PINNED]
+                or not message[MessageKeys.IN_CONTEXT]
+                or show_individual_tokens
+            ):
+                token_message = ""
+                if message[MessageKeys.PINNED]:
+                    token_message += ":pushpin: "
+                if not message[MessageKeys.IN_CONTEXT]:
+                    token_message += ":x: "
+                if show_individual_tokens:
+                    tokens = llm_integration.estimate_tokens(
+                        [message], model=model_name
+                    )
+                    token_message += f"*tokens: {str(tokens)}*"
+                st.markdown(token_message)
+            for artifact in message[MessageKeys.ARTIFACTS]:
+                if isinstance(artifact, pd.DataFrame):
+                    st.dataframe(artifact)
+                elif isinstance(
+                    artifact, (PlotlyObject, plotly_object)
+                ):  # TODO can there be non-plotly types here
+                    st.plotly_chart(artifact)
+                elif not isinstance(artifact, str):
+                    st.warning("Don't know how to display artifact:")
+                    st.write(artifact)
+
+    st.markdown(
+        f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
+    )
+
+    if selected_analysis_session_state.get(LLMKeys.RECENT_CHAT_WARNINGS):
+        st.warning("Warnings during last chat completion:")
+        for warning in selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS]:
+            st.warning(str(warning.message).replace("\n", "\n\n"))
+
+    if show_prompt and (prompt := st.chat_input("Say something")):
+        with st.chat_message(Roles.USER):
+            st.markdown(prompt)
+            if show_individual_tokens:
+                st.markdown(
+                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
+                )
+        with st.spinner("Processing prompt..."), warnings.catch_warnings(
+            record=True
+        ) as caught_warnings:
+            llm_integration.chat_completion(prompt)
+            selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS] = (
+                caught_warnings
+            )
+
+        st.rerun(scope="fragment")
+
+    st.download_button(
+        "Download chat log",
+        llm_integration.get_chat_log_txt(),
+        f"chat_log_{model_name}.txt",
+        "text/plain",
+    )
+
+    st.markdown(
+        "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
+    )
