@@ -69,7 +69,7 @@ selected_analysis_key = st.selectbox(
     format_func=pretty_print_analysis,
     index=None if len(saved_analyses_keys) > 1 else 0,
     on_change=on_select_fill_state,
-    key=StateKeys.SELECED_ANALYSIS,
+    key=StateKeys.SELECTED_ANALYSIS,
 )
 
 if (
@@ -214,7 +214,7 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state.get(StateKeys.INCLUDE_UNIPROT, None):
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],

@@ -349,7 +349,7 @@ def display_uniprot(
         st.checkbox(
             "Integrate into initial prompt",
             help="If this is ticked and the initial prompt is updated, the Uniprot information will be included in the prompt and the instructions regarding uniprot will change to onl;y look up more information if explicitly asked to do so. Make sure that the total tokens are below the message limit of your LLM.",
-            key=StateKeys.INCLUDE_UNIPROT,
+            key=StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
             disabled=disabled,
             on_change=on_change_save_state,
         )
@@ -398,24 +398,28 @@ def display_uniprot(
             )
 
 
-def on_select_fill_state():
+def on_select_fill_state() -> None:
+    """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
     selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
-        st.session_state[StateKeys.SELECED_ANALYSIS], None
+        st.session_state[StateKeys.SELECTED_ANALYSIS], None
     )
-    st.session_state[StateKeys.INCLUDE_UNIPROT] = selected_analysis.get(
-        LLMKeys.INCLUDE_UNIPROT, False
+    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
+        selected_analysis.get(LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False)
     )
     st.toast("State filled from saved analysis.", icon="🔍")
 
 
-def on_change_save_state():
+def on_change_save_state() -> None:
+    """Save the state of LLM related widgets to the selected analysis before rerunning the page.
+
+    This can be expanded to other widgets as needed.
+    """
     selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
-        st.session_state[StateKeys.SELECED_ANALYSIS], None
+        st.session_state[StateKeys.SELECTED_ANALYSIS], None
     )
-    selected_analysis[LLMKeys.INCLUDE_UNIPROT] = st.session_state[
-        StateKeys.INCLUDE_UNIPROT
+    selected_analysis[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = st.session_state[
+        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT
     ]
-    st.toast("State saved.", icon="💾")
 
 
 @st.fragment

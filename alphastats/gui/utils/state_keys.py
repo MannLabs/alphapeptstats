@@ -24,9 +24,11 @@ class StateKeys(metaclass=ConstantsClass):
     LLM_CHATS = "llm_chats"
 
     ANNOTATION_STORE = "annotation_store"
-    SELECED_ANALYSIS = "selected_analysis"
+    SELECTED_ANALYSIS = "selected_analysis"
+
+    # Mirrored by LLMKeys where they are stored in a chat specific manner
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    INCLUDE_UNIPROT = "include_uniprot"
+    INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
 
 
 class LLMKeys(metaclass=ConstantsClass):
@@ -35,9 +37,11 @@ class LLMKeys(metaclass=ConstantsClass):
     LLM_INTEGRATION = "llm_integration"
     SELECTED_GENES_UP = "selected_genes_up"
     SELECTED_GENES_DOWN = "selected_genes_down"
-    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
-    INCLUDE_UNIPROT = "include_uniprot"
+
+    # Mirrored by StateKeys for handling reactivity and making it available to functions reading from the session state
+    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
+    INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
 
 
 class SavedAnalysisKeys(metaclass=ConstantsClass):
