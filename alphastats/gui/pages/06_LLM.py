@@ -15,7 +15,7 @@ from alphastats.gui.utils.llm_helper import (
     OLLAMA_BASE_URL,
     display_uniprot,
     init_llm_chat_state,
-    pretty_print_analysis
+    pretty_print_analysis,
     protein_selector,
     show_llm_chat,
 )
