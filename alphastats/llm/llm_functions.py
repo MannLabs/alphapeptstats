@@ -164,8 +164,12 @@ def get_general_assistant_functions() -> List[Dict]:
                             "description": "The tool to use for enrichment analysis",
                             "enum": ["gprofiler", "string"],
                         },
+                        "include_background": {
+                            "type": "boolean",
+                            "description": "Whether to include background genes",
+                        },
                     },
-                    "required": ["difexpressed", "organism_id"],
+                    "required": ["difexpressed", "organism_id", "tool"],
                 },
             },
         },
