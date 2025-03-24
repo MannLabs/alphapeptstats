@@ -47,6 +47,14 @@ def _get_functional_annotation_string(
     if response.status_code == 200:
         data = response.json()
         df = pd.DataFrame(data)
+        df.drop(
+            [
+                "ncbiTaxonId",
+                "inputGenes",
+            ],
+            axis=1,
+            inplace=True,
+        )
         return df
     else:
         raise ValueError(f"Request failed with status code {response.status_code}")
@@ -176,8 +184,8 @@ gprofiler_organisms = {
 def get_enrichment_data(
     difexpressed: List[str],
     organism_id: str = "9606",
-    tool: str = "gprofiler",
-    include_background: bool = False,
+    tool: str = "string",
+    include_background: bool = True,
 ) -> pd.DataFrame:
     """
     Get enrichment data for a list of differentially expressed genes.
