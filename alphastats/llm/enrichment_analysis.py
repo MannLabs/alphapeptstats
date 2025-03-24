@@ -1,4 +1,8 @@
-from typing import List
+"""Enrichment analysis functions used by the LLM."""
+
+from __future__ import annotations
+
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -10,8 +14,8 @@ from alphastats.gui.utils.state_utils import StateKeys
 
 
 def _get_functional_annotation_string(
-    identifiers: list,
-    background_identifiers: list = None,
+    identifiers: list[str],
+    background_identifiers: Optional | list[str] = None,
     species_id: str = "9606",
 ) -> pd.DataFrame:
     """Get functional annotation from STRING for a list of gene identifiers.
@@ -48,23 +52,22 @@ def _get_functional_annotation_string(
 
     if response.status_code == 200:
         data = response.json()
-        df = pd.DataFrame(data)
-        df.drop(
+        enrichment_data = pd.DataFrame(data)
+        enrichment_data = enrichment_data.drop(
             [
                 "ncbiTaxonId",
                 "inputGenes",
             ],
             axis=1,
-            inplace=True,
         )
-        return df
+        return enrichment_data
     raise ValueError(f"Request failed with status code {response.status_code}")
 
 
 def _map_short_representation_to_string(
-    short_representations: List[str],
+    short_representations: list[str],
     species: str = "9606",
-) -> List[str]:
+) -> list[str]:
     """Map feature representations to STRING identifiers.
 
     Parameters
@@ -97,28 +100,25 @@ def _map_short_representation_to_string(
         "caller_identity": "alphapeptstats",  # your app name
     }
 
-    request_url = "/".join([string_api_url, output_format, method])
+    request_url = f"{string_api_url}/{output_format}/{method}"
 
     response = requests.post(request_url, data=params)
     if response.status_code == 200:
         results = response.text.strip()
-        string_identifiers = []
-        for line in results.split("\n"):
-            string_identifiers.append(line.split("\t")[2])
-        return string_identifiers
+        return [line.split("\t")[2] for line in results.split("\n")]
     raise ValueError(
         f"Request to map string identifiers failed with status code {response.status_code}",
     )
 
 
-def _shorten_representations(representations: List[str], sep=";") -> List[str]:
+def _shorten_representations(representations: list[str], sep: str = ";") -> list[str]:
     """Shorten feature representations by extracting the first part of each representation.
 
     Parameters
     ----------
     representations : list of str
         A list of feature representations to shorten.
-    sep : str, optional
+    sep : str
         The separator used to split the representations. Default is ";".
 
     Returns
@@ -127,15 +127,12 @@ def _shorten_representations(representations: List[str], sep=";") -> List[str]:
         A list of shortened feature representations.
 
     """
-    short_representations = [
-        input_repr.split(sep)[0].split(":")[-1] for input_repr in representations
-    ]
-    return short_representations
+    return [input_repr.split(sep)[0].split(":")[-1] for input_repr in representations]
 
 
 def _get_functional_annotation_gprofiler(
-    query: List[str],
-    background: List = None,
+    query: list[str],
+    background: Optional | list[str] = None,
     organism: str = "hsapiens",
 ) -> pd.DataFrame:
     """Get functional annotation from g:Profiler for a list of gene identifiers.
@@ -168,8 +165,7 @@ def _get_functional_annotation_gprofiler(
         user_agent="AlphaPeptStats",
         return_dataframe=True,
     )
-    df = gp.profile(query=query, organism=organism, background=background)
-    return df
+    return gp.profile(query=query, organism=organism, background=background)
 
 
 gprofiler_organisms = {
@@ -184,9 +180,10 @@ gprofiler_organisms = {
 
 
 def get_enrichment_data(
-    difexpressed: List[str],
+    difexpressed: list[str],
     organism_id: str = "9606",
     tool: str = "string",
+    *,
     include_background: bool = True,
 ) -> pd.DataFrame:
     """Get enrichment data for a list of differentially expressed genes.
@@ -212,16 +209,19 @@ def get_enrichment_data(
 
     Raises
     ------
-    AssertionError
+    ValueError
         If the tool is not "gprofiler" or "string".
     ValueError
         If the organism ID is not supported by the selected tool.
 
     """
-    assert tool in [
+    if tool not in [
         "gprofiler",
         "string",
-    ], "Tool must be either 'gprofiler' or 'string'"
+    ]:
+        raise ValueError(
+            f"Tool {tool} not supported. Must be either 'gprofiler' or 'string'."
+        )
 
     # Get single id for each feature
     if include_background:
