@@ -10,10 +10,11 @@ from alphastats.gui.utils.state_utils import StateKeys
 
 
 def _get_functional_annotation_string(
-    identifiers: list, background_identifiers: list = None, species_id: str = "9606"
+    identifiers: list,
+    background_identifiers: list = None,
+    species_id: str = "9606",
 ) -> pd.DataFrame:
-    """
-    Get functional annotation from STRING for a list of gene identifiers.
+    """Get functional annotation from STRING for a list of gene identifiers.
 
     Parameters
     ----------
@@ -33,6 +34,7 @@ def _get_functional_annotation_string(
     ------
     ValueError
         If the request to the STRING API fails.
+
     """
     params = {
         "identifiers": "%0d".join(identifiers),  # your protein list
@@ -56,15 +58,14 @@ def _get_functional_annotation_string(
             inplace=True,
         )
         return df
-    else:
-        raise ValueError(f"Request failed with status code {response.status_code}")
+    raise ValueError(f"Request failed with status code {response.status_code}")
 
 
 def _map_short_representation_to_string(
-    short_representations: List[str], species: str = "9606"
+    short_representations: List[str],
+    species: str = "9606",
 ) -> List[str]:
-    """
-    Map feature representations to STRING identifiers.
+    """Map feature representations to STRING identifiers.
 
     Parameters
     ----------
@@ -82,8 +83,8 @@ def _map_short_representation_to_string(
     ------
     ValueError
         If the request to the STRING API fails.
-    """
 
+    """
     string_api_url = "https://version-12-0.string-db.org/api"
     output_format = "tsv-no-header"
     method = "get_string_ids"
@@ -105,15 +106,13 @@ def _map_short_representation_to_string(
         for line in results.split("\n"):
             string_identifiers.append(line.split("\t")[2])
         return string_identifiers
-    else:
-        raise ValueError(
-            f"Request to map string identifiers failed with status code {response.status_code}"
-        )
+    raise ValueError(
+        f"Request to map string identifiers failed with status code {response.status_code}",
+    )
 
 
 def _shorten_representations(representations: List[str], sep=";") -> List[str]:
-    """
-    Shorten feature representations by extracting the first part of each representation.
+    """Shorten feature representations by extracting the first part of each representation.
 
     Parameters
     ----------
@@ -126,6 +125,7 @@ def _shorten_representations(representations: List[str], sep=";") -> List[str]:
     -------
     list of str
         A list of shortened feature representations.
+
     """
     short_representations = [
         input_repr.split(sep)[0].split(":")[-1] for input_repr in representations
@@ -134,10 +134,11 @@ def _shorten_representations(representations: List[str], sep=";") -> List[str]:
 
 
 def _get_functional_annotation_gprofiler(
-    query: List[str], background: List = None, organism: str = "hsapiens"
+    query: List[str],
+    background: List = None,
+    organism: str = "hsapiens",
 ) -> pd.DataFrame:
-    """
-    Get functional annotation from g:Profiler for a list of gene identifiers.
+    """Get functional annotation from g:Profiler for a list of gene identifiers.
 
     Parameters
     ----------
@@ -157,10 +158,11 @@ def _get_functional_annotation_gprofiler(
     ------
     Warning
         If the organism is not in the predefined list of organisms supported by g:Profiler.
+
     """
     if organism not in gprofiler_organisms.values():
         raise Warning(
-            f"Organism {organism} not necessarily supported by g:Profiler. Supported organisms are {gprofiler_organisms.values()}"
+            f"Organism {organism} not necessarily supported by g:Profiler. Supported organisms are {gprofiler_organisms.values()}",
         )
     gp = GProfiler(
         user_agent="AlphaPeptStats",
@@ -187,8 +189,7 @@ def get_enrichment_data(
     tool: str = "string",
     include_background: bool = True,
 ) -> pd.DataFrame:
-    """
-    Get enrichment data for a list of differentially expressed genes.
+    """Get enrichment data for a list of differentially expressed genes.
 
     The tool shortens the gene representations and maps them to STRING identifiers if necessary.
     The background is fetched from the dataset if include_background is True.
@@ -215,6 +216,7 @@ def get_enrichment_data(
         If the tool is not "gprofiler" or "string".
     ValueError
         If the organism ID is not supported by the selected tool.
+
     """
     assert tool in [
         "gprofiler",
@@ -225,7 +227,7 @@ def get_enrichment_data(
     if include_background:
         dataset: DataSet = st.session_state.get(StateKeys.DATASET)
         background_identifiers = _shorten_representations(
-            dataset._feature_to_repr_map.values()
+            dataset._feature_to_repr_map.values(),
         )
     else:
         background_identifiers = None
@@ -237,7 +239,7 @@ def get_enrichment_data(
             organism_id = gprofiler_organisms[organism_id]
         else:
             raise ValueError(
-                f"Organism ID {organism_id} not supported by g:Profiler. Supported IDs are {gprofiler_organisms.keys()}"
+                f"Organism ID {organism_id} not supported by g:Profiler. Supported IDs are {gprofiler_organisms.keys()}",
             )
         enrichment_data = _get_functional_annotation_gprofiler(
             query=diff_identifiers,
@@ -247,10 +249,12 @@ def get_enrichment_data(
     elif tool == "string":
         if background_identifiers:
             background_identifiers = _map_short_representation_to_string(
-                background_identifiers, organism_id
+                background_identifiers,
+                organism_id,
             )
         diff_identifiers = _map_short_representation_to_string(
-            diff_identifiers, organism_id
+            diff_identifiers,
+            organism_id,
         )
         enrichment_data = _get_functional_annotation_string(
             identifiers=diff_identifiers,
