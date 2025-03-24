@@ -2,21 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
 import requests
 import streamlit as st
 from gprofiler import GProfiler
 
-from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.state_utils import StateKeys
+
+if TYPE_CHECKING:
+    from alphastats.dataset.dataset import DataSet
 
 
 def _get_functional_annotation_string(
     identifiers: list[str],
     background_identifiers: Optional | list[str] = None,
     species_id: str = "9606",
+    timeout: int = 600,
 ) -> pd.DataFrame:
     """Get functional annotation from STRING for a list of gene identifiers.
 
@@ -28,6 +31,8 @@ def _get_functional_annotation_string(
         A list of background gene identifiers for enrichment analysis. Default is None.
     species_id : str, optional
         The NCBI/STRING taxon identifier for the species. Default is "9606" (human).
+    timeout : int, optional
+        The timeout for the request in seconds. Default is 5 minutes.
 
     Returns
     -------
@@ -48,25 +53,31 @@ def _get_functional_annotation_string(
     if background_identifiers:
         params["background_string_identifiers"] = "%0d".join(background_identifiers)
     url = "https://string-db.org/api/json/enrichment"
-    response = requests.post(url, data=params)
 
-    if response.status_code == 200:
-        data = response.json()
-        enrichment_data = pd.DataFrame(data)
-        enrichment_data = enrichment_data.drop(
-            [
-                "ncbiTaxonId",
-                "inputGenes",
-            ],
-            axis=1,
-        )
-        return enrichment_data
-    raise ValueError(f"Request failed with status code {response.status_code}")
+    try:
+        response = requests.post(url, data=params, timeout=timeout)
+    except requests.exceptions.Timeout as e:
+        raise ValueError(
+            f"Request to STRING API timed out after {timeout} seconds"
+        ) from e
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Request to STRING API failed: {e}") from e
+
+    data = response.json()
+    enrichment_data = pd.DataFrame(data)
+    return enrichment_data.drop(
+        [
+            "ncbiTaxonId",
+            "inputGenes",
+        ],
+        axis=1,
+    )
 
 
 def _map_short_representation_to_string(
     short_representations: list[str],
     species: str = "9606",
+    timeout: int = 600,
 ) -> list[str]:
     """Map feature representations to STRING identifiers.
 
@@ -76,6 +87,8 @@ def _map_short_representation_to_string(
         A list of feature representations to map.
     species : str, optional
         The NCBI/STRING taxon identifier for the species. Default is "9606" (human).
+    timeout : int, optional
+        The timeout for the request in seconds. Default is 5 minutes.
 
     Returns
     -------
@@ -102,13 +115,19 @@ def _map_short_representation_to_string(
 
     request_url = f"{string_api_url}/{output_format}/{method}"
 
-    response = requests.post(request_url, data=params)
-    if response.status_code == 200:
-        results = response.text.strip()
-        return [line.split("\t")[2] for line in results.split("\n")]
-    raise ValueError(
-        f"Request to map string identifiers failed with status code {response.status_code}",
-    )
+    try:
+        response = requests.post(request_url, data=params, timeout=timeout)
+    except requests.exceptions.Timeout as e:
+        raise ValueError(
+            f"Request to STRING API timed out after {timeout} seconds"
+        ) from e
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Request to STRING API failed: {e}") from e
+
+    results = response.text.strip()
+    if not results:
+        raise ValueError("No identifiers could be mapped to STRING identifiers.")
+    return [line.split("\t")[2] for line in results.split("\n")]
 
 
 def _shorten_representations(representations: list[str], sep: str = ";") -> list[str]:
@@ -227,7 +246,7 @@ def get_enrichment_data(
     if include_background:
         dataset: DataSet = st.session_state.get(StateKeys.DATASET)
         background_identifiers = _shorten_representations(
-            dataset._feature_to_repr_map.values(),
+            dataset._feature_to_repr_map.values(),  # noqa: SLF001
         )
     else:
         background_identifiers = None
