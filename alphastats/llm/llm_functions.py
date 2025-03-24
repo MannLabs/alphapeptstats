@@ -162,7 +162,7 @@ def get_general_assistant_functions() -> List[Dict]:
                         "tool": {
                             "type": "string",
                             "description": "The tool to use for enrichment analysis. String output includes member names and can therefore be more useful for downstream analysis. Gprofiler output uses fewer tokens.",
-                            "enum": ["string", "grpofiler"],
+                            "enum": ["string", "gprofiler"],
                         },
                         "include_background": {
                             "type": "boolean",
