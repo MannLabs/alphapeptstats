@@ -6,10 +6,9 @@ from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
 import requests
-import streamlit as st
 from gprofiler import GProfiler
 
-from alphastats.gui.utils.state_utils import StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 
 if TYPE_CHECKING:
     from alphastats.dataset.dataset import DataSet
@@ -204,6 +203,7 @@ def get_enrichment_data(
     tool: str = "string",
     *,
     include_background: bool = True,
+    background: Optional | list[str] = None,
 ) -> pd.DataFrame:
     """Get enrichment data for a list of differentially expressed genes.
 
@@ -220,6 +220,8 @@ def get_enrichment_data(
         The tool to use for enrichment analysis. Must be either "gprofiler" or "string". Default is "gprofiler".
     include_background : bool, optional
         Whether to include background genes in the analysis. Default is False.
+    background : list of str, optional
+        A list of background genes for the enrichment analysis in case this funciton is run outside the GUI. Default is None.
 
     Returns
     -------
@@ -244,10 +246,19 @@ def get_enrichment_data(
 
     # Get single id for each feature
     if include_background:
-        dataset: DataSet = st.session_state.get(StateKeys.DATASET)
-        background_identifiers = _shorten_representations(
-            dataset._feature_to_repr_map.values(),  # noqa: SLF001
-        )
+        try:
+            import streamlit as st
+
+            dataset: DataSet = st.session_state.get(StateKeys.DATASET)
+            background_identifiers = _shorten_representations(
+                dataset._feature_to_repr_map.values(),  # noqa: SLF001
+            )
+        except Exception as e:
+            if background is None:
+                raise ValueError(
+                    "Background identifiers must be provided as additional argument if enrichment is not run from the GUI."
+                ) from e
+            background_identifiers = _shorten_representations(background)
     else:
         background_identifiers = None
     diff_identifiers = _shorten_representations(difexpressed)
