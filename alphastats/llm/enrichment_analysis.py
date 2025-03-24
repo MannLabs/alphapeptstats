@@ -179,6 +179,8 @@ def _get_functional_annotation_gprofiler(
         raise Warning(
             f"Organism {organism} not necessarily supported by g:Profiler. Supported organisms are {gprofiler_organisms.values()}",
         )
+    if not query:
+        raise ValueError("No query genes provided for enrichment analysis.")
     gp = GProfiler(
         user_agent="AlphaPeptStats",
         return_dataframe=True,
