@@ -36,6 +36,11 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
+    MODEL_NAME = "model_name"
+    MAX_TOKENS = "max_tokens"
+
+    IS_INITIALIZED = "is_initialized"
+
 
 class SavedAnalysisKeys(metaclass=ConstantsClass):
     """Keys for saved analyses in session state."""
