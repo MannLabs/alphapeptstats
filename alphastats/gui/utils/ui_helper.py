@@ -23,7 +23,7 @@ def sidebar_info():
     )
     if st.sidebar.button(
         "Save session",
-        help="Saves the session to be able to load it later. Note that if AlphaPeptStats is running in a hosted environment, the session might become visible to others.",
+        help="Saves the session to disk to be able to load it later. Note that if AlphaPeptStats is running in a hosted environment, the session might become visible to others.",
         disabled=session_name != "" and not session_name.isalnum(),
     ):
         saved_file_path = SessionManager().save(st.session_state, session_name)
