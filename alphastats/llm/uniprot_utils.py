@@ -437,6 +437,11 @@ def get_annotations_for_feature(
     return annotations
 
 
+def get_uniprot_state_key(selected_analysis_key: str) -> str:
+    """Get analysis specific session state key for uniprot integration checkbox."""
+    return f"{selected_analysis_key}_integrate_uniprot".replace(" ", "")
+
+
 def format_uniprot_annotation(information: dict, fields: list = None) -> str:
     """
     Formats UniProt annotation information into a readable string.

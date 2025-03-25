@@ -6,11 +6,12 @@ import pandas as pd
 import streamlit as st
 
 from alphastats.gui.utils.analysis import NewAnalysisOptions
-from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
+from alphastats.gui.utils.state_keys import DefaultStates, LLMKeys, StateKeys
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
+    get_uniprot_state_key,
 )
 
 LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
@@ -74,12 +75,16 @@ def llm_config():
 
 
 @st.fragment
-def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
+def protein_selector(
+    df: pd.DataFrame, title: str, selected_analysis_key: str, state_key: str
+) -> None:
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
         df: DataFrame containing protein data with 'Gene', 'Selected', 'Protein' columns
         title: Title to display above the editor
+        selected_analysis_key: Key to access the selected analysis in the session state
+        state_key: Key to access the selected proteins in the selected analysis
 
     Returns:
         selected_proteins (List[str]): A list of selected proteins.
@@ -89,12 +94,17 @@ def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
         st.markdown("No significant proteins.")
         return []
     c1, c2 = st.columns([1, 1])
+    selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
+        selected_analysis_key
+    ]
+
     if c1.button("Select all", help=f"Select all {title} for analysis"):
-        st.session_state[state_key] = df["Protein"].tolist()
+        selected_analysis_session_state[state_key] = df["Protein"].tolist()
         st.rerun()
     if c2.button("Select none", help=f"Select no {title} for analysis"):
-        st.session_state[state_key] = []
+        selected_analysis_session_state[state_key] = []
         st.rerun()
+
     edited_df = st.data_editor(
         df,
         column_config={
@@ -111,9 +121,13 @@ def protein_selector(df: pd.DataFrame, title: str, state_key: str) -> List[str]:
         },
         disabled=["Gene"],
         hide_index=True,
+        # explicitly setting key: otherwise it's calculated from the data which causes problems if two analysis are exactly mirrored
+        key=f"{state_key}_data_editor",
     )
     # Extract the selected genes
-    return edited_df.loc[edited_df["Selected"], "Protein"].tolist()
+    selected_analysis_session_state[state_key] = edited_df.loc[
+        edited_df["Selected"], "Protein"
+    ].tolist()
 
 
 def get_df_for_protein_selector(
@@ -251,6 +265,7 @@ def display_uniprot(
     regulated_genes_dict,
     feature_to_repr_map,
     model_name: str,
+    selected_analysis_key: str,
     *,
     disabled=False,
 ):
@@ -260,14 +275,17 @@ def display_uniprot(
         "We reccomend to provide at least limited information from Uniprot for all proteins as part of the initial prompt to avoid misinterpretaiton of gene names or ids by the LLM. You can edit the selection of fields to include while chatting for on the fly demand for more information."
     )
     c1, c2, c3, c4, c5, c6 = st.columns((1, 1, 1, 1, 1, 1))
+    selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
+        selected_analysis_key
+    ]
     if c1.button("Select all"):
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = all_fields
+        selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = all_fields
         st.rerun(scope="fragment")
     if c2.button("Select none"):
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
+        selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = []
         st.rerun(scope="fragment")
     if c3.button("Recommended selection"):
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
+        selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
         st.rerun(scope="fragment")
@@ -275,7 +293,7 @@ def display_uniprot(
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE].get(feature, {}),
-                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                fields=selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS],
             )
             for feature in regulated_genes_dict
         ]
@@ -284,10 +302,22 @@ def display_uniprot(
         )
         st.markdown(f"Total tokens: {tokens:.0f}")
     with c5:
+        # this is required to persist the state of the "Integrate into initial prompt" checkbox for different analyses
+        if (
+            st.session_state.get(
+                session_state_key := get_uniprot_state_key(selected_analysis_key)
+            )
+            is None
+        ):
+            st.session_state[session_state_key] = False
+
         st.checkbox(
             "Integrate into initial prompt",
             help="If this is ticked and the initial prompt is updated, the Uniprot information will be included in the prompt and the instructions regarding uniprot will change to onl;y look up more information if explicitly asked to do so. Make sure that the total tokens are below the message limit of your LLM.",
-            key=StateKeys.INTEGRATE_UNIPROT,
+            key=get_uniprot_state_key(selected_analysis_key),
+            value=st.session_state[
+                get_uniprot_state_key(selected_analysis_key)
+            ],  # st.session_state.get(get_uniprot_state_key(selected_analysis_key), False),
             disabled=disabled,
         )
     if c6.button("Update prompt", disabled=disabled):
@@ -298,13 +328,16 @@ def display_uniprot(
         for field in all_fields:
             if st.checkbox(
                 field,
-                value=field in st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                value=field
+                in selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS],
             ):
                 selected_fields.append(field)
         if set(selected_fields) != set(
-            st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS]
+            selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS]
         ):
-            st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_fields
+            selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
+                selected_fields
+            )
             st.rerun(scope="fragment")
     with c2, st.expander("Show preview", expanded=True):
         # TODO: Fix desync on rerun (widget state not updated on rerun, value becomes ind0)
@@ -326,6 +359,8 @@ def display_uniprot(
             st.markdown(
                 format_uniprot_annotation(
                     st.session_state[StateKeys.ANNOTATION_STORE][preview_feature],
-                    fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                    fields=selected_analysis_session_state[
+                        LLMKeys.SELECTED_UNIPROT_FIELDS
+                    ],
                 )
             )
