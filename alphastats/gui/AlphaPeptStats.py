@@ -2,6 +2,7 @@ import os
 
 import streamlit as st
 
+from alphastats.gui.utils.llm_helper import llm_config
 from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER_PATH, SessionManager
 from alphastats.gui.utils.state_utils import (
     init_session_state,
@@ -68,6 +69,9 @@ else:
         loaded_file_path = SessionManager().load(file_to_load, st.session_state)
         st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
 
+
+st.markdown("#### Configure LLM")
+llm_config()
 
 ##
 st.markdown(

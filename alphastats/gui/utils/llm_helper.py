@@ -1,15 +1,76 @@
+import os
 from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
 
+from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys
+from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
 )
+
+LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
+
+@st.fragment
+def llm_config():
+    """Show the configuration options for the LLM analysis."""
+    c1, _ = st.columns((1, 2))
+    with c1:
+        current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
+
+        models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
+        model_name = st.selectbox(
+            "Select LLM",
+            models,
+            index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
+            if current_model is not None
+            else 0,
+        )
+        st.session_state[StateKeys.MODEL_NAME] = model_name
+
+        base_url = None
+        if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
+            api_key = st.text_input(
+                "Enter OpenAI API Key and press Enter", type="password"
+            )
+            set_api_key(api_key)
+        elif st.session_state[StateKeys.MODEL_NAME] in [
+            Models.OLLAMA_31_70B,
+            Models.OLLAMA_31_8B,
+        ]:
+            base_url = OLLAMA_BASE_URL
+            st.info(f"Expecting Ollama API at {base_url}.")
+
+        test_connection = st.button("Test connection")
+        if test_connection:
+            with st.spinner(f"Testing connection to {model_name}.."):
+                error = llm_connection_test(
+                    model_name=st.session_state[StateKeys.MODEL_NAME],
+                    api_key=st.session_state[StateKeys.OPENAI_API_KEY],
+                    base_url=base_url,
+                )
+                if error is None:
+                    st.success(f"Connection to {model_name} successful!")
+                else:
+                    st.error(f"Connection to {model_name} failed: {str(error)}")
+
+        st.number_input(
+            "Maximal number of tokens",
+            value=st.session_state[StateKeys.MAX_TOKENS],
+            min_value=2000,
+            max_value=128000,  # TODO: set this automatically based on the selected model
+            key=StateKeys.MAX_TOKENS,
+        )
+
+        if current_model != st.session_state[StateKeys.MODEL_NAME]:
+            st.rerun(scope="app")
 
 
 @st.fragment
