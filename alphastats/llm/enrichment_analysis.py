@@ -360,7 +360,7 @@ def _get_background(background: list[str]) -> list[str]:
     try:
         dataset: DataSet = _get_dataset()
     except Exception as e:
-        if background is None:
+        if not background:
             raise ValueError(
                 "Background identifiers must be provided as additional argument if enrichment is not run from the GUI."
             ) from e

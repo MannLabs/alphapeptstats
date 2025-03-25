@@ -276,6 +276,7 @@ def test_get_functional_annotation_gprofiler_empty_query(mock_gprofiler):
 
 @patch("alphastats.llm.enrichment_analysis._get_functional_annotation_gprofiler")
 @patch("alphastats.llm.enrichment_analysis._shorten_representations")
+@patch("streamlit.session_state", {})
 def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
     mock_shorten.side_effect = lambda x: x
     mock_gprofiler.return_value = pd.DataFrame(
@@ -317,6 +318,7 @@ def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
 @patch("alphastats.llm.enrichment_analysis._get_functional_annotation_stringdb")
 @patch("alphastats.llm.enrichment_analysis._map_short_representation_to_stringdb")
 @patch("alphastats.llm.enrichment_analysis._shorten_representations")
+@patch("streamlit.session_state", {})
 def test_get_enrichment_data_string(mock_shorten, mock_map, mock_string):
     mock_shorten.side_effect = lambda x: x
     mock_map.side_effect = lambda x, _: x
@@ -381,16 +383,13 @@ def test_get_enrichment_data_invalid_organism_gprofiler(mock_gprofiler):
         get_enrichment_data(difexpressed, organism_id, tool, include_background=False)
 
 
-@patch("alphastats.llm.enrichment_analysis._get_functional_annotation_stringdb")
-def test_get_enrichment_data_no_background_provided(mock_string):
-    difexpressed = ["gene1", "gene2"]
-    tool = "string"
-
+@patch("streamlit.session_state", {})
+def test_get_background_data_no_background_provided():
     with pytest.raises(
         ValueError,
         match="Background identifiers must be provided as additional argument if enrichment is not run from the GUI.",
     ):
-        get_enrichment_data(difexpressed, tool=tool, include_background=True)
+        _get_background([])
 
 
 @patch("alphastats.llm.enrichment_analysis._shorten_representations")
