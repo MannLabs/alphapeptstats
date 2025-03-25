@@ -14,7 +14,55 @@ if TYPE_CHECKING:
     from alphastats.dataset.dataset import DataSet
 
 
-def _get_functional_annotation_string(
+gprofiler_organisms = {
+    "9606": "hsapiens",
+    "10090": "mmusculus",
+    "10116": "rnorvegicus",
+    "7227": "dmelanogaster",
+    "6239": "celegans",
+    "4932": "scerevisiae",
+    "3702": "athaliana",
+}
+
+
+def _wrap_exceptions_requests_post(
+    api_descriptor: str, url: str, timeout: int, **kwargs
+) -> requests.Response:
+    """Wrap exceptions for requests.post.
+
+    Parameters
+    ----------
+    api_descriptor : str
+        Short string to describe the API called.
+    url : str
+        The URL to call.
+    timeout : int
+        The timeout for the request in seconds.
+    **kwargs
+        Keyword arguments to pass to requests.post.
+
+    Returns
+    -------
+    requests.Response
+        The response from the API call.
+
+    Raises
+    ------
+    ValueError
+        If the request to the API fails.
+
+    """
+    try:
+        return requests.post(url=url, timeout=timeout, **kwargs)
+    except requests.exceptions.Timeout as e:
+        raise ValueError(
+            f"Request to {api_descriptor} timed out after {kwargs["timeout"]} seconds"
+        ) from e
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Request to {api_descriptor} failed: {e}") from e
+
+
+def _get_functional_annotation_stringdb(
     identifiers: list[str],
     background_identifiers: Optional | list[str] = None,
     species_id: str = "9606",
@@ -38,29 +86,22 @@ def _get_functional_annotation_string(
     pd.DataFrame
         A DataFrame containing the functional annotation data.
 
-    Raises
-    ------
-    ValueError
-        If the request to the STRING API fails.
-
     """
+    stringdb_id_separator = "%0d"
     params = {
-        "identifiers": "%0d".join(identifiers),  # your protein list
+        "identifiers": stringdb_id_separator.join(identifiers),  # your protein list
         "species": species_id,  # NCBI/STRING taxon identifier
         "caller_identity": "alphapeptstats",  # your app name
     }
     if background_identifiers:
-        params["background_string_identifiers"] = "%0d".join(background_identifiers)
+        params["background_string_identifiers"] = stringdb_id_separator.join(
+            background_identifiers
+        )
     url = "https://string-db.org/api/json/enrichment"
 
-    try:
-        response = requests.post(url, data=params, timeout=timeout)
-    except requests.exceptions.Timeout as e:
-        raise ValueError(
-            f"Request to STRING API timed out after {timeout} seconds"
-        ) from e
-    except requests.exceptions.RequestException as e:
-        raise ValueError(f"Request to STRING API failed: {e}") from e
+    response = _wrap_exceptions_requests_post(
+        api_descriptor="STRING API", url=url, data=params, timeout=timeout
+    )
 
     data = response.json()
     enrichment_data = pd.DataFrame(data)
@@ -73,12 +114,14 @@ def _get_functional_annotation_string(
     )
 
 
-def _map_short_representation_to_string(
+def _map_short_representation_to_stringdb(
     short_representations: list[str],
     species: str = "9606",
     timeout: int = 600,
 ) -> list[str]:
     """Map feature representations to STRING identifiers.
+
+    The API returns one line per mapped input identifier, where the second value contains the index in the input and the third value contains the STRING identifier.
 
     Parameters
     ----------
@@ -100,7 +143,7 @@ def _map_short_representation_to_string(
         If the request to the STRING API fails.
 
     """
-    string_api_url = "https://version-12-0.string-db.org/api"
+    stringdb_api_url = "https://version-12-0.string-db.org/api"
     output_format = "tsv-no-header"
     method = "get_string_ids"
 
@@ -112,16 +155,11 @@ def _map_short_representation_to_string(
         "caller_identity": "alphapeptstats",  # your app name
     }
 
-    request_url = f"{string_api_url}/{output_format}/{method}"
+    request_url = f"{stringdb_api_url}/{output_format}/{method}"
 
-    try:
-        response = requests.post(request_url, data=params, timeout=timeout)
-    except requests.exceptions.Timeout as e:
-        raise ValueError(
-            f"Request to STRING API timed out after {timeout} seconds"
-        ) from e
-    except requests.exceptions.RequestException as e:
-        raise ValueError(f"Request to STRING API failed: {e}") from e
+    response = _wrap_exceptions_requests_post(
+        api_descriptor="STRING API", url=request_url, data=params, timeout=timeout
+    )
 
     results = response.text.strip()
     if not results:
@@ -143,6 +181,11 @@ def _shorten_representations(representations: list[str], sep: str = ";") -> list
     -------
     list of str
         A list of shortened feature representations.
+
+    Examples
+    --------
+    >>> _shorten_representations(["id:P12345;Q12345", "GENE1;GENE2", "GENE3"])
+    ["P12345", "GENE1", "GENE3"]
 
     """
     return [input_repr.split(sep)[0].split(":")[-1] for input_repr in representations]
@@ -186,17 +229,6 @@ def _get_functional_annotation_gprofiler(
         return_dataframe=True,
     )
     return gp.profile(query=query, organism=organism, background=background)
-
-
-gprofiler_organisms = {
-    "9606": "hsapiens",
-    "10090": "mmusculus",
-    "10116": "rnorvegicus",
-    "7227": "dmelanogaster",
-    "6239": "celegans",
-    "4932": "scerevisiae",
-    "3702": "athaliana",
-}
 
 
 def get_enrichment_data(
@@ -252,24 +284,23 @@ def get_enrichment_data(
             import streamlit as st
 
             dataset: DataSet = st.session_state.get(StateKeys.DATASET)
-            background_identifiers = _shorten_representations(
-                dataset._feature_to_repr_map.values(),  # noqa: SLF001
-            )
         except Exception as e:
             if background is None:
                 raise ValueError(
                     "Background identifiers must be provided as additional argument if enrichment is not run from the GUI."
                 ) from e
             background_identifiers = _shorten_representations(background)
+        else:
+            background_identifiers = _shorten_representations(
+                dataset._feature_to_repr_map.values(),  # noqa: SLF001
+            )
     else:
         background_identifiers = None
     diff_identifiers = _shorten_representations(difexpressed)
 
     # Call tool
     if tool == "gprofiler":
-        if organism_id in gprofiler_organisms:
-            organism_id = gprofiler_organisms[organism_id]
-        else:
+        if (organism_id := gprofiler_organisms.get(organism_id)) is None:
             raise ValueError(
                 f"Organism ID {organism_id} not supported by g:Profiler. Supported IDs are {gprofiler_organisms.keys()}",
             )
@@ -280,15 +311,15 @@ def get_enrichment_data(
         )
     elif tool == "string":
         if background_identifiers:
-            background_identifiers = _map_short_representation_to_string(
+            background_identifiers = _map_short_representation_to_stringdb(
                 background_identifiers,
                 organism_id,
             )
-        diff_identifiers = _map_short_representation_to_string(
+        diff_identifiers = _map_short_representation_to_stringdb(
             diff_identifiers,
             organism_id,
         )
-        enrichment_data = _get_functional_annotation_string(
+        enrichment_data = _get_functional_annotation_stringdb(
             identifiers=diff_identifiers,
             background_identifiers=background_identifiers,
             species_id=organism_id,

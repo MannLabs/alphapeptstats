@@ -7,9 +7,10 @@ import requests
 from alphastats.llm.enrichment_analysis import (
     StateKeys,
     _get_functional_annotation_gprofiler,
-    _get_functional_annotation_string,
-    _map_short_representation_to_string,
+    _get_functional_annotation_stringdb,
+    _map_short_representation_to_stringdb,
     _shorten_representations,
+    _wrap_exceptions_requests_post,
     get_enrichment_data,
 )
 
@@ -37,7 +38,7 @@ def test_successful_response(mock_post):
     mock_post.return_value = mock_response
 
     identifiers = ["gene1", "gene2", "gene3"]
-    result = _get_functional_annotation_string(identifiers)
+    result = _get_functional_annotation_stringdb(identifiers)
 
     # Assert that the mock was called with the correct arguments
     mock_post.assert_called_with(
@@ -61,26 +62,6 @@ def test_successful_response(mock_post):
 
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
-def test_request_timeout(mock_post):
-    # Simulate a timeout exception
-    mock_post.side_effect = requests.exceptions.Timeout
-
-    identifiers = ["gene1", "gene2", "gene3"]
-    with pytest.raises(ValueError, match="Request to STRING API timed out"):
-        _get_functional_annotation_string(identifiers)
-
-
-@patch("alphastats.llm.enrichment_analysis.requests.post")
-def test_request_failure(mock_post):
-    # Simulate a generic request exception
-    mock_post.side_effect = requests.exceptions.RequestException("Connection error")
-
-    identifiers = ["gene1", "gene2", "gene3"]
-    with pytest.raises(ValueError, match="Request to STRING API failed"):
-        _get_functional_annotation_string(identifiers)
-
-
-@patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_with_background_identifiers(mock_post):
     # Mock response from STRING API
     mock_response = Mock()
@@ -97,7 +78,7 @@ def test_with_background_identifiers(mock_post):
 
     identifiers = ["gene1", "gene2"]
     background_identifiers = ["gene3", "gene4"]
-    result = _get_functional_annotation_string(identifiers, background_identifiers)
+    result = _get_functional_annotation_stringdb(identifiers, background_identifiers)
 
     # Assert that the mock was called with the correct arguments
     mock_post.assert_called_with(
@@ -128,7 +109,7 @@ def test_map_short_representation_to_string_success(mock_post):
     mock_post.return_value = mock_response
 
     short_representations = ["input1", "input2"]
-    result = _map_short_representation_to_string(short_representations)
+    result = _map_short_representation_to_stringdb(short_representations)
 
     # Assert that the mock was called with the correct arguments
     mock_post.assert_called_with(
@@ -149,26 +130,6 @@ def test_map_short_representation_to_string_success(mock_post):
 
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
-def test_map_short_representation_to_string_timeout(mock_post):
-    # Simulate a timeout exception
-    mock_post.side_effect = requests.exceptions.Timeout
-
-    short_representations = ["input1", "input2"]
-    with pytest.raises(ValueError, match="Request to STRING API timed out"):
-        _map_short_representation_to_string(short_representations)
-
-
-@patch("alphastats.llm.enrichment_analysis.requests.post")
-def test_map_short_representation_to_string_request_failure(mock_post):
-    # Simulate a generic request exception
-    mock_post.side_effect = requests.exceptions.RequestException("Connection error")
-
-    short_representations = ["input1", "input2"]
-    with pytest.raises(ValueError, match="Request to STRING API failed"):
-        _map_short_representation_to_string(short_representations)
-
-
-@patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_map_short_representation_to_string_empty_response(mock_post):
     # Simulate an empty response
     mock_response = Mock()
@@ -179,7 +140,7 @@ def test_map_short_representation_to_string_empty_response(mock_post):
     with pytest.raises(
         ValueError, match="No identifiers could be mapped to STRING identifiers."
     ):
-        _map_short_representation_to_string(short_representations)
+        _map_short_representation_to_stringdb(short_representations)
 
 
 def test_shorten_representations_custom_separator():
@@ -503,3 +464,50 @@ def test_get_enrichment_data_with_streamlit_dataset(
     )
 
     pd.testing.assert_frame_equal(result, expected_df)
+
+
+@patch("alphastats.llm.enrichment_analysis.requests.post")
+def test_wrap_exceptions_requests_post_success(mock_post):
+    # Mock a successful response
+    mock_response = Mock()
+    mock_post.return_value = mock_response
+
+    api_descriptor = "Test API"
+    url = "http://example.com"
+    data = {"key": "value"}
+    timeout = 10
+    result = _wrap_exceptions_requests_post(api_descriptor, url, timeout, data=data)
+
+    # Assert that the mock was called with the correct arguments
+    mock_post.assert_called_with(url, timeout=timeout, data=data)
+    assert result == mock_response
+
+
+@patch("alphastats.llm.enrichment_analysis.requests.post")
+def test_wrap_exceptions_requests_post_timeout(mock_post):
+    # Simulate a timeout exception
+    mock_post.side_effect = requests.exceptions.Timeout
+
+    api_descriptor = "Test API"
+    url = "http://example.com"
+    timeout = 10
+
+    with pytest.raises(
+        ValueError, match="Request to Test API timed out after 10 seconds"
+    ):
+        _wrap_exceptions_requests_post(api_descriptor, url, timeout)
+
+
+@patch("alphastats.llm.enrichment_analysis.requests.post")
+def test_wrap_exceptions_requests_post_request_exception(mock_post):
+    # Simulate a generic request exception
+    mock_post.side_effect = requests.exceptions.RequestException("Connection error")
+
+    api_descriptor = "Test API"
+    url = "http://example.com"
+    timeout = 10
+
+    with pytest.raises(
+        ValueError, match="Request to Test API failed: Connection error"
+    ):
+        _wrap_exceptions_requests_post(api_descriptor, url, timeout)
