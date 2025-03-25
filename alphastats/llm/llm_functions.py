@@ -157,16 +157,16 @@ def get_general_assistant_functions() -> List[Dict]:
                         },
                         "organism_id": {
                             "type": "string",
-                            "description": f"The organism ID to search in, use keys from this dictionary: {gprofiler_organisms}. If you are unsure which organism to use, ask the user.",
+                            "description": f"The organism ID to search in, use keys from this dictionary: '{gprofiler_organisms}'. If you are unsure which organism to use, ask the user.",
                         },
                         "tool": {
                             "type": "string",
-                            "description": "The tool to use for enrichment analysis. String output includes member names and can therefore be more useful for downstream analysis. Gprofiler output uses fewer tokens.",
+                            "description": "The tool to use for enrichment analysis. String output includes names of input identifiers belonging to each enriched term and can therefore be more useful for downstream analysis. Gprofiler output is more concise.",
                             "enum": ["string", "gprofiler"],
                         },
                         "include_background": {
                             "type": "boolean",
-                            "description": "Whether to include background genes. This can significantly alter results and should be turned on when the experiment has significantly lower depth than a the full organism annotaiton.",
+                            "description": "Whether to include background genes. This can significantly alter results and should be turned on when the experiment has significantly lower depth than a the full organism annotation.",
                         },
                     },
                     "required": ["difexpressed", "organism_id", "tool"],
