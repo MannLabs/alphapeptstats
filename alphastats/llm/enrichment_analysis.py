@@ -56,7 +56,7 @@ def _wrap_exceptions_requests_post(
         return requests.post(url=url, timeout=timeout, **kwargs)
     except requests.exceptions.Timeout as e:
         raise ValueError(
-            f"Request to {api_descriptor} timed out after {kwargs["timeout"]} seconds"
+            f"Request to {api_descriptor} timed out after {timeout} seconds"
         ) from e
     except requests.exceptions.RequestException as e:
         raise ValueError(f"Request to {api_descriptor} failed: {e}") from e
@@ -278,36 +278,21 @@ def get_enrichment_data(
             f"Tool {tool} not supported. Must be either 'gprofiler' or 'string'."
         )
 
-    # Get single id for each feature
-    if include_background:
-        try:
-            import streamlit as st
+    background_identifiers = (
+        None if not include_background else _get_background(background)
+    )
 
-            dataset: DataSet = st.session_state.get(StateKeys.DATASET)
-        except Exception as e:
-            if background is None:
-                raise ValueError(
-                    "Background identifiers must be provided as additional argument if enrichment is not run from the GUI."
-                ) from e
-            background_identifiers = _shorten_representations(background)
-        else:
-            background_identifiers = _shorten_representations(
-                dataset._feature_to_repr_map.values(),  # noqa: SLF001
-            )
-    else:
-        background_identifiers = None
     diff_identifiers = _shorten_representations(difexpressed)
 
-    # Call tool
     if tool == "gprofiler":
-        if (organism_id := gprofiler_organisms.get(organism_id)) is None:
+        if (mapped_organism_id := gprofiler_organisms.get(organism_id)) is None:
             raise ValueError(
                 f"Organism ID {organism_id} not supported by g:Profiler. Supported IDs are {gprofiler_organisms.keys()}",
             )
         enrichment_data = _get_functional_annotation_gprofiler(
             query=diff_identifiers,
             background=background_identifiers,
-            organism=organism_id,
+            organism=mapped_organism_id,
         )
     elif tool == "string":
         if background_identifiers:
@@ -326,3 +311,39 @@ def get_enrichment_data(
         )
 
     return enrichment_data
+
+
+def _get_background(background: list[str]) -> list[str]:
+    """Get the background identifiers for enrichment analysis.
+
+    Parameters
+    ----------
+    background : list of str
+        A list of background identifiers or str representation of backgorund features.
+
+    Returns
+    -------
+    list of str
+        A list of background identifiers.
+
+    Raises
+    ------
+    ValueError
+        If no dataset is found in the session state.
+    ValueError
+        If background is not provided as additional argument when enrichment is not run from the GUI.
+
+    """
+    try:
+        import streamlit as st
+
+        dataset: DataSet = st.session_state[StateKeys.DATASET]
+    except Exception as e:
+        if background is None:
+            raise ValueError(
+                "Background identifiers must be provided as additional argument if enrichment is not run from the GUI."
+            ) from e
+        background_identifiers = background
+    else:
+        background_identifiers = dataset._feature_to_repr_map.values()  # noqa: SLF001
+    return _shorten_representations(background_identifiers)

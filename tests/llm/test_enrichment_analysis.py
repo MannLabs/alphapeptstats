@@ -6,6 +6,7 @@ import requests
 
 from alphastats.llm.enrichment_analysis import (
     StateKeys,
+    _get_background,
     _get_functional_annotation_gprofiler,
     _get_functional_annotation_stringdb,
     _map_short_representation_to_stringdb,
@@ -17,7 +18,6 @@ from alphastats.llm.enrichment_analysis import (
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_successful_response(mock_post):
-    # Mock response from STRING API
     mock_response = Mock()
     mock_response.json.return_value = [
         {
@@ -38,11 +38,13 @@ def test_successful_response(mock_post):
     mock_post.return_value = mock_response
 
     identifiers = ["gene1", "gene2", "gene3"]
+
+    # When
     result = _get_functional_annotation_stringdb(identifiers)
 
     # Assert that the mock was called with the correct arguments
     mock_post.assert_called_with(
-        "https://string-db.org/api/json/enrichment",
+        url="https://string-db.org/api/json/enrichment",
         data={
             "identifiers": "%0d".join(identifiers),
             "species": "9606",
@@ -51,7 +53,6 @@ def test_successful_response(mock_post):
         timeout=600,
     )
 
-    # Expected DataFrame
     expected_data = [
         {"term": "GO:0008150", "description": "biological_process", "p_value": 0.01},
         {"term": "GO:0003674", "description": "molecular_function", "p_value": 0.05},
@@ -63,7 +64,6 @@ def test_successful_response(mock_post):
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_with_background_identifiers(mock_post):
-    # Mock response from STRING API
     mock_response = Mock()
     mock_response.json.return_value = [
         {
@@ -78,11 +78,13 @@ def test_with_background_identifiers(mock_post):
 
     identifiers = ["gene1", "gene2"]
     background_identifiers = ["gene3", "gene4"]
+
+    # When
     result = _get_functional_annotation_stringdb(identifiers, background_identifiers)
 
     # Assert that the mock was called with the correct arguments
     mock_post.assert_called_with(
-        "https://string-db.org/api/json/enrichment",
+        url="https://string-db.org/api/json/enrichment",
         data={
             "identifiers": "%0d".join(identifiers),
             "background_string_identifiers": "%0d".join(background_identifiers),
@@ -92,7 +94,6 @@ def test_with_background_identifiers(mock_post):
         timeout=600,
     )
 
-    # Expected DataFrame
     expected_data = [
         {"term": "GO:0008150", "description": "biological_process", "p_value": 0.01},
     ]
@@ -103,7 +104,6 @@ def test_with_background_identifiers(mock_post):
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_map_short_representation_to_string_success(mock_post):
-    # Mock response from STRING API
     mock_response = Mock()
     mock_response.text = "input1\tquery1\tSTRING_ID1\ninput2\tquery2\tSTRING_ID2"
     mock_post.return_value = mock_response
@@ -113,7 +113,7 @@ def test_map_short_representation_to_string_success(mock_post):
 
     # Assert that the mock was called with the correct arguments
     mock_post.assert_called_with(
-        "https://version-12-0.string-db.org/api/tsv-no-header/get_string_ids",
+        url="https://version-12-0.string-db.org/api/tsv-no-header/get_string_ids",
         data={
             "identifiers": "\r".join(short_representations),
             "species": "9606",
@@ -124,14 +124,12 @@ def test_map_short_representation_to_string_success(mock_post):
         timeout=600,
     )
 
-    # Expected result
     expected_result = ["STRING_ID1", "STRING_ID2"]
     assert result == expected_result
 
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_map_short_representation_to_string_empty_response(mock_post):
-    # Simulate an empty response
     mock_response = Mock()
     mock_response.text = ""
     mock_post.return_value = mock_response
@@ -180,7 +178,6 @@ def test_shorten_representations_mixed_format():
 
 @patch("alphastats.llm.enrichment_analysis.GProfiler")
 def test_get_functional_annotation_gprofiler_success(mock_gprofiler):
-    # Mock g:Profiler response
     mock_gp_instance = Mock()
     mock_gp_instance.profile.return_value = pd.DataFrame(
         {
@@ -195,6 +192,7 @@ def test_get_functional_annotation_gprofiler_success(mock_gprofiler):
     background = ["gene3", "gene4"]
     organism = "hsapiens"
 
+    # When
     result = _get_functional_annotation_gprofiler(query, background, organism)
 
     # Assert that g:Profiler was called with the correct arguments
@@ -202,7 +200,6 @@ def test_get_functional_annotation_gprofiler_success(mock_gprofiler):
         query=query, organism=organism, background=background
     )
 
-    # Expected DataFrame
     expected_df = pd.DataFrame(
         {
             "term": ["GO:0008150", "GO:0003674"],
@@ -227,7 +224,6 @@ def test_get_functional_annotation_gprofiler_unsupported_organism():
 
 @patch("alphastats.llm.enrichment_analysis.GProfiler")
 def test_get_functional_annotation_gprofiler_no_background(mock_gprofiler):
-    # Mock g:Profiler response
     mock_gp_instance = Mock()
     mock_gp_instance.profile.return_value = pd.DataFrame(
         {
@@ -241,6 +237,7 @@ def test_get_functional_annotation_gprofiler_no_background(mock_gprofiler):
     query = ["gene1", "gene2"]
     organism = "hsapiens"
 
+    # When
     result = _get_functional_annotation_gprofiler(query, organism=organism)
 
     # Assert that g:Profiler was called with the correct arguments
@@ -248,7 +245,6 @@ def test_get_functional_annotation_gprofiler_no_background(mock_gprofiler):
         query=query, organism=organism, background=None
     )
 
-    # Expected DataFrame
     expected_df = pd.DataFrame(
         {
             "term": ["GO:0008150"],
@@ -262,7 +258,6 @@ def test_get_functional_annotation_gprofiler_no_background(mock_gprofiler):
 
 @patch("alphastats.llm.enrichment_analysis.GProfiler")
 def test_get_functional_annotation_gprofiler_empty_query(mock_gprofiler):
-    # Mock g:Profiler response
     mock_gp_instance = Mock()
     mock_gp_instance.profile.return_value = pd.DataFrame()
     mock_gprofiler.return_value = mock_gp_instance
@@ -282,10 +277,7 @@ def test_get_functional_annotation_gprofiler_empty_query(mock_gprofiler):
 @patch("alphastats.llm.enrichment_analysis._get_functional_annotation_gprofiler")
 @patch("alphastats.llm.enrichment_analysis._shorten_representations")
 def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
-    # Mock shortened representations
     mock_shorten.side_effect = lambda x: x
-
-    # Mock g:Profiler response
     mock_gprofiler.return_value = pd.DataFrame(
         {
             "term": ["GO:0008150", "GO:0003674"],
@@ -299,6 +291,7 @@ def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
     organism_id = "9606"
     tool = "gprofiler"
 
+    # When
     result = get_enrichment_data(difexpressed, organism_id, tool, background=background)
 
     # Assert that the mock functions were called with the correct arguments
@@ -310,7 +303,6 @@ def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
         organism="hsapiens",
     )
 
-    # Expected DataFrame
     expected_df = pd.DataFrame(
         {
             "term": ["GO:0008150", "GO:0003674"],
@@ -322,17 +314,12 @@ def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
     pd.testing.assert_frame_equal(result, expected_df)
 
 
-@patch("alphastats.llm.enrichment_analysis._get_functional_annotation_string")
-@patch("alphastats.llm.enrichment_analysis._map_short_representation_to_string")
+@patch("alphastats.llm.enrichment_analysis._get_functional_annotation_stringdb")
+@patch("alphastats.llm.enrichment_analysis._map_short_representation_to_stringdb")
 @patch("alphastats.llm.enrichment_analysis._shorten_representations")
 def test_get_enrichment_data_string(mock_shorten, mock_map, mock_string):
-    # Mock shortened representations
     mock_shorten.side_effect = lambda x: x
-
-    # Mock STRING mapping
     mock_map.side_effect = lambda x, _: x
-
-    # Mock STRING API response
     mock_string.return_value = pd.DataFrame(
         {
             "term": ["GO:0008150"],
@@ -346,6 +333,7 @@ def test_get_enrichment_data_string(mock_shorten, mock_map, mock_string):
     organism_id = "9606"
     tool = "string"
 
+    # When
     result = get_enrichment_data(difexpressed, organism_id, tool, background=background)
 
     # Assert that the mock functions were called with the correct arguments
@@ -359,7 +347,6 @@ def test_get_enrichment_data_string(mock_shorten, mock_map, mock_string):
         species_id=organism_id,
     )
 
-    # Expected DataFrame
     expected_df = pd.DataFrame(
         {
             "term": ["GO:0008150"],
@@ -394,7 +381,7 @@ def test_get_enrichment_data_invalid_organism_gprofiler(mock_gprofiler):
         get_enrichment_data(difexpressed, organism_id, tool, include_background=False)
 
 
-@patch("alphastats.llm.enrichment_analysis._get_functional_annotation_string")
+@patch("alphastats.llm.enrichment_analysis._get_functional_annotation_stringdb")
 def test_get_enrichment_data_no_background_provided(mock_string):
     difexpressed = ["gene1", "gene2"]
     tool = "string"
@@ -406,13 +393,9 @@ def test_get_enrichment_data_no_background_provided(mock_string):
         get_enrichment_data(difexpressed, tool=tool, include_background=True)
 
 
-@patch("alphastats.llm.enrichment_analysis._get_functional_annotation_string")
-@patch("alphastats.llm.enrichment_analysis._map_short_representation_to_string")
 @patch("alphastats.llm.enrichment_analysis._shorten_representations")
 @patch("streamlit.session_state")
-def test_get_enrichment_data_with_streamlit_dataset(
-    mock_session_state, mock_shorten, mock_map, mock_string
-):
+def test_get_background_with_streamlit_dataset(mock_session_state, mock_shorten):
     # Mock the dataset in Streamlit session state
     mock_dataset = Mock()
     mock_dataset._feature_to_repr_map.values.return_value = [
@@ -422,53 +405,18 @@ def test_get_enrichment_data_with_streamlit_dataset(
         "gene4:info4",
     ]
     mock_session_state.get.return_value = mock_dataset
-
-    # Mock shortened representations
     mock_shorten.side_effect = lambda x: [item.split(":")[0] for item in x]
 
-    # Mock STRING mapping
-    mock_map.side_effect = lambda x, _: x
-
-    # Mock STRING API response
-    mock_string.return_value = pd.DataFrame(
-        {
-            "term": ["GO:0008150"],
-            "description": ["biological_process"],
-            "p_value": [0.01],
-        }
-    )
-
-    difexpressed = ["gene1", "gene2"]
-    organism_id = "9606"
-    tool = "string"
-
-    result = get_enrichment_data(
-        difexpressed, organism_id, tool, include_background=True
-    )
+    # When
+    result = _get_background([])
 
     # Assert that the mock functions were called with the correct arguments
-    mock_session_state.get.assert_called_with(StateKeys.DATASET)
-    mock_string.assert_called_with(
-        identifiers=difexpressed,
-        background_identifiers=["gene1", "gene2", "gene3", "gene4"],
-        species_id=organism_id,
-    )
-
-    # Expected DataFrame
-    expected_df = pd.DataFrame(
-        {
-            "term": ["GO:0008150"],
-            "description": ["biological_process"],
-            "p_value": [0.01],
-        }
-    )
-
-    pd.testing.assert_frame_equal(result, expected_df)
+    mock_session_state.get.assert_called_with(StateKeys.DATASET, None)
+    assert result == ["gene1", "gene2", "gene3", "gene4"]
 
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_wrap_exceptions_requests_post_success(mock_post):
-    # Mock a successful response
     mock_response = Mock()
     mock_post.return_value = mock_response
 
@@ -479,13 +427,12 @@ def test_wrap_exceptions_requests_post_success(mock_post):
     result = _wrap_exceptions_requests_post(api_descriptor, url, timeout, data=data)
 
     # Assert that the mock was called with the correct arguments
-    mock_post.assert_called_with(url, timeout=timeout, data=data)
+    mock_post.assert_called_with(url=url, timeout=timeout, data=data)
     assert result == mock_response
 
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_wrap_exceptions_requests_post_timeout(mock_post):
-    # Simulate a timeout exception
     mock_post.side_effect = requests.exceptions.Timeout
 
     api_descriptor = "Test API"
@@ -500,7 +447,6 @@ def test_wrap_exceptions_requests_post_timeout(mock_post):
 
 @patch("alphastats.llm.enrichment_analysis.requests.post")
 def test_wrap_exceptions_requests_post_request_exception(mock_post):
-    # Simulate a generic request exception
     mock_post.side_effect = requests.exceptions.RequestException("Connection error")
 
     api_descriptor = "Test API"
