@@ -8,6 +8,7 @@ import pandas as pd
 import requests
 from gprofiler import GProfiler
 
+from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.state_keys import StateKeys
 
 if TYPE_CHECKING:
@@ -313,6 +314,28 @@ def get_enrichment_data(
     return enrichment_data
 
 
+def _get_dataset() -> DataSet:
+    """Get the dataset from the session state.
+
+    Returns
+    -------
+    DataSet
+        The dataset from the session state.
+
+    Raises
+    ------
+    ValueError
+        If no dataset is found in the session state.
+
+    """
+    import streamlit as st
+
+    dataset: DataSet = st.session_state.get(StateKeys.DATASET, None)
+    if dataset is None:
+        raise ValueError("No dataset found in the session state.")
+    return dataset
+
+
 def _get_background(background: list[str]) -> list[str]:
     """Get the background identifiers for enrichment analysis.
 
@@ -335,9 +358,7 @@ def _get_background(background: list[str]) -> list[str]:
 
     """
     try:
-        import streamlit as st
-
-        dataset: DataSet = st.session_state[StateKeys.DATASET]
+        dataset: DataSet = _get_dataset()
     except Exception as e:
         if background is None:
             raise ValueError(
