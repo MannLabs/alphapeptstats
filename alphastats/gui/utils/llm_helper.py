@@ -82,7 +82,7 @@ def llm_config():
             st.rerun(scope="app")
 
 
-def pretty_print_analysis(key: str) -> str:
+def format_analysis_key(key: str) -> str:
     """Pretty print an analysis referenced by `key`."""
     analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
     return f"[{key}] #{analysis[SavedAnalysisKeys.NUMBER]} {analysis[SavedAnalysisKeys.METHOD]} {analysis[SavedAnalysisKeys.PARAMETERS]}"

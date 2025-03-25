@@ -14,9 +14,9 @@ from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     OLLAMA_BASE_URL,
     display_uniprot,
+    format_analysis_key,
     get_df_for_protein_selector,
     init_llm_chat_state,
-    pretty_print_analysis,
     protein_selector,
     show_llm_chat,
 )
@@ -51,7 +51,7 @@ if StateKeys.DATASET not in st.session_state:
 st.markdown("#### Select Analysis for LLM interpretation")
 
 if not (
-    saved_analyses_keys := [
+    available_analyses_keys := [
         key
         for key, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
         if analysis[SavedAnalysisKeys.METHOD] in LLM_ENABLED_ANALYSIS
@@ -65,9 +65,9 @@ if not (
 
 selected_analysis_key = st.selectbox(
     "Select analysis to interpret with LLM",
-    saved_analyses_keys,
-    format_func=pretty_print_analysis,
-    index=None if len(saved_analyses_keys) > 1 else 0,
+    available_analyses_keys,
+    format_func=format_analysis_key,
+    index=None if len(available_analyses_keys) > 1 else 0,
 )
 
 if (
