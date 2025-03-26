@@ -361,7 +361,9 @@ class LLMIntegration:
 
             content = json.dumps(
                 {
-                    MessageKeys.RESULT: str(function_result),
+                    MessageKeys.RESULT: self._create_string_representation(
+                        function_result, function_name, function_args
+                    ),
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
@@ -373,6 +375,74 @@ class LLMIntegration:
         response = self._chat_completion_create()
 
         return self._parse_model_response(response)
+
+    @staticmethod
+    def _create_string_representation(
+        function_result: Any, function_name: str, function_args: Dict
+    ) -> str:
+        """Create a string representation of the function result.
+
+        Parameters
+        ----------
+        function_result : Any
+            The result of the function call
+        function_name : str
+            The name of the function
+        function_args : Dict
+            The arguments passed to the function
+
+        Returns
+        -------
+        str
+            A string representation of the function result
+        """
+        result_type = type(function_result).__name__
+        primitive_types = (int, float, str, bool)
+        simple_iterable_types = (list, tuple, set)
+
+        iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
+        single_artifact_description = "Function {} with arguments {} returned a {}."
+        LLM_instructions = " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with."
+        if isinstance(function_result, primitive_types):
+            return str(function_result)
+        elif isinstance(function_result, pd.DataFrame):
+            return function_result.to_json()
+        elif isinstance(function_result, dict):
+            if all(
+                isinstance(element, primitive_types)
+                for element in function_result.values()
+            ):
+                return str(function_result)
+            else:
+                return (
+                    iterable_artifact_description.format(
+                        function_name,
+                        json.dumps(function_args),
+                        result_type,
+                        len(function_result),
+                    )
+                    + LLM_instructions
+                )
+        elif isinstance(function_result, simple_iterable_types):
+            if all(isinstance(element, primitive_types) for element in function_result):
+                return str(function_result)
+            else:
+                return (
+                    iterable_artifact_description.format(
+                        function_name,
+                        json.dumps(function_args),
+                        result_type,
+                        len(function_result),
+                    )
+                    + LLM_instructions
+                )
+        else:
+            return (
+                single_artifact_description.format(
+                    function_name, json.dumps(function_args), result_type
+                )
+                + LLM_instructions
+            )
 
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
@@ -421,12 +491,10 @@ class LLMIntegration:
         return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
-        """Get a chat log in text format for saving. It excludes tool replies, as they are usually also represented in the artifacts."""
+        """Get a chat log in text format for saving."""
         messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            if message[MessageKeys.ROLE] == Roles.TOOL:
-                continue
             chatlog += f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
             if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
