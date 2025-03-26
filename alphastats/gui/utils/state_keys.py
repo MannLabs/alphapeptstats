@@ -47,7 +47,6 @@ class LLMKeys(metaclass=ConstantsClass):
     MAX_TOKENS = "max_tokens"
 
 
-
 class SavedAnalysisKeys(metaclass=ConstantsClass):
     """Keys for saved analyses in session state."""
 

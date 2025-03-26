@@ -15,7 +15,6 @@ from alphastats.gui.utils.llm_helper import (
     OLLAMA_BASE_URL,
     display_uniprot,
     format_analysis_key,
-    get_df_for_protein_selector,
     init_llm_chat_state,
     on_select_fill_state,
     protein_selector,
