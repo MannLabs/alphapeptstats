@@ -1,5 +1,6 @@
 """Module to integrate different LLM APIs and handle chat interactions."""
 
+import base64
 import json
 import logging
 import warnings
@@ -60,6 +61,10 @@ class MessageKeys(metaclass=ConstantsClass):
     ARTIFACTS = "artifacts"
     PINNED = "pinned"
     TIMESTAMP = "timestamp"
+    TYPE = "type"
+    TEXT = "text"
+    IMAGE_URL = "image_url"
+    URL = "url"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -125,6 +130,7 @@ class LLMIntegration:
         self._artifacts = {}
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
+
         if system_message is not None:
             self._append_message("system", system_message, pin_message=True)
 
@@ -153,6 +159,12 @@ class LLMIntegration:
             )
 
         return tools
+
+    @staticmethod
+    def _plotly_to_base64(figure) -> str:
+        """Convert Plotly figure to base64-encoded PNG image."""
+        img_bytes = pio.to_image(figure, format="png")
+        return base64.b64encode(img_bytes).decode("utf-8")
 
     def _append_message(
         self,
@@ -183,7 +195,7 @@ class LLMIntegration:
         self._messages.append(message)
         self._all_messages.append(message)
 
-        self._truncate_conversation_history()
+        # self._truncate_conversation_history()
 
     @staticmethod
     def estimate_tokens(
@@ -366,14 +378,30 @@ class LLMIntegration:
             artifact_id = f"{function_name}_{tool_call.id}"
             new_artifacts[artifact_id] = function_result
 
-            content = json.dumps(
-                {
-                    MessageKeys.RESULT: self._create_string_representation(
-                        function_result, function_name, function_args
-                    ),
-                    MessageKeys.ARTIFACT_ID: artifact_id,
-                }
+            image_data = None
+            if "PlotlyObject" in str(type(function_result)):
+                try:
+                    image_data = self._plotly_to_base64(function_result)
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to convert Plotly figure to image: {str(e)}"
+                    )
+
+            result_representation = self._create_string_representation(
+                function_result, function_name, function_args
             )
+
+            content_dict = {
+                MessageKeys.RESULT: result_representation,
+                MessageKeys.ARTIFACT_ID: artifact_id,
+            }
+
+            if image_data:
+                content_dict[MessageKeys.IMAGE_URL] = (
+                    f"data:image/png;base64,{image_data}"
+                )
+
+            content = json.dumps(content_dict)
             self._append_message(Roles.TOOL, content, tool_call_id=tool_call.id)
 
         post_artifact_message_idx = len(self._all_messages)
@@ -406,7 +434,7 @@ class LLMIntegration:
         result_type = type(function_result).__name__
         primitive_types = (int, float, str, bool)
         simple_iterable_types = (list, tuple, set)
-
+        print(str(type(function_result)))
         iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
         single_artifact_description = "Function {} with arguments {} returned a {}."
         LLM_instructions = " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with."
@@ -443,6 +471,8 @@ class LLMIntegration:
                     )
                     + LLM_instructions
                 )
+        elif "PlotlyObject" in str(type(function_result)):
+            return "This is a visualization result that will be shown visually. Please analyze what you see in this plot."
         else:
             return (
                 single_artifact_description.format(
@@ -454,6 +484,8 @@ class LLMIntegration:
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
         logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
+        for message in self._messages:
+            print(message)
         result = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
