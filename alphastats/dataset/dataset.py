@@ -487,23 +487,6 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_features_for_gene_name(
-        self,
-        gene_name: str,
-    ) -> list:
-        """Get feature from gene name. If gene name is not present, return gene name, as we might already have a gene id.
-        'HEL114' -> ['P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1']
-
-        Args:
-            gene_name (str): Gene name
-
-        Returns:
-            list: Protein group ids or gene name if not present in the mapping.
-        """
-        if gene_name in self._gene_to_features_map:
-            return self._gene_to_features_map[gene_name]
-        raise ValueError(f"Gene {gene_name} is not in the (processed) data.")
-
     def _get_feature_id_from_string(self, string: str):
         """Get the feature id from a string representing a feature.
 
@@ -525,6 +508,28 @@ class DataSet:
         if string in self._gene_to_features_map:
             return self._gene_to_features_map[string]
         raise ValueError(f"Feature {string} is not in the (processed) data.")
+
+    def _get_multiple_features(self, features: List):
+        """Get the feature ids from a list of strings representing features.
+
+        Parameters
+        ----------
+        features : list
+            A list of strings representing the features."""
+
+        unmapped_features = []
+        protein_ids = []
+        for feature in features:
+            try:
+                protein_ids.append(self._get_feature_id_from_string(feature))
+            except ValueError:
+                unmapped_features.append(feature)
+        if unmapped_features:
+            raise Warning(
+                f"Could not find the following features: {', '.join(unmapped_features)}"
+            )
+        if not protein_ids:
+            raise ValueError("No valid features provided.")
 
     def plot_intensity(
         self,
@@ -562,9 +567,7 @@ class DataSet:
             features = [substring.strip() for substring in feature.split(",")]
         else:
             features = [feature]
-        protein_id = []
-        for feature in features:
-            protein_id.append(self._get_feature_id_from_string(feature))
+        protein_id = self._get_multiple_features(features)
 
         intensity_plot = IntensityPlot(
             mat=self.mat,
