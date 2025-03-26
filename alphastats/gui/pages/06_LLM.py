@@ -17,6 +17,7 @@ from alphastats.gui.utils.llm_helper import (
     format_analysis_key,
     get_df_for_protein_selector,
     init_llm_chat_state,
+    on_select_fill_state,
     protein_selector,
     show_llm_chat,
     transfer_llm_chat_state_to_session_state,
@@ -32,7 +33,6 @@ from alphastats.llm.llm_integration import LLMIntegration
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
-    get_uniprot_state_key,
 )
 
 st.set_page_config(layout="wide")
@@ -69,6 +69,8 @@ selected_analysis_key = st.selectbox(
     available_analyses_keys,
     format_func=format_analysis_key,
     index=None if len(available_analyses_keys) > 1 else 0,
+    on_change=on_select_fill_state,
+    key=StateKeys.SELECTED_ANALYSIS,
 )
 
 if (
@@ -123,13 +125,6 @@ downregulated_genes = [
 
 init_llm_chat_state(selected_llm_chat, upregulated_genes, downregulated_genes)
 
-upregulated_genes_df = get_df_for_protein_selector(
-    upregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
-)
-downregulated_genes_df = get_df_for_protein_selector(
-    downregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
-)
-
 
 ##################################### Genes of interest #####################################
 
@@ -140,7 +135,7 @@ with c1:
     )
 
     protein_selector(
-        upregulated_genes_df,
+        upregulated_genes,
         "Upregulated Proteins",
         selected_analysis_key,
         state_key=LLMKeys.SELECTED_GENES_UP,
@@ -149,7 +144,7 @@ with c1:
 with c2:
     st.markdown("##### ")
     protein_selector(
-        downregulated_genes_df,
+        downregulated_genes,
         "Downregulated Proteins",
         selected_analysis_key,
         state_key=LLMKeys.SELECTED_GENES_DOWN,
@@ -217,7 +212,7 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state.get(get_uniprot_state_key(selected_analysis_key), None):
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
