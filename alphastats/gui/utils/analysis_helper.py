@@ -267,13 +267,16 @@ def gather_uniprot_data(features: List[str]) -> None:
     Returns:
         None
     """
+    features_to_fetch = [
+        feature
+        for feature in features
+        if feature not in st.session_state[StateKeys.ANNOTATION_STORE]
+    ]
     for feature in stqdm(
-        features,
-        desc="Retrieving uniprot data on regulated features ...",
+        features_to_fetch,
+        desc="Retrieving uniprot data on selected features ...",
         mininterval=1,
     ):
-        if feature in st.session_state[StateKeys.ANNOTATION_STORE]:
-            continue
         # TODO: Add some kind of rate limitation to avoid being locked out by uniprot
         st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
             get_annotations_for_feature(feature)
