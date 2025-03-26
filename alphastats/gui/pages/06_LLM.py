@@ -14,8 +14,8 @@ from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     OLLAMA_BASE_URL,
     display_uniprot,
-    get_df_for_protein_selector,
     init_llm_chat_state,
+    on_select_fill_state,
     pretty_print_analysis,
     protein_selector,
     show_llm_chat,
@@ -31,7 +31,6 @@ from alphastats.llm.llm_integration import LLMIntegration
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
-    get_uniprot_state_key,
 )
 
 st.set_page_config(layout="wide")
@@ -64,10 +63,12 @@ if not (
     st.stop()
 
 selected_analysis_key = st.selectbox(
-    "Select result to interpret with LLM",
+    "Select analysis to interpret with LLM",
     saved_analyses_keys,
     format_func=pretty_print_analysis,
     index=None if len(saved_analyses_keys) > 1 else 0,
+    on_change=on_select_fill_state,
+    key=StateKeys.SELECTED_ANALYSIS,
 )
 
 if (
@@ -123,13 +124,6 @@ downregulated_genes = [
 
 init_llm_chat_state(selected_llm_chat, upregulated_genes, downregulated_genes)
 
-upregulated_genes_df = get_df_for_protein_selector(
-    upregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
-)
-downregulated_genes_df = get_df_for_protein_selector(
-    downregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
-)
-
 
 ##################################### Genes of interest #####################################
 
@@ -140,7 +134,7 @@ with c1:
     )
 
     protein_selector(
-        upregulated_genes_df,
+        upregulated_genes,
         "Upregulated Proteins",
         selected_analysis_key,
         state_key=LLMKeys.SELECTED_GENES_UP,
@@ -149,7 +143,7 @@ with c1:
 with c2:
     st.markdown("##### ")
     protein_selector(
-        downregulated_genes_df,
+        downregulated_genes,
         "Downregulated Proteins",
         selected_analysis_key,
         state_key=LLMKeys.SELECTED_GENES_DOWN,
@@ -179,16 +173,6 @@ st.markdown(
 if st.button("Fetch UniProt data for selected proteins"):
     gather_uniprot_data(selected_genes)
 
-if any(
-    feature not in st.session_state[StateKeys.ANNOTATION_STORE]
-    for feature in selected_genes
-):
-    st.info(
-        "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
-    )
-    # TODO stop here or do not supply any uniprot information to LLM if it is not complete
-
-
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
@@ -204,6 +188,12 @@ st.markdown("##### System and initial prompt")
 st.write(
     "The prompts are generated based on the above selection on genes and Uniprot information."
 )
+if st.button(
+    "Update prompts with selected genes and UniProt information",
+    disabled=llm_integration_set_for_model,
+    help="Regenerate system message and initial prompt based on current selections",
+):
+    st.rerun(scope="app")
 
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
@@ -216,7 +206,7 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state[get_uniprot_state_key(selected_analysis_key)]:
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],

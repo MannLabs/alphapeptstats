@@ -32,7 +32,7 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
     number = saved_analysis[SavedAnalysisKeys.NUMBER]
 
     st.markdown("\n\n\n")
-    st.markdown(f"#### #{number}: {method} [{key}]")
+    st.markdown(f"### #{number}: {method} [{key}]")
     st.markdown(f"Parameters used for analysis: `{parameters}`")
 
     name = f"{method}_{number}"
@@ -53,7 +53,7 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
         name=name,
         editable_annotation=False,
     )
-    st.markdown("### LLM Chat")
+    st.markdown("#### LLM Chat")
     if (
         llm_integration := st.session_state.get(StateKeys.LLM_CHATS, {})
         .get(key, {})
