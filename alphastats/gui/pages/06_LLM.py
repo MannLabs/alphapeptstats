@@ -14,7 +14,6 @@ from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     OLLAMA_BASE_URL,
     display_uniprot,
-    get_df_for_protein_selector,
     init_llm_chat_state,
     pretty_print_analysis,
     protein_selector,
@@ -123,13 +122,6 @@ downregulated_genes = [
 
 init_llm_chat_state(selected_llm_chat, upregulated_genes, downregulated_genes)
 
-upregulated_genes_df = get_df_for_protein_selector(
-    upregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
-)
-downregulated_genes_df = get_df_for_protein_selector(
-    downregulated_genes, selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
-)
-
 
 ##################################### Genes of interest #####################################
 
@@ -140,7 +132,7 @@ with c1:
     )
 
     protein_selector(
-        upregulated_genes_df,
+        upregulated_genes,
         "Upregulated Proteins",
         selected_analysis_key,
         state_key=LLMKeys.SELECTED_GENES_UP,
@@ -149,7 +141,7 @@ with c1:
 with c2:
     st.markdown("##### ")
     protein_selector(
-        downregulated_genes_df,
+        downregulated_genes,
         "Downregulated Proteins",
         selected_analysis_key,
         state_key=LLMKeys.SELECTED_GENES_DOWN,
