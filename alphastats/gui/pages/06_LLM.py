@@ -15,6 +15,7 @@ from alphastats.gui.utils.llm_helper import (
     OLLAMA_BASE_URL,
     display_uniprot,
     init_llm_chat_state,
+    on_select_fill_state,
     pretty_print_analysis,
     protein_selector,
     show_llm_chat,
@@ -30,7 +31,6 @@ from alphastats.llm.llm_integration import LLMIntegration
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
-    get_uniprot_state_key,
 )
 
 st.set_page_config(layout="wide")
@@ -67,6 +67,8 @@ selected_analysis_key = st.selectbox(
     saved_analyses_keys,
     format_func=pretty_print_analysis,
     index=None if len(saved_analyses_keys) > 1 else 0,
+    on_change=on_select_fill_state,
+    key=StateKeys.SELECTED_ANALYSIS,
 )
 
 if (
@@ -204,7 +206,7 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state.get(get_uniprot_state_key(selected_analysis_key), None):
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],

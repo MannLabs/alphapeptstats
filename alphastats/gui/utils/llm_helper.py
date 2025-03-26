@@ -18,7 +18,6 @@ from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, 
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
-    get_uniprot_state_key,
 )
 from alphastats.plots.plot_utils import PlotlyObject
 
@@ -349,22 +348,13 @@ def display_uniprot(
         st.markdown(f"Total tokens: {tokens:.0f}")
     with c5:
         # this is required to persist the state of the "Integrate into initial prompt" checkbox for different analyses
-        if (
-            st.session_state.get(
-                session_state_key := get_uniprot_state_key(selected_analysis_key)
-            )
-            is None
-        ):
-            st.session_state[session_state_key] = False
 
         st.checkbox(
             "Integrate into initial prompt",
             help="If this is ticked and the initial prompt is updated, the Uniprot information will be included in the prompt and the instructions regarding uniprot will change to onl;y look up more information if explicitly asked to do so. Make sure that the total tokens are below the message limit of your LLM.",
-            key=get_uniprot_state_key(selected_analysis_key),
-            value=st.session_state[
-                get_uniprot_state_key(selected_analysis_key)
-            ],  # st.session_state.get(get_uniprot_state_key(selected_analysis_key), False),
+            key=StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
             disabled=disabled,
+            on_change=on_change_save_state,
         )
 
     c1, c2 = st.columns((1, 3))
@@ -409,6 +399,30 @@ def display_uniprot(
                     ],
                 )
             )
+
+
+def on_select_fill_state() -> None:
+    """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
+    selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
+        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+    )
+    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
+        selected_analysis.get(LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False)
+    )
+    st.toast("State filled from saved analysis.", icon="🔍")
+
+
+def on_change_save_state() -> None:
+    """Save the state of LLM related widgets to the selected analysis before rerunning the page.
+
+    This can be expanded to other widgets as needed.
+    """
+    selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
+        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+    )
+    selected_analysis[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = st.session_state[
+        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT
+    ]
 
 
 @st.fragment
