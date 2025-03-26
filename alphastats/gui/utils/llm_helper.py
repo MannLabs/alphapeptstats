@@ -111,7 +111,11 @@ def init_llm_chat_state(
 
 
 def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict) -> None:
-    """Transfer the state of a given llm_chat to the session state, if it is already initialized."""
+    """Transfer the state of a given llm_chat to the session state, if it is already initialized.
+
+    This is to get the connection to the model selector right (which operates on the session state).
+    TODO this needs improvement!
+    """
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED):
         st.session_state[StateKeys.MODEL_NAME] = selected_llm_chat[LLMKeys.MODEL_NAME]
         st.session_state[StateKeys.MAX_TOKENS] = selected_llm_chat[LLMKeys.MAX_TOKENS]
@@ -413,7 +417,7 @@ def display_uniprot(
             )
 
 
-def on_select_fill_state() -> None:
+def on_select_new_analysis_fill_state() -> None:
     """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
     selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], None

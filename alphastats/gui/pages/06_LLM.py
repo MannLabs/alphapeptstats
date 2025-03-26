@@ -16,7 +16,7 @@ from alphastats.gui.utils.llm_helper import (
     display_uniprot,
     format_analysis_key,
     init_llm_chat_state,
-    on_select_fill_state,
+    on_select_new_analysis_fill_state,
     protein_selector,
     show_llm_chat,
     transfer_llm_chat_state_to_session_state,
@@ -68,7 +68,7 @@ selected_analysis_key = st.selectbox(
     available_analyses_keys,
     format_func=format_analysis_key,
     index=None if len(available_analyses_keys) > 1 else 0,
-    on_change=on_select_fill_state,
+    on_change=on_select_new_analysis_fill_state,
     key=StateKeys.SELECTED_ANALYSIS,
 )
 
@@ -256,7 +256,7 @@ with st.expander("Initial prompt", expanded=True):
 st.markdown(f"#### LLM Interpretation with {selected_llm_chat[LLMKeys.MODEL_NAME]}")
 
 st.info(
-    f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[StateKeys.MAX_TOKENS]}"
+    f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
 )
 
 
