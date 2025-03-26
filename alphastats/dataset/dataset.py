@@ -509,7 +509,7 @@ class DataSet:
             return self._gene_to_features_map[string]
         raise ValueError(f"Feature {string} is not in the (processed) data.")
 
-    def _get_multiple_features(self, features: List):
+    def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
         """Get the feature ids from a list of strings representing features.
 
         Parameters
@@ -530,6 +530,8 @@ class DataSet:
             )
         if not protein_ids:
             raise ValueError("No valid features provided.")
+
+        return protein_ids
 
     def plot_intensity(
         self,
@@ -567,7 +569,7 @@ class DataSet:
             features = [substring.strip() for substring in feature.split(",")]
         else:
             features = [feature]
-        protein_id = self._get_multiple_features(features)
+        protein_id = self._get_multiple_feature_ids_from_strings(features)
 
         intensity_plot = IntensityPlot(
             mat=self.mat,
