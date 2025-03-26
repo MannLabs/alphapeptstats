@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -487,7 +488,7 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_feature_id_from_string(self, string: str):
+    def _get_feature_ids_from_string(self, string: str) -> List[str]:
         """Get the feature id from a string representing a feature.
 
         Goes through id mapping dictionaries and finds the completest match.
@@ -498,15 +499,18 @@ class DataSet:
             The string representating the feature."""
 
         if string in self._feature_to_repr_map:
-            return string
-        if string in self._feature_to_repr_map.values():
-            return list(self._feature_to_repr_map.keys())[
-                list(self._feature_to_repr_map.values()).index(string)
-            ]
+            return [string]
         if string in self._protein_to_features_map:
             return self._protein_to_features_map[string]
         if string in self._gene_to_features_map:
             return self._gene_to_features_map[string]
+        representation_keys = [
+            feature
+            for feature, representation in self._feature_to_repr_map.items()
+            if representation == string
+        ]
+        if representation_keys:
+            return representation_keys
         raise ValueError(f"Feature {string} is not in the (processed) data.")
 
     def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
@@ -521,11 +525,12 @@ class DataSet:
         protein_ids = []
         for feature in features:
             try:
-                protein_ids.append(self._get_feature_id_from_string(feature))
+                for protein_id in self._get_feature_ids_from_string(feature):
+                    protein_ids.append(protein_id)
             except ValueError:
                 unmapped_features.append(feature)
         if unmapped_features:
-            raise Warning(
+            warnings.warn(
                 f"Could not find the following features: {', '.join(unmapped_features)}"
             )
         if not protein_ids:

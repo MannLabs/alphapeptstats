@@ -792,10 +792,10 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_get_feature_id_from_string(self):
         with self.assertRaises(ValueError):
-            self.obj._get_feature_id_from_string("MADE_UP_GENE"), "MADE_UP_GENE"
+            self.obj._get_feature_ids_from_string("MADE_UP_GENE"), "MADE_UP_GENE"
 
         self.assertEqual(
-            self.obj._get_feature_id_from_string("ALDOC"),
+            self.obj._get_feature_ids_from_string("ALDOC"),
             [
                 "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5"
             ],
