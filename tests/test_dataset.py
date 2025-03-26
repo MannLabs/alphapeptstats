@@ -501,7 +501,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intenstity_subgroup(self):
         plot = self.obj.plot_intensity(
-            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            feature="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
             subgroups=["healthy", "liver cirrhosis"],
             add_significance=True,
@@ -511,7 +511,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intenstity_valid_gene(self):
         plot = self.obj.plot_intensity(
-            gene_name="ALDOC",
+            feature="ALDOC",
             group="disease",
         )
         plot_dict = plot.to_plotly_json()
@@ -520,13 +520,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intenstity_bogus_gene(self):
         with self.assertRaises(ValueError):
             self.obj.plot_intensity(
-                gene_name="BOGUSGENE",
+                feature="BOGUSGENE",
                 group="disease",
             )
 
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         plot = self.obj.plot_intensity(
-            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            feature="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
             add_significance=True,
         )
@@ -691,7 +691,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         No significant label is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="S6BAR0",
+            feature="S6BAR0",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -708,7 +708,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Significant label * is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="Q9UL94",
+            feature="Q9UL94",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -725,7 +725,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Significant label ** is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="Q96JD0;Q96JD1;P01721",
+            feature="Q96JD0;Q96JD1;P01721",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -742,7 +742,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Highly significant label is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="Q9BWP8",
+            feature="Q9BWP8",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -756,7 +756,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intensity_all(self):
         plot = self.obj.plot_intensity(
-            protein_id="Q9BWP8",
+            feature="Q9BWP8",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             method="all",
@@ -828,7 +828,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_violin(self):
         # Violinplot
         plot = self.obj.plot_intensity(
-            protein_id="A0A075B6H7", group="grouping1", method="violin"
+            feature="A0A075B6H7", group="grouping1", method="violin"
         )
         plot_dict = plot.to_plotly_json()
         self.assertIsInstance(plot, plotly.graph_objects.Figure)
@@ -838,7 +838,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_box(self):
         # Boxplot
         plot = self.obj.plot_intensity(
-            protein_id="A0A075B6H7", group="grouping1", method="box", log_scale=True
+            feature="A0A075B6H7", group="grouping1", method="box", log_scale=True
         )
         plot_dict = plot.to_plotly_json()
         # log scale
@@ -849,7 +849,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_scatter(self):
         # Scatterplot
         plot = self.obj.plot_intensity(
-            protein_id="A0A075B6H7", group="grouping1", method="scatter"
+            feature="A0A075B6H7", group="grouping1", method="scatter"
         )
         plot_dict = plot.to_plotly_json()
         self.assertIsInstance(plot, plotly.graph_objects.Figure)
@@ -859,7 +859,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_wrong_method(self):
         with self.assertRaises(ValueError):
             self.obj.plot_intensity(
-                protein_id="A0A075B6H7", group="grouping1", method="wrong"
+                feature="A0A075B6H7", group="grouping1", method="wrong"
             )
 
     def test_plot_clustermap_noimputation(self):

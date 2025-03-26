@@ -504,11 +504,32 @@ class DataSet:
             return self._gene_to_features_map[gene_name]
         raise ValueError(f"Gene {gene_name} is not in the (processed) data.")
 
+    def _get_feature_id_from_string(self, string: str):
+        """Get the feature id from a string representing a feature.
+
+        Goes through id mapping dictionaries and finds the completest match.
+
+        Parameters
+        ----------
+        string : str
+            The string representating the feature."""
+
+        if string in self._feature_to_repr_map:
+            return string
+        if string in self._feature_to_repr_map.values():
+            return list(self._feature_to_repr_map.keys())[
+                list(self._feature_to_repr_map.values()).index(string)
+            ]
+        if string in self._protein_to_features_map:
+            return self._protein_to_features_map[string]
+        if string in self._gene_to_features_map:
+            return self._gene_to_features_map[string]
+        raise ValueError(f"Feature {string} is not in the (processed) data.")
+
     def plot_intensity(
         self,
         *,
-        protein_id: str = None,
-        gene_name: str = None,
+        feature: str,
         group: str = None,
         subgroups: list = None,
         method: str = "box",  # TODO rename
@@ -519,8 +540,7 @@ class DataSet:
         """Plot Intensity of individual Protein/ProteinGroup
 
         Args:
-            protein_id (str): ProteinGroup ID. Mutually exclusive with gene_name.
-            gene_name (str): Gene Name, will be mapped to a ProteinGroup ID. Mutually exclusive with protein_id.
+            feature (str): ProteinGroup ID, gene name or feature representation, or comma-separated list thereof.
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter" or "all". Defaults to "box".
@@ -538,14 +558,13 @@ class DataSet:
         #     )
         #     return results
 
-        if gene_name is None and protein_id is not None:
-            pass
-        elif gene_name is not None and protein_id is None:
-            protein_id = self._get_features_for_gene_name(gene_name)
+        if "," in feature:
+            features = [substring.strip() for substring in feature.split(",")]
         else:
-            raise ValueError(
-                "Either protein_id or gene_name must be provided, but not both."
-            )
+            features = [feature]
+        protein_id = []
+        for feature in features:
+            protein_id.append(self._get_feature_id_from_string(feature))
 
         intensity_plot = IntensityPlot(
             mat=self.mat,
@@ -553,6 +572,7 @@ class DataSet:
             intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
+            feature_to_repr_map=self._feature_to_repr_map,
             group=group,
             subgroups=subgroups,
             method=method,

@@ -42,6 +42,7 @@ class IntensityPlot(PlotUtils):
         intensity_column: str,
         preprocessing_info: Dict,
         protein_id,
+        feature_to_repr_map: Dict,
         group,
         subgroups=None,
         method,
@@ -54,6 +55,7 @@ class IntensityPlot(PlotUtils):
         self.preprocessing_info = preprocessing_info
 
         self.protein_id = [protein_id] if isinstance(protein_id, str) else protein_id
+        self.feature_to_repr_map = feature_to_repr_map
         self.group = group
         self.subgroups = subgroups
         self.method = method
@@ -135,7 +137,6 @@ class IntensityPlot(PlotUtils):
             font=dict(size=12, color="black"),
         )
 
-        plot.update_layout(width=600, height=700)
         return plot
 
     def _prepare_data(self):
@@ -203,11 +204,21 @@ class IntensityPlot(PlotUtils):
                 + "Please select from 'violin' for Violinplot, 'box' for Boxplot and 'scatter' for Scatterplot."
             )
 
+        fig.for_each_annotation(
+            lambda a: a.update(text=self.feature_to_repr_map[a.text.split("=")[-1]])
+        )
+
         if self.log_scale:
             fig.update_layout(yaxis=dict(type="log"))
 
         if self.add_significance:
             fig = self._add_significance(fig)
+
+        fig.update_layout(
+            width=100
+            + len(self.protein_id) * self.prepared_df[self.group].nunique() * 50,
+            height=500,
+        )
 
         fig = PlotlyObject(fig)
         self._update_figure_attributes(

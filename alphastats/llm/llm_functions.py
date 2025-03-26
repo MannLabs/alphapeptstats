@@ -198,10 +198,9 @@ def get_assistant_functions(
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "gene_name": {
+                        "feature": {
                             "type": "string",
-                            "enum": genes_of_interest,
-                            "description": "Identifier for the gene of interest",
+                            "description": "Identifier for the feature of interest, use the same format as in the initial prompt, inidivual gene symbols, or individual protein ids",
                         },
                         "group": {
                             "type": "string",
@@ -228,7 +227,7 @@ def get_assistant_functions(
                             "description": "Whether to use a logarithmic scale for the plot",
                         },
                     },
-                    "required": ["protein_id", "group"],
+                    "required": ["feature", "group"],
                 },
             },
         },
