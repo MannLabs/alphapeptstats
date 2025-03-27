@@ -790,17 +790,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         self.assertEqual(res.shape[1], 45)
 
-    def test_get_feature_id_from_string(self):
-        with self.assertRaises(ValueError):
-            self.obj._get_feature_ids_from_string("MADE_UP_GENE"), "MADE_UP_GENE"
-
-        self.assertEqual(
-            self.obj._get_feature_ids_from_string("ALDOC"),
-            [
-                "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5"
-            ],
-        )
-
     # def test_perform_gsea(self):
     #     df = self.obj.perform_gsea(column="disease",
     #                             group1="healthy",
@@ -1158,6 +1147,109 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
                 "P20": "G20",
             },
         )
+
+
+class TestGetFeatureIdsFromString(unittest.TestCase):
+    def setUp(self):
+        # Mock DataSet object with necessary attributes
+        self.obj = DataSet(
+            loader=GenericLoader(
+                file="testfiles/synthetic/preprocessing_pentests.csv",
+                intensity_column="Intensity [sample]",
+                index_column="Protein IDs",
+                gene_names_column="Gene names",
+            ),
+            metadata_path_or_df="testfiles/synthetic/preprocessing_pentests_metadata.csv",
+            sample_column="sample",
+        )
+        self.obj._feature_to_repr_map = {
+            "P1": "G1",
+            "P2": "ids:P2",
+            "P3": "G3",
+            "P5;P6": "G5;G6",
+            "P6;P7": "G6;G7",
+        }
+        self.obj._gene_to_features_map = {
+            "G1": ["P1"],
+            "G3": ["P3"],
+            "G5": ["P5;P6"],
+            "G6": ["P5;P6", "P6;P7"],
+            "G7": ["P6;P7"],
+        }
+        self.obj._protein_to_features_map = {
+            "P1": ["P1"],
+            "P2": ["P2"],
+            "P3": ["P3"],
+            "P5": ["P5;P6"],
+            "P6": ["P5;P6", "P6;P7"],
+            "P7": ["P6;P7"],
+        }
+
+    def test_feature_in_feature_to_repr_map(self):
+        result = self.obj._get_feature_ids_from_string("P5;P6")
+        self.assertEqual(result, ["P5;P6"])
+
+    def test_feature_in_gene_to_features_map(self):
+        result = self.obj._get_feature_ids_from_string("G5")
+        self.assertEqual(result, ["P5;P6"])
+
+    def test_feature_in_protein_to_features_map(self):
+        result = self.obj._get_feature_ids_from_string("P5")
+        self.assertEqual(result, ["P5;P6"])
+
+    def test_gene_with_additional_feature(self):
+        result = self.obj._get_feature_ids_from_string("G6")
+        self.assertEqual(result, ["P5;P6", "P6;P7"])
+
+    def test_representation_matching_feature(self):
+        result = self.obj._get_feature_ids_from_string("ids:P2")
+        self.assertEqual(result, ["P2"])
+
+    def test_feature_not_found(self):
+        with self.assertRaises(ValueError) as context:
+            self.obj._get_feature_ids_from_string("NonExistentFeature")
+        self.assertEqual(
+            str(context.exception),
+            "Feature NonExistentFeature is not in the (processed) data.",
+        )
+
+    def test_multiple_features_all_valid(self):
+        features = ["P1", "G3", "ids:P2"]
+        result = self.obj._get_multiple_feature_ids_from_strings(features)
+        self.assertEqual(result, ["P1", "P3", "P2"])
+
+    def test_multiple_features_some_invalid(self):
+        features = ["P1", "NonExistentFeature", "G5"]
+        with self.assertWarns(UserWarning) as warning:
+            result = self.obj._get_multiple_feature_ids_from_strings(features)
+            self.assertEqual(result, ["P1", "P5;P6"])
+            self.assertIn(
+                "Could not find the following features: NonExistentFeature",
+                str(warning.warnings[0]),
+            )
+
+    def test_multiple_features_all_invalid(self):
+        features = ["Invalid1", "Invalid2"]
+        with self.assertWarns(UserWarning) as warning, self.assertRaises(
+            ValueError
+        ) as context:
+            self.obj._get_multiple_feature_ids_from_strings(features)
+            self.assertIn(
+                "Could not find the following features: Invalid1, Invalid2",
+                str(warning.warnings[0]),
+            )
+            self.assertEqual(str(context.exception), "No valid features provided.")
+
+    def test_multiple_features_with_duplicates(self):
+        features = ["P1", "G5", "P1", "G5"]
+        result = self.obj._get_multiple_feature_ids_from_strings(features)
+        self.assertEqual(result, ["P1", "P5;P6", "P1", "P5;P6"])
+
+    def test_multiple_features_empty_list(self):
+        features = []
+        with self.assertRaises(ValueError) as context:
+            self.obj._get_multiple_feature_ids_from_strings(features)
+            self.assertEqual(str(context.exception), "No valid features provided.")
 
 
 if __name__ == "__main__":

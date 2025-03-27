@@ -200,7 +200,7 @@ def get_assistant_functions(
                     "properties": {
                         "feature": {
                             "type": "string",
-                            "description": "Identifier for the feature of interest, use the same format as in the initial prompt, inidivual gene symbols, or individual protein ids",
+                            "description": "Identifier for the feature of interest. Use the same format as in the initial prompt, inidividual gene symbols, or individual protein ids.",
                         },
                         "group": {
                             "type": "string",
