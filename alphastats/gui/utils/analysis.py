@@ -48,9 +48,7 @@ class StatisticOptions(metaclass=ConstantsClass):
 class NewAnalysisOptions(metaclass=ConstantsClass):
     """Keys for the new analysis options, the order determines order in UI."""
 
-    DIFFERENTIAL_EXPRESSION_TWO_GROUPS = (
-        "💬 Differential Expression Analysis (Two Groups)"
-    )
+    DIFFERENTIAL_EXPRESSION_TWO_GROUPS = "Differential Expression Analysis (Two Groups)"
 
 
 class AnalysisComponent(ABC):

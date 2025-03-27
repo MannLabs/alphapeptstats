@@ -17,6 +17,7 @@ from alphastats.gui.utils.analysis import (
     ResultComponent,
     StatisticOptions,
 )
+from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
 from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.ui_helper import (
     show_button_download_df,
@@ -99,7 +100,7 @@ def _display(
     else:
         display_function(analysis_result)
 
-    if isinstance(analysis_result, DifferentialExpressionTwoGroupsResult):
+    if analysis_method in LLM_ENABLED_ANALYSIS:
         st.markdown(
             "This analysis can be interpreted with help from the LLM. Save to results to continue."
         )
