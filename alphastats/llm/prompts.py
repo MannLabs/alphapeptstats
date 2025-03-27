@@ -22,6 +22,7 @@ def get_system_message(dataset: DataSet) -> str:
         f"The data you have has following groups and respective subgroups: {str(subgroups)}."
         "Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that. If the data coming to"
         " you from a function has references to the literature (for example, PubMed), always quote the references in your response."
+        " The next message will be referred to as the initial prompt by tools and potentially by the user."
     )
 
 

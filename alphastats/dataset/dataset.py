@@ -104,6 +104,8 @@ class DataSet:
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
+
+        # TODO: Make these public attributes
         (
             self._gene_to_features_map,
             self._protein_to_features_map,

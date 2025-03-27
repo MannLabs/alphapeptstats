@@ -11,7 +11,11 @@ exclude = [
     "alphastats/cli.py",
     "alphastats/data/*.py",
     "alphastats/dataset/*.py",
-    "alphastats/llm/*.py",
+    "alphastats/llm/llm_functions.py",
+    "alphastats/llm/llm_integration.py",
+    "alphastats/llm/llm_utils.py",
+    "alphastats/llm/prompts.py",
+    "alphastats/llm/uniprot_utils.py",
     "alphastats/loader/*.py",
     "alphastats/multicova/*.py",
     "alphastats/plots/*.py",
@@ -62,7 +66,6 @@ ignore = [
     "ANN102", # Missing type annotation for `cls` in classmethod
     "ANN002", # Missing type annotation for `*args`
     "ANN003", # Missing type annotation for `**kwargs
-    "FA102", # Missing `from __future__ import annotations
     "EM101", # Exception must not use a string literal, assign to variable first
     "D104", # Missing docstring in public package
     "ANN204", # Missing return type annotation for special method `__init__`

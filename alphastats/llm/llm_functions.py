@@ -7,7 +7,7 @@ import streamlit as st
 
 from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.state_keys import StateKeys
-from alphastats.llm.enrichment_analysis import get_enrichment_data
+from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_organisms
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
     get_annotations_for_feature,
@@ -153,19 +153,23 @@ def get_general_assistant_functions() -> List[Dict]:
                         "difexpressed": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "A list of differentially expressed gene names to search for",
+                            "description": "A list of differentially expressed gene names to search for. Use the exact representations supplied in the (initial) prompt.",
                         },
                         "organism_id": {
                             "type": "string",
-                            "description": "The Uniprot organism ID to search in, e.g. 9606 for human",
+                            "description": f"The organism ID to search in, use keys from this dictionary: '{gprofiler_organisms}'. If you are unsure which organism to use, ask the user.",
                         },
                         "tool": {
                             "type": "string",
-                            "description": "The tool to use for enrichment analysis",
-                            "enum": ["gprofiler", "string"],
+                            "description": "The tool to use for enrichment analysis. String output includes names of input identifiers belonging to each enriched term and can therefore be more useful for downstream analysis. Gprofiler output is more concise.",
+                            "enum": ["string", "gprofiler"],
+                        },
+                        "include_background": {
+                            "type": "boolean",
+                            "description": "Whether to include background genes. This can significantly alter results and should be turned on when the experiment has significantly lower depth than a the full organism annotation.",
                         },
                     },
-                    "required": ["difexpressed", "organism_id"],
+                    "required": ["difexpressed", "organism_id", "tool"],
                 },
             },
         },
