@@ -28,7 +28,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration
+from alphastats.llm.llm_integration import LLMIntegration, ModelFlags
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
 from alphastats.llm.uniprot_utils import (
     format_uniprot_annotation,
@@ -259,6 +259,14 @@ st.info(
     f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
 )
 
+if (
+    model := selected_llm_chat[LLMKeys.MODEL_NAME]
+) in ModelFlags.REQUIRES_API_KEY and not st.session_state.get(StateKeys.OPENAI_API_KEY):
+    st.page_link(
+        "AlphaPeptStats.py",
+        label=f"❗ Please configure an OpenAI API key to use the {model} model on the ➔ start page",
+    )
+    st.stop()
 
 c1, c2, _ = st.columns((0.2, 0.2, 0.6))
 llm_submitted = c1.button(

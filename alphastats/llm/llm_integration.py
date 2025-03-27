@@ -40,6 +40,13 @@ class Models(metaclass=ConstantsClass):
     OLLAMA_31_8B = "llama3.1:8b"  # for testing only
 
 
+class ModelFlags(metaclass=ConstantsClass):
+    """Requirements for the different models."""
+
+    REQUIRES_API_KEY = [Models.GPT4O]
+    MULTIMODAL = [Models.GPT4O]
+
+
 class MessageKeys(metaclass=ConstantsClass):
     """Keys for the message dictionary."""
 
