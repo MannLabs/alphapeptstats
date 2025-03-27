@@ -42,3 +42,6 @@ def init_session_state() -> None:
         st.session_state[StateKeys.MODEL_NAME] = (
             Models.GPT4O
         )  # TDOO: change to None: this is just for convenience now
+
+    if StateKeys.SELECTED_ANALYSIS not in st.session_state:
+        st.session_state[StateKeys.SELECTED_ANALYSIS] = None

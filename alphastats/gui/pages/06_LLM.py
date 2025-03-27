@@ -278,6 +278,9 @@ llm_reset = c2.button(
 )
 if llm_reset:
     del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
+    del selected_llm_chat[LLMKeys.MODEL_NAME]
+    del selected_llm_chat[LLMKeys.MAX_TOKENS]
+    del selected_llm_chat[LLMKeys.IS_INITIALIZED]
     st.rerun()
 
 
@@ -297,6 +300,7 @@ if not is_llm_integration_initialized:
         )
 
         selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
+        selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
 
         st.toast(
             f"{selected_llm_chat[LLMKeys.MODEL_NAME]} integration initialized successfully!",
