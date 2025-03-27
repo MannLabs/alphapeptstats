@@ -225,6 +225,7 @@ def _save_analysis_to_session_state(
         SavedAnalysisKeys.RESULT: deepcopy(analysis_results),
         SavedAnalysisKeys.METHOD: method,
         SavedAnalysisKeys.PARAMETERS: parameters,
+        # TODO number will be given twice if user removes analysis
         SavedAnalysisKeys.NUMBER: len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
     }
 

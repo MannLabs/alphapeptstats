@@ -29,27 +29,26 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 @st.fragment
 def llm_config():
     """Show the configuration options for the LLM interpretation."""
+
+    current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
+
     c1, _ = st.columns((1, 2))
     with c1:
-        current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
-
         models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
-        model_name = st.selectbox(
+        new_model = st.selectbox(
             "Select LLM",
             models,
-            index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
-            if current_model is not None
-            else 0,
+            index=models.index(current_model) if current_model is not None else 0,
         )
-        st.session_state[StateKeys.MODEL_NAME] = model_name
+        st.session_state[StateKeys.MODEL_NAME] = new_model
 
         base_url = None
-        if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
+        if new_model in [Models.GPT4O]:
             api_key = st.text_input(
                 "Enter OpenAI API Key and press Enter", type="password"
             )
             set_api_key(api_key)
-        elif st.session_state[StateKeys.MODEL_NAME] in [
+        elif new_model in [
             Models.OLLAMA_31_70B,
             Models.OLLAMA_31_8B,
         ]:
@@ -58,16 +57,16 @@ def llm_config():
 
         test_connection = st.button("Test connection")
         if test_connection:
-            with st.spinner(f"Testing connection to {model_name}.."):
+            with st.spinner(f"Testing connection to {new_model}.."):
                 error = llm_connection_test(
-                    model_name=st.session_state[StateKeys.MODEL_NAME],
+                    model_name=new_model,
                     api_key=st.session_state[StateKeys.OPENAI_API_KEY],
                     base_url=base_url,
                 )
                 if error is None:
-                    st.success(f"Connection to {model_name} successful!")
+                    st.success(f"Connection to {new_model} successful!")
                 else:
-                    st.error(f"Connection to {model_name} failed: {str(error)}")
+                    st.error(f"Connection to {new_model} failed: {str(error)}")
 
         st.number_input(
             "Maximal number of tokens",
@@ -77,11 +76,11 @@ def llm_config():
             key=StateKeys.MAX_TOKENS,
         )
 
-        if current_model != st.session_state[StateKeys.MODEL_NAME]:
+        if current_model != new_model:
             st.rerun(scope="app")
 
 
-def pretty_print_analysis(key: str) -> str:
+def format_analysis_key(key: str) -> str:
     """Pretty print an analysis referenced by `key`."""
     analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
     return f"[{key}] #{analysis[SavedAnalysisKeys.NUMBER]} {analysis[SavedAnalysisKeys.METHOD]} {analysis[SavedAnalysisKeys.PARAMETERS]}"
@@ -103,6 +102,23 @@ def init_llm_chat_state(
         selected_llm_chat[LLMKeys.SELECTED_GENES_UP] = upregulated_genes
     if selected_llm_chat.get(LLMKeys.SELECTED_GENES_DOWN) is None:
         selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN] = downregulated_genes
+
+    # TODO model name is determined when loading LLM page -> need better model selection.
+    selected_llm_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
+    selected_llm_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
+
+    selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
+
+
+def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict) -> None:
+    """Transfer the state of a given llm_chat to the session state, if it is already initialized.
+
+    This is to get the connection to the model selector right (which operates on the session state).
+    TODO this needs improvement!
+    """
+    if selected_llm_chat.get(LLMKeys.IS_INITIALIZED):
+        st.session_state[StateKeys.MODEL_NAME] = selected_llm_chat[LLMKeys.MODEL_NAME]
+        st.session_state[StateKeys.MAX_TOKENS] = selected_llm_chat[LLMKeys.MAX_TOKENS]
 
 
 @st.fragment
@@ -401,7 +417,7 @@ def display_uniprot(
             )
 
 
-def on_select_fill_state() -> None:
+def on_select_new_analysis_fill_state() -> None:
     """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
     selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], None

@@ -14,11 +14,12 @@ from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     OLLAMA_BASE_URL,
     display_uniprot,
+    format_analysis_key,
     init_llm_chat_state,
-    on_select_fill_state,
-    pretty_print_analysis,
+    on_select_new_analysis_fill_state,
     protein_selector,
     show_llm_chat,
+    transfer_llm_chat_state_to_session_state,
 )
 from alphastats.gui.utils.state_keys import LLMKeys, SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
@@ -50,7 +51,7 @@ if StateKeys.DATASET not in st.session_state:
 st.markdown("#### Select Analysis for LLM interpretation")
 
 if not (
-    saved_analyses_keys := [
+    available_analyses_keys := [
         key
         for key, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
         if analysis[SavedAnalysisKeys.METHOD] in LLM_ENABLED_ANALYSIS
@@ -64,10 +65,10 @@ if not (
 
 selected_analysis_key = st.selectbox(
     "Select analysis to interpret with LLM",
-    saved_analyses_keys,
-    format_func=pretty_print_analysis,
-    index=None if len(saved_analyses_keys) > 1 else 0,
-    on_change=on_select_fill_state,
+    available_analyses_keys,
+    format_func=format_analysis_key,
+    index=None if len(available_analyses_keys) > 1 else 0,
+    on_change=on_select_new_analysis_fill_state,
     key=StateKeys.SELECTED_ANALYSIS,
 )
 
@@ -80,10 +81,9 @@ if (
 
 if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
     st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
-selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
 
-model_name = st.session_state[StateKeys.MODEL_NAME]
-llm_integration_set_for_model = selected_llm_chat.get(model_name, None) is not None
+selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
+transfer_llm_chat_state_to_session_state(selected_llm_chat)
 
 volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
 plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
@@ -173,12 +173,17 @@ st.markdown(
 if st.button("Fetch UniProt data for selected proteins"):
     gather_uniprot_data(selected_genes)
 
+is_llm_integration_initialized = (
+    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
+)
+
+
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
-    model_name=model_name,
+    model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
     selected_analysis_key=selected_analysis_key,
-    disabled=llm_integration_set_for_model,
+    disabled=is_llm_integration_initialized,
 )
 
 
@@ -190,7 +195,7 @@ st.write(
 )
 if st.button(
     "Update prompts with selected genes and UniProt information",
-    disabled=llm_integration_set_for_model,
+    disabled=is_llm_integration_initialized,
     help="Regenerate system message and initial prompt based on current selections",
 ):
     st.rerun(scope="app")
@@ -200,7 +205,7 @@ with st.expander("System message", expanded=False):
         " ",
         value=get_system_message(st.session_state[StateKeys.DATASET]),
         height=150,
-        disabled=llm_integration_set_for_model,
+        disabled=is_llm_integration_initialized,
     )
 
 # TODO: Regenerate initial prompt on reset
@@ -237,7 +242,7 @@ with st.expander("Initial prompt", expanded=True):
             uniprot_info,
         ),
         height=200,
-        disabled=llm_integration_set_for_model,
+        disabled=is_llm_integration_initialized,
     )
 
     # a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
@@ -248,40 +253,45 @@ with st.expander("Initial prompt", expanded=True):
 
 ##################################### LLM interpretation #####################################
 
-st.markdown(f"#### LLM Interpretation with {model_name}")
+st.markdown(f"#### LLM Interpretation with {selected_llm_chat[LLMKeys.MODEL_NAME]}")
+
+st.info(
+    f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
+)
+
 
 c1, c2, _ = st.columns((0.2, 0.2, 0.6))
 llm_submitted = c1.button(
-    "Run LLM interpretation ...", disabled=llm_integration_set_for_model
+    "Run LLM interpretation ...", disabled=is_llm_integration_initialized
 )
 
 llm_reset = c2.button(
-    "❌ Reset LLM interpretation ...", disabled=not llm_integration_set_for_model
+    "❌ Reset LLM interpretation ...", disabled=not is_llm_integration_initialized
 )
 if llm_reset:
-    del selected_llm_chat[model_name]
+    del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
     st.rerun()
 
 
-if not llm_integration_set_for_model:
+if not is_llm_integration_initialized:
     if not llm_submitted:
         st.stop()
 
     try:
         llm_integration = LLMIntegration(
-            model_name=model_name,
+            model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=OLLAMA_BASE_URL,
             dataset=st.session_state[StateKeys.DATASET],
             genes_of_interest=list(regulated_genes_dict.keys()),
-            max_tokens=st.session_state[StateKeys.MAX_TOKENS],
+            max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
 
-        selected_llm_chat[model_name] = llm_integration
+        selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
 
         st.toast(
-            f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!",
+            f"{selected_llm_chat[LLMKeys.MODEL_NAME]} integration initialized successfully!",
             icon="✅",
         )
 
@@ -311,7 +321,7 @@ with c2:
     )
 
 show_llm_chat(
-    selected_llm_chat[model_name],
+    selected_llm_chat[LLMKeys.LLM_INTEGRATION],
     selected_analysis_key,
     show_all,
     show_inidvidual_tokens,

@@ -5,6 +5,7 @@ from alphastats.gui.utils.analysis_helper import (
 )
 from alphastats.gui.utils.llm_helper import show_llm_chat
 from alphastats.gui.utils.state_keys import (
+    LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
 )
@@ -57,7 +58,7 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
     if (
         llm_integration := st.session_state.get(StateKeys.LLM_CHATS, {})
         .get(key, {})
-        .get(st.session_state[StateKeys.MODEL_NAME])
+        .get(LLMKeys.LLM_INTEGRATION)
     ) is not None:
         with st.expander("LLM Chat (read-only)", expanded=False):
             show_llm_chat(llm_integration, key)

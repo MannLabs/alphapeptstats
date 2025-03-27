@@ -39,9 +39,12 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_GENES_DOWN = "selected_genes_down"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
+    IS_INITIALIZED = "is_initialized"
     # Mirrored by StateKeys for handling reactivity and making it available to functions reading from the session state
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
+    MODEL_NAME = "model_name"
+    MAX_TOKENS = "max_tokens"
 
 
 class SavedAnalysisKeys(metaclass=ConstantsClass):
