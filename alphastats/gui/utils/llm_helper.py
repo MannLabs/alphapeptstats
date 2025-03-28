@@ -69,14 +69,14 @@ def llm_config():
                 else:
                     st.error(f"Connection to {new_model} failed: {str(error)}")
 
-        st.number_input(
+        tokens = st.number_input(
             "Maximal number of tokens",
+            step=1000,
             value=st.session_state[StateKeys.MAX_TOKENS],
-            min_value=2000,
-            max_value=128000,  # TODO: set this automatically based on the selected model
-            key=StateKeys.MAX_TOKENS,
-            on_change=on_change_save_state,
         )
+        if tokens != st.session_state[StateKeys.MAX_TOKENS]:
+            st.session_state[StateKeys.MAX_TOKENS] = tokens
+            on_change_save_state()
 
         if current_model != new_model:
             st.rerun(scope="app")
@@ -437,20 +437,22 @@ def on_change_save_state() -> None:
 
     This can be expanded to other widgets as needed.
     """
-    selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
+    selected_analysis: dict = st.session_state[StateKeys.SAVED_ANALYSES].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], None
     )
 
-    if selected_analysis is None:
-        return
+    if selected_analysis is not None:
+        selected_analysis[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
+            st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT]
+        )
 
-    selected_analysis[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = st.session_state[
-        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT
-    ]
-
-    if not selected_analysis.get(LLMKeys.IS_INITIALIZED, False):
-        selected_analysis[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
-        selected_analysis[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
+        if not selected_analysis.get(LLMKeys.IS_INITIALIZED, False):
+            selected_analysis[LLMKeys.MODEL_NAME] = st.session_state[
+                StateKeys.MODEL_NAME
+            ]
+            selected_analysis[LLMKeys.MAX_TOKENS] = st.session_state[
+                StateKeys.MAX_TOKENS
+            ]
 
 
 @st.fragment
