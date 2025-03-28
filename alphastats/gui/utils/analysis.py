@@ -251,7 +251,7 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
     def _do_analysis(self):
         """Draw Intensity Plot using the IntensityPlot class."""
         intensity_plot = self._dataset.plot_intensity(
-            protein_id=self._parameters["protein_id"],
+            feature=self._parameters["protein_id"],
             method=self._parameters["method"],
             group=self._parameters["group"],
         )

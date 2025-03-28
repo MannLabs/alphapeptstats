@@ -501,7 +501,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intenstity_subgroup(self):
         plot = self.obj.plot_intensity(
-            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            feature="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
             subgroups=["healthy", "liver cirrhosis"],
             add_significance=True,
@@ -511,7 +511,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intenstity_valid_gene(self):
         plot = self.obj.plot_intensity(
-            gene_name="ALDOC",
+            feature="ALDOC",
             group="disease",
         )
         plot_dict = plot.to_plotly_json()
@@ -520,13 +520,13 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intenstity_bogus_gene(self):
         with self.assertRaises(ValueError):
             self.obj.plot_intensity(
-                gene_name="BOGUSGENE",
+                feature="BOGUSGENE",
                 group="disease",
             )
 
     def test_plot_intensity_subgroup_gracefully_handle_one_group(self):
         plot = self.obj.plot_intensity(
-            protein_id="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
+            feature="K7ERI9;A0A024R0T8;P02654;K7EJI9;K7ELM9;K7EPF9;K7EKP1",
             group="disease",
             add_significance=True,
         )
@@ -691,7 +691,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         No significant label is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="S6BAR0",
+            feature="S6BAR0",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -708,7 +708,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Significant label * is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="Q9UL94",
+            feature="Q9UL94",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -725,7 +725,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Significant label ** is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="Q96JD0;Q96JD1;P01721",
+            feature="Q96JD0;Q96JD1;P01721",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -742,7 +742,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         Highly significant label is added to intensity plot
         """
         plot = self.obj.plot_intensity(
-            protein_id="Q9BWP8",
+            feature="Q9BWP8",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             add_significance=True,
@@ -756,7 +756,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
 
     def test_plot_intensity_all(self):
         plot = self.obj.plot_intensity(
-            protein_id="Q9BWP8",
+            feature="Q9BWP8",
             group="disease",
             subgroups=["liver cirrhosis", "healthy"],
             method="all",
@@ -790,17 +790,6 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         )
         self.assertEqual(res.shape[1], 45)
 
-    def test_get_protein_id_for_gene_name(self):
-        with self.assertRaises(ValueError):
-            self.obj._get_features_for_gene_name("MADE_UP_GENE"), "MADE_UP_GENE"
-
-        self.assertEqual(
-            self.obj._get_features_for_gene_name("ALDOC"),
-            [
-                "P09972;A0A024QZ64;A8MVZ9;B7Z3K9;B7Z1N6;B7Z3K7;J3KSV6;J3QKP5;C9J8F3;B7Z1Z9;J3QKK1;B7Z1H6;K7EKH5;B7Z1L5"
-            ],
-        )
-
     # def test_perform_gsea(self):
     #     df = self.obj.perform_gsea(column="disease",
     #                             group1="healthy",
@@ -828,7 +817,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_violin(self):
         # Violinplot
         plot = self.obj.plot_intensity(
-            protein_id="A0A075B6H7", group="grouping1", method="violin"
+            feature="A0A075B6H7", group="grouping1", method="violin"
         )
         plot_dict = plot.to_plotly_json()
         self.assertIsInstance(plot, plotly.graph_objects.Figure)
@@ -838,7 +827,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_box(self):
         # Boxplot
         plot = self.obj.plot_intensity(
-            protein_id="A0A075B6H7", group="grouping1", method="box", log_scale=True
+            feature="A0A075B6H7", group="grouping1", method="box", log_scale=True
         )
         plot_dict = plot.to_plotly_json()
         # log scale
@@ -849,7 +838,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_scatter(self):
         # Scatterplot
         plot = self.obj.plot_intensity(
-            protein_id="A0A075B6H7", group="grouping1", method="scatter"
+            feature="A0A075B6H7", group="grouping1", method="scatter"
         )
         plot_dict = plot.to_plotly_json()
         self.assertIsInstance(plot, plotly.graph_objects.Figure)
@@ -859,7 +848,7 @@ class TestDIANNDataSet(BaseTestDataSet.BaseTest):
     def test_plot_intensity_wrong_method(self):
         with self.assertRaises(ValueError):
             self.obj.plot_intensity(
-                protein_id="A0A075B6H7", group="grouping1", method="wrong"
+                feature="A0A075B6H7", group="grouping1", method="wrong"
             )
 
     def test_plot_clustermap_noimputation(self):
@@ -1158,6 +1147,109 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
                 "P20": "G20",
             },
         )
+
+
+class TestGetFeatureIdsFromString(unittest.TestCase):
+    def setUp(self):
+        # Mock DataSet object with necessary attributes
+        self.obj = DataSet(
+            loader=GenericLoader(
+                file="testfiles/synthetic/preprocessing_pentests.csv",
+                intensity_column="Intensity [sample]",
+                index_column="Protein IDs",
+                gene_names_column="Gene names",
+            ),
+            metadata_path_or_df="testfiles/synthetic/preprocessing_pentests_metadata.csv",
+            sample_column="sample",
+        )
+        self.obj._feature_to_repr_map = {
+            "P1": "G1",
+            "P2": "ids:P2",
+            "P3": "G3",
+            "P5;P6": "G5;G6",
+            "P6;P7": "G6;G7",
+        }
+        self.obj._gene_to_features_map = {
+            "G1": ["P1"],
+            "G3": ["P3"],
+            "G5": ["P5;P6"],
+            "G6": ["P5;P6", "P6;P7"],
+            "G7": ["P6;P7"],
+        }
+        self.obj._protein_to_features_map = {
+            "P1": ["P1"],
+            "P2": ["P2"],
+            "P3": ["P3"],
+            "P5": ["P5;P6"],
+            "P6": ["P5;P6", "P6;P7"],
+            "P7": ["P6;P7"],
+        }
+
+    def test_feature_in_feature_to_repr_map(self):
+        result = self.obj._get_feature_ids_from_string("P5;P6")
+        self.assertEqual(result, ["P5;P6"])
+
+    def test_feature_in_gene_to_features_map(self):
+        result = self.obj._get_feature_ids_from_string("G5")
+        self.assertEqual(result, ["P5;P6"])
+
+    def test_feature_in_protein_to_features_map(self):
+        result = self.obj._get_feature_ids_from_string("P5")
+        self.assertEqual(result, ["P5;P6"])
+
+    def test_gene_with_additional_feature(self):
+        result = self.obj._get_feature_ids_from_string("G6")
+        self.assertEqual(result, ["P5;P6", "P6;P7"])
+
+    def test_representation_matching_feature(self):
+        result = self.obj._get_feature_ids_from_string("ids:P2")
+        self.assertEqual(result, ["P2"])
+
+    def test_feature_not_found(self):
+        with self.assertRaises(ValueError) as context:
+            self.obj._get_feature_ids_from_string("NonExistentFeature")
+        self.assertEqual(
+            str(context.exception),
+            "Feature NonExistentFeature is not in the (processed) data.",
+        )
+
+    def test_multiple_features_all_valid(self):
+        features = ["P1", "G3", "ids:P2"]
+        result = self.obj._get_multiple_feature_ids_from_strings(features)
+        self.assertEqual(result, ["P1", "P3", "P2"])
+
+    def test_multiple_features_some_invalid(self):
+        features = ["P1", "NonExistentFeature", "G5"]
+        with self.assertWarns(UserWarning) as warning:
+            result = self.obj._get_multiple_feature_ids_from_strings(features)
+            self.assertEqual(result, ["P1", "P5;P6"])
+            self.assertIn(
+                "Could not find the following features: NonExistentFeature",
+                str(warning.warnings[0]),
+            )
+
+    def test_multiple_features_all_invalid(self):
+        features = ["Invalid1", "Invalid2"]
+        with self.assertWarns(UserWarning) as warning, self.assertRaises(
+            ValueError
+        ) as context:
+            self.obj._get_multiple_feature_ids_from_strings(features)
+            self.assertIn(
+                "Could not find the following features: Invalid1, Invalid2",
+                str(warning.warnings[0]),
+            )
+            self.assertEqual(str(context.exception), "No valid features provided.")
+
+    def test_multiple_features_with_duplicates(self):
+        features = ["P1", "G5", "P1", "G5"]
+        result = self.obj._get_multiple_feature_ids_from_strings(features)
+        self.assertEqual(result, ["P1", "P5;P6", "P1", "P5;P6"])
+
+    def test_multiple_features_empty_list(self):
+        features = []
+        with self.assertRaises(ValueError) as context:
+            self.obj._get_multiple_feature_ids_from_strings(features)
+            self.assertEqual(str(context.exception), "No valid features provided.")
 
 
 if __name__ == "__main__":
