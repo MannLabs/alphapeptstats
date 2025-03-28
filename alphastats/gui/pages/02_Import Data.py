@@ -10,6 +10,7 @@ from alphastats.gui.utils.import_helper import (
     uploaded_file_to_df,
 )
 from alphastats.gui.utils.options import SOFTWARE_OPTIONS
+from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER_PATH, SessionManager
 from alphastats.gui.utils.state_keys import (
     StateKeys,
 )
@@ -38,6 +39,12 @@ sidebar_info()
 st.markdown("## Import Data")
 
 
+saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
+if saved_sessions:
+    st.page_link(
+        "AlphaPeptStats.py", label="➔ Load a previous session on the main page.."
+    )
+
 st.markdown("### Start a new session")
 st.write(
     "Start a new session will discard the current one (including all analysis!) and enable importing a new dataset."
@@ -62,7 +69,7 @@ if c2.button("Start new Session with example DataSet", key="_load_example_data")
 st.markdown("### Import Proteomics Data")
 if StateKeys.DATASET in st.session_state:
     st.info("DataSet already present.")
-    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
+    st.page_link("pages/03_Data Overview.py", label="➔ Go to data overview page..")
     st.stop()
 
 

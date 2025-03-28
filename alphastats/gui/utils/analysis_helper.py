@@ -11,11 +11,13 @@ from stqdm import stqdm
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
+    DifferentialExpressionTwoGroupsResult,
     NewAnalysisOptions,
     PlottingOptions,
     ResultComponent,
     StatisticOptions,
 )
+from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
 from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.ui_helper import (
     show_button_download_df,
@@ -98,6 +100,11 @@ def _display(
     else:
         display_function(analysis_result)
 
+    if analysis_method in LLM_ENABLED_ANALYSIS:
+        st.markdown(
+            "This analysis can be interpreted with help from the LLM. Save to results to continue."
+        )
+
     c1, c2, c3 = st.columns([1, 1, 1])
 
     with c1:
@@ -109,6 +116,8 @@ def _display(
                 analysis_result, analysis_method, parameters
             )
             st.toast("Saved to results page!", icon="✅")
+            if isinstance(analysis_result, DifferentialExpressionTwoGroupsResult):
+                st.page_link("pages/06_LLM.py", label="➔ Continue with LLM analysis")
 
     with c2:
         download_function(

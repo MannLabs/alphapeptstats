@@ -9,6 +9,7 @@ from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
     gather_parameters_and_do_analysis,
 )
+from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
 from alphastats.gui.utils.state_keys import (
     StateKeys,
 )
@@ -64,6 +65,7 @@ with c1:
         + plotting_options
         + ["------- statistics -------"]
         + statistic_options,
+        format_func=lambda x: x if x not in LLM_ENABLED_ANALYSIS else "💬 " + x,
     )
 
     if analysis_method in plotting_options or analysis_method in new_options:
