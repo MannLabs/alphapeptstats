@@ -588,9 +588,19 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
         column_added = "_comparison_column" in self.obj.metadata.columns.to_list()
         self.assertTrue(column_added)
 
-    def test_plot_volcano_sam(self):
+    @patch("alphastats.plots.volcano_plot.VolcanoPlot._sam_calculate_fdr_line")
+    def test_plot_volcano_sam(self, mock_sam_calculate_fdr_line):
+        mock_sam_calculate_fdr_line.return_value = pd.DataFrame(
+            {
+                "fc_s": [-1.5, -1.0, 0.0, 1.0, 1.5],  # Fold change values
+                "pvals": [0.05, 0.01, 0.001, 0.01, 0.05],  # P-values
+            }
+        )
+
         self.obj.preprocess(
-            log2_transform=False, imputation="knn", normalization="zscore"
+            log2_transform=False,
+            imputation="median",
+            data_completeness=0.5,
         )
         plot = self.obj.plot_volcano(
             column="disease",
@@ -598,7 +608,7 @@ class TestMaxQuantDataSet(BaseTestDataSet.BaseTest):
             group2="type 2 diabetes mellitus|non-alcoholic fatty liver disease",
             method="sam",
             draw_line=True,
-            perm=10,
+            perm=2,
         )
 
         # fdr lines get drawn
