@@ -26,16 +26,24 @@ def get_system_message(dataset: DataSet) -> str:
     )
 
 
-def get_initial_prompt(
+def _get_experimental_design_prompt(
     parameter_dict: Dict[str, Any],
+) -> str:
+    group1 = parameter_dict["group1"]
+    group2 = parameter_dict["group2"]
+    column = parameter_dict["column"]
+    return (
+        f"We've recently identified several proteins that appear to be differently regulated in cells "
+        f"when comparing {group1} and {group2} in the {column} group. "
+    )
+
+
+def _get_protein_data_prompt(
     upregulated_genes: List[str],
     downregulated_genes: List[str],
     uniprot_info: str,
 ):
     """Get the initial prompt for the LLM model."""
-    group1 = parameter_dict["group1"]
-    group2 = parameter_dict["group2"]
-    column = parameter_dict["column"]
     if uniprot_info:
         uniprot_instructions = (
             f"We have already retireved relevant information from Uniprot for these proteins:{os.linesep}{os.linesep}{uniprot_info}{os.linesep}{os.linesep}"
@@ -48,13 +56,27 @@ def get_initial_prompt(
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
     return (
-        f"We've recently identified several proteins that appear to be differently regulated in cells "
-        f"when comparing {group1} and {group2} in the {column} group. "
         f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(upregulated_genes)}.{os.linesep}{os.linesep}"
         f"Here is a comma-separated list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
-        f"{uniprot_instructions}{os.linesep}{os.linesep}"
-        f"Help us understand the potential connections between these proteins and how they might be contributing "
-        f"to the differences. After that provide a high level summary."
+        f"{uniprot_instructions}"
+    )
+
+
+def _get_initial_instruction():
+    return (
+        "Help us understand the potential connections between these proteins and how they might be contributing "
+        "to the differences. After that provide a high level summary."
+    )
+
+
+def get_initial_prompt(
+    experimental_design_prompt: str,
+    protein_data_prompt: str,
+    initial_instruction: str,
+) -> str:
+    """Get the initial prompt for the LLM model."""
+    return f"{os.linesep}{os.linesep}".join(
+        [experimental_design_prompt, protein_data_prompt, initial_instruction]
     )
 
 

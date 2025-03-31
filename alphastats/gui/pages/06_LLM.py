@@ -1,4 +1,3 @@
-import os
 from typing import Dict
 
 import streamlit as st
@@ -13,8 +12,10 @@ from alphastats.gui.utils.analysis_helper import (
 from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     OLLAMA_BASE_URL,
+    configure_initial_prompt,
     display_uniprot,
     format_analysis_key,
+    get_selected_regulated_genes,
     init_llm_chat_state,
     on_select_new_analysis_fill_state,
     protein_selector,
@@ -29,10 +30,7 @@ from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 from alphastats.llm.llm_integration import LLMIntegration, ModelFlags
-from alphastats.llm.prompts import get_initial_prompt, get_system_message
-from alphastats.llm.uniprot_utils import (
-    format_uniprot_annotation,
-)
+from alphastats.llm.prompts import get_system_message
 
 st.set_page_config(layout="wide")
 init_session_state()
@@ -149,14 +147,7 @@ with c2:
         state_key=LLMKeys.SELECTED_GENES_DOWN,
     )
 
-selected_genes = (
-    selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
-    + selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
-)
-regulated_genes_dict = {
-    gene: "up" if gene in selected_llm_chat[LLMKeys.SELECTED_GENES_UP] else "down"
-    for gene in selected_genes
-}
+selected_genes, regulated_genes_dict = get_selected_regulated_genes(selected_llm_chat)
 
 if not regulated_genes_dict:
     st.text("No genes selected for analysis.")
@@ -211,38 +202,8 @@ with st.expander("System message", expanded=False):
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
-        texts = [
-            format_uniprot_annotation(
-                st.session_state[StateKeys.ANNOTATION_STORE][feature],
-                fields=selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
-            )
-            for feature in regulated_genes_dict
-        ]
-        uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
-    else:
-        uniprot_info = ""
-
-    initial_prompt = st.text_area(
-        " ",
-        value=get_initial_prompt(
-            plot_parameters,
-            list(
-                map(
-                    feature_to_repr_map.get,
-                    selected_llm_chat[LLMKeys.SELECTED_GENES_UP],
-                )
-            ),
-            list(
-                map(
-                    feature_to_repr_map.get,
-                    selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN],
-                )
-            ),
-            uniprot_info,
-        ),
-        height=200,
-        disabled=is_llm_integration_initialized,
+    initial_prompt = configure_initial_prompt(
+        selected_llm_chat, plot_parameters, feature_to_repr_map
     )
 
     # a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler

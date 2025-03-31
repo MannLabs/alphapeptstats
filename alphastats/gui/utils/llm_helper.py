@@ -15,6 +15,12 @@ from alphastats.gui.utils.state_keys import (
     StateKeys,
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
+from alphastats.llm.prompts import (
+    _get_experimental_design_prompt,
+    _get_initial_instruction,
+    _get_protein_data_prompt,
+    get_initial_prompt,
+)
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
@@ -453,6 +459,71 @@ def on_change_save_state() -> None:
             selected_analysis[LLMKeys.MAX_TOKENS] = st.session_state[
                 StateKeys.MAX_TOKENS
             ]
+
+
+def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
+    selected_genes = (
+        llm_chat[LLMKeys.SELECTED_GENES_UP] + llm_chat[LLMKeys.SELECTED_GENES_DOWN]
+    )
+    regulated_genes_dict = {
+        gene: "up" if gene in llm_chat[LLMKeys.SELECTED_GENES_UP] else "down"
+        for gene in selected_genes
+    }
+    return selected_genes, regulated_genes_dict
+
+
+def configure_initial_prompt(
+    llm_chat: dict, plot_parameters: dict, feature_to_repr_map: dict
+) -> None:
+    _, regulated_genes_dict = get_selected_regulated_genes(llm_chat)
+
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
+        texts = [
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                fields=llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
+            )
+            for feature in regulated_genes_dict
+        ]
+        uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
+    else:
+        uniprot_info = ""
+
+    experimental_design_prompt = st.text_area(
+        "Please explain your experimental design",
+        value=_get_experimental_design_prompt(plot_parameters),
+        height=100,
+        disabled=llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None,
+    )
+    protein_data_prompt = st.text_area(
+        "Please edit your selection above and update the prompt",
+        value=_get_protein_data_prompt(
+            list(
+                map(
+                    feature_to_repr_map.get,
+                    llm_chat[LLMKeys.SELECTED_GENES_UP],
+                )
+            ),
+            list(
+                map(
+                    feature_to_repr_map.get,
+                    llm_chat[LLMKeys.SELECTED_GENES_DOWN],
+                )
+            ),
+            uniprot_info,
+        ),
+        height=200,
+        disabled=True,
+    )
+    initial_instruction = st.text_area(
+        "Please provide an initial instruction",
+        value=_get_initial_instruction(),
+        height=100,
+        disabled=llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None,
+    )
+    return get_initial_prompt(
+        experimental_design_prompt, protein_data_prompt, initial_instruction
+    )
 
 
 @st.fragment
