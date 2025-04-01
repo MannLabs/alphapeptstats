@@ -18,8 +18,6 @@ class StateKeys(metaclass=ConstantsClass):
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
-    MODEL_NAME = "model_name"
-    MAX_TOKENS = "max_tokens"
 
     LLM_CHATS = "llm_chats"
 
@@ -29,6 +27,11 @@ class StateKeys(metaclass=ConstantsClass):
     # Mirrored by LLMKeys where they are stored in a chat specific manner
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
+    MODEL_NAME = "model_name"
+    MAX_TOKENS = "max_tokens"
+    PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
+    PROMPT_PROTEIN_DATA = "prompt_protein_data"
+    PROMPT_INSTRUCTIONS = "prompt_instructions"
 
 
 class LLMKeys(metaclass=ConstantsClass):
@@ -45,6 +48,9 @@ class LLMKeys(metaclass=ConstantsClass):
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
     MODEL_NAME = "model_name"
     MAX_TOKENS = "max_tokens"
+    PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
+    PROMPT_PROTEIN_DATA = "prompt_protein_data"
+    PROMPT_INSTRUCTIONS = "prompt_instructions"
 
 
 class SavedAnalysisKeys(metaclass=ConstantsClass):
