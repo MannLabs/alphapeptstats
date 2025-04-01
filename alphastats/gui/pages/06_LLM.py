@@ -20,7 +20,6 @@ from alphastats.gui.utils.llm_helper import (
     on_select_new_analysis_fill_state,
     protein_selector,
     show_llm_chat,
-    transfer_llm_chat_state_to_session_state,
 )
 from alphastats.gui.utils.state_keys import LLMKeys, SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
@@ -82,7 +81,6 @@ if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
     st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
 
 selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
-transfer_llm_chat_state_to_session_state(selected_llm_chat)
 
 volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
 plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
@@ -120,6 +118,10 @@ upregulated_genes = [
 downregulated_genes = [
     key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
 ]
+
+
+##################################### Initialize LLM chat state and sync session state #####################################
+
 
 init_llm_chat_state(
     selected_llm_chat,

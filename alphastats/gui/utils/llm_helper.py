@@ -150,7 +150,7 @@ def initialize_initial_prompt_modules(
 
     experimental_design_prompt = _get_experimental_design_prompt(plot_parameters)
 
-    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
@@ -180,17 +180,6 @@ def initialize_initial_prompt_modules(
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
 
     return experimental_design_prompt, protein_data_prompt, initial_instruction
-
-
-def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict[str, Any]) -> None:
-    """Transfer the state of a given llm_chat to the session state, if it is already initialized.
-
-    This is to get the connection to the model selector right (which operates on the session state).
-    TODO this needs improvement!
-    """
-    if selected_llm_chat.get(LLMKeys.IS_INITIALIZED):
-        st.session_state[StateKeys.MODEL_NAME] = selected_llm_chat[LLMKeys.MODEL_NAME]
-        st.session_state[StateKeys.MAX_TOKENS] = selected_llm_chat[LLMKeys.MAX_TOKENS]
 
 
 @st.fragment
@@ -509,6 +498,10 @@ def on_select_new_analysis_fill_state() -> None:
     st.session_state[StateKeys.PROMPT_INSTRUCTIONS] = selected_chat.get(
         LLMKeys.PROMPT_INSTRUCTIONS, None
     )
+    if selected_chat.get(LLMKeys.IS_INITIALIZED):
+        st.session_state[StateKeys.MODEL_NAME] = selected_chat[LLMKeys.MODEL_NAME]
+        st.session_state[StateKeys.MAX_TOKENS] = selected_chat[LLMKeys.MAX_TOKENS]
+
     st.toast("State filled from saved analysis.", icon="🔍")
 
 
@@ -537,7 +530,7 @@ def on_change_save_state() -> None:
         StateKeys.PROMPT_INSTRUCTIONS
     ]
 
-    if not selected_chat.get(LLMKeys.IS_INITIALIZED, False):
+    if not selected_chat.get(LLMKeys.IS_INITIALIZED):
         selected_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
         selected_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
 
