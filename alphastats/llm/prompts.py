@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 from openai.types.chat import ChatCompletionMessageToolCall
 
@@ -81,7 +81,7 @@ LLMInstructions = {
 }
 
 
-def _get_initial_instruction(preset: Optional | str = "simple"):
+def _get_initial_instruction(preset: None | str = "simple"):
     if preset == LLMInstructionKeys.SIMPLE:
         return LLMInstructions[LLMInstructionKeys.SIMPLE]
     else:
