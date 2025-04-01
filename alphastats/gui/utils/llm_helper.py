@@ -544,21 +544,51 @@ def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
     return selected_genes, regulated_genes_dict
 
 
-def configure_initial_prompt(disabled: bool) -> None:
-    experimental_design_prompt = st.text_area(
-        "Please explain your experimental design",
-        height=100,
-        disabled=disabled,
-        key=StateKeys.PROMPT_EXPERIMENTAL_DESIGN,
-        on_change=on_change_save_state,
-    )
-    protein_data_prompt = st.text_area(
-        "Please edit your selection above and update the prompt",
-        height=200,
-        disabled=disabled,
-        key=StateKeys.PROMPT_PROTEIN_DATA,
-        on_change=on_change_save_state,
-    )
+def configure_initial_prompt(
+    generated_experimental_design_prompt: str,
+    generated_protein_data_prompt: str,
+    *,
+    disabled: bool,
+) -> None:
+    c1, c2 = st.columns((5, 1))
+    with c2:
+        st.markdown("#####")
+        if st.button(
+            "Regenerate experimental design prompt from analysis parameters",
+            disabled=disabled,
+        ):
+            st.session_state[StateKeys.PROMPT_EXPERIMENTAL_DESIGN] = (
+                generated_experimental_design_prompt
+            )
+            on_change_save_state()
+    with c1:
+        experimental_design_prompt = st.text_area(
+            "Please explain your experimental design",
+            height=100,
+            disabled=disabled,
+            key=StateKeys.PROMPT_EXPERIMENTAL_DESIGN,
+            on_change=on_change_save_state,
+        )
+    c1, c2 = st.columns((5, 1))
+    with c2:
+        st.markdown("#####")
+        if st.button(
+            "Update prompts with selected genes and UniProt information",
+            disabled=disabled,
+            help="Regenerate system message and initial prompt based on current selections",
+        ):
+            st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = (
+                generated_protein_data_prompt
+            )
+            on_change_save_state()
+    with c1:
+        protein_data_prompt = st.text_area(
+            "Please edit your selection above and update the prompt",
+            height=200,
+            disabled=disabled,
+            key=StateKeys.PROMPT_PROTEIN_DATA,
+            on_change=on_change_save_state,
+        )
     initial_instruction = st.text_area(
         "Please provide an initial instruction",
         height=100,

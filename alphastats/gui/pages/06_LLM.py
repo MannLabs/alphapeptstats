@@ -192,16 +192,6 @@ st.markdown("##### System and initial prompt")
 st.write(
     "The prompts are generated based on the above selection on genes and Uniprot information."
 )
-if st.button(
-    "Update prompts with selected genes and UniProt information",
-    disabled=is_llm_integration_initialized,
-    help="Regenerate system message and initial prompt based on current selections",
-):
-    _, protein_data_prompt, _ = initialize_initial_prompt_modules(
-        selected_llm_chat, plot_parameters, feature_to_repr_map
-    )
-    st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
-    selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
 
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
@@ -213,7 +203,17 @@ with st.expander("System message", expanded=False):
 
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
-    initial_prompt = configure_initial_prompt(disabled=is_llm_integration_initialized)
+    generated_experimental_design_prompt, generated_protein_data_prompt, _ = (
+        initialize_initial_prompt_modules(
+            selected_llm_chat, plot_parameters, feature_to_repr_map
+        )
+    )
+
+    initial_prompt = configure_initial_prompt(
+        generated_experimental_design_prompt,
+        generated_protein_data_prompt,
+        disabled=is_llm_integration_initialized,
+    )
 
     # a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
     st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
