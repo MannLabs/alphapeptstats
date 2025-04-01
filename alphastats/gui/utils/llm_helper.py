@@ -18,6 +18,7 @@ from alphastats.gui.utils.state_keys import (
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import (
+    LLMInstructionKeys,
     _get_experimental_design_prompt,
     _get_initial_instruction,
     _get_protein_data_prompt,
@@ -145,6 +146,8 @@ def initialize_initial_prompt_modules(
 ) -> None:
     _, regulated_genes_dict = get_selected_regulated_genes(llm_chat)
 
+    experimental_design_prompt = _get_experimental_design_prompt(plot_parameters)
+
     if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
         texts = [
             format_uniprot_annotation(
@@ -156,7 +159,6 @@ def initialize_initial_prompt_modules(
         uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
     else:
         uniprot_info = ""
-    experimental_design_prompt = _get_experimental_design_prompt(plot_parameters)
     protein_data_prompt = _get_protein_data_prompt(
         list(
             map(
@@ -172,7 +174,9 @@ def initialize_initial_prompt_modules(
         ),
         uniprot_info,
     )
-    initial_instruction = _get_initial_instruction()
+
+    initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
+
     return experimental_design_prompt, protein_data_prompt, initial_instruction
 
 
@@ -486,7 +490,7 @@ def display_uniprot(
 def on_select_new_analysis_fill_state() -> None:
     """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
     selected_chat = st.session_state[StateKeys.LLM_CHATS].get(
-        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+        st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
     st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = selected_chat.get(
         LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False
@@ -544,9 +548,11 @@ def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
     return selected_genes, regulated_genes_dict
 
 
+@st.fragment
 def configure_initial_prompt(
-    generated_experimental_design_prompt: str,
-    generated_protein_data_prompt: str,
+    llm_chat: dict,
+    plot_parameters: dict,
+    feature_to_repr_map: dict,
     *,
     disabled: bool,
 ) -> None:
@@ -557,6 +563,11 @@ def configure_initial_prompt(
             "Regenerate experimental design prompt from analysis parameters",
             disabled=disabled,
         ):
+            generated_experimental_design_prompt, generated_protein_data_prompt, _ = (
+                initialize_initial_prompt_modules(
+                    llm_chat, plot_parameters, feature_to_repr_map
+                )
+            )
             st.session_state[StateKeys.PROMPT_EXPERIMENTAL_DESIGN] = (
                 generated_experimental_design_prompt
             )
@@ -577,6 +588,11 @@ def configure_initial_prompt(
             disabled=disabled,
             help="Regenerate system message and initial prompt based on current selections",
         ):
+            generated_experimental_design_prompt, generated_protein_data_prompt, _ = (
+                initialize_initial_prompt_modules(
+                    llm_chat, plot_parameters, feature_to_repr_map
+                )
+            )
             st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = (
                 generated_protein_data_prompt
             )
@@ -589,13 +605,28 @@ def configure_initial_prompt(
             key=StateKeys.PROMPT_PROTEIN_DATA,
             on_change=on_change_save_state,
         )
-    initial_instruction = st.text_area(
-        "Please provide an initial instruction",
-        height=100,
-        disabled=disabled,
-        key=StateKeys.PROMPT_INSTRUCTIONS,
-        on_change=on_change_save_state,
-    )
+    c1, c2 = st.columns((5, 1))
+    with c2:
+        st.markdown("#####")
+        preset = st.selectbox(
+            "Select initial instruction",
+            index=LLMInstructionKeys.get_values().index(LLMInstructionKeys.CUSTOM),
+            options=LLMInstructionKeys.get_values(),
+            disabled=disabled,
+        )
+        if preset != LLMInstructionKeys.CUSTOM:
+            st.session_state[StateKeys.PROMPT_INSTRUCTIONS] = _get_initial_instruction(
+                preset
+            )
+            on_change_save_state()
+    with c1:
+        initial_instruction = st.text_area(
+            "Please provide an initial instruction",
+            height=100,
+            disabled=disabled,
+            key=StateKeys.PROMPT_INSTRUCTIONS,
+            on_change=on_change_save_state,
+        )
     return get_initial_prompt(
         experimental_design_prompt, protein_data_prompt, initial_instruction
     )

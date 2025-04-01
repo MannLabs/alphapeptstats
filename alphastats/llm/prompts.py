@@ -1,11 +1,14 @@
 """This module contains functions to generate prompts for the LLM model."""
 
+from __future__ import annotations
+
 import os
-from typing import Any, Dict, List
+from typing import Any, Optional
 
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.llm.llm_utils import get_subgroups_for_each_group
 
 
@@ -27,7 +30,7 @@ def get_system_message(dataset: DataSet) -> str:
 
 
 def _get_experimental_design_prompt(
-    parameter_dict: Dict[str, Any],
+    parameter_dict: dict[str, Any],
 ) -> str:
     group1 = parameter_dict["group1"]
     group2 = parameter_dict["group2"]
@@ -39,8 +42,8 @@ def _get_experimental_design_prompt(
 
 
 def _get_protein_data_prompt(
-    upregulated_genes: List[str],
-    downregulated_genes: List[str],
+    upregulated_genes: list[str],
+    downregulated_genes: list[str],
     uniprot_info: str,
 ):
     """Get the initial prompt for the LLM model."""
@@ -62,11 +65,27 @@ def _get_protein_data_prompt(
     )
 
 
-def _get_initial_instruction():
-    return (
+class LLMInstructionKeys(metaclass=ConstantsClass):
+    """Keys for the LLM instructions."""
+
+    SIMPLE = "simple"
+    CUSTOM = "customize prompt"
+
+
+LLMInstructions = {
+    LLMInstructionKeys.SIMPLE: (
         "Help us understand the potential connections between these proteins and how they might be contributing "
         "to the differences. After that provide a high level summary."
-    )
+    ),
+    LLMInstructionKeys.CUSTOM: "Please give instructions to the LLM model on how to generate a response.",
+}
+
+
+def _get_initial_instruction(preset: Optional | str = "simple"):
+    if preset == LLMInstructionKeys.SIMPLE:
+        return LLMInstructions[LLMInstructionKeys.SIMPLE]
+    else:
+        return LLMInstructions[LLMInstructionKeys.CUSTOM]
 
 
 def get_initial_prompt(
@@ -80,7 +99,7 @@ def get_initial_prompt(
     )
 
 
-def get_tool_call_message(tool_calls: List[ChatCompletionMessageToolCall]) -> str:
+def get_tool_call_message(tool_calls: list[ChatCompletionMessageToolCall]) -> str:
     """Get a string representation of the tool calls made by the LLM model."""
     return "\n".join(
         [

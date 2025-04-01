@@ -17,7 +17,6 @@ from alphastats.gui.utils.llm_helper import (
     format_analysis_key,
     get_selected_regulated_genes,
     init_llm_chat_state,
-    initialize_initial_prompt_modules,
     on_select_new_analysis_fill_state,
     protein_selector,
     show_llm_chat,
@@ -203,15 +202,10 @@ with st.expander("System message", expanded=False):
 
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
-    generated_experimental_design_prompt, generated_protein_data_prompt, _ = (
-        initialize_initial_prompt_modules(
-            selected_llm_chat, plot_parameters, feature_to_repr_map
-        )
-    )
-
     initial_prompt = configure_initial_prompt(
-        generated_experimental_design_prompt,
-        generated_protein_data_prompt,
+        selected_llm_chat,
+        plot_parameters,
+        feature_to_repr_map,
         disabled=is_llm_integration_initialized,
     )
 
