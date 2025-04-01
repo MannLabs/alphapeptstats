@@ -97,7 +97,11 @@ def format_analysis_key(key: str) -> str:
 
 
 def init_llm_chat_state(
-    selected_llm_chat: dict, upregulated_genes: list, downregulated_genes: list
+    selected_llm_chat: dict,
+    upregulated_genes: list,
+    downregulated_genes: list,
+    plot_parameters: dict,
+    feature_to_repr_map: dict,
 ) -> None:
     """Initialize the state for a given llm_chat."""
     if LLMKeys.RECENT_CHAT_WARNINGS not in selected_llm_chat:
@@ -116,10 +120,60 @@ def init_llm_chat_state(
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
         selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
 
+    if selected_llm_chat.get(LLMKeys.PROMPT_EXPERIMENTAL_DESIGN) is None:
+        experimental_design_prompt, protein_data_prompt, initial_instructions = (
+            initialize_initial_prompt_modules(
+                selected_llm_chat, plot_parameters, feature_to_repr_map
+            )
+        )
+        selected_llm_chat[LLMKeys.PROMPT_EXPERIMENTAL_DESIGN] = (
+            experimental_design_prompt
+        )
+        selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
+        selected_llm_chat[LLMKeys.PROMPT_INSTRUCTIONS] = initial_instructions
+
     # TODO model name is determined when loading LLM page -> need better model selection.
     if not selected_llm_chat[LLMKeys.IS_INITIALIZED]:
         selected_llm_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
         selected_llm_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
+
+    on_select_new_analysis_fill_state()
+
+
+def initialize_initial_prompt_modules(
+    llm_chat: dict, plot_parameters: dict, feature_to_repr_map: dict
+) -> None:
+    _, regulated_genes_dict = get_selected_regulated_genes(llm_chat)
+
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
+        texts = [
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                fields=llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
+            )
+            for feature in regulated_genes_dict
+        ]
+        uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
+    else:
+        uniprot_info = ""
+    experimental_design_prompt = _get_experimental_design_prompt(plot_parameters)
+    protein_data_prompt = _get_protein_data_prompt(
+        list(
+            map(
+                feature_to_repr_map.get,
+                llm_chat[LLMKeys.SELECTED_GENES_UP],
+            )
+        ),
+        list(
+            map(
+                feature_to_repr_map.get,
+                llm_chat[LLMKeys.SELECTED_GENES_DOWN],
+            )
+        ),
+        uniprot_info,
+    )
+    initial_instruction = _get_initial_instruction()
+    return experimental_design_prompt, protein_data_prompt, initial_instruction
 
 
 def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict) -> None:
@@ -431,11 +485,20 @@ def display_uniprot(
 
 def on_select_new_analysis_fill_state() -> None:
     """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
-    selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
+    selected_chat = st.session_state[StateKeys.LLM_CHATS].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], None
     )
-    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
-        selected_analysis.get(LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False)
+    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = selected_chat.get(
+        LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False
+    )
+    st.session_state[StateKeys.PROMPT_EXPERIMENTAL_DESIGN] = selected_chat.get(
+        LLMKeys.PROMPT_EXPERIMENTAL_DESIGN, None
+    )
+    st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = selected_chat.get(
+        LLMKeys.PROMPT_PROTEIN_DATA, None
+    )
+    st.session_state[StateKeys.PROMPT_INSTRUCTIONS] = selected_chat.get(
+        LLMKeys.PROMPT_INSTRUCTIONS, None
     )
     st.toast("State filled from saved analysis.", icon="🔍")
 
@@ -445,22 +508,29 @@ def on_change_save_state() -> None:
 
     This can be expanded to other widgets as needed.
     """
-    selected_analysis: dict = st.session_state[StateKeys.SAVED_ANALYSES].get(
+    selected_chat: dict = st.session_state[StateKeys.LLM_CHATS].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], None
     )
 
-    if selected_analysis is not None:
-        selected_analysis[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
-            st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT]
-        )
+    if selected_chat is None:
+        return
 
-        if not selected_analysis.get(LLMKeys.IS_INITIALIZED, False):
-            selected_analysis[LLMKeys.MODEL_NAME] = st.session_state[
-                StateKeys.MODEL_NAME
-            ]
-            selected_analysis[LLMKeys.MAX_TOKENS] = st.session_state[
-                StateKeys.MAX_TOKENS
-            ]
+    selected_chat[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = st.session_state[
+        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT
+    ]
+    selected_chat[LLMKeys.PROMPT_EXPERIMENTAL_DESIGN] = st.session_state[
+        StateKeys.PROMPT_EXPERIMENTAL_DESIGN
+    ]
+    selected_chat[LLMKeys.PROMPT_PROTEIN_DATA] = st.session_state[
+        StateKeys.PROMPT_PROTEIN_DATA
+    ]
+    selected_chat[LLMKeys.PROMPT_INSTRUCTIONS] = st.session_state[
+        StateKeys.PROMPT_INSTRUCTIONS
+    ]
+
+    if not selected_chat.get(LLMKeys.IS_INITIALIZED, False):
+        selected_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
+        selected_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
 
 
 def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
@@ -474,54 +544,27 @@ def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
     return selected_genes, regulated_genes_dict
 
 
-def configure_initial_prompt(
-    llm_chat: dict, plot_parameters: dict, feature_to_repr_map: dict
-) -> None:
-    _, regulated_genes_dict = get_selected_regulated_genes(llm_chat)
-
-    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
-        texts = [
-            format_uniprot_annotation(
-                st.session_state[StateKeys.ANNOTATION_STORE][feature],
-                fields=llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
-            )
-            for feature in regulated_genes_dict
-        ]
-        uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
-    else:
-        uniprot_info = ""
-
+def configure_initial_prompt(disabled: bool) -> None:
     experimental_design_prompt = st.text_area(
         "Please explain your experimental design",
-        value=_get_experimental_design_prompt(plot_parameters),
         height=100,
-        disabled=llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None,
+        disabled=disabled,
+        key=StateKeys.PROMPT_EXPERIMENTAL_DESIGN,
+        on_change=on_change_save_state,
     )
     protein_data_prompt = st.text_area(
         "Please edit your selection above and update the prompt",
-        value=_get_protein_data_prompt(
-            list(
-                map(
-                    feature_to_repr_map.get,
-                    llm_chat[LLMKeys.SELECTED_GENES_UP],
-                )
-            ),
-            list(
-                map(
-                    feature_to_repr_map.get,
-                    llm_chat[LLMKeys.SELECTED_GENES_DOWN],
-                )
-            ),
-            uniprot_info,
-        ),
         height=200,
-        disabled=True,
+        disabled=disabled,
+        key=StateKeys.PROMPT_PROTEIN_DATA,
+        on_change=on_change_save_state,
     )
     initial_instruction = st.text_area(
         "Please provide an initial instruction",
-        value=_get_initial_instruction(),
         height=100,
-        disabled=llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None,
+        disabled=disabled,
+        key=StateKeys.PROMPT_INSTRUCTIONS,
+        on_change=on_change_save_state,
     )
     return get_initial_prompt(
         experimental_design_prompt, protein_data_prompt, initial_instruction

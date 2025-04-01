@@ -17,6 +17,7 @@ from alphastats.gui.utils.llm_helper import (
     format_analysis_key,
     get_selected_regulated_genes,
     init_llm_chat_state,
+    initialize_initial_prompt_modules,
     on_select_new_analysis_fill_state,
     protein_selector,
     show_llm_chat,
@@ -42,6 +43,7 @@ st.markdown("## LLM Interpretation")
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
+feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
 
 
 ##################################### Select Analysis #####################################
@@ -120,7 +122,13 @@ downregulated_genes = [
     key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
 ]
 
-init_llm_chat_state(selected_llm_chat, upregulated_genes, downregulated_genes)
+init_llm_chat_state(
+    selected_llm_chat,
+    upregulated_genes,
+    downregulated_genes,
+    plot_parameters,
+    feature_to_repr_map,
+)
 
 
 ##################################### Genes of interest #####################################
@@ -189,7 +197,11 @@ if st.button(
     disabled=is_llm_integration_initialized,
     help="Regenerate system message and initial prompt based on current selections",
 ):
-    st.rerun(scope="app")
+    _, protein_data_prompt, _ = initialize_initial_prompt_modules(
+        selected_llm_chat, plot_parameters, feature_to_repr_map
+    )
+    st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
+    selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
 
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
@@ -201,10 +213,7 @@ with st.expander("System message", expanded=False):
 
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
-    feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    initial_prompt = configure_initial_prompt(
-        selected_llm_chat, plot_parameters, feature_to_repr_map
-    )
+    initial_prompt = configure_initial_prompt(disabled=is_llm_integration_initialized)
 
     # a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
     st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
