@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import warnings
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import pandas as pd
 import streamlit as st
@@ -36,7 +36,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 
 @st.fragment
-def llm_config():
+def llm_config() -> None:
     """Show the configuration options for the LLM interpretation."""
 
     current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
@@ -98,11 +98,11 @@ def format_analysis_key(key: str) -> str:
 
 
 def init_llm_chat_state(
-    selected_llm_chat: dict,
-    upregulated_genes: list,
-    downregulated_genes: list,
-    plot_parameters: dict,
-    feature_to_repr_map: dict,
+    selected_llm_chat: dict[str, Any],
+    upregulated_genes: list[str],
+    downregulated_genes: list[str],
+    plot_parameters: dict[str, Any],
+    feature_to_repr_map: dict[str, str],
 ) -> None:
     """Initialize the state for a given llm_chat."""
     if LLMKeys.RECENT_CHAT_WARNINGS not in selected_llm_chat:
@@ -142,7 +142,9 @@ def init_llm_chat_state(
 
 
 def initialize_initial_prompt_modules(
-    llm_chat: dict, plot_parameters: dict, feature_to_repr_map: dict
+    llm_chat: dict[str, Any],
+    plot_parameters: dict[str, Any],
+    feature_to_repr_map: dict[str, str],
 ) -> None:
     _, regulated_genes_dict = get_selected_regulated_genes(llm_chat)
 
@@ -180,7 +182,7 @@ def initialize_initial_prompt_modules(
     return experimental_design_prompt, protein_data_prompt, initial_instruction
 
 
-def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict) -> None:
+def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict[str, Any]) -> None:
     """Transfer the state of a given llm_chat to the session state, if it is already initialized.
 
     This is to get the connection to the model selector right (which operates on the session state).
@@ -193,7 +195,7 @@ def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict) -> None:
 
 @st.fragment
 def protein_selector(
-    regulated_genes: list, title: str, selected_analysis_key: str, state_key: str
+    regulated_genes: list[str], title: str, selected_analysis_key: str, state_key: str
 ) -> None:
     """Creates a data editor for protein selection and returns the selected proteins.
 
@@ -274,7 +276,10 @@ def get_df_for_protein_selector(
 
 
 def get_display_proteins_html(
-    protein_ids: list[str], is_upregulated: True, annotation_store, feature_to_repr_map
+    protein_ids: list[str],
+    is_upregulated: True,
+    annotation_store: dict[str, dict],
+    feature_to_repr_map: dict[str, str],
 ) -> str:
     """
     Get HTML code for displaying a list of proteins, color according to expression.
@@ -333,9 +338,9 @@ def set_api_key(api_key: str = None) -> None:
 
 def llm_connection_test(
     model_name: str,
-    base_url: Optional | str = None,
-    api_key: Optional | str = None,
-) -> Optional | str:
+    base_url: str | None = None,
+    api_key: str | None = None,
+) -> str | None:
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(
@@ -352,7 +357,7 @@ def llm_connection_test(
 
 # Unused now, but could be useful in the future
 # TODO: Remove this by end of year if still unused.
-def get_display_available_uniprot_info(regulated_features: list) -> dict:
+def get_display_available_uniprot_info(regulated_features: list[str]) -> dict:
     """
     Retrieves and formats UniProt information for a list of regulated features.
 
@@ -383,7 +388,7 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 @st.fragment
 def display_uniprot(
     regulated_genes_dict: dict,
-    feature_to_repr_map,
+    feature_to_repr_map: dict,
     model_name: str,
     selected_analysis_key: str,
     *,
@@ -610,8 +615,8 @@ def configure_initial_prompt(
         st.markdown("#####")
         preset = st.selectbox(
             "Select initial instruction",
-            index=LLMInstructionKeys.get_values().index(LLMInstructionKeys.CUSTOM),
             options=LLMInstructionKeys.get_values(),
+            index=LLMInstructionKeys.get_values().index(LLMInstructionKeys.CUSTOM),
             disabled=disabled,
         )
         if preset != LLMInstructionKeys.CUSTOM:
@@ -639,7 +644,7 @@ def show_llm_chat(
     show_all: bool = False,
     show_individual_tokens: bool = False,
     show_prompt: bool = True,
-):
+) -> None:
     """The chat interface for the LLM interpretation."""
 
     # TODO dump to file -> static file name, plus button to do so

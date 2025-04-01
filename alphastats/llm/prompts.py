@@ -45,7 +45,7 @@ def _get_protein_data_prompt(
     upregulated_genes: list[str],
     downregulated_genes: list[str],
     uniprot_info: str,
-):
+) -> str:
     """Get the initial prompt for the LLM model."""
     if uniprot_info:
         uniprot_instructions = (
@@ -81,7 +81,7 @@ LLMInstructions = {
 }
 
 
-def _get_initial_instruction(preset: None | str = "simple"):
+def _get_initial_instruction(preset: str | None = "simple") -> str:
     if preset == LLMInstructionKeys.SIMPLE:
         return LLMInstructions[LLMInstructionKeys.SIMPLE]
     else:
