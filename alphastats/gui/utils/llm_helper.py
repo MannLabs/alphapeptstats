@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import os
 import warnings
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
@@ -191,7 +193,7 @@ def protein_selector(
 
 
 def get_df_for_protein_selector(
-    proteins: List[str], selected: List[str]
+    proteins: list[str], selected: list[str]
 ) -> pd.DataFrame:
     """Create a DataFrame for the protein selector.
 
@@ -214,7 +216,7 @@ def get_df_for_protein_selector(
 
 
 def get_display_proteins_html(
-    protein_ids: List[str], is_upregulated: True, annotation_store, feature_to_repr_map
+    protein_ids: list[str], is_upregulated: True, annotation_store, feature_to_repr_map
 ) -> str:
     """
     Get HTML code for displaying a list of proteins, color according to expression.
@@ -273,9 +275,9 @@ def set_api_key(api_key: str = None) -> None:
 
 def llm_connection_test(
     model_name: str,
-    base_url: Optional[str] = None,
-    api_key: Optional[str] = None,
-) -> Optional[str]:
+    base_url: Optional | str = None,
+    api_key: Optional | str = None,
+) -> Optional | str:
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(
