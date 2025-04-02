@@ -17,7 +17,7 @@ def get_system_message(dataset: DataSet) -> str:
 
     return (
         f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.newline"
-        f"Analyze the differentially expressed proteins (upregulated and downregulated) from the user's proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
+        f"Analyze the differentially expressed proteins (upregulated and downregulated) from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
         f"Format your response with:{newline}"
         f"- Separate bullet points for upregulated proteins: protein role (proteins): interpretation{newline}"
         f"- Separate bullet points for downregulated proteins: protein role (proteins): interpretation{newline}"
@@ -78,8 +78,8 @@ def get_initial_prompt(
         f"5. Focused Analysis:{newline}"
         f"- Recommend 3-5 key aspects worth investigating further (specific ontology terms, biological processes, cellular components, mechanisms, or homeostasis){newline}"
         f"- Explain the scientific rationale for each recommendation{newline}"
-        f"- Ask user which aspect they want to prioritize for deeper analysis{newline}"
-        f"6. Deep Dive Analysis: (After user selects a focus){newline}"
+        f"- Ask which aspect should be prioritized for deeper analysis{newline}"
+        f"6. Deep Dive Analysis: (After focus selection){newline}"
         f"- List proteins involved in selected aspect{newline}"
         f"- Gather all available information on key proteins with the tool UniProt{newline}"
         f"- Retrieve quantitative information from the tool intensity plot for all proteins of identified pathways or functional units{newline}"
