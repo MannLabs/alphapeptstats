@@ -79,7 +79,7 @@ def get_initial_prompt(
         f"- Recommend 3-5 key aspects worth investigating further (specific ontology terms, biological processes, cellular components, mechanisms, or homeostasis){newline}"
         f"- Explain the scientific rationale for each recommendation{newline}"
         f"- Ask which aspect should be prioritized for deeper analysis{newline}"
-        f"6. Deep Dive Analysis: (After focus selection){newline}"
+        f"6. Deeper Analysis: (After an aspect is selected for focus){newline}"
         f"- List proteins involved in selected aspect{newline}"
         f"- Gather all available information on key proteins with the tool UniProt{newline}"
         f"- Retrieve quantitative information from the tool intensity plot for all proteins of identified pathways or functional units{newline}"
