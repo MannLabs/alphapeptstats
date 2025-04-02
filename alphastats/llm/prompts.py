@@ -16,17 +16,17 @@ def get_system_message(dataset: DataSet) -> str:
     newline = os.linesep
 
     return (
-        f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.newline"
+        "You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.newline"
         f"Analyze the differentially expressed proteins (upregulated and downregulated) from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
         f"Format your response with:{newline}"
         f"- Separate bullet points for upregulated proteins: protein role (proteins): interpretation{newline}"
         f"- Separate bullet points for downregulated proteins: protein role (proteins): interpretation{newline}"
         f"- A high-level summary of biological implications{newline}{newline}"
-        f"The data you have has following groups and respective subgroups: {str(subgroups)}."
-        f"Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
-        f"If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
-        f"Ensure your analysis is data-driven at each step, referencing specific proteins or patterns from the dataset to support your reasoning. "
-        f"Explain your thought process clearly as you move from observations to interpretations."
+        f"The data you have has following groups and respective subgroups: {str(subgroups)}. "
+        "Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
+        "If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
+        "Ensure your analysis is data-driven at each step, referencing specific proteins or patterns from the dataset to support your reasoning. "
+        "Explain your thought process clearly as you move from observations to interpretations."
     )
 
 
@@ -53,7 +53,7 @@ def get_initial_prompt(
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
     return (
-        f"We've recently identified several proteins that appear to be differently regulated in cells "
+        "We've recently identified several proteins that appear to be differently regulated in cells "
         f"when comparing {group1} and {group2} in the {column} group. "
         f"From our proteomics experiments, we know the following:{newline}{newline}"
         f"Comma-separated list of proteins that are upregulated: {', '.join(upregulated_genes)}.{newline}{newline}"
