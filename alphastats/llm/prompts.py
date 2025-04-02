@@ -16,7 +16,7 @@ def get_system_message(dataset: DataSet) -> str:
     newline = os.linesep
 
     return (
-        "You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.newline"
+        f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.{newline}"
         f"Analyze the differentially expressed proteins (upregulated and downregulated) from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
         f"Format your response with:{newline}"
         f"- Separate bullet points for upregulated proteins: protein role (proteins): interpretation{newline}"
