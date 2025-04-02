@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -104,6 +105,8 @@ class DataSet:
         self.mat: pd.DataFrame = mat
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
+
+        # TODO: Make these public attributes
         (
             self._gene_to_features_map,
             self._protein_to_features_map,
@@ -487,28 +490,60 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_features_for_gene_name(
-        self,
-        gene_name: str,
-    ) -> list:
-        """Get feature from gene name. If gene name is not present, return gene name, as we might already have a gene id.
-        'HEL114' -> ['P18206;A0A024QZN4;V9HWK2;B3KXA2;Q5JQ13;B4DKC9;B4DTM7;A0A096LPE1']
+    def _get_feature_ids_from_string(self, string: str) -> List[str]:
+        """Get the feature id from a string representing a feature.
 
-        Args:
-            gene_name (str): Gene name
+        Goes through id mapping dictionaries and finds the completest match.
 
-        Returns:
-            list: Protein group ids or gene name if not present in the mapping.
-        """
-        if gene_name in self._gene_to_features_map:
-            return self._gene_to_features_map[gene_name]
-        raise ValueError(f"Gene {gene_name} is not in the (processed) data.")
+        Parameters
+        ----------
+        string : str
+            The string representating the feature."""
+
+        if string in self._feature_to_repr_map:
+            return [string]
+        if string in self._protein_to_features_map:
+            return self._protein_to_features_map[string]
+        if string in self._gene_to_features_map:
+            return self._gene_to_features_map[string]
+        representation_keys = [
+            feature
+            for feature, representation in self._feature_to_repr_map.items()
+            if representation == string
+        ]
+        if representation_keys:
+            return representation_keys
+        raise ValueError(f"Feature {string} is not in the (processed) data.")
+
+    def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
+        """Get the feature ids from a list of strings representing features.
+
+        Parameters
+        ----------
+        features : list
+            A list of strings representing the features."""
+
+        unmapped_features = []
+        protein_ids = []
+        for feature in features:
+            try:
+                for protein_id in self._get_feature_ids_from_string(feature):
+                    protein_ids.append(protein_id)
+            except ValueError:
+                unmapped_features.append(feature)
+        if unmapped_features:
+            warnings.warn(
+                f"Could not find the following features: {', '.join(unmapped_features)}"
+            )
+        if not protein_ids:
+            raise ValueError("No valid features provided.")
+
+        return protein_ids
 
     def plot_intensity(
         self,
         *,
-        protein_id: str = None,
-        gene_name: str = None,
+        feature: str,
         group: str = None,
         subgroups: list = None,
         method: str = "box",  # TODO rename
@@ -519,8 +554,7 @@ class DataSet:
         """Plot Intensity of individual Protein/ProteinGroup
 
         Args:
-            protein_id (str): ProteinGroup ID. Mutually exclusive with gene_name.
-            gene_name (str): Gene Name, will be mapped to a ProteinGroup ID. Mutually exclusive with protein_id.
+            feature (str): ProteinGroup ID, gene name or feature representation, or comma-separated list thereof.
             group (str, optional): A metadata column used for grouping. Defaults to None.
             subgroups (list, optional): Select variables from the group column. Defaults to None.
             method (str, optional):  Violinplot = "violin", Boxplot = "box", Scatterplot = "scatter" or "all". Defaults to "box".
@@ -538,14 +572,11 @@ class DataSet:
         #     )
         #     return results
 
-        if gene_name is None and protein_id is not None:
-            pass
-        elif gene_name is not None and protein_id is None:
-            protein_id = self._get_features_for_gene_name(gene_name)
+        if "," in feature:
+            features = [substring.strip() for substring in feature.split(",")]
         else:
-            raise ValueError(
-                "Either protein_id or gene_name must be provided, but not both."
-            )
+            features = [feature]
+        protein_id = self._get_multiple_feature_ids_from_strings(features)
 
         intensity_plot = IntensityPlot(
             mat=self.mat,
@@ -553,6 +584,7 @@ class DataSet:
             intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
+            feature_to_repr_map=self._feature_to_repr_map,
             group=group,
             subgroups=subgroups,
             method=method,

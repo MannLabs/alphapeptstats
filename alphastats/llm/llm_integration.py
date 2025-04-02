@@ -3,10 +3,12 @@
 import json
 import logging
 import warnings
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.io as pio
+import pytz
 import tiktoken
 from IPython.display import HTML, Markdown, display
 from openai import OpenAI
@@ -38,6 +40,13 @@ class Models(metaclass=ConstantsClass):
     OLLAMA_31_8B = "llama3.1:8b"  # for testing only
 
 
+class ModelFlags(metaclass=ConstantsClass):
+    """Requirements for the different models."""
+
+    REQUIRES_API_KEY = [Models.GPT4O]
+    MULTIMODAL = [Models.GPT4O]
+
+
 class MessageKeys(metaclass=ConstantsClass):
     """Keys for the message dictionary."""
 
@@ -50,6 +59,7 @@ class MessageKeys(metaclass=ConstantsClass):
     IN_CONTEXT = "in_context"
     ARTIFACTS = "artifacts"
     PINNED = "pinned"
+    TIMESTAMP = "timestamp"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -166,6 +176,10 @@ class LLMIntegration:
         if tool_call_id is not None:
             message[MessageKeys.TOOL_CALL_ID] = tool_call_id
 
+        message[MessageKeys.TIMESTAMP] = datetime.now(tz=pytz.utc).strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        )
+
         self._messages.append(message)
         self._all_messages.append(message)
 
@@ -235,7 +249,7 @@ class LLMIntegration:
         ):
             if len(self._messages) == 1:
                 raise ValueError(
-                    "Truncating conversation history failed, as the only remaining message exceeds the token limit. Please increase the token limit and reset the LLM analysis."
+                    "Truncating conversation history failed, as the only remaining message exceeds the token limit. Please increase the token limit and reset the LLM interpretation."
                 )
             oldest_not_pinned = -1
             for message_idx, message in enumerate(self._messages):
@@ -244,7 +258,7 @@ class LLMIntegration:
                     break
             if oldest_not_pinned == -1:
                 raise ValueError(
-                    "Truncating conversation history failed, as all remaining messages are pinned. Please increase the token limit and reset the LLM analysis, or unpin messages."
+                    "Truncating conversation history failed, as all remaining messages are pinned. Please increase the token limit and reset the LLM interpretation, or unpin messages."
                 )
             removed_message = self._messages.pop(oldest_not_pinned)
             warnings.warn(
@@ -261,7 +275,7 @@ class LLMIntegration:
                 )
                 if len(self._messages) == oldest_not_pinned:
                     raise ValueError(
-                        "Truncating conversation history failed, as the artifact from the last call exceeds the token limit. Please increase the token limit and reset the LLM analysis."
+                        "Truncating conversation history failed, as the artifact from the last call exceeds the token limit. Please increase the token limit and reset the LLM interpretation."
                     )
 
     def _parse_model_response(
@@ -477,6 +491,7 @@ class LLMIntegration:
                     MessageKeys.ARTIFACTS: self._artifacts.get(message_idx, []),
                     MessageKeys.IN_CONTEXT: in_context,
                     MessageKeys.PINNED: message[MessageKeys.PINNED],
+                    MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
 
@@ -487,7 +502,7 @@ class LLMIntegration:
         messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            chatlog += f"{message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
+            chatlog += f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
             if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
             for artifact in message[MessageKeys.ARTIFACTS]:

@@ -3,7 +3,10 @@ import streamlit as st
 from alphastats.gui.utils.analysis_helper import (
     display_analysis_result_with_buttons,
 )
+from alphastats.gui.utils.llm_helper import show_llm_chat
 from alphastats.gui.utils.state_keys import (
+    LLMKeys,
+    SavedAnalysisKeys,
     StateKeys,
 )
 from alphastats.gui.utils.state_utils import (
@@ -19,25 +22,28 @@ sidebar_info()
 
 st.markdown("## Results")
 
-if not st.session_state[StateKeys.ANALYSIS_LIST]:
+if not st.session_state[StateKeys.SAVED_ANALYSES]:
     st.info("No analysis saved yet.")
     st.stop()
 
-for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
-    count = n + 1
-
-    analysis_result = saved_analysis[0]
-    method = saved_analysis[1]
-    parameters = saved_analysis[2]
+for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
+    analysis_result = saved_analysis[SavedAnalysisKeys.RESULT]
+    method = saved_analysis[SavedAnalysisKeys.METHOD]
+    parameters = saved_analysis[SavedAnalysisKeys.PARAMETERS]
+    number = saved_analysis[SavedAnalysisKeys.NUMBER]
 
     st.markdown("\n\n\n")
-    st.markdown(f"#### #{count}: {method}")
+    st.markdown(f"### #{number}: {method} [{key}]")
     st.markdown(f"Parameters used for analysis: `{parameters}`")
 
-    name = f"{method}_{count}"
+    name = f"{method}_{number}"
 
-    if st.button(f"❌ Remove analysis #{count}", key=f"remove_{name}"):
-        st.session_state[StateKeys.ANALYSIS_LIST].remove(saved_analysis)
+    if st.button(
+        f"❌ Remove analysis #{number}",
+        key=f"remove_{name}",
+        help="Also removes the associated LLM chat",
+    ):
+        del st.session_state[StateKeys.SAVED_ANALYSES][key]
         st.rerun()
 
     display_analysis_result_with_buttons(
@@ -48,3 +54,16 @@ for n, saved_analysis in enumerate(st.session_state[StateKeys.ANALYSIS_LIST]):
         name=name,
         editable_annotation=False,
     )
+    st.markdown("#### LLM Chat")
+    if (
+        llm_integration := st.session_state.get(StateKeys.LLM_CHATS, {})
+        .get(key, {})
+        .get(LLMKeys.LLM_INTEGRATION)
+    ) is not None:
+        with st.expander("LLM Chat (read-only)", expanded=False):
+            show_llm_chat(llm_integration, key)
+    else:
+        st.write("No LLM chat available yet for this analysis.")
+
+    # passing parameters is not possible yet https://github.com/streamlit/streamlit/issues/8112
+    st.page_link("pages/06_LLM.py", label="=> Create/Continue chat...")

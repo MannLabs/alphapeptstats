@@ -1,125 +1,102 @@
 import os
-import warnings
 from typing import Dict
 
-import pandas as pd
 import streamlit as st
 from openai import AuthenticationError
 
 from alphastats.dataset.keys import Cols
-from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
     gather_uniprot_data,
 )
 from alphastats.gui.utils.llm_helper import (
+    LLM_ENABLED_ANALYSIS,
+    OLLAMA_BASE_URL,
     display_uniprot,
-    get_df_for_protein_selector,
-    llm_connection_test,
+    format_analysis_key,
+    init_llm_chat_state,
+    on_select_new_analysis_fill_state,
     protein_selector,
-    set_api_key,
+    show_llm_chat,
+    transfer_llm_chat_state_to_session_state,
 )
-from alphastats.gui.utils.state_keys import (
-    StateKeys,
-)
+from alphastats.gui.utils.state_keys import LLMKeys, SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
+from alphastats.llm.llm_integration import LLMIntegration, ModelFlags
 from alphastats.llm.prompts import get_initial_prompt, get_system_message
-from alphastats.llm.uniprot_utils import format_uniprot_annotation
-from alphastats.plots.plot_utils import PlotlyObject
-
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-
+from alphastats.llm.uniprot_utils import (
+    format_uniprot_annotation,
+)
 
 st.set_page_config(layout="wide")
 init_session_state()
 sidebar_info()
 
 
-st.markdown("## LLM")
+st.markdown("## LLM Interpretation")
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
 
 
-@st.fragment
-def llm_config():
-    """Show the configuration options for the LLM analysis."""
-    c1, _ = st.columns((1, 2))
-    with c1:
-        current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
+##################################### Select Analysis #####################################
 
-        models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
-        model_name = st.selectbox(
-            "Select LLM",
-            models,
-            index=models.index(st.session_state.get(StateKeys.MODEL_NAME))
-            if current_model is not None
-            else 0,
-        )
-        st.session_state[StateKeys.MODEL_NAME] = model_name
+st.markdown("#### Select Analysis for LLM interpretation")
 
-        base_url = None
-        if st.session_state[StateKeys.MODEL_NAME] in [Models.GPT4O]:
-            api_key = st.text_input(
-                "Enter OpenAI API Key and press Enter", type="password"
-            )
-            set_api_key(api_key)
-        elif st.session_state[StateKeys.MODEL_NAME] in [
-            Models.OLLAMA_31_70B,
-            Models.OLLAMA_31_8B,
-        ]:
-            base_url = OLLAMA_BASE_URL
-            st.info(f"Expecting Ollama API at {base_url}.")
-
-        test_connection = st.button("Test connection")
-        if test_connection:
-            with st.spinner(f"Testing connection to {model_name}.."):
-                error = llm_connection_test(
-                    model_name=st.session_state[StateKeys.MODEL_NAME],
-                    api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                    base_url=base_url,
-                )
-                if error is None:
-                    st.success(f"Connection to {model_name} successful!")
-                else:
-                    st.error(f"Connection to {model_name} failed: {str(error)}")
-
-        st.number_input(
-            "Maximal number of tokens",
-            value=st.session_state[StateKeys.MAX_TOKENS],
-            min_value=2000,
-            max_value=128000,  # TODO: set this automatically based on the selected model
-            key=StateKeys.MAX_TOKENS,
-        )
-
-        if current_model != st.session_state[StateKeys.MODEL_NAME]:
-            st.rerun(scope="app")
-
-
-st.markdown("#### Configure LLM")
-llm_config()
-
-
-st.markdown("#### Analysis Input")
-
-if StateKeys.LLM_INPUT not in st.session_state:
-    st.info("Create a Volcano plot first using the 'Analysis' page.")
+if not (
+    available_analyses_keys := [
+        key
+        for key, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
+        if analysis[SavedAnalysisKeys.METHOD] in LLM_ENABLED_ANALYSIS
+    ]
+):
+    st.info(
+        f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
+    )
+    st.page_link("pages/05_Analysis.py", label="=> Goto Analysis page...")
     st.stop()
 
-volcano_plot: ResultComponent = st.session_state[StateKeys.LLM_INPUT][0]
-plot_parameters: Dict = st.session_state[StateKeys.LLM_INPUT][1]
+selected_analysis_key = st.selectbox(
+    "Select analysis to interpret with LLM",
+    available_analyses_keys,
+    format_func=format_analysis_key,
+    index=None if len(available_analyses_keys) > 1 else 0,
+    on_change=on_select_new_analysis_fill_state,
+    key=StateKeys.SELECTED_ANALYSIS,
+)
+
+if (
+    selected_analysis := st.session_state[StateKeys.SAVED_ANALYSES].get(
+        selected_analysis_key, None
+    )
+) is None:
+    st.stop()
+
+if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
+    st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
+
+selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
+transfer_llm_chat_state_to_session_state(selected_llm_chat)
+
+volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
+plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 
+
+##################################### Analysis Input #####################################
+
+st.markdown("#### Analysis Input to LLM")
 c1, c2, c3 = st.columns((1, 1, 1))
+
+##################################### Volcano plot #####################################
 
 with c3:
     st.markdown("##### Volcano plot")
@@ -136,6 +113,7 @@ if not regulated_genes_dict:
     st.text("No genes of interest found.")
     st.stop()
 
+
 # Separate upregulated and downregulated genes
 upregulated_genes = [
     key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
@@ -144,94 +122,100 @@ downregulated_genes = [
     key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
 ]
 
-# Create dataframes with checkboxes for selection
-if st.session_state[StateKeys.SELECTED_GENES_UP] is None:
-    st.session_state[StateKeys.SELECTED_GENES_UP] = upregulated_genes
-upregulated_genes_df = get_df_for_protein_selector(
-    upregulated_genes, st.session_state[StateKeys.SELECTED_GENES_UP]
-)
+init_llm_chat_state(selected_llm_chat, upregulated_genes, downregulated_genes)
 
-if st.session_state[StateKeys.SELECTED_GENES_DOWN] is None:
-    st.session_state[StateKeys.SELECTED_GENES_DOWN] = downregulated_genes
-downregulated_genes_df = get_df_for_protein_selector(
-    downregulated_genes, st.session_state[StateKeys.SELECTED_GENES_DOWN]
-)
 
+##################################### Genes of interest #####################################
 
 with c1:
-    st.markdown("##### Genes of interest")
-    st.session_state[StateKeys.SELECTED_GENES_UP] = protein_selector(
-        upregulated_genes_df,
+    st.markdown(
+        "##### Select Genes of interest",
+        help="Select which genes shall be used in the LLM interpretation.",
+    )
+
+    protein_selector(
+        upregulated_genes,
         "Upregulated Proteins",
-        state_key=StateKeys.SELECTED_GENES_UP,
+        selected_analysis_key,
+        state_key=LLMKeys.SELECTED_GENES_UP,
     )
 
 with c2:
     st.markdown("##### ")
-    st.session_state[StateKeys.SELECTED_GENES_DOWN] = protein_selector(
-        downregulated_genes_df,
+    protein_selector(
+        downregulated_genes,
         "Downregulated Proteins",
-        state_key=StateKeys.SELECTED_GENES_DOWN,
+        selected_analysis_key,
+        state_key=LLMKeys.SELECTED_GENES_DOWN,
     )
 
-# Combine the selected genes into a new regulated_genes_dict
 selected_genes = (
-    st.session_state[StateKeys.SELECTED_GENES_UP]
-    + st.session_state[StateKeys.SELECTED_GENES_DOWN]
+    selected_llm_chat[LLMKeys.SELECTED_GENES_UP]
+    + selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN]
 )
 regulated_genes_dict = {
-    gene: "up" if gene in st.session_state[StateKeys.SELECTED_GENES_UP] else "down"
+    gene: "up" if gene in selected_llm_chat[LLMKeys.SELECTED_GENES_UP] else "down"
     for gene in selected_genes
 }
 
-# If no genes are selected, stop the script
 if not regulated_genes_dict:
     st.text("No genes selected for analysis.")
     st.stop()
 
-if st.button("Gather UniProt data for selected proteins"):
-    gather_uniprot_data(selected_genes)
 
-if any(
-    feature not in st.session_state[StateKeys.ANNOTATION_STORE]
-    for feature in selected_genes
-):
-    st.info(
-        "No UniProt data stored for some proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
-    )
+##################################### Uniprot information #####################################
 
-
-model_name = st.session_state[StateKeys.MODEL_NAME]
-llm_integration_set_for_model = (
-    st.session_state.get(StateKeys.LLM_INTEGRATION, {}).get(model_name, None)
-    is not None
+st.markdown(
+    "##### Select Uniprot information",
+    help="Select which information from Uniprot to supply to the LLM",
 )
 
-st.markdown("##### Select which information from Uniprot to supply to the LLM")
+if st.button("Fetch UniProt data for selected proteins"):
+    gather_uniprot_data(selected_genes)
+
+is_llm_integration_initialized = (
+    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
+)
+
+
 display_uniprot(
     regulated_genes_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
-    model_name=model_name,
-    disabled=llm_integration_set_for_model,
+    model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
+    selected_analysis_key=selected_analysis_key,
+    disabled=is_llm_integration_initialized,
 )
 
-st.markdown("##### Prompts generated based on analysis input")
+
+##################################### System and initial prompt #####################################
+
+st.markdown("##### System and initial prompt")
+st.write(
+    "The prompts are generated based on the above selection on genes and Uniprot information."
+)
+if st.button(
+    "Update prompts with selected genes and UniProt information",
+    disabled=is_llm_integration_initialized,
+    help="Regenerate system message and initial prompt based on current selections",
+):
+    st.rerun(scope="app")
+
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
         " ",
         value=get_system_message(st.session_state[StateKeys.DATASET]),
         height=150,
-        disabled=llm_integration_set_for_model,
+        disabled=is_llm_integration_initialized,
     )
 
 # TODO: Regenerate initial prompt on reset
 with st.expander("Initial prompt", expanded=True):
     feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    if st.session_state[StateKeys.INTEGRATE_UNIPROT]:
+    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, None):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
-                fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+                fields=selected_llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
             )
             for feature in regulated_genes_dict
         ]
@@ -246,56 +230,80 @@ with st.expander("Initial prompt", expanded=True):
             list(
                 map(
                     feature_to_repr_map.get,
-                    st.session_state[StateKeys.SELECTED_GENES_UP],
+                    selected_llm_chat[LLMKeys.SELECTED_GENES_UP],
                 )
             ),
             list(
                 map(
                     feature_to_repr_map.get,
-                    st.session_state[StateKeys.SELECTED_GENES_DOWN],
+                    selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN],
                 )
             ),
             uniprot_info,
         ),
         height=200,
-        disabled=llm_integration_set_for_model,
+        disabled=is_llm_integration_initialized,
     )
 
+    # a bit hacky but makes tool calling of `get_uniprot_info_for_search_string` much simpler
+    st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = selected_llm_chat[
+        LLMKeys.SELECTED_UNIPROT_FIELDS
+    ].copy()
 
-st.markdown(f"##### LLM Analysis with {model_name}")
+
+##################################### LLM interpretation #####################################
+
+st.markdown(f"#### LLM Interpretation with {selected_llm_chat[LLMKeys.MODEL_NAME]}")
+
+st.info(
+    f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
+)
+
+if (
+    model := selected_llm_chat[LLMKeys.MODEL_NAME]
+) in ModelFlags.REQUIRES_API_KEY and not st.session_state.get(StateKeys.OPENAI_API_KEY):
+    st.page_link(
+        "AlphaPeptStats.py",
+        label=f"❗ Please configure an OpenAI API key to use the {model} model on the ➔ start page",
+    )
+    st.stop()
 
 c1, c2, _ = st.columns((0.2, 0.2, 0.6))
 llm_submitted = c1.button(
-    "Run LLM analysis ...", disabled=llm_integration_set_for_model
+    "Run LLM interpretation ...", disabled=is_llm_integration_initialized
 )
 
 llm_reset = c2.button(
-    "❌ Reset LLM analysis ...", disabled=not llm_integration_set_for_model
+    "❌ Reset LLM interpretation ...", disabled=not is_llm_integration_initialized
 )
 if llm_reset:
-    del st.session_state[StateKeys.LLM_INTEGRATION]
+    del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
+    del selected_llm_chat[LLMKeys.MODEL_NAME]
+    del selected_llm_chat[LLMKeys.MAX_TOKENS]
+    del selected_llm_chat[LLMKeys.IS_INITIALIZED]
     st.rerun()
 
 
-if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
+if not is_llm_integration_initialized:
     if not llm_submitted:
         st.stop()
 
     try:
         llm_integration = LLMIntegration(
-            model_name=model_name,
+            model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=OLLAMA_BASE_URL,
             dataset=st.session_state[StateKeys.DATASET],
             genes_of_interest=list(regulated_genes_dict.keys()),
-            max_tokens=st.session_state[StateKeys.MAX_TOKENS],
+            max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
 
-        st.session_state[StateKeys.LLM_INTEGRATION][model_name] = llm_integration
+        selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
+        selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
 
         st.toast(
-            f"{st.session_state[StateKeys.MODEL_NAME]} integration initialized successfully!",
+            f"{selected_llm_chat[LLMKeys.MODEL_NAME]} integration initialized successfully!",
             icon="✅",
         )
 
@@ -308,89 +316,6 @@ if st.session_state[StateKeys.LLM_INTEGRATION].get(model_name) is None:
             "Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX"
         )
         st.stop()
-
-
-@st.fragment
-def llm_chat(
-    llm_integration: LLMIntegration,
-    show_all: bool = False,
-    show_individual_tokens: bool = False,
-):
-    """The chat interface for the LLM analysis."""
-
-    # TODO dump to file -> static file name, plus button to do so
-    # Ideas: save chat as txt, without encoding objects, just put a replacement string.
-    # Offer bulk download of zip with all figures (via plotly download as svg.).
-    # Alternatively write it all in one pdf report using e.g. pdfrw and reportlab (I have code for that combo).
-
-    # no. tokens spent
-    messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
-        show_all=show_all
-    )
-    for message in messages:
-        with st.chat_message(message[MessageKeys.ROLE]):
-            st.markdown(message[MessageKeys.CONTENT])
-            if (
-                message[MessageKeys.PINNED]
-                or not message[MessageKeys.IN_CONTEXT]
-                or show_individual_tokens
-            ):
-                token_message = ""
-                if message[MessageKeys.PINNED]:
-                    token_message += ":pushpin: "
-                if not message[MessageKeys.IN_CONTEXT]:
-                    token_message += ":x: "
-                if show_individual_tokens:
-                    tokens = llm_integration.estimate_tokens(
-                        [message], model=model_name
-                    )
-                    token_message += f"*tokens: {str(tokens)}*"
-                st.markdown(token_message)
-            for artifact in message[MessageKeys.ARTIFACTS]:
-                if isinstance(artifact, pd.DataFrame):
-                    st.dataframe(artifact)
-                elif isinstance(
-                    artifact, (PlotlyObject, plotly_object)
-                ):  # TODO can there be non-plotly types here
-                    st.plotly_chart(artifact)
-                elif not isinstance(artifact, str):
-                    st.warning("Don't know how to display artifact:")
-                    st.write(artifact)
-
-    st.markdown(
-        f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
-    )
-
-    if st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
-        st.warning("Warnings during last chat completion:")
-        for warning in st.session_state[StateKeys.RECENT_CHAT_WARNINGS]:
-            st.warning(str(warning.message).replace("\n", "\n\n"))
-
-    if prompt := st.chat_input("Say something"):
-        with st.chat_message(Roles.USER):
-            st.markdown(prompt)
-            if show_individual_tokens:
-                st.markdown(
-                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
-                )
-        with st.spinner("Processing prompt..."), warnings.catch_warnings(
-            record=True
-        ) as caught_warnings:
-            llm_integration.chat_completion(prompt)
-            st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = caught_warnings
-
-        st.rerun(scope="fragment")
-
-    st.download_button(
-        "Download chat log",
-        llm_integration.get_chat_log_txt(),
-        f"chat_log_{model_name}.txt",
-        "text/plain",
-    )
-
-    st.markdown(
-        "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
-    )
 
 
 c1, c2 = st.columns((1, 2))
@@ -406,8 +331,10 @@ with c2:
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
     )
-llm_chat(
-    st.session_state[StateKeys.LLM_INTEGRATION][model_name],
+
+show_llm_chat(
+    selected_llm_chat[LLMKeys.LLM_INTEGRATION],
+    selected_analysis_key,
     show_all,
     show_inidvidual_tokens,
 )

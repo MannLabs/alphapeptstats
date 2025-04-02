@@ -10,25 +10,50 @@ class StateKeys(metaclass=ConstantsClass):
 
     USER_SESSION_ID = "user_session_id"
     DATASET = "dataset"
+    ORGANISM = "organism"  # TODO: this is essentially a constant
 
     WORKFLOW = "workflow"
 
-    ANALYSIS_LIST = "analysis_list"
+    SAVED_ANALYSES = "saved_analyses"
 
     # LLM
     OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
     MODEL_NAME = "model_name"
-    LLM_INPUT = "llm_input"
-    LLM_INTEGRATION = "llm_integration"
+    MAX_TOKENS = "max_tokens"
+
+    LLM_CHATS = "llm_chats"
+
     ANNOTATION_STORE = "annotation_store"
+    SELECTED_ANALYSIS = "selected_analysis"
+
+    # Mirrored by LLMKeys where they are stored in a chat specific manner
+    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
+    INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
+
+
+class LLMKeys(metaclass=ConstantsClass):
+    """Keys for accessing the session state for LLM."""
+
+    LLM_INTEGRATION = "llm_integration"
     SELECTED_GENES_UP = "selected_genes_up"
     SELECTED_GENES_DOWN = "selected_genes_down"
-    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
-    MAX_TOKENS = "max_tokens"
-    INTEGRATE_UNIPROT = "integrate_uniprot"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
-    ORGANISM = "organism"  # TODO: this is essentially a constant
+    IS_INITIALIZED = "is_initialized"
+    # Mirrored by StateKeys for handling reactivity and making it available to functions reading from the session state
+    SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
+    INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
+    MODEL_NAME = "model_name"
+    MAX_TOKENS = "max_tokens"
+
+
+class SavedAnalysisKeys(metaclass=ConstantsClass):
+    """Keys for saved analyses in session state."""
+
+    RESULT = "result"
+    METHOD = "method"
+    PARAMETERS = "parameters"
+    NUMBER = "number"
 
 
 class DefaultStates(metaclass=ConstantsClass):

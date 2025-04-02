@@ -5,6 +5,7 @@ import uuid
 import streamlit as st
 
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
+from alphastats.llm.llm_integration import Models
 
 
 def empty_session_state() -> None:
@@ -14,7 +15,7 @@ def empty_session_state() -> None:
     st.empty()
 
 
-def init_session_state() -> None:  # noqa: C901
+def init_session_state() -> None:
     """Initialize the session state if not done yet."""
     if StateKeys.USER_SESSION_ID not in st.session_state:
         st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
@@ -25,31 +26,22 @@ def init_session_state() -> None:  # noqa: C901
     if StateKeys.WORKFLOW not in st.session_state:
         st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW.copy()
 
-    if StateKeys.ANALYSIS_LIST not in st.session_state:
-        st.session_state[StateKeys.ANALYSIS_LIST] = []
+    if StateKeys.SAVED_ANALYSES not in st.session_state:
+        st.session_state[StateKeys.SAVED_ANALYSES] = {}
 
-    if StateKeys.LLM_INTEGRATION not in st.session_state:
-        st.session_state[StateKeys.LLM_INTEGRATION] = {}
+    if StateKeys.LLM_CHATS not in st.session_state:
+        st.session_state[StateKeys.LLM_CHATS] = {}
 
     if StateKeys.ANNOTATION_STORE not in st.session_state:
         st.session_state[StateKeys.ANNOTATION_STORE] = {}
 
-    if StateKeys.SELECTED_GENES_UP not in st.session_state:
-        st.session_state[StateKeys.SELECTED_GENES_UP] = None
-
-    if StateKeys.SELECTED_GENES_DOWN not in st.session_state:
-        st.session_state[StateKeys.SELECTED_GENES_DOWN] = None
-
-    if StateKeys.SELECTED_UNIPROT_FIELDS not in st.session_state:
-        st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = (
-            DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
-        )
-
     if StateKeys.MAX_TOKENS not in st.session_state:
         st.session_state[StateKeys.MAX_TOKENS] = 10000
 
-    if StateKeys.INTEGRATE_UNIPROT not in st.session_state:
-        st.session_state[StateKeys.INTEGRATE_UNIPROT] = False
+    if StateKeys.MODEL_NAME not in st.session_state:
+        st.session_state[StateKeys.MODEL_NAME] = (
+            Models.GPT4O
+        )  # TDOO: change to None: this is just for convenience now
 
-    if StateKeys.RECENT_CHAT_WARNINGS not in st.session_state:
-        st.session_state[StateKeys.RECENT_CHAT_WARNINGS] = []
+    if StateKeys.SELECTED_ANALYSIS not in st.session_state:
+        st.session_state[StateKeys.SELECTED_ANALYSIS] = None

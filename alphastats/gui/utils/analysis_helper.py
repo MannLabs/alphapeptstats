@@ -1,5 +1,6 @@
 import io
 from copy import deepcopy
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
@@ -10,12 +11,14 @@ from stqdm import stqdm
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
+    DifferentialExpressionTwoGroupsResult,
     NewAnalysisOptions,
     PlottingOptions,
     ResultComponent,
     StatisticOptions,
 )
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
+from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.ui_helper import (
     show_button_download_df,
 )
@@ -97,14 +100,24 @@ def _display(
     else:
         display_function(analysis_result)
 
+    if analysis_method in LLM_ENABLED_ANALYSIS:
+        st.markdown(
+            "This analysis can be interpreted with help from the LLM. Save to results to continue."
+        )
+
     c1, c2, c3 = st.columns([1, 1, 1])
 
     with c1:
-        if show_save_button and st.button("Save to results page.."):
+        if show_save_button and st.button(
+            "💾 Save analysis to results page..",
+            help="This will save the analysis to the results page and allow LLM interpretation.",
+        ):
             _save_analysis_to_session_state(
                 analysis_result, analysis_method, parameters
             )
             st.toast("Saved to results page!", icon="✅")
+            if isinstance(analysis_result, DifferentialExpressionTwoGroupsResult):
+                st.page_link("pages/06_LLM.py", label="➔ Continue with LLM analysis")
 
     with c2:
         download_function(
@@ -216,13 +229,14 @@ def _save_analysis_to_session_state(
     parameters: Dict,
 ):
     """Save analysis with method and parameters to session state to show on results page."""
-    st.session_state[StateKeys.ANALYSIS_LIST] += [
-        (
-            deepcopy(analysis_results),
-            method,
-            parameters,
-        )
-    ]
+    analysis_key = datetime.now()  # could depend on data and parameters one day
+    st.session_state[StateKeys.SAVED_ANALYSES][analysis_key] = {
+        SavedAnalysisKeys.RESULT: deepcopy(analysis_results),
+        SavedAnalysisKeys.METHOD: method,
+        SavedAnalysisKeys.PARAMETERS: parameters,
+        # TODO number will be given twice if user removes analysis
+        SavedAnalysisKeys.NUMBER: len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
+    }
 
 
 def gather_parameters_and_do_analysis(
