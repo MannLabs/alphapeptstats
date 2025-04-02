@@ -26,7 +26,8 @@ def get_system_message(dataset: DataSet) -> str:
         "Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
         "If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
         "Ensure your analysis is data-driven at each step, referencing specific proteins or patterns from the dataset to support your reasoning. "
-        "Explain your thought process clearly as you move from observations to interpretations."
+        "Explain your thought process clearly as you move from observations to interpretations. "
+        "The next message will be referred to as the initial prompt by tools and potentially by us."
     )
 
 
