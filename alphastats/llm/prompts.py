@@ -23,7 +23,7 @@ def get_system_message(dataset: DataSet) -> str:
         f"- Separate bullet points for downregulated proteins: protein role (proteins): interpretation{newline}"
         f"- A high-level summary of biological implications{newline}{newline}"
         f"The data you have has following groups and respective subgroups: {str(subgroups)}."
-        f"Plots are visualized using a graphical environment capable of rendering images, you don't need to worry about that. "
+        f"Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
         f"If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
         f"Ensure your analysis is data-driven at each step, referencing specific proteins or patterns from the dataset to support your reasoning. "
         f"Explain your thought process clearly as you move from observations to interpretations."
