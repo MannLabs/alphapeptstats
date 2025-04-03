@@ -71,13 +71,11 @@ def _get_protein_data_prompt(
         )
     )
 
-    downregulated_genes = (
-        list(
-            map(
-                feature_to_repr_map.get,
-                downregulated_features,
-            )
-        ),
+    downregulated_genes = list(
+        map(
+            feature_to_repr_map.get,
+            downregulated_features,
+        )
     )
     return (
         f"From our proteomics experiments, we know the following:{newline}{newline}"
@@ -136,8 +134,8 @@ LLMInstructions = {
 
 
 def _get_initial_instruction(preset: str | None = "simple") -> str:
-    if preset == LLMInstructionKeys.SIMPLE:
-        return LLMInstructions[LLMInstructionKeys.SIMPLE]
+    if preset in LLMInstructions:
+        return LLMInstructions[preset]
     else:
         return LLMInstructions[LLMInstructionKeys.CUSTOM]
 
