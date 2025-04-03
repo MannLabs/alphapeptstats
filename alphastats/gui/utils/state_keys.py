@@ -1,10 +1,7 @@
 """Keys functions for the session state."""
 
-import uuid
-
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
-from alphastats.llm.llm_integration import Models
 from alphastats.llm.uniprot_utils import ExtractedUniprotFields
 
 
@@ -80,21 +77,3 @@ class DefaultStates(metaclass=ConstantsClass):
         PREPROCESSING_STEPS.LOG2_TRANSFORM,
         PREPROCESSING_STEPS.DROP_UNMEASURED_FEATURES,
     ]
-
-
-INIT_STATES = {
-    StateKeys.USER_SESSION_ID: str(uuid.uuid4()),
-    StateKeys.ORGANISM: 9606,  # human
-    StateKeys.WORKFLOW: DefaultStates.WORKFLOW.copy(),
-    StateKeys.SAVED_ANALYSES: {},
-    StateKeys.LLM_CHATS: {},
-    StateKeys.ANNOTATION_STORE: {},
-    StateKeys.MAX_TOKENS: 10000,
-    StateKeys.MODEL_NAME: (
-        Models.GPT4O
-    ),  # TDOO: change to None: this is just for convenience now
-    StateKeys.SELECTED_ANALYSIS: None,
-    StateKeys.PROMPT_EXPERIMENTAL_DESIGN: None,
-    StateKeys.PROMPT_PROTEIN_DATA: None,
-    StateKeys.PROMPT_INSTRUCTIONS: None,
-}
