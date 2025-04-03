@@ -1,6 +1,7 @@
 """Keys functions for the session state."""
 
-from collections.abc import Iterable
+from __future__ import annotations
+
 from typing import NamedTuple
 
 from alphastats.dataset.keys import ConstantsClass
@@ -73,7 +74,7 @@ SyncedLLMKey = NamedTuple(
     ],
 )
 
-widget_syncedLLMKeys: Iterable[SyncedLLMKey] = [  # noqa: N816
+WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(
         StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
         LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
@@ -86,7 +87,7 @@ widget_syncedLLMKeys: Iterable[SyncedLLMKey] = [  # noqa: N816
     SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
 ]
 
-model_syncedLLMKeys: Iterable[SyncedLLMKey] = [  # noqa: N816
+MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME, None),
     SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
 ]

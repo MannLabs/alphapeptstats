@@ -11,13 +11,13 @@ import streamlit as st
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
+    MODEL_SYNCED_LLM_KEYS,
+    WIDGET_SYNCED_LLM_KEYS,
     DefaultStates,
     KeySyncNames,
     LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
-    model_syncedLLMKeys,
-    widget_syncedLLMKeys,
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import (
@@ -490,13 +490,13 @@ def on_select_new_analysis_fill_state() -> None:
         st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
 
-    for synced_key in widget_syncedLLMKeys:
+    for synced_key in WIDGET_SYNCED_LLM_KEYS:
         st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
             synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
         )
 
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
-        for synced_key in model_syncedLLMKeys:
+        for synced_key in MODEL_SYNCED_LLM_KEYS:
             st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
                 synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
             )
@@ -516,13 +516,13 @@ def on_change_save_state() -> None:
     if not selected_chat:
         return
 
-    for synced_key in widget_syncedLLMKeys:
+    for synced_key in WIDGET_SYNCED_LLM_KEYS:
         selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
             synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
         )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
-        for synced_key in model_syncedLLMKeys:
+        for synced_key in MODEL_SYNCED_LLM_KEYS:
             selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
                 synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
             )
