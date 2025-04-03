@@ -38,8 +38,8 @@ class LLMKeys(metaclass=ConstantsClass):
     """Keys for accessing the session state for LLM."""
 
     LLM_INTEGRATION = "llm_integration"
-    SELECTED_GENES_UP = "selected_genes_up"
-    SELECTED_GENES_DOWN = "selected_genes_down"
+    SELECTED_FEATURES_UP = "selected_features_up"
+    SELECTED_FEATURES_DOWN = "selected_features_down"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
 
     IS_INITIALIZED = "is_initialized"

@@ -99,8 +99,8 @@ def format_analysis_key(key: str) -> str:
 
 def init_llm_chat_state(
     selected_llm_chat: dict[str, Any],
-    upregulated_genes: list[str],
-    downregulated_genes: list[str],
+    upregulated_features: list[str],
+    downregulated_features: list[str],
     plot_parameters: dict[str, Any],
     feature_to_repr_map: dict[str, str],
 ) -> None:
@@ -113,10 +113,10 @@ def init_llm_chat_state(
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
 
-    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_UP) is None:
-        selected_llm_chat[LLMKeys.SELECTED_GENES_UP] = upregulated_genes
-    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_DOWN) is None:
-        selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN] = downregulated_genes
+    if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_UP) is None:
+        selected_llm_chat[LLMKeys.SELECTED_FEATURES_UP] = upregulated_features
+    if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_DOWN) is None:
+        selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
 
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
         selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
@@ -146,35 +146,26 @@ def initialize_initial_prompt_modules(
     plot_parameters: dict[str, Any],
     feature_to_repr_map: dict[str, str],
 ) -> None:
-    _, regulated_genes_dict = get_selected_regulated_genes(llm_chat)
+    _, regulated_features_dict = get_selected_regulated_features(llm_chat)
 
     experimental_design_prompt = _get_experimental_design_prompt(plot_parameters)
 
-    if st.session_state.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT):
+    if llm_chat.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT):
         texts = [
             format_uniprot_annotation(
                 st.session_state[StateKeys.ANNOTATION_STORE][feature],
                 fields=llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
             )
-            for feature in regulated_genes_dict
+            for feature in regulated_features_dict
         ]
         uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
     else:
         uniprot_info = ""
     protein_data_prompt = _get_protein_data_prompt(
-        list(
-            map(
-                feature_to_repr_map.get,
-                llm_chat[LLMKeys.SELECTED_GENES_UP],
-            )
-        ),
-        list(
-            map(
-                feature_to_repr_map.get,
-                llm_chat[LLMKeys.SELECTED_GENES_DOWN],
-            )
-        ),
+        llm_chat[LLMKeys.SELECTED_FEATURES_UP],
+        llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
         uniprot_info,
+        feature_to_repr_map=feature_to_repr_map,
     )
 
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
@@ -184,12 +175,15 @@ def initialize_initial_prompt_modules(
 
 @st.fragment
 def protein_selector(
-    regulated_genes: list[str], title: str, selected_analysis_key: str, state_key: str
+    regulated_features: list[str],
+    title: str,
+    selected_analysis_key: str,
+    state_key: str,
 ) -> None:
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
-        regulated_genes: List of regulated genes to display in the table
+        regulated_features: List of regulated features to display in the table
         title: Title to display above the editor
         selected_analysis_key: Key to access the selected analysis in the session state
         state_key: Key to access the selected proteins in the selected analysis
@@ -202,7 +196,7 @@ def protein_selector(
         selected_analysis_key
     ]
     df = get_df_for_protein_selector(
-        regulated_genes, selected_analysis_session_state[state_key]
+        regulated_features, selected_analysis_session_state[state_key]
     )
     if len(df) == 0:
         st.markdown("No significant proteins.")
@@ -221,7 +215,7 @@ def protein_selector(
         column_config={
             "Selected": st.column_config.CheckboxColumn(
                 "Include?",
-                help="Check to include this gene in analysis",
+                help="Check to include this feature in analysis",
                 default=True,
             ),
             "Gene": st.column_config.TextColumn(
@@ -234,7 +228,7 @@ def protein_selector(
         # explicitly setting key: otherwise it's calculated from the data which causes problems if two analysis are exactly mirrored
         key=f"{state_key}_data_editor",
     )
-    # Extract the selected genes
+    # Extract the selected features
     new_list = edited_df.loc[edited_df["Selected"], "Protein"].tolist()
     if new_list != selected_analysis_session_state[state_key]:
         selected_analysis_session_state[state_key] = new_list
@@ -376,7 +370,7 @@ def get_display_available_uniprot_info(regulated_features: list[str]) -> dict:
 # TODO: Write test for this display
 @st.fragment
 def display_uniprot(
-    regulated_genes_dict: dict,
+    regulated_features_dict: dict,
     feature_to_repr_map: dict,
     model_name: str,
     selected_analysis_key: str,
@@ -387,7 +381,7 @@ def display_uniprot(
     all_fields = ExtractedUniprotFields.get_values()
     if any(
         feature not in st.session_state[StateKeys.ANNOTATION_STORE]
-        for feature in regulated_genes_dict
+        for feature in regulated_features_dict
     ):
         st.info(
             "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
@@ -420,7 +414,7 @@ def display_uniprot(
                 st.session_state[StateKeys.ANNOTATION_STORE].get(feature, {}),
                 fields=selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS],
             )
-            for feature in regulated_genes_dict
+            for feature in regulated_features_dict
         ]
         tokens = LLMIntegration.estimate_tokens(
             [{MessageKeys.CONTENT: text} for text in texts], model=model_name
@@ -460,7 +454,7 @@ def display_uniprot(
             "Feature id",
             options=[
                 feature
-                for feature in regulated_genes_dict
+                for feature in regulated_features_dict
                 if feature in st.session_state[StateKeys.ANNOTATION_STORE]
             ],
             format_func=lambda x: feature_to_repr_map[x],
@@ -535,15 +529,16 @@ def on_change_save_state() -> None:
         selected_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
 
 
-def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
-    selected_genes = (
-        llm_chat[LLMKeys.SELECTED_GENES_UP] + llm_chat[LLMKeys.SELECTED_GENES_DOWN]
+def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
+    selected_features = (
+        llm_chat[LLMKeys.SELECTED_FEATURES_UP]
+        + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN]
     )
-    regulated_genes_dict = {
-        gene: "up" if gene in llm_chat[LLMKeys.SELECTED_GENES_UP] else "down"
-        for gene in selected_genes
+    regulated_features_dict = {
+        feature: "up" if feature in llm_chat[LLMKeys.SELECTED_FEATURES_UP] else "down"
+        for feature in selected_features
     }
-    return selected_genes, regulated_genes_dict
+    return selected_features, regulated_features_dict
 
 
 @st.fragment
@@ -582,7 +577,7 @@ def configure_initial_prompt(
     with c2:
         st.markdown("#####")
         if st.button(
-            "Update prompts with selected genes and UniProt information",
+            "Update prompts with selected features and UniProt information",
             disabled=disabled,
             help="Regenerate system message and initial prompt based on current selections",
         ):

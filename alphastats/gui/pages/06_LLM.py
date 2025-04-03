@@ -15,7 +15,7 @@ from alphastats.gui.utils.llm_helper import (
     configure_initial_prompt,
     display_uniprot,
     format_analysis_key,
-    get_selected_regulated_genes,
+    get_selected_regulated_features,
     init_llm_chat_state,
     on_select_new_analysis_fill_state,
     protein_selector,
@@ -99,24 +99,26 @@ with c3:
     st.markdown("##### Volcano plot")
     display_figure(volcano_plot.plot)
 
-regulated_genes_df = volcano_plot.annotated_dataframe[
+regulated_features_df = volcano_plot.annotated_dataframe[
     volcano_plot.annotated_dataframe["significant"] != "non_sig"
 ]
-regulated_genes_dict = dict(
-    zip(regulated_genes_df[Cols.INDEX], regulated_genes_df["significant"].tolist())
+regulated_features_dict = dict(
+    zip(
+        regulated_features_df[Cols.INDEX], regulated_features_df["significant"].tolist()
+    )
 )
 
-if not regulated_genes_dict:
+if not regulated_features_dict:
     st.text("No genes of interest found.")
     st.stop()
 
 
-# Separate upregulated and downregulated genes
-upregulated_genes = [
-    key for key in regulated_genes_dict if regulated_genes_dict[key] == "up"
+# Separate upregulated and downregulated features
+upregulated_features = [
+    key for key in regulated_features_dict if regulated_features_dict[key] == "up"
 ]
-downregulated_genes = [
-    key for key in regulated_genes_dict if regulated_genes_dict[key] == "down"
+downregulated_features = [
+    key for key in regulated_features_dict if regulated_features_dict[key] == "down"
 ]
 
 
@@ -125,40 +127,42 @@ downregulated_genes = [
 
 init_llm_chat_state(
     selected_llm_chat,
-    upregulated_genes,
-    downregulated_genes,
+    upregulated_features,
+    downregulated_features,
     plot_parameters,
     feature_to_repr_map,
 )
 
 
-##################################### Genes of interest #####################################
+##################################### Proteins of interest #####################################
 
 with c1:
     st.markdown(
-        "##### Select Genes of interest",
-        help="Select which genes shall be used in the LLM interpretation.",
+        "##### Select proteins of interest",
+        help="Select which features shall be used in the LLM interpretation.",
     )
 
     protein_selector(
-        upregulated_genes,
+        upregulated_features,
         "Upregulated Proteins",
         selected_analysis_key,
-        state_key=LLMKeys.SELECTED_GENES_UP,
+        state_key=LLMKeys.SELECTED_FEATURES_UP,
     )
 
 with c2:
     st.markdown("##### ")
     protein_selector(
-        downregulated_genes,
+        downregulated_features,
         "Downregulated Proteins",
         selected_analysis_key,
-        state_key=LLMKeys.SELECTED_GENES_DOWN,
+        state_key=LLMKeys.SELECTED_FEATURES_DOWN,
     )
 
-selected_genes, regulated_genes_dict = get_selected_regulated_genes(selected_llm_chat)
+selected_features, regulated_features_dict = get_selected_regulated_features(
+    selected_llm_chat
+)
 
-if not regulated_genes_dict:
+if not regulated_features_dict:
     st.text("No genes selected for analysis.")
     st.stop()
 
@@ -171,7 +175,7 @@ st.markdown(
 )
 
 if st.button("Fetch UniProt data for selected proteins"):
-    gather_uniprot_data(selected_genes)
+    gather_uniprot_data(selected_features)
 
 is_llm_integration_initialized = (
     selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
@@ -179,7 +183,7 @@ is_llm_integration_initialized = (
 
 
 display_uniprot(
-    regulated_genes_dict,
+    regulated_features_dict,
     st.session_state[StateKeys.DATASET]._feature_to_repr_map,
     model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
     selected_analysis_key=selected_analysis_key,
@@ -191,7 +195,7 @@ display_uniprot(
 
 st.markdown("##### System and initial prompt")
 st.write(
-    "The prompts are generated based on the above selection on genes and Uniprot information."
+    "The prompts are generated based on the above selection of proteins and Uniprot information."
 )
 
 with st.expander("System message", expanded=False):
@@ -261,7 +265,7 @@ if not is_llm_integration_initialized:
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=OLLAMA_BASE_URL,
             dataset=st.session_state[StateKeys.DATASET],
-            genes_of_interest=list(regulated_genes_dict.keys()),
+            genes_of_interest=list(regulated_features_dict.keys()),
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
 

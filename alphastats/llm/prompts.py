@@ -42,9 +42,10 @@ def _get_experimental_design_prompt(
 
 
 def _get_protein_data_prompt(
-    upregulated_genes: list[str],
-    downregulated_genes: list[str],
+    upregulated_features: list[str],
+    downregulated_features: list[str],
     uniprot_info: str,
+    feature_to_repr_map: dict,
 ) -> str:
     """Get the initial prompt for the LLM model."""
     if uniprot_info:
@@ -58,6 +59,21 @@ def _get_protein_data_prompt(
             "You have the ability to retrieve curated information from Uniprot about these proteins. "
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
+    upregulated_genes = list(
+        map(
+            feature_to_repr_map.get,
+            upregulated_features,
+        )
+    )
+
+    downregulated_genes = (
+        list(
+            map(
+                feature_to_repr_map.get,
+                downregulated_features,
+            )
+        ),
+    )
     return (
         f"From our proteomics experiments, we know that the following ones are upregulated: {', '.join(upregulated_genes)}.{os.linesep}{os.linesep}"
         f"Here is a comma-separated list of proteins that are downregulated: {', '.join(downregulated_genes)}.{os.linesep}{os.linesep}"
@@ -77,7 +93,7 @@ LLMInstructions = {
         "Help us understand the potential connections between these proteins and how they might be contributing "
         "to the differences. After that provide a high level summary."
     ),
-    LLMInstructionKeys.CUSTOM: "Please give instructions to the LLM model on how to generate a response.",
+    LLMInstructionKeys.CUSTOM: "<<<Please give instructions to the LLM model on how to generate a response.>>>",
 }
 
 
