@@ -1,5 +1,6 @@
 """Keys functions for the session state."""
 
+from collections.abc import Iterable
 from typing import NamedTuple
 
 from alphastats.dataset.keys import ConstantsClass
@@ -55,27 +56,39 @@ class LLMKeys(metaclass=ConstantsClass):
     PROMPT_INSTRUCTIONS = "prompt_instructions"
 
 
+class KeySyncNames(metaclass=ConstantsClass):
+    """Names used in named tuples for syncing between Key classes."""
+
+    STATE = "StateKey"
+    LLM = "LLMKey"
+    GET_DEFAULT = "get_default"
+
+
 SyncedLLMKey = NamedTuple(
     "SyncedLLMKey",
-    ["StateKey", "LLMKey"],
+    [
+        (KeySyncNames.STATE, str),
+        (KeySyncNames.LLM, str),
+        (KeySyncNames.GET_DEFAULT, object),
+    ],
 )
 
-
-widget_syncedLLMKeys = [  # noqa: N816
+widget_syncedLLMKeys: Iterable[SyncedLLMKey] = [  # noqa: N816
     SyncedLLMKey(
         StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
         LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
+        False,  # noqa: FBT003
     ),
     SyncedLLMKey(
-        StateKeys.PROMPT_EXPERIMENTAL_DESIGN, LLMKeys.PROMPT_EXPERIMENTAL_DESIGN
+        StateKeys.PROMPT_EXPERIMENTAL_DESIGN, LLMKeys.PROMPT_EXPERIMENTAL_DESIGN, None
     ),
-    SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA),
-    SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS),
+    SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA, None),
+    SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
 ]
 
-model_syncedLLMKeys = [  # noqa: N816
-    SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME),
-    SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS),
+model_syncedLLMKeys: Iterable[SyncedLLMKey] = [  # noqa: N816
+    SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME, None),
+    SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
 ]
 
 

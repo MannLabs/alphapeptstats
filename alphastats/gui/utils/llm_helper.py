@@ -12,6 +12,7 @@ from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
     DefaultStates,
+    KeySyncNames,
     LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
@@ -490,11 +491,15 @@ def on_select_new_analysis_fill_state() -> None:
     )
 
     for synced_key in widget_syncedLLMKeys:
-        st.session_state[synced_key.StateKey] = selected_chat.get(synced_key.LLMKey)
+        st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
+            synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+        )
 
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in model_syncedLLMKeys:
-            st.session_state[synced_key.StateKey] = selected_chat.get(synced_key.LLMKey)
+            st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
+                synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+            )
 
     st.toast("State filled from saved analysis.", icon="🔍")
 
@@ -512,11 +517,15 @@ def on_change_save_state() -> None:
         return
 
     for synced_key in widget_syncedLLMKeys:
-        selected_chat[synced_key.LLMKey] = st.session_state[synced_key.StateKey]
+        selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
+            synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+        )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in model_syncedLLMKeys:
-            selected_chat[synced_key.LLMKey] = st.session_state[synced_key.StateKey]
+            selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
+                synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+            )
 
 
 def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
