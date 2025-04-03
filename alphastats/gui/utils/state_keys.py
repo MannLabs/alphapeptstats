@@ -1,5 +1,7 @@
 """Keys functions for the session state."""
 
+from typing import NamedTuple
+
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
 from alphastats.llm.uniprot_utils import ExtractedUniprotFields
@@ -51,6 +53,30 @@ class LLMKeys(metaclass=ConstantsClass):
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
+
+
+SyncedLLMKey = NamedTuple(
+    "SyncedLLMKey",
+    ["StateKey", "LLMKey"],
+)
+
+
+widget_syncedLLMKeys = [  # noqa: N816
+    SyncedLLMKey(
+        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
+        LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
+    ),
+    SyncedLLMKey(
+        StateKeys.PROMPT_EXPERIMENTAL_DESIGN, LLMKeys.PROMPT_EXPERIMENTAL_DESIGN
+    ),
+    SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA),
+    SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS),
+]
+
+model_syncedLLMKeys = [  # noqa: N816
+    SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME),
+    SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS),
+]
 
 
 class SavedAnalysisKeys(metaclass=ConstantsClass):

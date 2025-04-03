@@ -15,6 +15,8 @@ from alphastats.gui.utils.state_keys import (
     LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
+    model_syncedLLMKeys,
+    widget_syncedLLMKeys,
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import (
@@ -486,21 +488,13 @@ def on_select_new_analysis_fill_state() -> None:
     selected_chat = st.session_state[StateKeys.LLM_CHATS].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
-    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = selected_chat.get(
-        LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False
-    )
-    st.session_state[StateKeys.PROMPT_EXPERIMENTAL_DESIGN] = selected_chat.get(
-        LLMKeys.PROMPT_EXPERIMENTAL_DESIGN, None
-    )
-    st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = selected_chat.get(
-        LLMKeys.PROMPT_PROTEIN_DATA, None
-    )
-    st.session_state[StateKeys.PROMPT_INSTRUCTIONS] = selected_chat.get(
-        LLMKeys.PROMPT_INSTRUCTIONS, None
-    )
+
+    for synced_key in widget_syncedLLMKeys:
+        st.session_state[synced_key.StateKey] = selected_chat.get(synced_key.LLMKey)
+
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
-        st.session_state[StateKeys.MODEL_NAME] = selected_chat[LLMKeys.MODEL_NAME]
-        st.session_state[StateKeys.MAX_TOKENS] = selected_chat[LLMKeys.MAX_TOKENS]
+        for synced_key in model_syncedLLMKeys:
+            st.session_state[synced_key.StateKey] = selected_chat.get(synced_key.LLMKey)
 
     st.toast("State filled from saved analysis.", icon="🔍")
 
@@ -511,28 +505,18 @@ def on_change_save_state() -> None:
     This can be expanded to other widgets as needed.
     """
     selected_chat: dict = st.session_state[StateKeys.LLM_CHATS].get(
-        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+        st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
 
-    if selected_chat is None:
+    if not selected_chat:
         return
 
-    selected_chat[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = st.session_state[
-        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT
-    ]
-    selected_chat[LLMKeys.PROMPT_EXPERIMENTAL_DESIGN] = st.session_state[
-        StateKeys.PROMPT_EXPERIMENTAL_DESIGN
-    ]
-    selected_chat[LLMKeys.PROMPT_PROTEIN_DATA] = st.session_state[
-        StateKeys.PROMPT_PROTEIN_DATA
-    ]
-    selected_chat[LLMKeys.PROMPT_INSTRUCTIONS] = st.session_state[
-        StateKeys.PROMPT_INSTRUCTIONS
-    ]
+    for synced_key in widget_syncedLLMKeys:
+        selected_chat[synced_key.LLMKey] = st.session_state[synced_key.StateKey]
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
-        selected_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
-        selected_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
+        for synced_key in model_syncedLLMKeys:
+            selected_chat[synced_key.LLMKey] = st.session_state[synced_key.StateKey]
 
 
 def get_selected_regulated_genes(llm_chat: dict) -> tuple[list, dict]:
