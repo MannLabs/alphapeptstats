@@ -239,13 +239,7 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
         )
 
         self._parameters.update(
-            {
-                "protein_id": self._dataset._gene_to_features_map[
-                    protein_id_or_gene_name
-                ]
-                if protein_id_or_gene_name in self._dataset._gene_to_features_map
-                else self._dataset._protein_to_features_map[protein_id_or_gene_name]
-            }
+            {"protein_id": protein_id_or_gene_name},
         )
 
     def _do_analysis(self):

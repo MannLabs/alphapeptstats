@@ -120,11 +120,17 @@ def _check_softwarefile_df(df: pd.DataFrame, software: str) -> None:
     # TODO this needs to go to the loader
 
     if software == "MaxQuant":
-        expected_columns = ["Protein IDs", "Reverse", "Potential contaminant"]
+        expected_columns = [
+            "Protein IDs",
+            "Reverse",
+            "Potential contaminant",
+            "Only identified by site",
+        ]
         if not set(expected_columns).issubset(set(df.columns.to_list())):
             raise ValueError(
                 "This is not a valid MaxQuant file. Please check: "
                 "http://www.coxdocs.org/doku.php?id=maxquant:table:proteingrouptable"
+                f" We check for these columns: {expected_columns}"
             )
 
     elif software == "AlphaPept":
