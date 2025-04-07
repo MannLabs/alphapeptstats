@@ -1,5 +1,9 @@
 """Keys functions for the session state."""
 
+from __future__ import annotations
+
+from typing import NamedTuple
+
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.gui.utils.preprocessing_helper import PREPROCESSING_STEPS
 from alphastats.llm.uniprot_utils import ExtractedUniprotFields
@@ -51,6 +55,45 @@ class LLMKeys(metaclass=ConstantsClass):
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
+
+
+class KeySyncNames(metaclass=ConstantsClass):
+    """Names used in named tuples for syncing between Key classes."""
+
+    STATE = "StateKey"
+    LLM = "LLMKey"
+    GET_DEFAULT = "get_default"
+
+
+SyncedLLMKey = NamedTuple(
+    "SyncedLLMKey",
+    [
+        (KeySyncNames.STATE, str),
+        (KeySyncNames.LLM, str),
+        (KeySyncNames.GET_DEFAULT, object),
+    ],
+)
+
+# These keys are synced between the StateKeys and LLMKeys classes.
+# They are used upon loading/initializing an LLM chat and on change to any of the widgets to sync the state and chat.
+WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
+    SyncedLLMKey(
+        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
+        LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
+        False,  # noqa: FBT003
+    ),
+    SyncedLLMKey(
+        StateKeys.PROMPT_EXPERIMENTAL_DESIGN, LLMKeys.PROMPT_EXPERIMENTAL_DESIGN, None
+    ),
+    SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA, None),
+    SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
+]
+
+# These keys are synced between the StateKeys and LLMKeys classes, but only if the LLM is already initialized with a specific model.
+MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
+    SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME, None),
+    SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
+]
 
 
 class SavedAnalysisKeys(metaclass=ConstantsClass):

@@ -11,7 +11,10 @@ import streamlit as st
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
+    MODEL_SYNCED_LLM_KEYS,
+    WIDGET_SYNCED_LLM_KEYS,
     DefaultStates,
+    KeySyncNames,
     LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
@@ -480,21 +483,17 @@ def on_select_new_analysis_fill_state() -> None:
     selected_chat = st.session_state[StateKeys.LLM_CHATS].get(
         st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
-    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = selected_chat.get(
-        LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False
-    )
-    st.session_state[StateKeys.PROMPT_EXPERIMENTAL_DESIGN] = selected_chat.get(
-        LLMKeys.PROMPT_EXPERIMENTAL_DESIGN, None
-    )
-    st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = selected_chat.get(
-        LLMKeys.PROMPT_PROTEIN_DATA, None
-    )
-    st.session_state[StateKeys.PROMPT_INSTRUCTIONS] = selected_chat.get(
-        LLMKeys.PROMPT_INSTRUCTIONS, None
-    )
+
+    for synced_key in WIDGET_SYNCED_LLM_KEYS:
+        st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
+            synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+        )
+
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
-        st.session_state[StateKeys.MODEL_NAME] = selected_chat[LLMKeys.MODEL_NAME]
-        st.session_state[StateKeys.MAX_TOKENS] = selected_chat[LLMKeys.MAX_TOKENS]
+        for synced_key in MODEL_SYNCED_LLM_KEYS:
+            st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
+                synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+            )
 
     st.toast("State filled from saved analysis.", icon="🔍")
 
@@ -505,28 +504,22 @@ def on_change_save_state() -> None:
     This can be expanded to other widgets as needed.
     """
     selected_chat: dict = st.session_state[StateKeys.LLM_CHATS].get(
-        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+        st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
 
-    if selected_chat is None:
+    if not selected_chat:
         return
 
-    selected_chat[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = st.session_state[
-        StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT
-    ]
-    selected_chat[LLMKeys.PROMPT_EXPERIMENTAL_DESIGN] = st.session_state[
-        StateKeys.PROMPT_EXPERIMENTAL_DESIGN
-    ]
-    selected_chat[LLMKeys.PROMPT_PROTEIN_DATA] = st.session_state[
-        StateKeys.PROMPT_PROTEIN_DATA
-    ]
-    selected_chat[LLMKeys.PROMPT_INSTRUCTIONS] = st.session_state[
-        StateKeys.PROMPT_INSTRUCTIONS
-    ]
+    for synced_key in WIDGET_SYNCED_LLM_KEYS:
+        selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
+            synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+        )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
-        selected_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
-        selected_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
+        for synced_key in MODEL_SYNCED_LLM_KEYS:
+            selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
+                synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+            )
 
 
 def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
