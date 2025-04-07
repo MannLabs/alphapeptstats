@@ -1,6 +1,7 @@
 """Functions to initialize and empty the session state."""
 
 import uuid
+from copy import deepcopy
 
 import streamlit as st
 
@@ -15,33 +16,29 @@ def empty_session_state() -> None:
     st.empty()
 
 
+INIT_STATES = {
+    StateKeys.USER_SESSION_ID: str(uuid.uuid4()),
+    StateKeys.ORGANISM: 9606,  # human
+    StateKeys.WORKFLOW: DefaultStates.WORKFLOW.copy(),
+    StateKeys.SAVED_ANALYSES: {},
+    StateKeys.LLM_CHATS: {},
+    StateKeys.ANNOTATION_STORE: {},
+    StateKeys.MAX_TOKENS: 10000,
+    StateKeys.MODEL_NAME: (
+        Models.GPT4O
+    ),  # TDOO: change to None: this is just for convenience now
+    StateKeys.SELECTED_ANALYSIS: None,
+    StateKeys.PROMPT_EXPERIMENTAL_DESIGN: None,
+    StateKeys.PROMPT_PROTEIN_DATA: None,
+    StateKeys.PROMPT_INSTRUCTIONS: None,
+}
+
+
 def init_session_state() -> None:
     """Initialize the session state if not done yet."""
-    if StateKeys.USER_SESSION_ID not in st.session_state:
-        st.session_state[StateKeys.USER_SESSION_ID] = str(uuid.uuid4())
-
-    if StateKeys.ORGANISM not in st.session_state:
-        st.session_state[StateKeys.ORGANISM] = 9606  # human
-
-    if StateKeys.WORKFLOW not in st.session_state:
-        st.session_state[StateKeys.WORKFLOW] = DefaultStates.WORKFLOW.copy()
-
-    if StateKeys.SAVED_ANALYSES not in st.session_state:
-        st.session_state[StateKeys.SAVED_ANALYSES] = {}
-
-    if StateKeys.LLM_CHATS not in st.session_state:
-        st.session_state[StateKeys.LLM_CHATS] = {}
-
-    if StateKeys.ANNOTATION_STORE not in st.session_state:
-        st.session_state[StateKeys.ANNOTATION_STORE] = {}
-
-    if StateKeys.MAX_TOKENS not in st.session_state:
-        st.session_state[StateKeys.MAX_TOKENS] = 10000
-
-    if StateKeys.MODEL_NAME not in st.session_state:
-        st.session_state[StateKeys.MODEL_NAME] = (
-            Models.GPT4O
-        )  # TDOO: change to None: this is just for convenience now
-
-    if StateKeys.SELECTED_ANALYSIS not in st.session_state:
-        st.session_state[StateKeys.SELECTED_ANALYSIS] = None
+    for key, value in INIT_STATES.items():
+        if key not in st.session_state:
+            try:
+                st.session_state[key] = deepcopy(value)
+            except AttributeError:
+                st.session_state[key] = value

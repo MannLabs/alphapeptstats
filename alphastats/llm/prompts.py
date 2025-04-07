@@ -1,19 +1,22 @@
 """This module contains functions to generate prompts for the LLM model."""
 
+from __future__ import annotations
+
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.llm.llm_utils import get_subgroups_for_each_group
+
+newline = os.linesep
 
 
 def get_system_message(dataset: DataSet) -> str:
     """Get the system message for the LLM model."""
     subgroups = get_subgroups_for_each_group(dataset.metadata)
-
-    newline = os.linesep
 
     return (
         f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.{newline}"
@@ -31,17 +34,25 @@ def get_system_message(dataset: DataSet) -> str:
     )
 
 
-def get_initial_prompt(
-    parameter_dict: Dict[str, Any],
-    upregulated_genes: List[str],
-    downregulated_genes: List[str],
-    uniprot_info: str,
-):
-    """Get the initial prompt for the LLM model."""
-    newline = os.linesep
+def _get_experimental_design_prompt(
+    parameter_dict: dict[str, Any],
+) -> str:
     group1 = parameter_dict["group1"]
     group2 = parameter_dict["group2"]
     column = parameter_dict["column"]
+    return (
+        "We've recently identified several proteins that appear to be differently regulated in cells "
+        f"when comparing {group1} and {group2} in the {column} group. "
+    )
+
+
+def _get_protein_data_prompt(
+    upregulated_features: list[str],
+    downregulated_features: list[str],
+    uniprot_info: str,
+    feature_to_repr_map: dict,
+) -> str:
+    """Get the initial prompt for the LLM model."""
     if uniprot_info:
         uniprot_instructions = (
             f"We have already retireved relevant information from Uniprot for these proteins:{newline}{newline}{uniprot_info}{newline}{newline}"
@@ -53,13 +64,42 @@ def get_initial_prompt(
             "You have the ability to retrieve curated information from Uniprot about these proteins. "
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
+    upregulated_genes = list(
+        map(
+            feature_to_repr_map.get,
+            upregulated_features,
+        )
+    )
+
+    downregulated_genes = list(
+        map(
+            feature_to_repr_map.get,
+            downregulated_features,
+        )
+    )
     return (
-        "We've recently identified several proteins that appear to be differently regulated in cells "
-        f"when comparing {group1} and {group2} in the {column} group. "
         f"From our proteomics experiments, we know the following:{newline}{newline}"
         f"Comma-separated list of proteins that are upregulated: {', '.join(upregulated_genes)}.{newline}{newline}"
         f"Comma-separated list of proteins that are downregulated: {', '.join(downregulated_genes)}.{newline}{newline}"
-        f"{uniprot_instructions}{newline}{newline}"
+        f"{uniprot_instructions}"
+    )
+
+
+class LLMInstructionKeys(metaclass=ConstantsClass):
+    """Keys for the LLM instructions."""
+
+    SIMPLE = "simple"
+    CUSTOM = "customize prompt"
+    CHAIN_OF_THOUGHT = "chain of thought"
+
+
+LLMInstructions = {
+    LLMInstructionKeys.SIMPLE: (
+        "Help us understand the potential connections between these proteins and how they might be contributing "
+        "to the differences. After that provide a high level summary."
+    ),
+    LLMInstructionKeys.CUSTOM: "<<<Please give instructions to the LLM model on how to generate a response.>>>",
+    LLMInstructionKeys.CHAIN_OF_THOUGHT: (
         f"Think step-by-step using following structure for your analysis:{newline}{newline}"
         f"1. Functional Analysis:{newline}"
         f"- Identify relationships between differentially expressed proteins by using your broad biological knowledge including the information from UniProt{newline}"
@@ -89,10 +129,29 @@ def get_initial_prompt(
         f"- Identify aspects that confirm or challenge existing models{newline}"
         f"- Develop hypotheses explaining observed patterns{newline}"
         f"- Suggest follow-up experiments to validate your hypotheses{newline}"
+    ),
+}
+
+
+def _get_initial_instruction(preset: str | None = "simple") -> str:
+    if preset in LLMInstructions:
+        return LLMInstructions[preset]
+    else:
+        return LLMInstructions[LLMInstructionKeys.CUSTOM]
+
+
+def get_initial_prompt(
+    experimental_design_prompt: str,
+    protein_data_prompt: str,
+    initial_instruction: str,
+) -> str:
+    """Get the initial prompt for the LLM model."""
+    return f"{newline}{newline}".join(
+        [experimental_design_prompt, protein_data_prompt, initial_instruction]
     )
 
 
-def get_tool_call_message(tool_calls: List[ChatCompletionMessageToolCall]) -> str:
+def get_tool_call_message(tool_calls: list[ChatCompletionMessageToolCall]) -> str:
     """Get a string representation of the tool calls made by the LLM model."""
     return "\n".join(
         [

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import os
 import warnings
 from pathlib import Path
-from typing import List, Optional
+from typing import Any
 
 import pandas as pd
 import streamlit as st
@@ -9,12 +11,22 @@ import streamlit as st
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
+    MODEL_SYNCED_LLM_KEYS,
+    WIDGET_SYNCED_LLM_KEYS,
     DefaultStates,
+    KeySyncNames,
     LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
 )
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
+from alphastats.llm.prompts import (
+    LLMInstructionKeys,
+    _get_experimental_design_prompt,
+    _get_initial_instruction,
+    _get_protein_data_prompt,
+    get_initial_prompt,
+)
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
@@ -27,7 +39,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 
 @st.fragment
-def llm_config():
+def llm_config() -> None:
     """Show the configuration options for the LLM interpretation."""
 
     current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
@@ -89,7 +101,11 @@ def format_analysis_key(key: str) -> str:
 
 
 def init_llm_chat_state(
-    selected_llm_chat: dict, upregulated_genes: list, downregulated_genes: list
+    selected_llm_chat: dict[str, Any],
+    upregulated_features: list[str],
+    downregulated_features: list[str],
+    plot_parameters: dict[str, Any],
+    feature_to_repr_map: dict[str, str],
 ) -> None:
     """Initialize the state for a given llm_chat."""
     if LLMKeys.RECENT_CHAT_WARNINGS not in selected_llm_chat:
@@ -100,39 +116,77 @@ def init_llm_chat_state(
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
 
-    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_UP) is None:
-        selected_llm_chat[LLMKeys.SELECTED_GENES_UP] = upregulated_genes
-    if selected_llm_chat.get(LLMKeys.SELECTED_GENES_DOWN) is None:
-        selected_llm_chat[LLMKeys.SELECTED_GENES_DOWN] = downregulated_genes
+    if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_UP) is None:
+        selected_llm_chat[LLMKeys.SELECTED_FEATURES_UP] = upregulated_features
+    if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_DOWN) is None:
+        selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
 
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
         selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
+
+    if selected_llm_chat.get(LLMKeys.PROMPT_EXPERIMENTAL_DESIGN) is None:
+        experimental_design_prompt, protein_data_prompt, initial_instructions = (
+            initialize_initial_prompt_modules(
+                selected_llm_chat, plot_parameters, feature_to_repr_map
+            )
+        )
+        selected_llm_chat[LLMKeys.PROMPT_EXPERIMENTAL_DESIGN] = (
+            experimental_design_prompt
+        )
+        selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
+        selected_llm_chat[LLMKeys.PROMPT_INSTRUCTIONS] = initial_instructions
 
     # TODO model name is determined when loading LLM page -> need better model selection.
     if not selected_llm_chat[LLMKeys.IS_INITIALIZED]:
         selected_llm_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
         selected_llm_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
 
+    on_select_new_analysis_fill_state()
 
-def transfer_llm_chat_state_to_session_state(selected_llm_chat: dict) -> None:
-    """Transfer the state of a given llm_chat to the session state, if it is already initialized.
 
-    This is to get the connection to the model selector right (which operates on the session state).
-    TODO this needs improvement!
-    """
-    if selected_llm_chat.get(LLMKeys.IS_INITIALIZED):
-        st.session_state[StateKeys.MODEL_NAME] = selected_llm_chat[LLMKeys.MODEL_NAME]
-        st.session_state[StateKeys.MAX_TOKENS] = selected_llm_chat[LLMKeys.MAX_TOKENS]
+def initialize_initial_prompt_modules(
+    llm_chat: dict[str, Any],
+    plot_parameters: dict[str, Any],
+    feature_to_repr_map: dict[str, str],
+) -> None:
+    _, regulated_features_dict = get_selected_regulated_features(llm_chat)
+
+    experimental_design_prompt = _get_experimental_design_prompt(plot_parameters)
+
+    if llm_chat.get(StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT):
+        texts = [
+            format_uniprot_annotation(
+                st.session_state[StateKeys.ANNOTATION_STORE][feature],
+                fields=llm_chat[LLMKeys.SELECTED_UNIPROT_FIELDS],
+            )
+            for feature in regulated_features_dict
+        ]
+        uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
+    else:
+        uniprot_info = ""
+    protein_data_prompt = _get_protein_data_prompt(
+        llm_chat[LLMKeys.SELECTED_FEATURES_UP],
+        llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+        uniprot_info,
+        feature_to_repr_map=feature_to_repr_map,
+    )
+
+    initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
+
+    return experimental_design_prompt, protein_data_prompt, initial_instruction
 
 
 @st.fragment
 def protein_selector(
-    regulated_genes: list, title: str, selected_analysis_key: str, state_key: str
+    regulated_features: list[str],
+    title: str,
+    selected_analysis_key: str,
+    state_key: str,
 ) -> None:
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
-        regulated_genes: List of regulated genes to display in the table
+        regulated_features: List of regulated features to display in the table
         title: Title to display above the editor
         selected_analysis_key: Key to access the selected analysis in the session state
         state_key: Key to access the selected proteins in the selected analysis
@@ -145,7 +199,7 @@ def protein_selector(
         selected_analysis_key
     ]
     df = get_df_for_protein_selector(
-        regulated_genes, selected_analysis_session_state[state_key]
+        regulated_features, selected_analysis_session_state[state_key]
     )
     if len(df) == 0:
         st.markdown("No significant proteins.")
@@ -164,7 +218,7 @@ def protein_selector(
         column_config={
             "Selected": st.column_config.CheckboxColumn(
                 "Include?",
-                help="Check to include this gene in analysis",
+                help="Check to include this feature in analysis",
                 default=True,
             ),
             "Gene": st.column_config.TextColumn(
@@ -177,7 +231,7 @@ def protein_selector(
         # explicitly setting key: otherwise it's calculated from the data which causes problems if two analysis are exactly mirrored
         key=f"{state_key}_data_editor",
     )
-    # Extract the selected genes
+    # Extract the selected features
     new_list = edited_df.loc[edited_df["Selected"], "Protein"].tolist()
     if new_list != selected_analysis_session_state[state_key]:
         selected_analysis_session_state[state_key] = new_list
@@ -185,7 +239,7 @@ def protein_selector(
 
 
 def get_df_for_protein_selector(
-    proteins: List[str], selected: List[str]
+    proteins: list[str], selected: list[str]
 ) -> pd.DataFrame:
     """Create a DataFrame for the protein selector.
 
@@ -208,7 +262,10 @@ def get_df_for_protein_selector(
 
 
 def get_display_proteins_html(
-    protein_ids: List[str], is_upregulated: True, annotation_store, feature_to_repr_map
+    protein_ids: list[str],
+    is_upregulated: True,
+    annotation_store: dict[str, dict],
+    feature_to_repr_map: dict[str, str],
 ) -> str:
     """
     Get HTML code for displaying a list of proteins, color according to expression.
@@ -267,9 +324,9 @@ def set_api_key(api_key: str = None) -> None:
 
 def llm_connection_test(
     model_name: str,
-    base_url: Optional[str] = None,
-    api_key: Optional[str] = None,
-) -> Optional[str]:
+    base_url: str | None = None,
+    api_key: str | None = None,
+) -> str | None:
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(
@@ -286,7 +343,7 @@ def llm_connection_test(
 
 # Unused now, but could be useful in the future
 # TODO: Remove this by end of year if still unused.
-def get_display_available_uniprot_info(regulated_features: list) -> dict:
+def get_display_available_uniprot_info(regulated_features: list[str]) -> dict:
     """
     Retrieves and formats UniProt information for a list of regulated features.
 
@@ -316,8 +373,8 @@ def get_display_available_uniprot_info(regulated_features: list) -> dict:
 # TODO: Write test for this display
 @st.fragment
 def display_uniprot(
-    regulated_genes_dict: dict,
-    feature_to_repr_map,
+    regulated_features_dict: dict,
+    feature_to_repr_map: dict,
     model_name: str,
     selected_analysis_key: str,
     *,
@@ -327,7 +384,7 @@ def display_uniprot(
     all_fields = ExtractedUniprotFields.get_values()
     if any(
         feature not in st.session_state[StateKeys.ANNOTATION_STORE]
-        for feature in regulated_genes_dict
+        for feature in regulated_features_dict
     ):
         st.info(
             "No or incomplete UniProt data stored for the selected proteins. Please run UniProt data fetching first to ensure correct annotation from Protein IDs instead of gene names."
@@ -360,7 +417,7 @@ def display_uniprot(
                 st.session_state[StateKeys.ANNOTATION_STORE].get(feature, {}),
                 fields=selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS],
             )
-            for feature in regulated_genes_dict
+            for feature in regulated_features_dict
         ]
         tokens = LLMIntegration.estimate_tokens(
             [{MessageKeys.CONTENT: text} for text in texts], model=model_name
@@ -400,7 +457,7 @@ def display_uniprot(
             "Feature id",
             options=[
                 feature
-                for feature in regulated_genes_dict
+                for feature in regulated_features_dict
                 if feature in st.session_state[StateKeys.ANNOTATION_STORE]
             ],
             format_func=lambda x: feature_to_repr_map[x],
@@ -423,12 +480,21 @@ def display_uniprot(
 
 def on_select_new_analysis_fill_state() -> None:
     """Upon selecting a new analysis set the values for mirrored session state keys before rerunning the app."""
-    selected_analysis = st.session_state[StateKeys.SAVED_ANALYSES].get(
-        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+    selected_chat = st.session_state[StateKeys.LLM_CHATS].get(
+        st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
-    st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
-        selected_analysis.get(LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT, False)
-    )
+
+    for synced_key in WIDGET_SYNCED_LLM_KEYS:
+        st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
+            synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+        )
+
+    if selected_chat.get(LLMKeys.IS_INITIALIZED):
+        for synced_key in MODEL_SYNCED_LLM_KEYS:
+            st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
+                synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+            )
+
     st.toast("State filled from saved analysis.", icon="🔍")
 
 
@@ -437,22 +503,119 @@ def on_change_save_state() -> None:
 
     This can be expanded to other widgets as needed.
     """
-    selected_analysis: dict = st.session_state[StateKeys.SAVED_ANALYSES].get(
-        st.session_state[StateKeys.SELECTED_ANALYSIS], None
+    selected_chat: dict = st.session_state[StateKeys.LLM_CHATS].get(
+        st.session_state[StateKeys.SELECTED_ANALYSIS], {}
     )
 
-    if selected_analysis is not None:
-        selected_analysis[LLMKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT] = (
-            st.session_state[StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT]
+    if not selected_chat:
+        return
+
+    for synced_key in WIDGET_SYNCED_LLM_KEYS:
+        selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
+            synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
         )
 
-        if not selected_analysis.get(LLMKeys.IS_INITIALIZED, False):
-            selected_analysis[LLMKeys.MODEL_NAME] = st.session_state[
-                StateKeys.MODEL_NAME
-            ]
-            selected_analysis[LLMKeys.MAX_TOKENS] = st.session_state[
-                StateKeys.MAX_TOKENS
-            ]
+    if not selected_chat.get(LLMKeys.IS_INITIALIZED):
+        for synced_key in MODEL_SYNCED_LLM_KEYS:
+            selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
+                synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+            )
+
+
+def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
+    selected_features = (
+        llm_chat[LLMKeys.SELECTED_FEATURES_UP]
+        + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN]
+    )
+    regulated_features_dict = {
+        feature: "up" if feature in llm_chat[LLMKeys.SELECTED_FEATURES_UP] else "down"
+        for feature in selected_features
+    }
+    return selected_features, regulated_features_dict
+
+
+@st.fragment
+def configure_initial_prompt(
+    llm_chat: dict,
+    plot_parameters: dict,
+    feature_to_repr_map: dict,
+    *,
+    disabled: bool,
+) -> None:
+    c1, c2 = st.columns((5, 1))
+    with c2:
+        st.markdown("#####")
+        if st.button(
+            "Regenerate experimental design prompt from analysis parameters",
+            disabled=disabled,
+        ):
+            generated_experimental_design_prompt, generated_protein_data_prompt, _ = (
+                initialize_initial_prompt_modules(
+                    llm_chat, plot_parameters, feature_to_repr_map
+                )
+            )
+            st.session_state[StateKeys.PROMPT_EXPERIMENTAL_DESIGN] = (
+                generated_experimental_design_prompt
+            )
+            on_change_save_state()
+    with c1:
+        experimental_design_prompt = st.text_area(
+            "Please explain your experimental design",
+            height=100,
+            disabled=disabled,
+            key=StateKeys.PROMPT_EXPERIMENTAL_DESIGN,
+            on_change=on_change_save_state,
+        )
+    c1, c2 = st.columns((5, 1))
+    with c2:
+        st.markdown("#####")
+        if st.button(
+            "Update prompts with selected features and UniProt information",
+            disabled=disabled,
+            help="Regenerate system message and initial prompt based on current selections",
+        ):
+            generated_experimental_design_prompt, generated_protein_data_prompt, _ = (
+                initialize_initial_prompt_modules(
+                    llm_chat, plot_parameters, feature_to_repr_map
+                )
+            )
+            st.session_state[StateKeys.PROMPT_PROTEIN_DATA] = (
+                generated_protein_data_prompt
+            )
+            on_change_save_state()
+    with c1:
+        protein_data_prompt = st.text_area(
+            "Please edit your selection above and update the prompt",
+            height=200,
+            disabled=disabled,
+            key=StateKeys.PROMPT_PROTEIN_DATA,
+            on_change=on_change_save_state,
+        )
+    c1, c2 = st.columns((5, 1))
+    with c2:
+        st.markdown("#####")
+        preset = st.selectbox(
+            "Select initial instruction",
+            options=LLMInstructionKeys.get_values(),
+            index=LLMInstructionKeys.get_values().index(LLMInstructionKeys.CUSTOM),
+            disabled=disabled,
+        )
+        if preset != LLMInstructionKeys.CUSTOM:
+            st.session_state[StateKeys.PROMPT_INSTRUCTIONS] = _get_initial_instruction(
+                preset
+            )
+            on_change_save_state()
+    with c1:
+        initial_instruction = st.text_area(
+            "Please provide an initial instruction",
+            height=100,
+            disabled=disabled,
+            key=StateKeys.PROMPT_INSTRUCTIONS,
+            on_change=on_change_save_state,
+        )
+    return get_initial_prompt(
+        experimental_design_prompt, protein_data_prompt, initial_instruction
+    )
 
 
 @st.fragment
@@ -462,7 +625,7 @@ def show_llm_chat(
     show_all: bool = False,
     show_individual_tokens: bool = False,
     show_prompt: bool = True,
-):
+) -> None:
     """The chat interface for the LLM interpretation."""
 
     # TODO dump to file -> static file name, plus button to do so
