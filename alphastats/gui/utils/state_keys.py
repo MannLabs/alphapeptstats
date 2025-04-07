@@ -74,6 +74,8 @@ SyncedLLMKey = NamedTuple(
     ],
 )
 
+# These keys are synced between the StateKeys and LLMKeys classes.
+# They are used upon loading/initializing an LLM chat and on change to any of the widgets to sync the state and chat.
 WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(
         StateKeys.INCLUDE_UNIPROT_INTO_INITIAL_PROMPT,
@@ -87,6 +89,7 @@ WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
 ]
 
+# These keys are synced between the StateKeys and LLMKeys classes, but only if the LLM is already initialized with a specific model.
 MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME, None),
     SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
