@@ -1,6 +1,7 @@
 """Functions to initialize and empty the session state."""
 
 import uuid
+from copy import deepcopy
 
 import streamlit as st
 
@@ -37,4 +38,7 @@ def init_session_state() -> None:
     """Initialize the session state if not done yet."""
     for key, value in INIT_STATES.items():
         if key not in st.session_state:
-            st.session_state[key] = value
+            try:
+                st.session_state[key] = deepcopy(value)
+            except AttributeError:
+                st.session_state[key] = value
