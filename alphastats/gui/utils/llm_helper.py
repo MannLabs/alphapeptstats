@@ -209,6 +209,19 @@ def protein_selector(
     if c2.button("Select none", help=f"Select no {title} for analysis"):
         selected_analysis_session_state[state_key] = []
         st.rerun(scope="fragment")
+    deselect = st.text_input(
+        "Deselect list",
+        placeholder="Enter comma-separated feature ids to deselect",
+        key=f"{state_key}_deselect",
+    )
+    if deselect:
+        deselect = [x.strip() for x in deselect.split(",")]
+        new_selection = [
+            x for x in selected_analysis_session_state[state_key] if x not in deselect
+        ]
+        if new_selection != selected_analysis_session_state[state_key]:
+            selected_analysis_session_state[state_key] = new_selection
+            st.rerun(scope="fragment")
 
     edited_df = st.data_editor(
         df,
