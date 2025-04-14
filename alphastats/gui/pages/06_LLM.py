@@ -14,6 +14,7 @@ from alphastats.gui.utils.llm_helper import (
     OLLAMA_BASE_URL,
     configure_initial_prompt,
     display_uniprot,
+    enrichment_analysis,
     format_analysis_key,
     get_selected_regulated_features,
     init_llm_chat_state,
@@ -189,6 +190,9 @@ display_uniprot(
     selected_analysis_key=selected_analysis_key,
     disabled=is_llm_integration_initialized,
 )
+
+##################################### Enrichment analysis ####################################
+enrichment_analysis(selected_llm_chat)
 
 
 ##################################### System and initial prompt #####################################

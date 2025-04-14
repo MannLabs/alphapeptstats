@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
@@ -19,6 +20,7 @@ from alphastats.gui.utils.state_keys import (
     SavedAnalysisKeys,
     StateKeys,
 )
+from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_organisms
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import (
     LLMInstructionKeys,
@@ -36,6 +38,17 @@ from alphastats.plots.plot_utils import PlotlyObject
 LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
+
+class ENRICHMENT_ANALYSIS_KEYS(metaclass=ConstantsClass):
+    """Keys for accessing the session state for enrichment analysis."""
+
+    PARAMETERS = "parameters"
+    DIFEXPRESSED = "difexpressed"
+    ORGANISM_ID = "organism_id"
+    TOOL = "tool"
+    INCLUDE_BACKGROUND = "include_background"
+    RESULT = "result"
 
 
 @st.fragment
@@ -120,6 +133,11 @@ def init_llm_chat_state(
         selected_llm_chat[LLMKeys.SELECTED_FEATURES_UP] = upregulated_features
     if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_DOWN) is None:
         selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
+    if selected_llm_chat.get(LLMKeys.ENRICHMENT_ANALYSIS) is None:
+        selected_llm_chat[LLMKeys.ENRICHMENT_ANALYSIS] = {
+            ENRICHMENT_ANALYSIS_KEYS.PARAMETERS: {},
+            ENRICHMENT_ANALYSIS_KEYS.RESULT: None,
+        }
 
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
         selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
@@ -274,6 +292,12 @@ def get_display_proteins_html(
         protein_ids (list[str]): a list of proteins.
         is_upregulated (bool): whether the proteins are up- or down-regulated.
     """
+
+    warnings.warn(
+        "This function will be depracated in version 2.0 because it is no longer used.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
 
     uniprot_url = "https://www.uniprot.org/uniprotkb/"
 
@@ -485,14 +509,18 @@ def on_select_new_analysis_fill_state() -> None:
     )
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
-            synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+        st.session_state[getattr(synced_key, KeySyncNames.STATE)] = selected_chat.get(
+            getattr(synced_key, KeySyncNames.LLM),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
-                synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+            st.session_state[getattr(synced_key, KeySyncNames.STATE)] = (
+                selected_chat.get(
+                    getattr(synced_key, KeySyncNames.LLM),
+                    getattr(synced_key, KeySyncNames.GET_DEFAULT),
+                )
             )
 
     st.toast("State filled from saved analysis.", icon="🔍")
@@ -511,14 +539,16 @@ def on_change_save_state() -> None:
         return
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
-            synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+        selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+            getattr(synced_key, KeySyncNames.STATE),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
-                synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+            selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+                getattr(synced_key, KeySyncNames.STATE),
+                getattr(synced_key, KeySyncNames.GET_DEFAULT),
             )
 
 
@@ -532,6 +562,80 @@ def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
         for feature in selected_features
     }
     return selected_features, regulated_features_dict
+
+
+@st.fragment
+def enrichment_analysis(llm_chat: dict) -> None:
+    new_settings = {}
+    with st.form(key="enrichment_analysis_form"):
+        st.markdown(
+            "##### Enrichment analysis",
+            help="Select the organism and tool for enrichment analysis. Including the background for the anlaysis is recommended.",
+        )
+        c1, c2, c3 = st.columns((1, 1, 1))
+        with c1:
+            organism_id = st.selectbox(
+                "Organism ID",
+                options=list(gprofiler_organisms.keys()),
+                index=list(gprofiler_organisms.keys()).index(
+                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                    ].get(ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID, "9606")
+                ),
+                format_func=lambda x: gprofiler_organisms[x] + f" ({x})",
+            )
+        with c2:
+            tool = st.selectbox(
+                "External enrichment tool",
+                options=["string", "gprofiler"],
+                index=["string", "gprofiler"].index(
+                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                    ].get(ENRICHMENT_ANALYSIS_KEYS.TOOL, "gprofiler")
+                ),
+                format_func=lambda x: {"string": "STRING", "gprofiler": "GProfiler"}[x],
+            )
+        with c3:
+            include_background = st.checkbox(
+                "Include background",
+                value=llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                    ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                ].get(ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND, True),
+            )
+        submit_button = st.form_submit_button("Run enrichment analysis")
+        if submit_button:
+            new_settings.update(
+                {
+                    ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID: organism_id,
+                    ENRICHMENT_ANALYSIS_KEYS.TOOL: tool,
+                    ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND: include_background,
+                }
+            )
+        old_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+            ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+        ]
+        if new_settings != old_settings:
+            with st.spinner("Running enrichment analysis..."):
+                enrichment_data = get_enrichment_data(
+                    difexpressed=llm_chat[LLMKeys.SELECTED_FEATURES_UP]
+                    + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+                    organism_id=organism_id,
+                    tool=tool,
+                    include_background=include_background,
+                )
+                if isinstance(enrichment_data, pd.DataFrame):
+                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                        ENRICHMENT_ANALYSIS_KEYS.RESULT
+                    ] = enrichment_data
+                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                    ].update(new_settings)
+        else:
+            enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                ENRICHMENT_ANALYSIS_KEYS.RESULT
+            ]
+        if isinstance(enrichment_data, pd.DataFrame):
+            st.dataframe(enrichment_data)
 
 
 @st.fragment
