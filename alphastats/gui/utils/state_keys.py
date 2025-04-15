@@ -36,6 +36,7 @@ class StateKeys(metaclass=ConstantsClass):
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
+    ENRICHMENT_COLUMNS = "enrichment_columns"
 
 
 class LLMKeys(metaclass=ConstantsClass):
@@ -56,6 +57,7 @@ class LLMKeys(metaclass=ConstantsClass):
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
+    ENRICHMENT_COLUMNS = "enrichment_columns"
 
 
 class KeySyncNames(metaclass=ConstantsClass):
@@ -88,6 +90,7 @@ WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     ),
     SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA, None),
     SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
+    SyncedLLMKey(StateKeys.ENRICHMENT_COLUMNS, LLMKeys.ENRICHMENT_COLUMNS, None),
 ]
 
 # These keys are synced between the StateKeys and LLMKeys classes, but only if the LLM is already initialized with a specific model.

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, Optional
 
+import pandas as pd
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
@@ -51,6 +52,7 @@ def _get_protein_data_prompt(
     downregulated_features: list[str],
     uniprot_info: str,
     feature_to_repr_map: dict,
+    enrichment_data: Optional | pd.DataFrame = None,
 ) -> str:
     """Get the initial prompt for the LLM model."""
     if uniprot_info:
@@ -64,6 +66,14 @@ def _get_protein_data_prompt(
             "You have the ability to retrieve curated information from Uniprot about these proteins. "
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
+    if enrichment_data is not None:
+        enrichment_prompt = (
+            f"{newline}{newline}We have also performed an enrichment analysis of all regulated proteins to identify overrepresented ontology terms. These are the tabular results of the analysis:{newline}{newline}"
+            f"{enrichment_data.to_markdown(index=False)}"
+        )
+    else:
+        enrichment_prompt = ""
+
     upregulated_genes = list(
         map(
             feature_to_repr_map.get,
@@ -81,7 +91,7 @@ def _get_protein_data_prompt(
         f"From our proteomics experiments, we know the following:{newline}{newline}"
         f"Comma-separated list of proteins that are upregulated: {', '.join(upregulated_genes)}.{newline}{newline}"
         f"Comma-separated list of proteins that are downregulated: {', '.join(downregulated_genes)}.{newline}{newline}"
-        f"{uniprot_instructions}"
+        f"{uniprot_instructions}{enrichment_prompt}"
     )
 
 

@@ -138,6 +138,8 @@ def init_llm_chat_state(
             ENRICHMENT_ANALYSIS_KEYS.PARAMETERS: {},
             ENRICHMENT_ANALYSIS_KEYS.RESULT: None,
         }
+    if selected_llm_chat.get(LLMKeys.ENRICHMENT_COLUMNS) is None:
+        selected_llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = []
 
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
         selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
@@ -187,6 +189,9 @@ def initialize_initial_prompt_modules(
         llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
         uniprot_info,
         feature_to_repr_map=feature_to_repr_map,
+        enrichment_data=llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+            ENRICHMENT_ANALYSIS_KEYS.RESULT
+        ][llm_chat[LLMKeys.ENRICHMENT_COLUMNS]],
     )
 
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
@@ -611,31 +616,45 @@ def enrichment_analysis(llm_chat: dict) -> None:
                     ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND: include_background,
                 }
             )
-        old_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-            ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+    old_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+    ]
+    if new_settings != old_settings:
+        with st.spinner("Running enrichment analysis..."):
+            enrichment_data = get_enrichment_data(
+                difexpressed=llm_chat[LLMKeys.SELECTED_FEATURES_UP]
+                + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+                organism_id=organism_id,
+                tool=tool,
+                include_background=include_background,
+            )
+            if isinstance(enrichment_data, pd.DataFrame):
+                llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                    ENRICHMENT_ANALYSIS_KEYS.RESULT
+                ] = enrichment_data
+                llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                    ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                ].update(new_settings)
+                if st.session_state.get(StateKeys.ENRICHMENT_COLUMNS) == []:
+                    st.session_state[StateKeys.ENRICHMENT_COLUMNS] = list(
+                        enrichment_data.columns
+                    )
+                    llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = st.session_state.get(
+                        StateKeys.ENRICHMENT_COLUMNS
+                    )
+    else:
+        enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+            ENRICHMENT_ANALYSIS_KEYS.RESULT
         ]
-        if new_settings != old_settings:
-            with st.spinner("Running enrichment analysis..."):
-                enrichment_data = get_enrichment_data(
-                    difexpressed=llm_chat[LLMKeys.SELECTED_FEATURES_UP]
-                    + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
-                    organism_id=organism_id,
-                    tool=tool,
-                    include_background=include_background,
-                )
-                if isinstance(enrichment_data, pd.DataFrame):
-                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                        ENRICHMENT_ANALYSIS_KEYS.RESULT
-                    ] = enrichment_data
-                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-                    ].update(new_settings)
-        else:
-            enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                ENRICHMENT_ANALYSIS_KEYS.RESULT
-            ]
-        if isinstance(enrichment_data, pd.DataFrame):
-            st.dataframe(enrichment_data)
+    if isinstance(enrichment_data, pd.DataFrame):
+        st.dataframe(enrichment_data)
+        st.multiselect(
+            "Select columns to include in the prompt",
+            options=enrichment_data.columns,
+            key=StateKeys.ENRICHMENT_COLUMNS,
+            on_change=on_change_save_state,
+            help="Select the columns to include in the initial prompt.",
+        )
 
 
 @st.fragment

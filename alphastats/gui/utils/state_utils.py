@@ -31,6 +31,7 @@ INIT_STATES = {
     StateKeys.PROMPT_EXPERIMENTAL_DESIGN: None,
     StateKeys.PROMPT_PROTEIN_DATA: None,
     StateKeys.PROMPT_INSTRUCTIONS: None,
+    StateKeys.ENRICHMENT_COLUMNS: [],
 }
 
 
