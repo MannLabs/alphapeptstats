@@ -579,7 +579,7 @@ def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
 def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
     new_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
         ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-    ]
+    ].copy()
     with st.form(key="enrichment_analysis_form"):
         st.markdown(
             "##### Enrichment analysis",
