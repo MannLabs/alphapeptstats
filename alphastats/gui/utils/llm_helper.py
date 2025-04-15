@@ -576,8 +576,10 @@ def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
 
 
 @st.fragment
-def enrichment_analysis(llm_chat: dict) -> None:
-    new_settings = {}
+def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
+    new_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+    ]
     with st.form(key="enrichment_analysis_form"):
         st.markdown(
             "##### Enrichment analysis",
@@ -594,6 +596,7 @@ def enrichment_analysis(llm_chat: dict) -> None:
                     ].get(ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID, "9606")
                 ),
                 format_func=lambda x: f"{gprofiler_organisms[x]} ({x})",
+                disabled=disabled,
             )
         with c2:
             options = ["string", "gprofiler", "don't run"]
@@ -607,6 +610,7 @@ def enrichment_analysis(llm_chat: dict) -> None:
                     ].get(ENRICHMENT_ANALYSIS_KEYS.TOOL, "gprofiler")
                 ),
                 format_func=lambda x: display_names.get(x, x),
+                disabled=disabled,
             )
         with c3:
             include_background = st.checkbox(
@@ -614,8 +618,12 @@ def enrichment_analysis(llm_chat: dict) -> None:
                 value=llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
                     ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
                 ].get(ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND, True),
+                disabled=disabled,
             )
-        submit_button = st.form_submit_button("Run enrichment analysis")
+        submit_button = st.form_submit_button(
+            "Run enrichment analysis",
+            disabled=disabled,
+        )
         if submit_button:
             new_settings.update(
                 {
@@ -667,6 +675,7 @@ def enrichment_analysis(llm_chat: dict) -> None:
             key=StateKeys.ENRICHMENT_COLUMNS,
             on_change=on_change_save_state,
             help="Select the columns to include in the initial prompt.",
+            disabled=disabled,
         )
 
 

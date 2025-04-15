@@ -192,7 +192,7 @@ display_uniprot(
 )
 
 ##################################### Enrichment analysis ####################################
-enrichment_analysis(selected_llm_chat)
+enrichment_analysis(selected_llm_chat, disabled=is_llm_integration_initialized)
 
 
 ##################################### System and initial prompt #####################################
