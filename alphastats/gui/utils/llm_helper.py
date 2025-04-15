@@ -184,14 +184,20 @@ def initialize_initial_prompt_modules(
         uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
     else:
         uniprot_info = ""
+    enrichment_data = (
+        None
+        if llm_chat[LLMKeys.ENRICHMENT_ANALYSIS].get(ENRICHMENT_ANALYSIS_KEYS.RESULT)
+        is None
+        else llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][ENRICHMENT_ANALYSIS_KEYS.RESULT][
+            llm_chat[LLMKeys.ENRICHMENT_COLUMNS]
+        ]
+    )
     protein_data_prompt = _get_protein_data_prompt(
         llm_chat[LLMKeys.SELECTED_FEATURES_UP],
         llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
         uniprot_info,
         feature_to_repr_map=feature_to_repr_map,
-        enrichment_data=llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-            ENRICHMENT_ANALYSIS_KEYS.RESULT
-        ][llm_chat[LLMKeys.ENRICHMENT_COLUMNS]],
+        enrichment_data=enrichment_data,
     )
 
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
@@ -587,18 +593,20 @@ def enrichment_analysis(llm_chat: dict) -> None:
                         ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
                     ].get(ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID, "9606")
                 ),
-                format_func=lambda x: gprofiler_organisms[x] + f" ({x})",
+                format_func=lambda x: f"{gprofiler_organisms[x]} ({x})",
             )
         with c2:
+            options = ["string", "gprofiler", "don't run"]
+            display_names = {"string": "STRING", "gprofiler": "GProfiler"}
             tool = st.selectbox(
                 "External enrichment tool",
-                options=["string", "gprofiler"],
-                index=["string", "gprofiler"].index(
+                options=options,
+                index=options.index(
                     llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
                         ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
                     ].get(ENRICHMENT_ANALYSIS_KEYS.TOOL, "gprofiler")
                 ),
-                format_func=lambda x: {"string": "STRING", "gprofiler": "GProfiler"}[x],
+                format_func=lambda x: display_names.get(x, x),
             )
         with c3:
             include_background = st.checkbox(
@@ -621,27 +629,32 @@ def enrichment_analysis(llm_chat: dict) -> None:
     ]
     if new_settings != old_settings:
         with st.spinner("Running enrichment analysis..."):
-            enrichment_data = get_enrichment_data(
-                difexpressed=llm_chat[LLMKeys.SELECTED_FEATURES_UP]
-                + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
-                organism_id=organism_id,
-                tool=tool,
-                include_background=include_background,
-            )
-            if isinstance(enrichment_data, pd.DataFrame):
-                llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                    ENRICHMENT_ANALYSIS_KEYS.RESULT
-                ] = enrichment_data
-                llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                    ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-                ].update(new_settings)
-                if st.session_state.get(StateKeys.ENRICHMENT_COLUMNS) == []:
+            if tool == "don't run":
+                enrichment_data = None
+            else:
+                enrichment_data = get_enrichment_data(
+                    difexpressed=llm_chat[LLMKeys.SELECTED_FEATURES_UP]
+                    + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+                    organism_id=organism_id,
+                    tool=tool,
+                    include_background=include_background,
+                )
+                if (
+                    isinstance(enrichment_data, pd.DataFrame)
+                    and st.session_state.get(StateKeys.ENRICHMENT_COLUMNS) == []
+                ):
                     st.session_state[StateKeys.ENRICHMENT_COLUMNS] = list(
                         enrichment_data.columns
                     )
                     llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = st.session_state.get(
                         StateKeys.ENRICHMENT_COLUMNS
                     )
+            llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][ENRICHMENT_ANALYSIS_KEYS.RESULT] = (
+                enrichment_data
+            )
+            llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+            ].update(new_settings)
     else:
         enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
             ENRICHMENT_ANALYSIS_KEYS.RESULT
