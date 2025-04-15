@@ -305,7 +305,7 @@ def get_display_proteins_html(
     """
 
     warnings.warn(
-        "This function will be depracated in version 2.0 because it is no longer used.",
+        "This function will be deprecated in version 2.0 because it is no longer used.",
         category=DeprecationWarning,
         stacklevel=2,
     )
