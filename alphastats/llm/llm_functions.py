@@ -77,10 +77,12 @@ def get_uniprot_info_for_search_string(
     Returns:
         str: The formatted UniProt information for the feature."""
     annotation_store = st.session_state[StateKeys.ANNOTATION_STORE]
+    dataset: DataSet = st.session_state[StateKeys.DATASET]
 
-    features = st.session_state[StateKeys.DATASET]._get_feature_ids_from_string(
-        search_string
-    )
+    try:
+        features = dataset._get_feature_ids_from_string(search_string)
+    except ValueError:
+        features = [feature.strip() for feature in search_string.split(",")]
 
     annotation = get_annotation_from_store_by_feature_list(features, annotation_store)
     if annotation is None:
