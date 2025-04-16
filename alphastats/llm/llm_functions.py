@@ -128,7 +128,7 @@ def get_general_assistant_functions() -> list[dict]:
                         "fields": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {", ".join(ExtractedUniprotFields.get_values())}.",
+                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {', '.join(ExtractedUniprotFields.get_values())}.",
                         },
                     },
                     "required": ["search_string"],
