@@ -435,13 +435,13 @@ def display_uniprot(
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
         selected_analysis_key
     ]
-    if c1.button("Select all"):
+    if c1.button("Select all", disabled=disabled):
         selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = all_fields
         st.rerun(scope="fragment")
-    if c2.button("Select none"):
+    if c2.button("Select none", disabled=disabled):
         selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = []
         st.rerun(scope="fragment")
-    if c3.button("Recommended selection"):
+    if c3.button("Recommended selection", disabled=disabled):
         selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
@@ -470,13 +470,14 @@ def display_uniprot(
         )
 
     c1, c2 = st.columns((1, 3))
-    with c1, st.expander("Show options", expanded=True):
+    with c1, st.expander("Show options", expanded=not disabled):
         selected_fields = []
         for field in all_fields:
             if st.checkbox(
                 field,
                 value=field
                 in selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS],
+                disabled=disabled,
             ):
                 selected_fields.append(field)
         if set(selected_fields) != set(
