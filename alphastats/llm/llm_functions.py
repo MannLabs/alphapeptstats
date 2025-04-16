@@ -1,6 +1,8 @@
 """Module for defining assistant functions for the ChatGPT model."""
 
-from typing import Dict, List, Tuple, Union
+from __future__ import annotations
+
+from typing import Optional
 
 import pandas as pd
 import streamlit as st
@@ -9,6 +11,7 @@ from alphastats.dataset.dataset import DataSet
 from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_organisms
 from alphastats.llm.uniprot_utils import (
+    ExtractedUniprotFields,
     format_uniprot_annotation,
     get_annotations_for_feature,
 )
@@ -16,7 +19,7 @@ from alphastats.llm.uniprot_utils import (
 
 def get_annotation_from_store_by_feature_list(
     features: list, annotation_store: dict
-) -> Union[dict, str, None]:
+) -> dict | str | None:
     """
     Retrieve the annotation from the store based on a list of feauture ids.
     The first matching feature found in the annotation store, is returned. Don't use this for disparate features, it is meant to be used for features that have the same representation.
@@ -34,7 +37,7 @@ def get_annotation_from_store_by_feature_list(
 
 def get_annotation_from_uniprot_by_feature_list(
     features: list,
-) -> Tuple[Union[dict, str], str]:
+) -> tuple[dict | str, str]:
     """
     Retrieve annotation from UniProt based on a list of features.
     It retrieves the annotation for the most appropriate feature from UniProt. Most appropriate is defined as 1. the only feature, 2. any feature if they only differ in isoform ids, 3. the feature with the most base ids, as this is most likely to contain a well annotated protein.
@@ -62,7 +65,9 @@ def get_annotation_from_uniprot_by_feature_list(
     return annotation, feature
 
 
-def get_uniprot_info_for_search_string(search_string: str) -> str:
+def get_uniprot_info_for_search_string(
+    search_string: str, fields: Optional | list = None
+) -> str:
     """Get the UniProt information from llm input. This can be either a feature representation, a gene identifier or a protein id.
     This is required so the LLM can feed the promt from the list of feature representations it is provided with.
 
@@ -71,43 +76,26 @@ def get_uniprot_info_for_search_string(search_string: str) -> str:
 
     Returns:
         str: The formatted UniProt information for the feature."""
-
-    feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
-    gene_to_features_map = st.session_state[StateKeys.DATASET]._gene_to_features_map
-    protein_to_features_map = st.session_state[
-        StateKeys.DATASET
-    ]._protein_to_features_map
     annotation_store = st.session_state[StateKeys.ANNOTATION_STORE]
 
-    if search_string in feature_to_repr_map.values():
-        features = [
-            feature
-            for feature, repr in feature_to_repr_map.items()
-            if repr == search_string
-        ]
-
-    elif search_string in feature_to_repr_map:
-        features = [search_string]
-
-    elif search_string in gene_to_features_map:
-        features = gene_to_features_map[search_string]
-
-    elif search_string in protein_to_features_map:
-        features = protein_to_features_map[search_string]
-    else:
-        raise ValueError(f"{search_string} not found in dataset.")
+    features = st.session_state[StateKeys.DATASET]._get_feature_ids_from_string(
+        search_string
+    )
 
     annotation = get_annotation_from_store_by_feature_list(features, annotation_store)
     if annotation is None:
         annotation, feature = get_annotation_from_uniprot_by_feature_list(features)
         annotation_store[feature] = annotation
 
+    if not fields:
+        fields = list(annotation.keys())
+
     return (
         search_string
         + ": "
         + format_uniprot_annotation(
             annotation,
-            fields=st.session_state[StateKeys.SELECTED_UNIPROT_FIELDS],
+            fields=fields,
         )
     )
 
@@ -118,7 +106,7 @@ GENERAL_FUNCTION_MAPPING = {
 }
 
 
-def get_general_assistant_functions() -> List[Dict]:
+def get_general_assistant_functions() -> list[dict]:
     """Get a list of general assistant functions (independent of the underlying DataSet) for function calling by the LLM.
 
     Returns:
@@ -136,6 +124,11 @@ def get_general_assistant_functions() -> List[Dict]:
                         "search_string": {
                             "type": "string",
                             "description": "Feature representation, gene identifier or protein id",
+                        },
+                        "fields": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {", ".join(ExtractedUniprotFields.get_values())}.",
                         },
                     },
                     "required": ["search_string"],
@@ -177,10 +170,10 @@ def get_general_assistant_functions() -> List[Dict]:
 
 
 def get_assistant_functions(
-    genes_of_interest: List[str],
+    genes_of_interest: list[str],
     metadata: pd.DataFrame,
-    subgroups_for_each_group: Dict,
-) -> List[Dict]:
+    subgroups_for_each_group: dict,
+) -> list[dict]:
     """
     Get a list of assistant functions for function calling in the ChatGPT model.
     For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
