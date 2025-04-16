@@ -502,10 +502,6 @@ class DataSet:
 
         if string in self._feature_to_repr_map:
             return [string]
-        if string in self._protein_to_features_map:
-            return self._protein_to_features_map[string]
-        if string in self._gene_to_features_map:
-            return self._gene_to_features_map[string]
         representation_keys = [
             feature
             for feature, representation in self._feature_to_repr_map.items()
@@ -513,6 +509,10 @@ class DataSet:
         ]
         if representation_keys:
             return representation_keys
+        if string in self._protein_to_features_map:
+            return self._protein_to_features_map[string]
+        if string in self._gene_to_features_map:
+            return self._gene_to_features_map[string]
         raise ValueError(f"Feature {string} is not in the (processed) data.")
 
     def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
