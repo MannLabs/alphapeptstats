@@ -29,7 +29,8 @@ def _finalize_data_loading(
     """Finalize the data loading process."""
     st.session_state[StateKeys.DATASET] = dataset
 
-    st.page_link("pages/03_Data Overview.py", label="=> Go to data overview page..")
+    st.page_link("pages/03_Data Overview.py", label="➔ Go to data overview page..")
+    st.page_link("pages/05_Analysis.py", label="➔ Go to analysis page..")
 
 
 st.set_page_config(layout="wide")
@@ -70,6 +71,7 @@ st.markdown("### Import Proteomics Data")
 if StateKeys.DATASET in st.session_state:
     st.info("DataSet already present.")
     st.page_link("pages/03_Data Overview.py", label="➔ Go to data overview page..")
+    st.page_link("pages/05_Analysis.py", label="➔ Go to analysis page..")
     st.stop()
 
 

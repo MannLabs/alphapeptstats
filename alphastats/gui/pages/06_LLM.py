@@ -58,7 +58,7 @@ if not (
     st.info(
         f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
     )
-    st.page_link("pages/05_Analysis.py", label="=> Goto Analysis page...")
+    st.page_link("pages/05_Analysis.py", label="➔ Go to Analysis page...")
     st.stop()
 
 selected_analysis_key = st.selectbox(
