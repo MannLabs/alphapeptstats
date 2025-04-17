@@ -164,11 +164,12 @@ def test_initialization_ollama(mock_openai_client):
     LLMIntegration(
         model_name=Models.OLLAMA_31_8B,
         base_url="http://localhost:11434",
+        api_key="some_api_key",  # pragma: allowlist secret
     )
 
     mock_openai_client.assert_called_once_with(
         base_url="http://localhost:11434/v1",
-        api_key="ollama",  # pragma: allowlist secret
+        api_key="some_api_key",  # pragma: allowlist secret
     )
 
 
