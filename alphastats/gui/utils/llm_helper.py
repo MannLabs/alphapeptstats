@@ -59,7 +59,7 @@ def llm_config() -> None:
 
         base_url = None
         api_key = st.text_input(
-            f"Enter API Key and press Enter {'(optional)' if requires_api_key else ''}",
+            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}",
             type="password",
         )
         set_api_key(api_key)
