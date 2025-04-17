@@ -109,7 +109,7 @@ class LLMIntegration:
 
         if model_name in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
             url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self._client = OpenAI(base_url=url, api_key="ollama")
+            self._client = OpenAI(base_url=url, api_key=api_key)
         elif model_name in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
         else:

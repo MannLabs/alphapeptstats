@@ -55,17 +55,20 @@ def llm_config() -> None:
         )
         st.session_state[StateKeys.MODEL_NAME] = new_model
 
+        requires_api_key = new_model in [Models.GPT4O]
+
         base_url = None
-        if new_model in [Models.GPT4O]:
-            api_key = st.text_input(
-                "Enter OpenAI API Key and press Enter", type="password"
-            )
-            set_api_key(api_key)
-        elif new_model in [
+        api_key = st.text_input(
+            f"Enter API Key and press Enter {'(optional)' if requires_api_key else ''}",
+            type="password",
+        )
+        set_api_key(api_key)
+
+        if new_model in [
             Models.OLLAMA_31_70B,
             Models.OLLAMA_31_8B,
         ]:
-            base_url = OLLAMA_BASE_URL
+            base_url = st.text_input("base url", value=OLLAMA_BASE_URL)
             st.info(f"Expecting Ollama API at {base_url}.")
 
         test_connection = st.button("Test connection")
@@ -287,37 +290,35 @@ def get_display_proteins_html(
 
 
 def set_api_key(api_key: str = None) -> None:
-    """Put the OpenAI API key in the session state.
+    """Put the API key in the session state.
 
     If provided, use the `api_key`.
     If not, take the key from the secrets.toml file.
     Show a message if the file is not found.
 
     Args:
-        api_key (str, optional): The OpenAI API key. Defaults to None.
+        api_key (str, optional): The API key. Defaults to None.
     """
     if not api_key:
         api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
 
     if api_key:
-        st.info(
-            f"OpenAI API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
-        )
+        st.info(f"API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}")
     else:
         try:
             if Path("./.streamlit/secrets.toml").exists():
-                api_key = st.secrets["openai_api_key"]
-                st.toast("OpenAI API key loaded from secrets.toml.", icon="✅")
+                api_key = st.secrets["api_key"]
+                st.toast("API key loaded from secrets.toml.", icon="✅")
             else:
                 st.info(
                     "Please enter an OpenAI key or provide it in a secrets.toml file in the "
                     "alphastats/gui/.streamlit directory like "
-                    "`openai_api_key = <key>`"
+                    "`api_key = <key>`"
                 )
         except KeyError:
-            st.error("OpenAI API key not found in secrets.toml .")
+            st.error("API key not found in secrets.toml .")
         except Exception as e:
-            st.error(f"Error loading OpenAI API key: {e}.")
+            st.error(f"Error loading API key: {e}.")
 
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
 
