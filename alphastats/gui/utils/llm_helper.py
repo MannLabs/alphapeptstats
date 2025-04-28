@@ -213,6 +213,7 @@ def protein_selector(
         "Deselect list",
         placeholder="Enter comma-separated feature ids to deselect",
         key=f"{state_key}_deselect",
+        help="This is so papers can be reproduced exactly. Make cutoffs that include all originally reported significant proteins, then deselect the ones, that were not reported significant in the original paper.",
     )
     if deselect:
         deselect = [x.strip() for x in deselect.split(",")]
