@@ -80,7 +80,7 @@ def get_uniprot_info_for_search_string(
     dataset: DataSet = st.session_state[StateKeys.DATASET]
 
     try:
-        features = dataset._get_feature_ids_from_string(search_string)
+        features = dataset._get_feature_ids_from_search_string(search_string)
     except ValueError:
         features = [feature.strip() for feature in search_string.split(",")]
 
@@ -89,15 +89,12 @@ def get_uniprot_info_for_search_string(
         annotation, feature = get_annotation_from_uniprot_by_feature_list(features)
         annotation_store[feature] = annotation
 
-    if not fields:
-        fields = list(annotation.keys())
-
     return (
         search_string
         + ": "
         + format_uniprot_annotation(
             annotation,
-            fields=fields,
+            fields=fields if fields is not None else list(annotation.keys()),
         )
     )
 

@@ -490,7 +490,7 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_feature_ids_from_string(self, string: str) -> List[str]:
+    def _get_feature_ids_from_search_string(self, string: str) -> List[str]:
         """Get the feature id from a string representing a feature.
 
         Goes through id mapping dictionaries and finds the completest match.
@@ -527,7 +527,7 @@ class DataSet:
         protein_ids = []
         for feature in features:
             try:
-                for protein_id in self._get_feature_ids_from_string(feature):
+                for protein_id in self._get_feature_ids_from_search_string(feature):
                     protein_ids.append(protein_id)
             except ValueError:
                 unmapped_features.append(feature)
