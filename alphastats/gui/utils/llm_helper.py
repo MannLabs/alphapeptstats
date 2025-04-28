@@ -654,9 +654,22 @@ def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
             if tool == "don't run":
                 enrichment_data = None
             else:
+                feature_to_repr_map = st.session_state[
+                    StateKeys.DATASET
+                ]._feature_to_repr_map
                 enrichment_data = get_enrichment_data(
-                    difexpressed=llm_chat[LLMKeys.SELECTED_FEATURES_UP]
-                    + llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+                    difexpressed=list(
+                        map(
+                            feature_to_repr_map.get,
+                            llm_chat[LLMKeys.SELECTED_FEATURES_UP],
+                        )
+                    )
+                    + list(
+                        map(
+                            feature_to_repr_map.get,
+                            llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+                        )
+                    ),
                     organism_id=organism_id,
                     tool=tool,
                     include_background=include_background,
