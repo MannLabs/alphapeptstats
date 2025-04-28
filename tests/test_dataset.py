@@ -1196,28 +1196,28 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
         }
 
     def test_feature_in_feature_to_repr_map(self):
-        result = self.obj._get_feature_ids_from_string("P5;P6")
+        result = self.obj._get_feature_ids_from_search_string("P5;P6")
         self.assertEqual(result, ["P5;P6"])
 
     def test_feature_in_gene_to_features_map(self):
-        result = self.obj._get_feature_ids_from_string("G5")
+        result = self.obj._get_feature_ids_from_search_string("G5")
         self.assertEqual(result, ["P5;P6"])
 
     def test_feature_in_protein_to_features_map(self):
-        result = self.obj._get_feature_ids_from_string("P5")
+        result = self.obj._get_feature_ids_from_search_string("P5")
         self.assertEqual(result, ["P5;P6"])
 
     def test_gene_with_additional_feature(self):
-        result = self.obj._get_feature_ids_from_string("G6")
+        result = self.obj._get_feature_ids_from_search_string("G6")
         self.assertEqual(result, ["P5;P6", "P6;P7"])
 
     def test_representation_matching_feature(self):
-        result = self.obj._get_feature_ids_from_string("ids:P2")
+        result = self.obj._get_feature_ids_from_search_string("ids:P2")
         self.assertEqual(result, ["P2"])
 
     def test_feature_not_found(self):
         with self.assertRaises(ValueError) as context:
-            self.obj._get_feature_ids_from_string("NonExistentFeature")
+            self.obj._get_feature_ids_from_search_string("NonExistentFeature")
         self.assertEqual(
             str(context.exception),
             "Feature NonExistentFeature is not in the (processed) data.",

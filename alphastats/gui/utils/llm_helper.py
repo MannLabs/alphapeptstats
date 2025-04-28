@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
+from alphastats.dataset.keys import ConstantsClass
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
@@ -19,6 +20,7 @@ from alphastats.gui.utils.state_keys import (
     SavedAnalysisKeys,
     StateKeys,
 )
+from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_organisms
 from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
 from alphastats.llm.prompts import (
     LLMInstructionKeys,
@@ -36,6 +38,17 @@ from alphastats.plots.plot_utils import PlotlyObject
 LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
+
+class ENRICHMENT_ANALYSIS_KEYS(metaclass=ConstantsClass):
+    """Keys for accessing the session state for enrichment analysis."""
+
+    PARAMETERS = "parameters"
+    DIFEXPRESSED = "difexpressed"
+    ORGANISM_ID = "organism_id"
+    TOOL = "tool"
+    INCLUDE_BACKGROUND = "include_background"
+    RESULT = "result"
 
 
 @st.fragment
@@ -120,6 +133,13 @@ def init_llm_chat_state(
         selected_llm_chat[LLMKeys.SELECTED_FEATURES_UP] = upregulated_features
     if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_DOWN) is None:
         selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
+    if selected_llm_chat.get(LLMKeys.ENRICHMENT_ANALYSIS) is None:
+        selected_llm_chat[LLMKeys.ENRICHMENT_ANALYSIS] = {
+            ENRICHMENT_ANALYSIS_KEYS.PARAMETERS: {},
+            ENRICHMENT_ANALYSIS_KEYS.RESULT: None,
+        }
+    if selected_llm_chat.get(LLMKeys.ENRICHMENT_COLUMNS) is None:
+        selected_llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = []
 
     if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
         selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
@@ -164,11 +184,20 @@ def initialize_initial_prompt_modules(
         uniprot_info = f"{os.linesep}{os.linesep}".join(texts)
     else:
         uniprot_info = ""
+    enrichment_data = (
+        None
+        if llm_chat[LLMKeys.ENRICHMENT_ANALYSIS].get(ENRICHMENT_ANALYSIS_KEYS.RESULT)
+        is None
+        else llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][ENRICHMENT_ANALYSIS_KEYS.RESULT][
+            llm_chat[LLMKeys.ENRICHMENT_COLUMNS]
+        ]
+    )
     protein_data_prompt = _get_protein_data_prompt(
         llm_chat[LLMKeys.SELECTED_FEATURES_UP],
         llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
         uniprot_info,
         feature_to_repr_map=feature_to_repr_map,
+        enrichment_data=enrichment_data,
     )
 
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
@@ -288,6 +317,12 @@ def get_display_proteins_html(
         protein_ids (list[str]): a list of proteins.
         is_upregulated (bool): whether the proteins are up- or down-regulated.
     """
+
+    warnings.warn(
+        "This function will be deprecated in version 2.0 because it is no longer used.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
 
     uniprot_url = "https://www.uniprot.org/uniprotkb/"
 
@@ -414,13 +449,13 @@ def display_uniprot(
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
         selected_analysis_key
     ]
-    if c1.button("Select all"):
+    if c1.button("Select all", disabled=disabled):
         selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = all_fields
         st.rerun(scope="fragment")
-    if c2.button("Select none"):
+    if c2.button("Select none", disabled=disabled):
         selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = []
         st.rerun(scope="fragment")
-    if c3.button("Recommended selection"):
+    if c3.button("Recommended selection", disabled=disabled):
         selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS] = (
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
@@ -449,13 +484,14 @@ def display_uniprot(
         )
 
     c1, c2 = st.columns((1, 3))
-    with c1, st.expander("Show options", expanded=True):
+    with c1, st.expander("Show options", expanded=not disabled):
         selected_fields = []
         for field in all_fields:
             if st.checkbox(
                 field,
                 value=field
                 in selected_analysis_session_state[LLMKeys.SELECTED_UNIPROT_FIELDS],
+                disabled=disabled,
             ):
                 selected_fields.append(field)
         if set(selected_fields) != set(
@@ -499,14 +535,18 @@ def on_select_new_analysis_fill_state() -> None:
     )
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
-            synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+        st.session_state[getattr(synced_key, KeySyncNames.STATE)] = selected_chat.get(
+            getattr(synced_key, KeySyncNames.LLM),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
-                synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+            st.session_state[getattr(synced_key, KeySyncNames.STATE)] = (
+                selected_chat.get(
+                    getattr(synced_key, KeySyncNames.LLM),
+                    getattr(synced_key, KeySyncNames.GET_DEFAULT),
+                )
             )
 
     st.toast("State filled from saved analysis.", icon="🔍")
@@ -525,14 +565,16 @@ def on_change_save_state() -> None:
         return
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
-            synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+        selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+            getattr(synced_key, KeySyncNames.STATE),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
-                synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+            selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+                getattr(synced_key, KeySyncNames.STATE),
+                getattr(synced_key, KeySyncNames.GET_DEFAULT),
             )
 
 
@@ -546,6 +588,123 @@ def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
         for feature in selected_features
     }
     return selected_features, regulated_features_dict
+
+
+@st.fragment
+def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
+    new_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+    ].copy()
+    with st.form(key="enrichment_analysis_form"):
+        st.markdown(
+            "##### Enrichment analysis",
+            help="Select the organism and tool for enrichment analysis. Including the background for the anlaysis is recommended.",
+        )
+        c1, c2, c3 = st.columns((1, 1, 1))
+        with c1:
+            organism_id = st.selectbox(
+                "Organism ID",
+                options=list(gprofiler_organisms.keys()),
+                index=list(gprofiler_organisms.keys()).index(
+                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                    ].get(ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID, "9606")
+                ),
+                format_func=lambda x: f"{gprofiler_organisms[x]} ({x})",
+                disabled=disabled,
+            )
+        with c2:
+            options = ["string", "gprofiler", "don't run"]
+            display_names = {"string": "STRING", "gprofiler": "GProfiler"}
+            tool = st.selectbox(
+                "External enrichment tool",
+                options=options,
+                index=options.index(
+                    llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                    ].get(ENRICHMENT_ANALYSIS_KEYS.TOOL, "gprofiler")
+                ),
+                format_func=lambda x: display_names.get(x, x),
+                disabled=disabled,
+            )
+        with c3:
+            include_background = st.checkbox(
+                "Include background",
+                value=llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                    ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+                ].get(ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND, True),
+                disabled=disabled,
+            )
+        submit_button = st.form_submit_button(
+            "Run enrichment analysis",
+            disabled=disabled,
+        )
+        if submit_button:
+            new_settings.update(
+                {
+                    ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID: organism_id,
+                    ENRICHMENT_ANALYSIS_KEYS.TOOL: tool,
+                    ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND: include_background,
+                }
+            )
+    old_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+    ]
+    if new_settings != old_settings:
+        with st.spinner("Running enrichment analysis..."):
+            if tool == "don't run":
+                enrichment_data = None
+            else:
+                feature_to_repr_map = st.session_state[
+                    StateKeys.DATASET
+                ]._feature_to_repr_map
+                enrichment_data = get_enrichment_data(
+                    difexpressed=list(
+                        map(
+                            feature_to_repr_map.get,
+                            llm_chat[LLMKeys.SELECTED_FEATURES_UP],
+                        )
+                    )
+                    + list(
+                        map(
+                            feature_to_repr_map.get,
+                            llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
+                        )
+                    ),
+                    organism_id=organism_id,
+                    tool=tool,
+                    include_background=include_background,
+                )
+                if (
+                    isinstance(enrichment_data, pd.DataFrame)
+                    and st.session_state.get(StateKeys.ENRICHMENT_COLUMNS) == []
+                ):
+                    st.session_state[StateKeys.ENRICHMENT_COLUMNS] = list(
+                        enrichment_data.columns
+                    )
+                    llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = st.session_state.get(
+                        StateKeys.ENRICHMENT_COLUMNS
+                    )
+            llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][ENRICHMENT_ANALYSIS_KEYS.RESULT] = (
+                enrichment_data
+            )
+            llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+                ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+            ].update(new_settings)
+    else:
+        enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+            ENRICHMENT_ANALYSIS_KEYS.RESULT
+        ]
+    if isinstance(enrichment_data, pd.DataFrame):
+        st.dataframe(enrichment_data)
+        st.multiselect(
+            "Select columns to include in the prompt",
+            options=enrichment_data.columns,
+            key=StateKeys.ENRICHMENT_COLUMNS,
+            on_change=on_change_save_state,
+            help="Select the columns to include in the initial prompt.",
+            disabled=disabled,
+        )
 
 
 @st.fragment
