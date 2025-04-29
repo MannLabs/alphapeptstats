@@ -6,7 +6,6 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-import dill as dillpickle
 import pytz
 from cloudpickle import cloudpickle
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
@@ -33,8 +32,7 @@ STATE_SAVE_FOLDER_PATH = (
 
 # prefix and extension for pickled state
 _PREFIX = "session"
-_EXT_C = "cpkl"
-_EXT_D = "dpkl"
+_EXT = "cpkl"
 
 
 class SessionManager:
@@ -69,12 +67,7 @@ class SessionManager:
     def get_saved_sessions(save_folder_path: str) -> list[str]:
         """Get a list of saved session file names from the `save_folder_path`."""
         return sorted(
-            [
-                f.name
-                for ext in [_EXT_C, _EXT_D]
-                for f in Path(save_folder_path).glob(f"*.{ext}")
-                if f.is_file()
-            ],
+            [f.name for f in Path(save_folder_path).glob(f"*.{_EXT}") if f.is_file()],
             reverse=True,
         )
 
@@ -89,9 +82,10 @@ class SessionManager:
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
         session_name = f"_{session_name}" if session_name else ""
+        file_name = f"{_PREFIX}_{timestamp}{session_name}.{_EXT}"
 
         data_to_dump = {
-            SavedSessionKeys.STATE: state_data_to_save.copy(),
+            SavedSessionKeys.STATE: state_data_to_save,
             SavedSessionKeys.META: {
                 SavedSessionKeys.VERSION: __version__,
                 SavedSessionKeys.TIMESTAMP: timestamp,
@@ -99,19 +93,10 @@ class SessionManager:
             },
         }
 
-        try:
-            file_path = (
-                self._save_folder_path / f"{_PREFIX}_{timestamp}{session_name}.{_EXT_C}"
-            )
-            with file_path.open("wb") as f:
-                # using cloudpickle as built-in pickle does not support complex data types or lambdas
-                cloudpickle.dump(data_to_dump, f)
-        except Exception:  # noqa: BLE001
-            file_path = (
-                self._save_folder_path / f"{_PREFIX}_{timestamp}{session_name}.{_EXT_D}"
-            )
-            with file_path.open("wb") as f:
-                dillpickle.dump(data_to_dump, f)
+        file_path = self._save_folder_path / file_name
+        with file_path.open("wb") as f:
+            # using cloudpickle as built-in pickle does not support complex data types or lambdas
+            cloudpickle.dump(data_to_dump, f)
 
         return str(file_path)
 
@@ -123,12 +108,8 @@ class SessionManager:
         file_path = self._save_folder_path / file_name
 
         if file_path.exists():
-            if file_path.suffix == f".{_EXT_C}":
-                with file_path.open("rb") as f:
-                    loaded_data = cloudpickle.load(f)
-            elif file_path.suffix == f".{_EXT_D}":
-                with file_path.open("rb") as f:
-                    loaded_data = dillpickle.load(f)  # noqa: S301
+            with file_path.open("rb") as f:
+                loaded_data = cloudpickle.load(f)
 
             loaded_state_data = loaded_data[SavedSessionKeys.STATE]
 
