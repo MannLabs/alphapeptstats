@@ -90,7 +90,7 @@ def test_display_proteins_empty_list(mock_streamlit):
         ("abc123xyz", "API key set: abc***xyz"),
         (
             None,
-            "Please enter an OpenAI key or provide it in a secrets.toml file in the alphastats/gui/.streamlit directory like `openai_api_key = <key>`",
+            "Please enter an OpenAI key or provide it in a secrets.toml file in the alphastats/gui/.streamlit directory like `api_key = <key>`",
         ),
     ],
 )
