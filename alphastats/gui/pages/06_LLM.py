@@ -11,7 +11,6 @@ from alphastats.gui.utils.analysis_helper import (
 )
 from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
-    OLLAMA_BASE_URL,
     configure_initial_prompt,
     display_uniprot,
     format_analysis_key,
@@ -263,7 +262,7 @@ if not is_llm_integration_initialized:
             model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
             system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-            base_url=OLLAMA_BASE_URL,
+            base_url=st.session_state[StateKeys.BASE_URL],
             dataset=st.session_state[StateKeys.DATASET],
             genes_of_interest=list(regulated_features_dict.keys()),
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
