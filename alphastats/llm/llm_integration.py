@@ -223,7 +223,7 @@ class LLMIntegration:
                 [
                     len(message[MessageKeys.CONTENT]) / average_chars_per_token
                     for message in messages
-                    if message
+                    if message and message[MessageKeys.CONTENT]
                 ]
             )
         return total_tokens
