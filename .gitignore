@@ -19,3 +19,5 @@ build_pyinstaller
 **/*secrets.toml
 
 sessions/
+
+secrets.ini
