@@ -214,7 +214,7 @@ class LLMIntegration:
                 [
                     len(enc.encode(message[MessageKeys.CONTENT]))
                     for message in messages
-                    if message
+                    if message and message[MessageKeys.CONTENT]
                 ]
             )
         except KeyError:
