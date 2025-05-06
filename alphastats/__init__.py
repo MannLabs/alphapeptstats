@@ -38,13 +38,3 @@ __console_scripts__ = [
 __extra_requirements__ = {
     "development": "requirements_development.txt",
 }
-
-# TODO get rid of these imports
-import alphastats.gui  # noqa: F401
-
-from .cli import *  # noqa: F403
-from .loader.alphapept_loader import *  # noqa: F403
-from .loader.diann_loader import *  # noqa: F403
-from .loader.fragpipe_loader import *  # noqa: F403
-from .loader.maxquant_loader import *  # noqa: F403
-from .loader.spectronaut_loader import *  # noqa: F403
