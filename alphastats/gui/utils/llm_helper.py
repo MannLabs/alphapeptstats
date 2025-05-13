@@ -20,7 +20,7 @@ from alphastats.gui.utils.state_keys import (
     StateKeys,
 )
 from alphastats.llm.llm_integration import (
-    ClientProvider,
+    LLMClientWrapper,
     LLMIntegration,
     MessageKeys,
     ModelFlags,
@@ -359,7 +359,7 @@ def llm_connection_test(
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(
-            ClientProvider(model_name, base_url=base_url, api_key=api_key),
+            LLMClientWrapper(model_name, base_url=base_url, api_key=api_key),
             load_tools=False,
         )
         llm.chat_completion(
@@ -696,9 +696,7 @@ def show_llm_chat(
                 if not message[MessageKeys.IN_CONTEXT]:
                     token_message += ":x: "
                 if show_individual_tokens:
-                    tokens = llm_integration.estimate_tokens(
-                        [message], model=model_name
-                    )
+                    tokens = LLMIntegration.estimate_tokens([message], model=model_name)
                     token_message += f"*tokens: {str(tokens)}*"
                 st.markdown(token_message)
             for artifact in message[MessageKeys.ARTIFACTS]:
@@ -726,7 +724,7 @@ def show_llm_chat(
             st.markdown(prompt)
             if show_individual_tokens:
                 st.markdown(
-                    f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
+                    f"*tokens: {str(LLMIntegration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
                 )
         with st.spinner("Processing prompt..."), warnings.catch_warnings(
             record=True

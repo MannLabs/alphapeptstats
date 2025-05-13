@@ -140,22 +140,26 @@ def test_set_api_key_missing_secrets(mock_exists, mock_streamlit):
 
 
 @patch("alphastats.gui.utils.llm_helper.LLMIntegration")
-def test_llm_connection_test_success(mock_llm):
+@patch("alphastats.gui.utils.llm_helper.ClientWrapper")
+def test_llm_connection_test_success(mock_client_wrapper, mock_llm):
     """Test successful LLM connection."""
     assert llm_connection_test("some_model") is None
 
-    mock_llm.assert_called_once_with(
-        "some_model", base_url=None, api_key=None, load_tools=False
+    mock_client_wrapper.assert_called_once_with(
+        "some_model", base_url=None, api_key=None
     )
+    mock_llm.assert_called_once_with(mock_client_wrapper.return_value, load_tools=False)
 
 
 @patch("alphastats.gui.utils.llm_helper.LLMIntegration")
-def test_llm_connection_test_failure(mock_llm, mock_streamlit):
+@patch("alphastats.gui.utils.llm_helper.ClientWrapper")
+def test_llm_connection_test_failure(mock_client_wrapper, mock_llm, mock_streamlit):
     """Test failed LLM connection."""
     mock_llm.return_value.chat_completion.side_effect = ValueError("API Error")
 
     assert llm_connection_test("some_model") == "API Error"
 
-    mock_llm.assert_called_once_with(
-        "some_model", base_url=None, api_key=None, load_tools=False
+    mock_client_wrapper.assert_called_once_with(
+        "some_model", base_url=None, api_key=None
     )
+    mock_llm.assert_called_once_with(mock_client_wrapper.return_value, load_tools=False)

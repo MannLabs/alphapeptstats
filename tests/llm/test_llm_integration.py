@@ -1,6 +1,6 @@
 from datetime import datetime
 from unittest import mock, skip
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -13,7 +13,7 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_message_tool_call import Function
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import ClientProvider, LLMIntegration, Models
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, Models
 
 
 @pytest.fixture
@@ -29,11 +29,9 @@ def llm_integration(mock_openai_client) -> LLMIntegration:
     dataset.plot_intensity = Mock(return_value="Plot created")
     dataset.custom_function = Mock(return_value="Dataset function called")
     dataset.metadata = pd.DataFrame({"group1": ["A", "B"], "group2": ["C", "D"]})
+    client_wrapper = MagicMock()
     return LLMIntegration(
-        ClientProvider(
-            model_name=Models.GPT4O,
-            api_key="test-key",  # pragma: allowlist secret
-        ),
+        client_wrapper,
         system_message="Test system message",
         dataset=dataset,
         genes_of_interest={"GENE1": "PROT1", "GENE2": "PROT2"},
@@ -151,7 +149,7 @@ def mock_general_function_mapping():
 
 def test_initialization_gpt4(mock_openai_client):
     """Test initialization with GPT-4 configuration"""
-    ClientProvider(
+    LLMClientWrapper(
         model_name=Models.GPT4O,
         api_key="test-key",  # pragma: allowlist secret
     )
@@ -163,7 +161,7 @@ def test_initialization_gpt4(mock_openai_client):
 
 def test_initialization_ollama(mock_openai_client):
     """Test initialization with Ollama configuration"""
-    ClientProvider(
+    LLMClientWrapper(
         model_name=Models.OLLAMA_31_8B,
         base_url="http://localhost:11434",
         api_key="some_api_key",  # pragma: allowlist secret
@@ -178,7 +176,7 @@ def test_initialization_ollama(mock_openai_client):
 def test_initialization_invalid_model():
     """Test initialization with invalid model type"""
     with pytest.raises(ValueError, match="Invalid model name"):
-        ClientProvider(model_name="invalid-model")
+        LLMClientWrapper(model_name="invalid-model")
 
 
 @patch(f"{alphastats.llm.llm_integration.__name__}.datetime")
@@ -317,7 +315,9 @@ def test_estimate_tokens_default():
 
 def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_completion):
     """Test successful chat completion"""
-    llm_integration._client.chat.completions.create.return_value = mock_chat_completion
+    llm_integration._client_wrapper.chat_completion_create.return_value = (
+        mock_chat_completion
+    )
 
     llm_integration.chat_completion("Test prompt")
 
@@ -345,8 +345,8 @@ def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_comp
 
 def test_chat_completion_with_error(llm_integration: LLMIntegration):
     """Test chat completion with error handling"""
-    llm_integration._client.chat.completions.create.side_effect = ArithmeticError(
-        "Test error"
+    llm_integration._client_wrapper.chat_completion_create.side_effect = (
+        ArithmeticError("Test error")
     )
 
     llm_integration.chat_completion("Test prompt")
@@ -444,7 +444,7 @@ def test_execute_function_with_error(
 
 def test_execute_function_without_dataset(mock_openai_client):
     """Test function execution when dataset is not available"""
-    llm = LLMIntegration(ClientProvider(model_name=Models.GPT4O, api_key="test-key"))
+    llm = LLMIntegration(LLMClientWrapper(model_name=Models.GPT4O, api_key="test-key"))
 
     with pytest.raises(
         ValueError,
@@ -461,7 +461,7 @@ def test_handle_function_calls(
     mock_execute_function.return_value = "some_function_result"
 
     llm_integration = LLMIntegration(
-        ClientProvider(
+        LLMClientWrapper(
             model_name=Models.GPT4O,
             api_key="test-key",  # pragma: allowlist secret
         ),

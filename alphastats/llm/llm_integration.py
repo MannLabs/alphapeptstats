@@ -81,7 +81,7 @@ class Roles(metaclass=ConstantsClass):
     SYSTEM = "system"
 
 
-class ClientProvider:
+class LLMClientWrapper:
     """A class to provide the OpenAI client."""
 
     def __init__(
@@ -110,9 +110,16 @@ class ClientProvider:
 
         self._model_name = model_name
 
-    @property
-    def client(self) -> OpenAI:
-        return self._client
+    def chat_completion_create(
+        self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
+    ) -> ChatCompletion:
+        """Create a chat completion based on the current conversation history."""
+        logger.info(f"Calling 'chat.completions.create' {messages[-1]} ..")
+        return self._client.chat.completions.create(
+            model=self._model_name,
+            messages=messages,
+            tools=tools,
+        )
 
     @property
     def model_name(self) -> str:
@@ -127,7 +134,7 @@ class LLMIntegration:
 
     Parameters
     ----------
-    client_provider : ClientProvider
+    client_wrapper : LLMClientWrapper
         The client provider to be used.
     system_message : str
         The system message that should be given to the model.
@@ -143,7 +150,7 @@ class LLMIntegration:
 
     def __init__(
         self,
-        client_provider: ClientProvider,
+        client_wrapper: LLMClientWrapper,
         *,
         system_message: str = None,
         load_tools: bool = True,
@@ -151,8 +158,7 @@ class LLMIntegration:
         genes_of_interest: Optional[List[str]] = None,
         max_tokens=100000,
     ):
-        self._client = client_provider.client
-        self._model = client_provider.model_name
+        self._client_wrapper = client_wrapper
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
@@ -283,7 +289,9 @@ class LLMIntegration:
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
         while (
-            self.estimate_tokens(self._messages, self._model, average_chars_per_token)
+            self.estimate_tokens(
+                self._messages, self._client_wrapper.model_name, average_chars_per_token
+            )
             > self._max_tokens
         ):
             if len(self._messages) == 1:
@@ -418,7 +426,9 @@ class LLMIntegration:
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        response = self._chat_completion_create()
+        response = self._client_wrapper.chat_completion_create(
+            messages=self._messages, tools=self._tools
+        )
 
         return self._parse_model_response(response)
 
@@ -490,17 +500,6 @@ class LLMIntegration:
                 + LLM_instructions
             )
 
-    def _chat_completion_create(self) -> ChatCompletion:
-        """Create a chat completion based on the current conversation history."""
-        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-        result = self._client.chat.completions.create(
-            model=self._model,
-            messages=self._messages,
-            tools=self._tools,
-        )
-        logger.info(".. done")
-        return result
-
     def get_print_view(
         self, show_all=False
     ) -> Tuple[List[Dict[str, Any]], float, float]:
@@ -510,7 +509,7 @@ class LLMIntegration:
         total_tokens = 0
         pinned_tokens = 0
         for message_idx, message in enumerate(self._all_messages):
-            tokens = self.estimate_tokens([message], self._model)
+            tokens = self.estimate_tokens([message], self._client_wrapper.model_name)
             in_context = message in self._messages
             if in_context:
                 total_tokens += tokens
@@ -572,7 +571,9 @@ class LLMIntegration:
         self._append_message(role, prompt, pin_message=pin_message)
 
         try:
-            response = self._chat_completion_create()
+            response = self._client_wrapper.chat_completion_create(
+                messages=self._messages, tools=self._tools
+            )
 
             content, tool_calls = self._parse_model_response(response)
 
@@ -606,7 +607,7 @@ class LLMIntegration:
         for message in self._messages:
             role = message[MessageKeys.ROLE]
             content = message[MessageKeys.CONTENT]
-            tokens = self.estimate_tokens([message], self._model)
+            tokens = self.estimate_tokens([message], self._client_wrapper.model_name)
 
             if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
                 display(
