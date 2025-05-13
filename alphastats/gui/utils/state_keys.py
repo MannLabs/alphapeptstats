@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import NamedTuple
 
 from alphastats.dataset.keys import ConstantsClass
@@ -32,6 +33,7 @@ class StateKeys(metaclass=ConstantsClass):
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
     MODEL_NAME = "model_name"
+    BASE_URL = "base_url"
     MAX_TOKENS = "max_tokens"
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
@@ -51,6 +53,7 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
     MODEL_NAME = "model_name"
+    BASE_URL = "base_url"
     MAX_TOKENS = "max_tokens"
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
@@ -92,6 +95,11 @@ WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
 # These keys are synced between the StateKeys and LLMKeys classes, but only if the LLM is already initialized with a specific model.
 MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME, None),
+    SyncedLLMKey(
+        StateKeys.BASE_URL,
+        LLMKeys.BASE_URL,
+        os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+    ),
     SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
 ]
 

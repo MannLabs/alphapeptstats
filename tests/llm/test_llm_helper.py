@@ -87,10 +87,10 @@ def test_display_proteins_empty_list(mock_streamlit):
 @pytest.mark.parametrize(
     "api_key,expected_message",
     [
-        ("abc123xyz", "OpenAI API key set: abc***xyz"),
+        ("abc123xyz", "API key set: abc***xyz"),
         (
             None,
-            "Please enter an OpenAI key or provide it in a secrets.toml file in the alphastats/gui/.streamlit directory like `openai_api_key = <key>`",
+            "Please enter an OpenAI key or provide it in a secrets.toml file in the alphastats/gui/.streamlit directory like `api_key = <key>`",
         ),
     ],
 )
@@ -118,7 +118,7 @@ def test_set_api_key_from_secrets(mock_exists, mock_st_secrets, mock_streamlit):
     set_api_key()
 
     mock_streamlit["toast"].assert_called_with(
-        "OpenAI API key loaded from secrets.toml.", icon="✅"
+        "API key loaded from secrets.toml.", icon="✅"
     )
     assert (
         mock_streamlit["session_state"][StateKeys.OPENAI_API_KEY]
@@ -135,7 +135,7 @@ def test_set_api_key_missing_secrets(mock_exists, mock_streamlit):
 
     mock_streamlit["info"].assert_called_with(
         "Please enter an OpenAI key or provide it in a secrets.toml file in the "
-        "alphastats/gui/.streamlit directory like `openai_api_key = <key>`"
+        "alphastats/gui/.streamlit directory like `api_key = <key>`"
     )
 
 

@@ -19,7 +19,13 @@ from alphastats.gui.utils.state_keys import (
     SavedAnalysisKeys,
     StateKeys,
 )
-from alphastats.llm.llm_integration import LLMIntegration, MessageKeys, Models, Roles
+from alphastats.llm.llm_integration import (
+    LLMIntegration,
+    MessageKeys,
+    ModelFlags,
+    Models,
+    Roles,
+)
 from alphastats.llm.prompts import (
     LLMInstructionKeys,
     _get_experimental_design_prompt,
@@ -36,6 +42,7 @@ from alphastats.plots.plot_utils import PlotlyObject
 LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+# TODO: Deduplicate this code without introducing a circular import
 
 
 @st.fragment
@@ -43,30 +50,38 @@ def llm_config() -> None:
     """Show the configuration options for the LLM interpretation."""
 
     current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
+    current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
 
     c1, _ = st.columns((1, 2))
     with c1:
-        models = [Models.GPT4O, Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]
+        models = Models.get_values()
         new_model = st.selectbox(
             "Select LLM",
             models,
             index=models.index(current_model) if current_model is not None else 0,
-            on_change=on_change_save_state,
         )
-        st.session_state[StateKeys.MODEL_NAME] = new_model
+        if new_model != current_model:
+            st.session_state[StateKeys.MODEL_NAME] = new_model
+            on_change_save_state()
 
-        base_url = None
-        if new_model in [Models.GPT4O]:
-            api_key = st.text_input(
-                "Enter OpenAI API Key and press Enter", type="password"
+        requires_api_key = new_model in ModelFlags.REQUIRES_API_KEY
+
+        new_base_url = current_base_url
+        api_key = st.text_input(
+            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}",
+            type="password",
+        )
+        set_api_key(api_key)
+
+        if new_model in ModelFlags.REQUIRES_BASE_URL:
+            new_base_url = st.text_input(
+                "base url",
+                value=current_base_url,
             )
-            set_api_key(api_key)
-        elif new_model in [
-            Models.OLLAMA_31_70B,
-            Models.OLLAMA_31_8B,
-        ]:
-            base_url = OLLAMA_BASE_URL
-            st.info(f"Expecting Ollama API at {base_url}.")
+            if new_base_url != current_base_url:
+                st.session_state[StateKeys.BASE_URL] = new_base_url
+                on_change_save_state()
+            st.info(f"Expecting Ollama API at {new_base_url}.")
 
         test_connection = st.button("Test connection")
         if test_connection:
@@ -74,7 +89,7 @@ def llm_config() -> None:
                 error = llm_connection_test(
                     model_name=new_model,
                     api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                    base_url=base_url,
+                    base_url=new_base_url,
                 )
                 if error is None:
                     st.success(f"Connection to {new_model} successful!")
@@ -90,7 +105,7 @@ def llm_config() -> None:
             st.session_state[StateKeys.MAX_TOKENS] = tokens
             on_change_save_state()
 
-        if current_model != new_model:
+        if current_model != new_model or new_base_url != current_base_url:
             st.rerun(scope="app")
 
 
@@ -139,6 +154,7 @@ def init_llm_chat_state(
     # TODO model name is determined when loading LLM page -> need better model selection.
     if not selected_llm_chat[LLMKeys.IS_INITIALIZED]:
         selected_llm_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
+        selected_llm_chat[LLMKeys.BASE_URL] = st.session_state[StateKeys.BASE_URL]
         selected_llm_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
 
     on_select_new_analysis_fill_state()
@@ -301,37 +317,35 @@ def get_display_proteins_html(
 
 
 def set_api_key(api_key: str = None) -> None:
-    """Put the OpenAI API key in the session state.
+    """Put the API key in the session state.
 
     If provided, use the `api_key`.
     If not, take the key from the secrets.toml file.
     Show a message if the file is not found.
 
     Args:
-        api_key (str, optional): The OpenAI API key. Defaults to None.
+        api_key (str, optional): The API key. Defaults to None.
     """
     if not api_key:
         api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
 
     if api_key:
-        st.info(
-            f"OpenAI API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
-        )
+        st.info(f"API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}")
     else:
         try:
             if Path("./.streamlit/secrets.toml").exists():
-                api_key = st.secrets["openai_api_key"]
-                st.toast("OpenAI API key loaded from secrets.toml.", icon="✅")
+                api_key = st.secrets["api_key"]
+                st.toast("API key loaded from secrets.toml.", icon="✅")
             else:
                 st.info(
                     "Please enter an OpenAI key or provide it in a secrets.toml file in the "
                     "alphastats/gui/.streamlit directory like "
-                    "`openai_api_key = <key>`"
+                    "`api_key = <key>`"
                 )
         except KeyError:
-            st.error("OpenAI API key not found in secrets.toml .")
+            st.error("API key not found in secrets.toml .")
         except Exception as e:
-            st.error(f"Error loading OpenAI API key: {e}.")
+            st.error(f"Error loading API key: {e}.")
 
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
 
@@ -499,14 +513,18 @@ def on_select_new_analysis_fill_state() -> None:
     )
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
-            synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+        st.session_state[getattr(synced_key, KeySyncNames.STATE)] = selected_chat.get(
+            getattr(synced_key, KeySyncNames.LLM),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            st.session_state[synced_key[KeySyncNames.STATE]] = selected_chat.get(
-                synced_key[KeySyncNames.LLM], synced_key[KeySyncNames.GET_DEFAULT]
+            st.session_state[getattr(synced_key, KeySyncNames.STATE)] = (
+                selected_chat.get(
+                    getattr(synced_key, KeySyncNames.LLM),
+                    getattr(synced_key, KeySyncNames.GET_DEFAULT),
+                )
             )
 
     st.toast("State filled from saved analysis.", icon="🔍")
@@ -525,14 +543,16 @@ def on_change_save_state() -> None:
         return
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
-            synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+        selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+            getattr(synced_key, KeySyncNames.STATE),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            selected_chat[synced_key[KeySyncNames.LLM]] = st.session_state.get(
-                synced_key[KeySyncNames.STATE], synced_key[KeySyncNames.GET_DEFAULT]
+            selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+                getattr(synced_key, KeySyncNames.STATE),
+                getattr(synced_key, KeySyncNames.GET_DEFAULT),
             )
 
 
