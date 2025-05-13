@@ -140,7 +140,7 @@ def test_set_api_key_missing_secrets(mock_exists, mock_streamlit):
 
 
 @patch("alphastats.gui.utils.llm_helper.LLMIntegration")
-@patch("alphastats.gui.utils.llm_helper.ClientWrapper")
+@patch("alphastats.gui.utils.llm_helper.LLMClientWrapper")
 def test_llm_connection_test_success(mock_client_wrapper, mock_llm):
     """Test successful LLM connection."""
     assert llm_connection_test("some_model") is None
@@ -152,7 +152,7 @@ def test_llm_connection_test_success(mock_client_wrapper, mock_llm):
 
 
 @patch("alphastats.gui.utils.llm_helper.LLMIntegration")
-@patch("alphastats.gui.utils.llm_helper.ClientWrapper")
+@patch("alphastats.gui.utils.llm_helper.LLMClientWrapper")
 def test_llm_connection_test_failure(mock_client_wrapper, mock_llm, mock_streamlit):
     """Test failed LLM connection."""
     mock_llm.return_value.chat_completion.side_effect = ValueError("API Error")
