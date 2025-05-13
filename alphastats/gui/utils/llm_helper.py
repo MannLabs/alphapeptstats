@@ -675,7 +675,9 @@ def show_llm_chat(
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
         selected_analysis_key
     ]
-    model_name = llm_integration._model
+
+    model_name = llm_integration.client_wrapper.model_name
+
     # no. tokens spent
     messages, total_tokens, pinned_tokens = llm_integration.get_print_view(
         show_all=show_all

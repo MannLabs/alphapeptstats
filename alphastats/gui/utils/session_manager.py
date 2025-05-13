@@ -9,11 +9,10 @@ from pathlib import Path
 import dill as dillpickle
 import pytz
 from cloudpickle import cloudpickle
-from gui.utils.state_keys import LLMKeys
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats import __version__
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
 
 
@@ -69,7 +68,7 @@ class SessionManager:
         for chat in source.get(StateKeys.LLM_CHATS, {}).values():
             if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
                 # cannot pickle LLM client due to SSLContext object
-                llm_integration.client = None
+                llm_integration.client_wrapper = None
 
         target.update(
             {key: value for key, value in source.items() if key in keys_to_save}

@@ -154,7 +154,7 @@ class LLMIntegration:
         genes_of_interest: Optional[List[str]] = None,
         max_tokens=100000,
     ):
-        self._client_wrapper = client_wrapper
+        self.client_wrapper = client_wrapper
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
@@ -283,7 +283,7 @@ class LLMIntegration:
         # TODO: find out how messages can be None type and handle them earlier
         while (
             self.estimate_tokens(
-                self._messages, self._client_wrapper.model_name, average_chars_per_token
+                self._messages, self.client_wrapper.model_name, average_chars_per_token
             )
             > self._max_tokens
         ):
@@ -419,7 +419,7 @@ class LLMIntegration:
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        response = self._client_wrapper.chat_completion_create(
+        response = self.client_wrapper.chat_completion_create(
             messages=self._messages, tools=self._tools
         )
 
@@ -502,7 +502,7 @@ class LLMIntegration:
         total_tokens = 0
         pinned_tokens = 0
         for message_idx, message in enumerate(self._all_messages):
-            tokens = self.estimate_tokens([message], self._client_wrapper.model_name)
+            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
             in_context = message in self._messages
             if in_context:
                 total_tokens += tokens
@@ -564,7 +564,7 @@ class LLMIntegration:
         self._append_message(role, prompt, pin_message=pin_message)
 
         try:
-            response = self._client_wrapper.chat_completion_create(
+            response = self.client_wrapper.chat_completion_create(
                 messages=self._messages, tools=self._tools
             )
 
@@ -600,7 +600,7 @@ class LLMIntegration:
         for message in self._messages:
             role = message[MessageKeys.ROLE]
             content = message[MessageKeys.CONTENT]
-            tokens = self.estimate_tokens([message], self._client_wrapper.model_name)
+            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
 
             if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
                 display(

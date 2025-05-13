@@ -315,7 +315,7 @@ def test_estimate_tokens_default():
 
 def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_completion):
     """Test successful chat completion"""
-    llm_integration._client_wrapper.chat_completion_create.return_value = (
+    llm_integration.client_wrapper.chat_completion_create.return_value = (
         mock_chat_completion
     )
 
@@ -345,8 +345,8 @@ def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_comp
 
 def test_chat_completion_with_error(llm_integration: LLMIntegration):
     """Test chat completion with error handling"""
-    llm_integration._client_wrapper.chat_completion_create.side_effect = (
-        ArithmeticError("Test error")
+    llm_integration.client_wrapper.chat_completion_create.side_effect = ArithmeticError(
+        "Test error"
     )
 
     llm_integration.chat_completion("Test prompt")
