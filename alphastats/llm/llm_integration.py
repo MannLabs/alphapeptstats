@@ -102,28 +102,24 @@ class LLMClientWrapper:
         """
         if model_name in ModelFlags.REQUIRES_BASE_URL:
             url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self._client = OpenAI(base_url=url, api_key=api_key)
+            self.client = OpenAI(base_url=url, api_key=api_key)
         elif model_name in [Models.GPT4O]:
-            self._client = OpenAI(api_key=api_key)
+            self.client = OpenAI(api_key=api_key)
         else:
             raise ValueError(f"Invalid model name: {model_name}")
 
-        self._model_name = model_name
+        self.model_name = model_name
 
     def chat_completion_create(
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
     ) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
         logger.info(f"Calling 'chat.completions.create' {messages[-1]} ..")
-        return self._client.chat.completions.create(
-            model=self._model_name,
+        return self.client.chat.completions.create(
+            model=self.model_name,
             messages=messages,
             tools=tools,
         )
-
-    @property
-    def model_name(self) -> str:
-        return self._model_name
 
 
 class LLMIntegration:

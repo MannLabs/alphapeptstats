@@ -9,6 +9,7 @@ from pathlib import Path
 import dill as dillpickle
 import pytz
 from cloudpickle import cloudpickle
+from gui.utils.state_keys import LLMKeys
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats import __version__
@@ -52,14 +53,23 @@ class SessionManager:
         self._save_folder_path = Path(save_folder_path)
 
     @staticmethod
-    def _copy(source: dict, target: dict | SessionStateProxy) -> None:
+    def _safe_copy(source: dict, target: dict | SessionStateProxy) -> None:
         """Copy a session state dictionary from `source` to `target`, only considering keys in `StateKeys`.
 
         The restriction to the keys in `StateKeys` is to avoid storing unnecessary data, and avoids
         potential issues when using different versions (e.g. new widgets).
+
+        Also, the LLM client is removed from the session state to avoid pickling issues.
         """
         keys_to_save = StateKeys.get_values()
         keys_to_save.remove(StateKeys.OPENAI_API_KEY)  # do not store key on disk
+
+        source = source.copy()
+
+        for chat in source.get(StateKeys.LLM_CHATS, {}).values():
+            if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
+                # cannot pickle LLM client due to SSLContext object
+                llm_integration.client = None
 
         target.update(
             {key: value for key, value in source.items() if key in keys_to_save}
@@ -84,7 +94,7 @@ class SessionManager:
         Only considering keys in `StateKeys` are saved.
         """
         state_data_to_save = {}
-        self._copy(session_state.to_dict(), state_data_to_save)
+        self._safe_copy(session_state.to_dict(), state_data_to_save)
         self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
@@ -147,7 +157,7 @@ class SessionManager:
             # clean and init first to have a defined state
             empty_session_state()
             init_session_state()
-            self._copy(loaded_state_data, session_state)
+            self._safe_copy(loaded_state_data, session_state)
 
             return str(file_path)
 
