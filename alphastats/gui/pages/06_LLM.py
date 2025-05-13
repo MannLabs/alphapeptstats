@@ -27,7 +27,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, ModelFlags
+from alphastats.llm.llm_integration import ClientProvider, LLMIntegration, ModelFlags
 from alphastats.llm.prompts import get_system_message
 
 st.set_page_config(layout="wide")
@@ -258,11 +258,15 @@ if not is_llm_integration_initialized:
         st.stop()
 
     try:
-        llm_integration = LLMIntegration(
+        client_provider = ClientProvider(
             model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
-            system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=st.session_state[StateKeys.BASE_URL],
+        )
+
+        llm_integration = LLMIntegration(
+            client_provider=client_provider,
+            system_message=system_message,
             dataset=st.session_state[StateKeys.DATASET],
             genes_of_interest=list(regulated_features_dict.keys()),
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],

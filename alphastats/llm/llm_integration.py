@@ -81,6 +81,44 @@ class Roles(metaclass=ConstantsClass):
     SYSTEM = "system"
 
 
+class ClientProvider:
+    """A class to provide the OpenAI client."""
+
+    def __init__(
+        self,
+        model_name: str,
+        *,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
+        """Initialize the client provider.
+
+        model_name : str
+            The type of API to use, will be forwarded to the client.
+        base_url : str, optional
+            The base URL for the API, by default None
+        api_key : str, optional
+            The API key for authentication, by default None
+        """
+        if model_name in ModelFlags.REQUIRES_BASE_URL:
+            url = f"{base_url}/v1"  # TODO: enable to configure this per model
+            self._client = OpenAI(base_url=url, api_key=api_key)
+        elif model_name in [Models.GPT4O]:
+            self._client = OpenAI(api_key=api_key)
+        else:
+            raise ValueError(f"Invalid model name: {model_name}")
+
+        self._model_name = model_name
+
+    @property
+    def client(self) -> OpenAI:
+        return self._client
+
+    @property
+    def model_name(self) -> str:
+        return self._model_name
+
+
 class LLMIntegration:
     """A class to integrate different LLM APIs and handle chat interactions.
 
@@ -89,41 +127,32 @@ class LLMIntegration:
 
     Parameters
     ----------
-    model_name : str
-        The type of API to use, will be forwarded to the client.
+    client_provider : ClientProvider
+        The client provider to be used.
     system_message : str
         The system message that should be given to the model.
-    base_url : str, optional
-        The base URL for the API, by default None
-    api_key : str, optional
-        The API key for authentication, by default None
+    load_tools : bool
+        Whether to load the tools or not, by default True
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
     genes_of_interest: optional
         List of regulated genes
+    max_tokens : int
+        The maximum number of tokens for the conversation history, by default 100000
     """
 
     def __init__(
         self,
-        model_name: str,
+        client_provider: ClientProvider,
         *,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
         system_message: str = None,
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
         genes_of_interest: Optional[List[str]] = None,
         max_tokens=100000,
     ):
-        self._model = model_name
-
-        if model_name in ModelFlags.REQUIRES_BASE_URL:
-            url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self._client = OpenAI(base_url=url, api_key=api_key)
-        elif model_name in [Models.GPT4O]:
-            self._client = OpenAI(api_key=api_key)
-        else:
-            raise ValueError(f"Invalid model name: {model_name}")
+        self._client = client_provider.client
+        self._model = client_provider.model_name
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata

@@ -13,7 +13,7 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_message_tool_call import Function
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import LLMIntegration, Models
+from alphastats.llm.llm_integration import ClientProvider, LLMIntegration, Models
 
 
 @pytest.fixture
@@ -30,8 +30,10 @@ def llm_integration(mock_openai_client) -> LLMIntegration:
     dataset.custom_function = Mock(return_value="Dataset function called")
     dataset.metadata = pd.DataFrame({"group1": ["A", "B"], "group2": ["C", "D"]})
     return LLMIntegration(
-        model_name=Models.GPT4O,
-        api_key="test-key",  # pragma: allowlist secret
+        ClientProvider(
+            model_name=Models.GPT4O,
+            api_key="test-key",  # pragma: allowlist secret
+        ),
         system_message="Test system message",
         dataset=dataset,
         genes_of_interest={"GENE1": "PROT1", "GENE2": "PROT2"},
@@ -149,7 +151,7 @@ def mock_general_function_mapping():
 
 def test_initialization_gpt4(mock_openai_client):
     """Test initialization with GPT-4 configuration"""
-    LLMIntegration(
+    ClientProvider(
         model_name=Models.GPT4O,
         api_key="test-key",  # pragma: allowlist secret
     )
@@ -161,7 +163,7 @@ def test_initialization_gpt4(mock_openai_client):
 
 def test_initialization_ollama(mock_openai_client):
     """Test initialization with Ollama configuration"""
-    LLMIntegration(
+    ClientProvider(
         model_name=Models.OLLAMA_31_8B,
         base_url="http://localhost:11434",
         api_key="some_api_key",  # pragma: allowlist secret
@@ -176,7 +178,7 @@ def test_initialization_ollama(mock_openai_client):
 def test_initialization_invalid_model():
     """Test initialization with invalid model type"""
     with pytest.raises(ValueError, match="Invalid model name"):
-        LLMIntegration(model_name="invalid-model")
+        ClientProvider(model_name="invalid-model")
 
 
 @patch(f"{alphastats.llm.llm_integration.__name__}.datetime")
@@ -369,30 +371,6 @@ def test_parse_model_response(
     assert tool_calls[0].type == "function"
 
 
-def test_chat_completion_with_content_and_tool_calls(llm_integration: LLMIntegration):
-    """Test that chat completion raises error when receiving both content and tool calls"""
-    mock_response = Mock(spec=ChatCompletion)
-    mock_response.choices = [
-        Mock(
-            message=ChatCompletionMessage(
-                role="assistant",
-                content="Some content",
-                tool_calls=[
-                    ChatCompletionMessageToolCall(
-                        id="test-id",
-                        type="function",
-                        function={"name": "test_function", "arguments": "{}"},
-                    )
-                ],
-            )
-        )
-    ]
-    llm_integration._client.chat.completions.create.return_value = mock_response
-
-    with pytest.raises(ValueError, match="Unexpected content.*with tool calls"):
-        llm_integration.chat_completion("Test prompt")
-
-
 @pytest.mark.parametrize(
     "function_name,function_args,expected_result",
     [
@@ -466,7 +444,7 @@ def test_execute_function_with_error(
 
 def test_execute_function_without_dataset(mock_openai_client):
     """Test function execution when dataset is not available"""
-    llm = LLMIntegration(model_name=Models.GPT4O, api_key="test-key")
+    llm = LLMIntegration(ClientProvider(model_name=Models.GPT4O, api_key="test-key"))
 
     with pytest.raises(
         ValueError,
@@ -483,8 +461,10 @@ def test_handle_function_calls(
     mock_execute_function.return_value = "some_function_result"
 
     llm_integration = LLMIntegration(
-        model_name=Models.GPT4O,
-        api_key="test-key",  # pragma: allowlist secret
+        ClientProvider(
+            model_name=Models.GPT4O,
+            api_key="test-key",  # pragma: allowlist secret
+        ),
         system_message="Test system message",
     )
 

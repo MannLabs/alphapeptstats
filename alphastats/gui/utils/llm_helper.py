@@ -20,6 +20,7 @@ from alphastats.gui.utils.state_keys import (
     StateKeys,
 )
 from alphastats.llm.llm_integration import (
+    ClientProvider,
     LLMIntegration,
     MessageKeys,
     ModelFlags,
@@ -358,7 +359,8 @@ def llm_connection_test(
     """Test the connection to the LLM API, return None in case of success, error message otherwise."""
     try:
         llm = LLMIntegration(
-            model_name, base_url=base_url, api_key=api_key, load_tools=False
+            ClientProvider(model_name, base_url=base_url, api_key=api_key),
+            load_tools=False,
         )
         llm.chat_completion(
             "This is a test. Simply respond 'yes' if you got this message."
