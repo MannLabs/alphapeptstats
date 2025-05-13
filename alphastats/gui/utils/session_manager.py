@@ -13,6 +13,7 @@ from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 from alphastats import __version__
 from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
+from alphastats.llm.llm_integration import LLMClientWrapper
 
 
 class SavedSessionKeys:
@@ -135,9 +136,24 @@ class SessionManager:
                 )
 
             # clean and init first to have a defined state
+            model_name = session_state[StateKeys.MODEL_NAME]
+            api_key = session_state[StateKeys.OPENAI_API_KEY]
+            base_url = session_state[StateKeys.BASE_URL]
+
             empty_session_state()
             init_session_state()
             self._safe_copy(loaded_state_data, session_state)
+
+            for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
+                if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
+                    # TODO: this re-initializes all llm clients with the same model name
+                    # once we have a 'proper' llm config page, this should be done there:
+                    # basically, we need to re-initialize the client wrapper with the model name
+                    llm_integration.client_wrapper = LLMClientWrapper(
+                        model_name=model_name,
+                        api_key=api_key,
+                        base_url=base_url,
+                    )
 
             return str(file_path)
 
