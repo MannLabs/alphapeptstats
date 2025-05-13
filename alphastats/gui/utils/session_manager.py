@@ -51,7 +51,7 @@ class SessionManager:
         self._save_folder_path = Path(save_folder_path)
 
     @staticmethod
-    def _safe_copy(source: dict, target: dict | SessionStateProxy) -> None:
+    def _clean_copy(source: dict, target: dict | SessionStateProxy) -> None:
         """Copy a session state dictionary from `source` to `target`, only considering keys in `StateKeys`.
 
         The restriction to the keys in `StateKeys` is to avoid storing unnecessary data, and avoids
@@ -87,7 +87,7 @@ class SessionManager:
         Only considering keys in `StateKeys` are saved.
         """
         state_data_to_save = {}
-        self._safe_copy(session_state.to_dict(), state_data_to_save)
+        self._clean_copy(session_state.to_dict(), state_data_to_save)
         self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
@@ -142,7 +142,7 @@ class SessionManager:
 
             empty_session_state()
             init_session_state()
-            self._safe_copy(loaded_state_data, session_state)
+            self._clean_copy(loaded_state_data, session_state)
 
             for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
                 if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:

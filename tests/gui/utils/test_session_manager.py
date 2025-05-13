@@ -1,7 +1,7 @@
 """Tests for the SessionManager class."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from streamlit.runtime.state import SessionStateProxy
@@ -24,10 +24,18 @@ class MockSessionState(SessionStateProxy):
 
 
 @pytest.fixture
-def mock_session_state():
+def mock_llm_integration():
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_session_state(mock_llm_integration):
     """Return a mock session state."""
 
-    return MockSessionState(ignored_key="ignored_value", **EXPECTED_STATE)
+    return MockSessionState(
+        ignored_key="ignored_value",
+        **EXPECTED_STATE,
+    )
 
 
 def test_copy(mock_session_state):
@@ -79,11 +87,18 @@ def test_save_and_load(
 
     file_path = session_manager.save(mock_session_state)
 
-    target = MockSessionState()
+    llm_state = {
+        StateKeys.MODEL_NAME: "some_model_name",
+        StateKeys.OPENAI_API_KEY: "some_key",  # pragma: allowlist secret
+        StateKeys.BASE_URL: "some_url",
+        "some_key_that_will_get_overwritten": "some_value",
+    }
+
+    current_session_state = llm_state.copy()
 
     # when
-    session_manager.load(Path(file_path).name, target)
+    session_manager.load(Path(file_path).name, current_session_state)
 
-    assert target == EXPECTED_STATE
+    assert current_session_state == EXPECTED_STATE | llm_state
     mock_empty_session_state.assert_called_once()
     mock_init_session_state.assert_called_once()
