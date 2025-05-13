@@ -299,7 +299,7 @@ with c1:
         help="Show all messages in the chat interface.",
     )
 with c2:
-    show_inidvidual_tokens = st.checkbox(
+    show_individual_tokens = st.checkbox(
         "Show individual token estimates",
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
@@ -309,5 +309,5 @@ show_llm_chat(
     selected_llm_chat[LLMKeys.LLM_INTEGRATION],
     selected_analysis_key,
     show_all,
-    show_inidvidual_tokens,
+    show_individual_tokens,
 )
