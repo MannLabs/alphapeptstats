@@ -253,23 +253,20 @@ class LLMIntegration:
         float
             The estimated number of tokens
         """
+        messages_content = [
+            message[MessageKeys.CONTENT]
+            for message in messages
+            if message and message[MessageKeys.CONTENT]
+        ]
         try:
             enc = tiktoken.encoding_for_model(model)
             total_tokens = sum(
-                [
-                    len(enc.encode(message[MessageKeys.CONTENT]))
-                    for message in messages
-                    if message and message[MessageKeys.CONTENT]
-                ]
+                [len(enc.encode(content)) for content in messages_content]
             )
         except KeyError:
             # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
             total_tokens = sum(
-                [
-                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
-                    for message in messages
-                    if message and message[MessageKeys.CONTENT]
-                ]
+                [len(content) / average_chars_per_token for content in messages_content]
             )
         return total_tokens
 
