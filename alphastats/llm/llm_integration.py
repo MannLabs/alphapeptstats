@@ -549,8 +549,8 @@ class LLMIntegration:
 
             if tool_calls:
                 if content:
-                    raise ValueError(
-                        f"Unexpected content {content} with tool calls {tool_calls}."
+                    self._append_message(
+                        Roles.ASSISTANT, content, pin_message=pin_message
                     )
 
                 content, _ = self._handle_function_calls(tool_calls)
