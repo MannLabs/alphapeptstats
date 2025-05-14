@@ -5,7 +5,7 @@ import json
 import logging
 import warnings
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import plotly.io as pio
@@ -61,10 +61,7 @@ class MessageKeys(metaclass=ConstantsClass):
     ARTIFACTS = "artifacts"
     PINNED = "pinned"
     TIMESTAMP = "timestamp"
-    TYPE = "type"
-    TEXT = "text"
     IMAGE_URL = "image_url"
-    URL = "url"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -169,7 +166,7 @@ class LLMIntegration:
     def _append_message(
         self,
         role: str,
-        content: str,
+        content: Union[str, List[Dict[str, Any]]],
         *,
         tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
         tool_call_id: Optional[str] = None,
@@ -178,9 +175,22 @@ class LLMIntegration:
         """Construct a message and append it to the conversation history."""
         message = {
             MessageKeys.ROLE: role,
-            MessageKeys.CONTENT: content,
             MessageKeys.PINNED: pin_message,
         }
+
+        if (
+            role == Roles.USER
+            and isinstance(content, list)
+            and any(
+                isinstance(part, dict) and part.get("type") == "image_url"
+                for part in content
+            )
+        ):
+            message[MessageKeys.CONTENT] = content
+        elif not isinstance(content, str):
+            message[MessageKeys.CONTENT] = str(content)
+        else:
+            message[MessageKeys.CONTENT] = content
 
         if tool_calls is not None:
             message[MessageKeys.TOOL_CALLS] = tool_calls
@@ -220,24 +230,50 @@ class LLMIntegration:
         float
             The estimated number of tokens
         """
+        total_tokens = 0
         try:
             enc = tiktoken.encoding_for_model(model)
-            total_tokens = sum(
-                [
-                    len(enc.encode(message[MessageKeys.CONTENT]))
-                    for message in messages
-                    if message
-                ]
-            )
+            for message in messages:
+                if message and MessageKeys.CONTENT in message:
+                    content = message[MessageKeys.CONTENT]
+                    if isinstance(content, str):
+                        total_tokens += len(enc.encode(content))
+                    elif isinstance(content, list):
+                        for part in content:
+                            if (
+                                isinstance(part, dict)
+                                and part.get("type") == "text"
+                                and isinstance(part.get("text"), str)
+                            ):
+                                total_tokens += len(enc.encode(part["text"]))
+                            elif (
+                                isinstance(part, dict)
+                                and part.get("type") == "image_url"
+                            ):
+                                total_tokens += (
+                                    250  # Placeholder token count for an image
+                                )
         except KeyError:
-            # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
-            total_tokens = sum(
-                [
-                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
-                    for message in messages
-                    if message
-                ]
-            )
+            for message in messages:
+                if message and MessageKeys.CONTENT in message:
+                    content = message[MessageKeys.CONTENT]
+                    if isinstance(content, str):
+                        total_tokens += len(content) / average_chars_per_token
+                    elif isinstance(content, list):
+                        for part in content:
+                            if (
+                                isinstance(part, dict)
+                                and part.get("type") == "text"
+                                and isinstance(part.get("text"), str)
+                            ):
+                                total_tokens += (
+                                    len(part["text"]) / average_chars_per_token
+                                )
+                            elif (
+                                isinstance(part, dict)
+                                and part.get("type") == "image_url"
+                            ):
+                                total_tokens += 250  # Placeholder
         return total_tokens
 
     def _truncate_conversation_history(
@@ -396,20 +432,59 @@ class LLMIntegration:
                 MessageKeys.ARTIFACT_ID: artifact_id,
             }
 
-            if image_data:
-                content_dict[MessageKeys.IMAGE_URL] = (
-                    f"data:image/png;base64,{image_data}"
+            content_json_string = json.dumps(content_dict)
+            self._append_message(
+                Roles.TOOL, content_json_string, tool_call_id=tool_call.id
+            )
+
+            if image_data and self._model in ModelFlags.MULTIMODAL:
+                user_image_analysis_prompt_content = [
+                    {
+                        "type": "text",
+                        "text": (
+                            "The previous tool call generated the following image. "
+                            "Please analyze it in the context of our current discussion and your previous actions."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_data}",
+                            "detail": "high",
+                        },
+                    },
+                ]
+                self._append_message(
+                    Roles.USER, user_image_analysis_prompt_content, pin_message=False
                 )
 
-            content = json.dumps(content_dict)
-            self._append_message(Roles.TOOL, content, tool_call_id=tool_call.id)
-
         post_artifact_message_idx = len(self._all_messages)
-        self._artifacts[post_artifact_message_idx] = new_artifacts.values()
+        self._artifacts[post_artifact_message_idx] = list(
+            new_artifacts.values()
+        )  # Ensure it's a list
 
         response = self._chat_completion_create()
 
         return self._parse_model_response(response)
+
+    @staticmethod
+    def _is_image_analysis_prompt(message: Dict[str, Any]) -> bool:
+        """Check if a user message is an image analysis prompt."""
+        if message[MessageKeys.ROLE] == Roles.USER and isinstance(
+            message[MessageKeys.CONTENT], list
+        ):
+            is_image_analysis_text = False
+            has_image_url = False
+            for part in message[MessageKeys.CONTENT]:
+                if isinstance(part, dict):
+                    if part.get("type") == "text" and part.get("text", "").startswith(
+                        "The previous tool call generated the following image."
+                    ):
+                        is_image_analysis_text = True
+                    elif part.get("type") == "image_url":
+                        has_image_url = True
+            return is_image_analysis_text and has_image_url
+        return False
 
     @staticmethod
     def _create_string_representation(
@@ -434,7 +509,6 @@ class LLMIntegration:
         result_type = type(function_result).__name__
         primitive_types = (int, float, str, bool)
         simple_iterable_types = (list, tuple, set)
-        print(str(type(function_result)))
         iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
         single_artifact_description = "Function {} with arguments {} returned a {}."
         LLM_instructions = " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with."
@@ -514,6 +588,9 @@ class LLMIntegration:
             ):
                 continue
             if not show_all and MessageKeys.TOOL_CALLS in message:
+                continue
+
+            if self._is_image_analysis_prompt(message):
                 continue
 
             print_view.append(
