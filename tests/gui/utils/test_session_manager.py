@@ -115,7 +115,7 @@ def test_save_and_load(
     # when
     session_manager.load(Path(file_path).name, session_state_before_load)
 
-    assert session_state_before_load == EXPECTED_STATE | llm_state
+    assert session_state_before_load == {**EXPECTED_STATE, **llm_state}
     mock_empty_session_state.assert_called_once()
     mock_init_session_state.assert_called_once()
 
@@ -148,8 +148,10 @@ def test_save_and_load_with_llm(
     # when
     session_manager.load(Path(file_path).name, session_state_before_load)
 
-    assert session_state_before_load == EXPECTED_STATE | llm_state | {
-        StateKeys.LLM_CHATS: {"some_datetime": {LLMKeys.LLM_INTEGRATION: mock.ANY}}
+    assert session_state_before_load == {
+        **EXPECTED_STATE,
+        **llm_state,
+        **{StateKeys.LLM_CHATS: {"some_datetime": {LLMKeys.LLM_INTEGRATION: mock.ANY}}},
     }
 
     mock_empty_session_state.assert_called_once()
