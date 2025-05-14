@@ -1,6 +1,6 @@
 from datetime import datetime
 from unittest import mock, skip
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,10 +11,10 @@ from openai.types.chat import (
     ChatCompletionMessageToolCall,
 )
 from openai.types.chat.chat_completion_message_tool_call import Function
-from plots.plot_utils import PlotlyObject
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import LLMIntegration, Models
+from alphastats.llm.llm_integration import LLMIntegration, ModelFlags, Models
+from alphastats.plots.plot_utils import PlotlyObject
 
 
 @pytest.fixture
@@ -476,6 +476,8 @@ def test_handle_function_calls(
     mock_openai_client.return_value.chat.completions.create.return_value = (
         mock_chat_completion
     )
+
+    # when
     result = llm_integration._handle_function_calls(tool_calls)
 
     assert result == ("Test response", None)
@@ -519,6 +521,115 @@ def test_handle_function_calls(
     assert list(llm_integration._artifacts[3]) == ["some_function_result"]
 
     assert llm_integration._messages == expected_messages
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._get_image_analysis_prompt")
+@patch("alphastats.llm.llm_integration.LLMIntegration._execute_function")
+def test_handle_function_calls_with_images(
+    mock_execute_function,
+    mock_get_image_analysis_prompt,
+    mock_openai_client,
+    mock_chat_completion,
+):
+    """Test handling of function calls that return images in the chat completion response."""
+    mock_execute_function.return_value = PlotlyObject()
+
+    llm_integration = LLMIntegration(
+        model_name=Models.GPT4O,
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    tool_calls = [
+        ChatCompletionMessageToolCall(
+            id="test-id",
+            type="function",
+            function={"name": "test_function", "arguments": '{"arg1": "value1"}'},
+        )
+    ]
+
+    mock_openai_client.return_value.chat.completions.create.return_value = (
+        mock_chat_completion
+    )
+    mock_get_image_analysis_prompt.return_value = [
+        {"image_analysis_prompt": "something"}
+    ]
+
+    # when
+    _ = llm_integration._handle_function_calls(tool_calls)
+
+    assert {
+        "role": "user",
+        "pinned": False,
+        "content": [{"image_analysis_prompt": "something"}],
+        "timestamp": mock.ANY,
+    } in mock_openai_client.return_value.chat.completions.create.call_args_list[
+        0
+    ].kwargs["messages"]
+
+
+def test_get_image_analysis_prompt_returns_empty_prompt_if_model_not_multimodal():
+    """Test that the _get_image_analysis_prompt method returns an empty prompt if the model is not multimodal."""
+    llm_integration = LLMIntegration(
+        model_name=Models.GPT4O,
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    llm_integration._model = "non_multimodal_model"
+    result = llm_integration._get_image_analysis_prompt(MagicMock())
+    assert result == []
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._plotly_to_base64")
+def test_get_image_analysis_prompt_returns_prompt_with_image_data_for_multimodal_model(
+    mock_plotly_to_base64,
+):
+    """Test that the _get_image_analysis_prompt method returns a prompt with image data for a multimodal model."""
+
+    llm_integration = LLMIntegration(
+        model_name=ModelFlags.MULTIMODAL[0],
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    function_result = MagicMock()
+
+    mock_plotly_to_base64.return_value = "mock_base64_image_data"
+    result = llm_integration._get_image_analysis_prompt(function_result)
+
+    assert result == [
+        {
+            "type": "text",
+            "text": "The previous tool call generated the following image. Please analyze it in the context of our current discussion and your previous actions.",
+        },
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": "data:image/png;base64,mock_base64_image_data",
+                "detail": "high",
+            },
+        },
+    ]
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._plotly_to_base64")
+def test_get_image_analysis_prompt_handles_plotly_conversion_failure_gracefully(
+    mock_plotly_to_base64,
+):
+    """Test that the _get_image_analysis_prompt method handles plotly conversion failure gracefully."""
+    llm_integration = LLMIntegration(
+        model_name=ModelFlags.MULTIMODAL[0],
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    function_result = MagicMock()
+
+    mock_plotly_to_base64.side_effect = Exception("Conversion failed")
+    result = llm_integration._get_image_analysis_prompt(function_result)
+
+    assert result == []
 
 
 def test_get_print_view_default(llm_with_conversation: LLMIntegration):

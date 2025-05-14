@@ -432,11 +432,16 @@ class LLMIntegration:
                 Roles.TOOL, json.dumps(content_dict), tool_call_id=tool_call.id
             )
 
-            user_image_analysis_prompt_content = self._handle_image(function_result)
-            if user_image_analysis_prompt_content:
+            if "PlotlyObject" in str(
+                type(function_result)  # :  # TODO: see if isinstance works here
+            ) and (
+                image_analysis_prompt := self._get_image_analysis_prompt(
+                    function_result
+                )
+            ):
                 self._append_message(
                     Roles.USER,
-                    user_image_analysis_prompt_content,
+                    image_analysis_prompt,
                     pin_message=False,
                     keep_list=True,
                 )
@@ -450,22 +455,20 @@ class LLMIntegration:
 
         return self._parse_model_response(response)
 
-    def _handle_image(self, function_result: Any) -> List[Dict[str, str]]:
-        """Handle image generation and analysis."""
+    def _get_image_analysis_prompt(self, function_result: Any) -> List[Dict[str, str]]:
+        """Get prompt to handle image generation and analysis."""
 
-        image_data = None
-        user_image_analysis_prompt_content = []
+        image_analysis_prompt = []
 
-        if "PlotlyObject" in str(
-            type(function_result)
-        ):  # TODO: see if isinstance works here
-            try:
-                image_data = self._plotly_to_base64(function_result)
-            except Exception as e:
-                logger.warning(f"Failed to convert Plotly figure to image: {str(e)}")
+        if self._model not in ModelFlags.MULTIMODAL:
+            return image_analysis_prompt
 
-        if image_data and self._model in ModelFlags.MULTIMODAL:
-            user_image_analysis_prompt_content = [
+        try:
+            image_data = self._plotly_to_base64(function_result)
+        except Exception as e:
+            logger.warning(f"Failed to convert Plotly figure to image: {str(e)}")
+        else:
+            image_analysis_prompt = [
                 {
                     "type": "text",
                     "text": (
@@ -482,7 +485,7 @@ class LLMIntegration:
                 },
             ]
 
-        return user_image_analysis_prompt_content
+        return image_analysis_prompt
 
     @staticmethod
     def _is_image_analysis_prompt(message: Dict[str, Any]) -> bool:
