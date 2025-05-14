@@ -207,7 +207,7 @@ class LLMIntegration:
         self._messages.append(message)
         self._all_messages.append(message)
 
-        # self._truncate_conversation_history()
+        self._truncate_conversation_history()
 
     @staticmethod
     def estimate_tokens(

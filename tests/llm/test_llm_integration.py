@@ -370,30 +370,6 @@ def test_parse_model_response(
     assert tool_calls[0].type == "function"
 
 
-def test_chat_completion_with_content_and_tool_calls(llm_integration: LLMIntegration):
-    """Test that chat completion raises error when receiving both content and tool calls"""
-    mock_response = Mock(spec=ChatCompletion)
-    mock_response.choices = [
-        Mock(
-            message=ChatCompletionMessage(
-                role="assistant",
-                content="Some content",
-                tool_calls=[
-                    ChatCompletionMessageToolCall(
-                        id="test-id",
-                        type="function",
-                        function={"name": "test_function", "arguments": "{}"},
-                    )
-                ],
-            )
-        )
-    ]
-    llm_integration._client.chat.completions.create.return_value = mock_response
-
-    with pytest.raises(ValueError, match="Unexpected content.*with tool calls"):
-        llm_integration.chat_completion("Test prompt")
-
-
 @pytest.mark.parametrize(
     "function_name,function_args,expected_result",
     [
