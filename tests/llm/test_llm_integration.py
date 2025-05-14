@@ -523,11 +523,11 @@ def test_handle_function_calls(
     assert llm_integration._messages == expected_messages
 
 
-@patch("alphastats.llm.llm_integration.LLMIntegration._get_image_analysis_prompt")
+@patch("alphastats.llm.llm_integration.LLMIntegration._get_image_analysis_message")
 @patch("alphastats.llm.llm_integration.LLMIntegration._execute_function")
 def test_handle_function_calls_with_images(
     mock_execute_function,
-    mock_get_image_analysis_prompt,
+    mock_get_image_analysis_message,
     mock_openai_client,
     mock_chat_completion,
 ):
@@ -551,8 +551,8 @@ def test_handle_function_calls_with_images(
     mock_openai_client.return_value.chat.completions.create.return_value = (
         mock_chat_completion
     )
-    mock_get_image_analysis_prompt.return_value = [
-        {"image_analysis_prompt": "something"}
+    mock_get_image_analysis_message.return_value = [
+        {"image_analysis_message": "something"}
     ]
 
     # when
@@ -561,15 +561,15 @@ def test_handle_function_calls_with_images(
     assert {
         "role": "user",
         "pinned": False,
-        "content": [{"image_analysis_prompt": "something"}],
+        "content": [{"image_analysis_message": "something"}],
         "timestamp": mock.ANY,
     } in mock_openai_client.return_value.chat.completions.create.call_args_list[
         0
     ].kwargs["messages"]
 
 
-def test_get_image_analysis_prompt_returns_empty_prompt_if_model_not_multimodal():
-    """Test that the _get_image_analysis_prompt method returns an empty prompt if the model is not multimodal."""
+def test_get_image_analysis_message_returns_empty_prompt_if_model_not_multimodal():
+    """Test that the _get_image_analysis_message method returns an empty prompt if the model is not multimodal."""
     llm_integration = LLMIntegration(
         model_name=Models.OLLAMA_31_70B,
         api_key="test-key",  # pragma: allowlist secret
@@ -577,16 +577,16 @@ def test_get_image_analysis_prompt_returns_empty_prompt_if_model_not_multimodal(
     )
 
     # when
-    result = llm_integration._get_image_analysis_prompt(MagicMock())
+    result = llm_integration._get_image_analysis_message(MagicMock())
 
     assert result == []
 
 
 @patch("alphastats.llm.llm_integration.LLMIntegration._plotly_to_base64")
-def test_get_image_analysis_prompt_returns_prompt_with_image_data_for_multimodal_model(
+def test_get_image_analysis_message_returns_prompt_with_image_data_for_multimodal_model(
     mock_plotly_to_base64,
 ):
-    """Test that the _get_image_analysis_prompt method returns a prompt with image data for a multimodal model."""
+    """Test that the _get_image_analysis_message method returns a prompt with image data for a multimodal model."""
 
     llm_integration = LLMIntegration(
         model_name=ModelFlags.MULTIMODAL[0],
@@ -598,7 +598,7 @@ def test_get_image_analysis_prompt_returns_prompt_with_image_data_for_multimodal
     mock_plotly_to_base64.return_value = "mock_base64_image_data"
 
     # when
-    result = llm_integration._get_image_analysis_prompt(function_result)
+    result = llm_integration._get_image_analysis_message(function_result)
 
     assert result == [
         {
@@ -616,10 +616,10 @@ def test_get_image_analysis_prompt_returns_prompt_with_image_data_for_multimodal
 
 
 @patch("alphastats.llm.llm_integration.LLMIntegration._plotly_to_base64")
-def test_get_image_analysis_prompt_handles_plotly_conversion_failure_gracefully(
+def test_get_image_analysis_message_handles_plotly_conversion_failure_gracefully(
     mock_plotly_to_base64,
 ):
-    """Test that the _get_image_analysis_prompt method handles plotly conversion failure gracefully."""
+    """Test that the _get_image_analysis_message method handles plotly conversion failure gracefully."""
     llm_integration = LLMIntegration(
         model_name=ModelFlags.MULTIMODAL[0],
         api_key="test-key",  # pragma: allowlist secret
@@ -630,7 +630,7 @@ def test_get_image_analysis_prompt_handles_plotly_conversion_failure_gracefully(
     mock_plotly_to_base64.side_effect = Exception("Conversion failed")
 
     # when
-    result = llm_integration._get_image_analysis_prompt(function_result)
+    result = llm_integration._get_image_analysis_message(function_result)
 
     assert result == []
 

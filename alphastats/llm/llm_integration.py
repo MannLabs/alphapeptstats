@@ -430,23 +430,23 @@ class LLMIntegration:
                 self._model in ModelFlags.MULTIMODAL,
             )
 
-            content_dict = {
-                MessageKeys.RESULT: result_representation,
-                MessageKeys.ARTIFACT_ID: artifact_id,
-            }
-
-            self._append_message(
-                Roles.TOOL, json.dumps(content_dict), tool_call_id=tool_call.id
+            message = json.dumps(
+                {
+                    MessageKeys.RESULT: result_representation,
+                    MessageKeys.ARTIFACT_ID: artifact_id,
+                }
             )
 
+            self._append_message(Roles.TOOL, message, tool_call_id=tool_call.id)
+
             if isinstance(function_result, PlotlyObject) and (
-                image_analysis_prompt := self._get_image_analysis_prompt(
+                image_analysis_message := self._get_image_analysis_message(
                     function_result
                 )
             ):
                 self._append_message(
                     Roles.USER,
-                    image_analysis_prompt,
+                    image_analysis_message,
                     pin_message=False,
                     keep_list=True,
                 )
@@ -458,20 +458,20 @@ class LLMIntegration:
 
         return self._parse_model_response(response)
 
-    def _get_image_analysis_prompt(self, function_result: Any) -> List[Dict[str, str]]:
+    def _get_image_analysis_message(self, function_result: Any) -> List[Dict[str, str]]:
         """Get prompt to handle image generation and analysis."""
 
-        image_analysis_prompt = []
+        image_analysis_message = []
 
         if self._model not in ModelFlags.MULTIMODAL:
-            return image_analysis_prompt
+            return image_analysis_message
 
         try:
             image_data = self._plotly_to_base64(function_result)
         except Exception as e:
             logger.warning(f"Failed to convert Plotly figure to image: {str(e)}")
         else:
-            image_analysis_prompt = [
+            image_analysis_message = [
                 {
                     "type": "text",
                     "text": (
@@ -488,10 +488,10 @@ class LLMIntegration:
                 },
             ]
 
-        return image_analysis_prompt
+        return image_analysis_message
 
     @staticmethod
-    def _is_image_analysis_prompt(message: Dict[str, Any]) -> bool:
+    def _is_image_analysis_message(message: Dict[str, Any]) -> bool:
         """Check if a user message is an image analysis prompt."""
         if message[MessageKeys.ROLE] == Roles.USER and isinstance(
             message[MessageKeys.CONTENT], list
@@ -611,7 +611,7 @@ class LLMIntegration:
             if not show_all and MessageKeys.TOOL_CALLS in message:
                 continue
 
-            if self._is_image_analysis_prompt(message):
+            if self._is_image_analysis_message(message):
                 continue
 
             print_view.append(
