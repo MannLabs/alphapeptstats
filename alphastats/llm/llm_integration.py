@@ -181,6 +181,7 @@ class LLMIntegration:
         tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
         tool_call_id: Optional[str] = None,
         pin_message: bool = False,
+        keep_list: bool = False,
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
@@ -188,19 +189,10 @@ class LLMIntegration:
             MessageKeys.PINNED: pin_message,
         }
 
-        if (
-            role == Roles.USER
-            and isinstance(content, list)
-            and any(
-                isinstance(part, dict) and part.get("type") == "image_url"
-                for part in content
-            )
-        ):
+        if keep_list:
             message[MessageKeys.CONTENT] = content
-        elif not isinstance(content, str):
-            message[MessageKeys.CONTENT] = str(content)
         else:
-            message[MessageKeys.CONTENT] = content
+            message[MessageKeys.CONTENT] = str(content)
 
         if tool_calls is not None:
             message[MessageKeys.TOOL_CALLS] = tool_calls
@@ -443,7 +435,10 @@ class LLMIntegration:
             user_image_analysis_prompt_content = self._handle_image(function_result)
             if user_image_analysis_prompt_content:
                 self._append_message(
-                    Roles.USER, user_image_analysis_prompt_content, pin_message=False
+                    Roles.USER,
+                    user_image_analysis_prompt_content,
+                    pin_message=False,
+                    keep_list=True,
                 )
 
         post_artifact_message_idx = len(self._all_messages)
