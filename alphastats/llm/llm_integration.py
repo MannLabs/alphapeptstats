@@ -26,10 +26,11 @@ from alphastats.llm.llm_utils import (
     get_subgroups_for_each_group,
 )
 from alphastats.llm.prompts import (
-    ANALYZE_IMAGE_PROMPT,
-    DESCRIBE_ITERABLE_ARTIFACT_PROMPT,
-    DESCRIBE_SINGLE_ARTIFACT_PROMPT,
+    IMAGE_ANALYSIS_PROMPT,
+    IMAGE_REPRESENTATION_PROMPT,
+    ITERABLE_ARTIFACT_REPRESENTATION_PROMPT,
     NO_REPRESENTATION_PROMPT,
+    SINGLE_ARTIFACT_REPRESENTATION_PROMPT,
     get_tool_call_message,
 )
 from alphastats.plots.plot_utils import PlotlyObject
@@ -474,10 +475,7 @@ class LLMIntegration:
             image_analysis_message = [
                 {
                     "type": "text",
-                    "text": (
-                        "The previous tool call generated the following image. "
-                        "Please analyze it in the context of our current discussion and your previous actions."
-                    ),
+                    "text": (IMAGE_ANALYSIS_PROMPT),
                 },
                 {
                     "type": "image_url",
@@ -501,7 +499,7 @@ class LLMIntegration:
             for part in message[MessageKeys.CONTENT]:
                 if isinstance(part, dict):
                     if part.get("type") == "text" and part.get("text", "").startswith(
-                        ANALYZE_IMAGE_PROMPT[:20]
+                        IMAGE_REPRESENTATION_PROMPT[:20]
                     ):
                         is_image_analysis_text = True
                     elif part.get("type") == "image_url":
@@ -539,7 +537,11 @@ class LLMIntegration:
         simple_iterable_types = (list, tuple, set)
 
         if isinstance(function_result, PlotlyObject):
-            return ANALYZE_IMAGE_PROMPT if is_multimodal else NO_REPRESENTATION_PROMPT
+            return (
+                IMAGE_REPRESENTATION_PROMPT
+                if is_multimodal
+                else NO_REPRESENTATION_PROMPT
+            )
 
         if isinstance(function_result, primitive_types):
             return str(function_result)
@@ -562,7 +564,7 @@ class LLMIntegration:
                 return str(function_result)
             else:
                 return (
-                    DESCRIBE_ITERABLE_ARTIFACT_PROMPT.format(
+                    ITERABLE_ARTIFACT_REPRESENTATION_PROMPT.format(
                         function_name,
                         json.dumps(function_args),
                         result_type,
@@ -572,7 +574,7 @@ class LLMIntegration:
                 )
 
         return (
-            DESCRIBE_SINGLE_ARTIFACT_PROMPT.format(
+            SINGLE_ARTIFACT_REPRESENTATION_PROMPT.format(
                 function_name, json.dumps(function_args), result_type
             )
             + NO_REPRESENTATION_PROMPT
