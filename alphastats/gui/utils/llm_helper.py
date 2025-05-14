@@ -14,6 +14,7 @@ from alphastats.gui.utils.state_keys import (
     MODEL_SYNCED_LLM_KEYS,
     WIDGET_SYNCED_LLM_KEYS,
     DefaultStates,
+    KeySyncNames,
     LLMKeys,
     SavedAnalysisKeys,
     StateKeys,
@@ -512,14 +513,18 @@ def on_select_new_analysis_fill_state() -> None:
     )
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        st.session_state[synced_key.StateKey] = selected_chat.get(
-            synced_key.LLMKey, synced_key.get_default
+        st.session_state[getattr(synced_key, KeySyncNames.STATE)] = selected_chat.get(
+            getattr(synced_key, KeySyncNames.LLM),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            st.session_state[synced_key.StateKey] = selected_chat.get(
-                synced_key.LLMKey, synced_key.get_default
+            st.session_state[getattr(synced_key, KeySyncNames.STATE)] = (
+                selected_chat.get(
+                    getattr(synced_key, KeySyncNames.LLM),
+                    getattr(synced_key, KeySyncNames.GET_DEFAULT),
+                )
             )
 
     st.toast("State filled from saved analysis.", icon="🔍")
@@ -538,14 +543,16 @@ def on_change_save_state() -> None:
         return
 
     for synced_key in WIDGET_SYNCED_LLM_KEYS:
-        selected_chat[synced_key.LLMKey] = st.session_state.get(
-            synced_key.StateKey, synced_key.get_default
+        selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+            getattr(synced_key, KeySyncNames.STATE),
+            getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
     if not selected_chat.get(LLMKeys.IS_INITIALIZED):
         for synced_key in MODEL_SYNCED_LLM_KEYS:
-            selected_chat[synced_key.LLMKey] = st.session_state.get(
-                synced_key.StateKey, synced_key.get_default
+            selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
+                getattr(synced_key, KeySyncNames.STATE),
+                getattr(synced_key, KeySyncNames.GET_DEFAULT),
             )
 
 

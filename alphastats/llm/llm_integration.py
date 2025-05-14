@@ -25,7 +25,14 @@ from alphastats.llm.llm_functions import (
 from alphastats.llm.llm_utils import (
     get_subgroups_for_each_group,
 )
-from alphastats.llm.prompts import get_tool_call_message
+from alphastats.llm.prompts import (
+    ANALYZE_IMAGE_PROMPT,
+    DESCRIBE_ITERABLE_ARTIFACT_PROMPT,
+    DESCRIBE_SINGLE_ARTIFACT_PROMPT,
+    NO_REPRESENTATION_PROMPT,
+    get_tool_call_message,
+)
+from alphastats.plots.plot_utils import PlotlyObject
 
 logger = logging.getLogger(__name__)
 
@@ -447,9 +454,7 @@ class LLMIntegration:
                 )
 
         post_artifact_message_idx = len(self._all_messages)
-        self._artifacts[post_artifact_message_idx] = list(
-            new_artifacts.values()
-        )  # Ensure it's a list
+        self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
 
         response = self._chat_completion_create()
 
@@ -498,7 +503,7 @@ class LLMIntegration:
             for part in message[MessageKeys.CONTENT]:
                 if isinstance(part, dict):
                     if part.get("type") == "text" and part.get("text", "").startswith(
-                        "The previous tool call generated the following image."
+                        ANALYZE_IMAGE_PROMPT[:20]
                     ):
                         is_image_analysis_text = True
                     elif part.get("type") == "image_url":
@@ -523,6 +528,8 @@ class LLMIntegration:
             The name of the function
         function_args : Dict
             The arguments passed to the function
+        is_multimodal : bool
+            Whether the current model supports multimodal inputs
 
         Returns
         -------
@@ -532,67 +539,50 @@ class LLMIntegration:
         result_type = type(function_result).__name__
         primitive_types = (int, float, str, bool)
         simple_iterable_types = (list, tuple, set)
-        # TODO: move these to prompts.py
-        iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
-        single_artifact_description = "Function {} with arguments {} returned a {}."
-        image_description = (
-            "This is a visualization result that will be provided as an image."
-        )
-        no_representation_description = (
-            " There is currently no text representation for this artifact that can be interpreted meaningfully. "
-            "If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with."
-        )
+
+        if isinstance(function_result, PlotlyObject):
+            return ANALYZE_IMAGE_PROMPT if is_multimodal else NO_REPRESENTATION_PROMPT
+
         if isinstance(function_result, primitive_types):
             return str(function_result)
-        elif isinstance(function_result, pd.DataFrame):
+
+        if isinstance(function_result, pd.DataFrame):
             return function_result.to_json()
-        elif isinstance(function_result, dict):
-            if all(
-                isinstance(element, primitive_types)
-                for element in function_result.values()
-            ):
-                return str(function_result)
-            else:
-                return (
-                    iterable_artifact_description.format(
-                        function_name,
-                        json.dumps(function_args),
-                        result_type,
-                        len(function_result),
-                    )
-                    + no_representation_description
-                )
+
+        items_to_check = None
+        is_collection_type = False
+
+        if isinstance(function_result, dict):
+            items_to_check = function_result.values()
+            is_collection_type = True
         elif isinstance(function_result, simple_iterable_types):
-            if all(isinstance(element, primitive_types) for element in function_result):
+            items_to_check = function_result
+            is_collection_type = True
+
+        if is_collection_type:
+            if all(isinstance(item, primitive_types) for item in items_to_check):
                 return str(function_result)
             else:
                 return (
-                    iterable_artifact_description.format(
+                    DESCRIBE_ITERABLE_ARTIFACT_PROMPT.format(
                         function_name,
                         json.dumps(function_args),
                         result_type,
                         len(function_result),
                     )
-                    + no_representation_description
+                    + NO_REPRESENTATION_PROMPT
                 )
-        elif "PlotlyObject" in str(type(function_result)):
-            if is_multimodal:
-                return image_description
-            else:
-                return no_representation_description
-        else:
-            return (
-                single_artifact_description.format(
-                    function_name, json.dumps(function_args), result_type
-                )
-                + no_representation_description
+
+        return (
+            DESCRIBE_SINGLE_ARTIFACT_PROMPT.format(
+                function_name, json.dumps(function_args), result_type
             )
+            + NO_REPRESENTATION_PROMPT
+        )
 
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
         logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-        for message in self._messages:
-            print(message)
         result = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
