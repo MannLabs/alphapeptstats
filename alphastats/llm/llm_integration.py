@@ -424,17 +424,11 @@ class LLMIntegration:
             artifact_id = f"{function_name}_{tool_call.id}"
             new_artifacts[artifact_id] = function_result
 
-            image_data = None
-            if "PlotlyObject" in str(type(function_result)):
-                try:
-                    image_data = self._plotly_to_base64(function_result)
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to convert Plotly figure to image: {str(e)}"
-                    )
-
             result_representation = self._create_string_representation(
-                function_result, function_name, function_args
+                function_result,
+                function_name,
+                function_args,
+                self._model in ModelFlags.MULTIMODAL,
             )
 
             content_dict = {
@@ -442,28 +436,12 @@ class LLMIntegration:
                 MessageKeys.ARTIFACT_ID: artifact_id,
             }
 
-            content_json_string = json.dumps(content_dict)
             self._append_message(
-                Roles.TOOL, content_json_string, tool_call_id=tool_call.id
+                Roles.TOOL, json.dumps(content_dict), tool_call_id=tool_call.id
             )
 
-            if image_data and self._model in ModelFlags.MULTIMODAL:
-                user_image_analysis_prompt_content = [
-                    {
-                        "type": "text",
-                        "text": (
-                            "The previous tool call generated the following image. "
-                            "Please analyze it in the context of our current discussion and your previous actions."
-                        ),
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{image_data}",
-                            "detail": "high",
-                        },
-                    },
-                ]
+            user_image_analysis_prompt_content = self._handle_image(function_result)
+            if user_image_analysis_prompt_content:
                 self._append_message(
                     Roles.USER, user_image_analysis_prompt_content, pin_message=False
                 )
@@ -476,6 +454,36 @@ class LLMIntegration:
         response = self._chat_completion_create()
 
         return self._parse_model_response(response)
+
+    def _handle_image(self, function_result):
+        image_data = None
+        user_image_analysis_prompt_content = []
+
+        if "PlotlyObject" in str(type(function_result)):
+            try:
+                image_data = self._plotly_to_base64(function_result)
+            except Exception as e:
+                logger.warning(f"Failed to convert Plotly figure to image: {str(e)}")
+
+        if image_data and self._model in ModelFlags.MULTIMODAL:
+            user_image_analysis_prompt_content = [
+                {
+                    "type": "text",
+                    "text": (
+                        "The previous tool call generated the following image. "
+                        "Please analyze it in the context of our current discussion and your previous actions."
+                    ),
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{image_data}",
+                        "detail": "high",
+                    },
+                },
+            ]
+
+        return user_image_analysis_prompt_content
 
     @staticmethod
     def _is_image_analysis_prompt(message: Dict[str, Any]) -> bool:
@@ -498,7 +506,10 @@ class LLMIntegration:
 
     @staticmethod
     def _create_string_representation(
-        function_result: Any, function_name: str, function_args: Dict
+        function_result: Any,
+        function_name: str,
+        function_args: Dict,
+        is_multimodal: bool,
     ) -> str:
         """Create a string representation of the function result.
 
@@ -519,9 +530,16 @@ class LLMIntegration:
         result_type = type(function_result).__name__
         primitive_types = (int, float, str, bool)
         simple_iterable_types = (list, tuple, set)
+        # TODO: move these to prompts.py
         iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
         single_artifact_description = "Function {} with arguments {} returned a {}."
-        LLM_instructions = " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with."
+        image_description = (
+            "This is a visualization result that will be provided as an image."
+        )
+        no_representation_description = (
+            " There is currently no text representation for this artifact that can be interpreted meaningfully. "
+            "If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with."
+        )
         if isinstance(function_result, primitive_types):
             return str(function_result)
         elif isinstance(function_result, pd.DataFrame):
@@ -540,7 +558,7 @@ class LLMIntegration:
                         result_type,
                         len(function_result),
                     )
-                    + LLM_instructions
+                    + no_representation_description
                 )
         elif isinstance(function_result, simple_iterable_types):
             if all(isinstance(element, primitive_types) for element in function_result):
@@ -553,16 +571,19 @@ class LLMIntegration:
                         result_type,
                         len(function_result),
                     )
-                    + LLM_instructions
+                    + no_representation_description
                 )
         elif "PlotlyObject" in str(type(function_result)):
-            return "This is a visualization result that will be shown visually. Please analyze what you see in this plot."
+            if is_multimodal:
+                return image_description
+            else:
+                return no_representation_description
         else:
             return (
                 single_artifact_description.format(
                     function_name, json.dumps(function_args), result_type
                 )
-                + LLM_instructions
+                + no_representation_description
             )
 
     def _chat_completion_create(self) -> ChatCompletion:
