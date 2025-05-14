@@ -81,6 +81,47 @@ class Roles(metaclass=ConstantsClass):
     SYSTEM = "system"
 
 
+class LLMClientWrapper:
+    """A class to provide the OpenAI client."""
+
+    def __init__(
+        self,
+        model_name: str,
+        *,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
+        """Initialize the client provider.
+
+        model_name : str
+            The type of API to use, will be forwarded to the client.
+        base_url : str, optional
+            The base URL for the API, by default None
+        api_key : str, optional
+            The API key for authentication, by default None
+        """
+        if model_name in ModelFlags.REQUIRES_BASE_URL:
+            url = f"{base_url}/v1"  # TODO: enable to configure this per model
+            self.client = OpenAI(base_url=url, api_key=api_key)
+        elif model_name in [Models.GPT4O]:
+            self.client = OpenAI(api_key=api_key)
+        else:
+            raise ValueError(f"Invalid model name: {model_name}")
+
+        self.model_name = model_name
+
+    def chat_completion_create(
+        self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
+    ) -> ChatCompletion:
+        """Create a chat completion based on the current conversation history."""
+        logger.info(f"Calling 'chat.completions.create' {messages[-1]} ..")
+        return self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            tools=tools,
+        )
+
+
 class LLMIntegration:
     """A class to integrate different LLM APIs and handle chat interactions.
 
@@ -89,41 +130,31 @@ class LLMIntegration:
 
     Parameters
     ----------
-    model_name : str
-        The type of API to use, will be forwarded to the client.
+    client_wrapper : LLMClientWrapper
+        The client provider to be used.
     system_message : str
         The system message that should be given to the model.
-    base_url : str, optional
-        The base URL for the API, by default None
-    api_key : str, optional
-        The API key for authentication, by default None
+    load_tools : bool
+        Whether to load the tools or not, by default True
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
     genes_of_interest: optional
         List of regulated genes
+    max_tokens : int
+        The maximum number of tokens for the conversation history, by default 100000
     """
 
     def __init__(
         self,
-        model_name: str,
+        client_wrapper: LLMClientWrapper,
         *,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
         system_message: str = None,
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
         genes_of_interest: Optional[List[str]] = None,
         max_tokens=100000,
     ):
-        self._model = model_name
-
-        if model_name in ModelFlags.REQUIRES_BASE_URL:
-            url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self._client = OpenAI(base_url=url, api_key=api_key)
-        elif model_name in [Models.GPT4O]:
-            self._client = OpenAI(api_key=api_key)
-        else:
-            raise ValueError(f"Invalid model name: {model_name}")
+        self.client_wrapper = client_wrapper
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
@@ -218,23 +249,20 @@ class LLMIntegration:
         float
             The estimated number of tokens
         """
+        messages_content = [
+            message[MessageKeys.CONTENT]
+            for message in messages
+            if message and message[MessageKeys.CONTENT]
+        ]
         try:
             enc = tiktoken.encoding_for_model(model)
             total_tokens = sum(
-                [
-                    len(enc.encode(message[MessageKeys.CONTENT]))
-                    for message in messages
-                    if message and message[MessageKeys.CONTENT]
-                ]
+                [len(enc.encode(content)) for content in messages_content]
             )
         except KeyError:
             # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
             total_tokens = sum(
-                [
-                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
-                    for message in messages
-                    if message and message[MessageKeys.CONTENT]
-                ]
+                [len(content) / average_chars_per_token for content in messages_content]
             )
         return total_tokens
 
@@ -254,7 +282,9 @@ class LLMIntegration:
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
         while (
-            self.estimate_tokens(self._messages, self._model, average_chars_per_token)
+            self.estimate_tokens(
+                self._messages, self.client_wrapper.model_name, average_chars_per_token
+            )
             > self._max_tokens
         ):
             if len(self._messages) == 1:
@@ -389,7 +419,9 @@ class LLMIntegration:
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = new_artifacts.values()
 
-        response = self._chat_completion_create()
+        response = self.client_wrapper.chat_completion_create(
+            messages=self._messages, tools=self._tools
+        )
 
         return self._parse_model_response(response)
 
@@ -461,17 +493,6 @@ class LLMIntegration:
                 + LLM_instructions
             )
 
-    def _chat_completion_create(self) -> ChatCompletion:
-        """Create a chat completion based on the current conversation history."""
-        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-        result = self._client.chat.completions.create(
-            model=self._model,
-            messages=self._messages,
-            tools=self._tools,
-        )
-        logger.info(".. done")
-        return result
-
     def get_print_view(
         self, show_all=False
     ) -> Tuple[List[Dict[str, Any]], float, float]:
@@ -481,7 +502,7 @@ class LLMIntegration:
         total_tokens = 0
         pinned_tokens = 0
         for message_idx, message in enumerate(self._all_messages):
-            tokens = self.estimate_tokens([message], self._model)
+            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
             in_context = message in self._messages
             if in_context:
                 total_tokens += tokens
@@ -543,7 +564,9 @@ class LLMIntegration:
         self._append_message(role, prompt, pin_message=pin_message)
 
         try:
-            response = self._chat_completion_create()
+            response = self.client_wrapper.chat_completion_create(
+                messages=self._messages, tools=self._tools
+            )
 
             content, tool_calls = self._parse_model_response(response)
 
@@ -577,7 +600,7 @@ class LLMIntegration:
         for message in self._messages:
             role = message[MessageKeys.ROLE]
             content = message[MessageKeys.CONTENT]
-            tokens = self.estimate_tokens([message], self._model)
+            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
 
             if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
                 display(

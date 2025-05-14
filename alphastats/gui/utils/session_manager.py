@@ -11,8 +11,9 @@ from cloudpickle import cloudpickle
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats import __version__
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
+from alphastats.llm.llm_integration import LLMClientWrapper
 
 
 class SavedSessionKeys:
@@ -50,14 +51,23 @@ class SessionManager:
         self._save_folder_path = Path(save_folder_path)
 
     @staticmethod
-    def _copy(source: dict, target: dict | SessionStateProxy) -> None:
+    def _clean_copy(source: dict, target: dict | SessionStateProxy) -> None:
         """Copy a session state dictionary from `source` to `target`, only considering keys in `StateKeys`.
 
         The restriction to the keys in `StateKeys` is to avoid storing unnecessary data, and avoids
         potential issues when using different versions (e.g. new widgets).
+
+        Also, the LLM client is removed from the session state to avoid pickling issues.
         """
         keys_to_save = StateKeys.get_values()
         keys_to_save.remove(StateKeys.OPENAI_API_KEY)  # do not store key on disk
+
+        source = source.copy()
+
+        for chat in source.get(StateKeys.LLM_CHATS, {}).values():
+            if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
+                # cannot pickle LLM client due to SSLContext object
+                llm_integration.client_wrapper = None
 
         target.update(
             {key: value for key, value in source.items() if key in keys_to_save}
@@ -77,7 +87,7 @@ class SessionManager:
         Only considering keys in `StateKeys` are saved.
         """
         state_data_to_save = {}
-        self._copy(session_state.to_dict(), state_data_to_save)
+        self._clean_copy(session_state.to_dict(), state_data_to_save)
         self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
@@ -126,9 +136,24 @@ class SessionManager:
                 )
 
             # clean and init first to have a defined state
+            model_name = session_state[StateKeys.MODEL_NAME]
+            api_key = session_state[StateKeys.OPENAI_API_KEY]
+            base_url = session_state[StateKeys.BASE_URL]
+
             empty_session_state()
             init_session_state()
-            self._copy(loaded_state_data, session_state)
+            self._clean_copy(loaded_state_data, session_state)
+
+            for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
+                if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
+                    # TODO: this re-initializes all llm clients with the same model name
+                    # once we have a 'proper' llm config page, this should be done there:
+                    # basically, we need to re-initialize the client wrapper with the model name
+                    llm_integration.client_wrapper = LLMClientWrapper(
+                        model_name=model_name,
+                        api_key=api_key,
+                        base_url=base_url,
+                    )
 
             return str(file_path)
 
