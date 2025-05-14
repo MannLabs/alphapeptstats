@@ -571,13 +571,14 @@ def test_handle_function_calls_with_images(
 def test_get_image_analysis_prompt_returns_empty_prompt_if_model_not_multimodal():
     """Test that the _get_image_analysis_prompt method returns an empty prompt if the model is not multimodal."""
     llm_integration = LLMIntegration(
-        model_name=Models.GPT4O,
+        model_name=Models.OLLAMA_31_70B,
         api_key="test-key",  # pragma: allowlist secret
         system_message="Test system message",
     )
 
-    llm_integration._model = "non_multimodal_model"
+    # when
     result = llm_integration._get_image_analysis_prompt(MagicMock())
+
     assert result == []
 
 
@@ -594,8 +595,9 @@ def test_get_image_analysis_prompt_returns_prompt_with_image_data_for_multimodal
     )
 
     function_result = MagicMock()
-
     mock_plotly_to_base64.return_value = "mock_base64_image_data"
+
+    # when
     result = llm_integration._get_image_analysis_prompt(function_result)
 
     assert result == [
@@ -625,8 +627,9 @@ def test_get_image_analysis_prompt_handles_plotly_conversion_failure_gracefully(
     )
 
     function_result = MagicMock()
-
     mock_plotly_to_base64.side_effect = Exception("Conversion failed")
+
+    # when
     result = llm_integration._get_image_analysis_prompt(function_result)
 
     assert result == []

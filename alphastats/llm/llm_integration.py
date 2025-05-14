@@ -439,9 +439,7 @@ class LLMIntegration:
                 Roles.TOOL, json.dumps(content_dict), tool_call_id=tool_call.id
             )
 
-            if "PlotlyObject" in str(
-                type(function_result)  # :  # TODO: see if isinstance works here
-            ) and (
+            if isinstance(function_result, PlotlyObject) and (
                 image_analysis_prompt := self._get_image_analysis_prompt(
                     function_result
                 )
