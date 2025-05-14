@@ -26,6 +26,7 @@ from alphastats.llm.llm_utils import (
     get_subgroups_for_each_group,
 )
 from alphastats.llm.prompts import get_tool_call_message
+from alphastats.plots.plot_utils import PlotlyObject
 
 logger = logging.getLogger(__name__)
 
@@ -442,9 +443,7 @@ class LLMIntegration:
                 )
 
         post_artifact_message_idx = len(self._all_messages)
-        self._artifacts[post_artifact_message_idx] = list(
-            new_artifacts.values()
-        )  # Ensure it's a list
+        self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
 
         response = self._chat_completion_create()
 
@@ -456,9 +455,7 @@ class LLMIntegration:
         image_data = None
         user_image_analysis_prompt_content = []
 
-        if "PlotlyObject" in str(
-            type(function_result)
-        ):  # TODO: see if isinstance works here
+        if isinstance(function_result, PlotlyObject):
             try:
                 image_data = self._plotly_to_base64(function_result)
             except Exception as e:
@@ -572,7 +569,7 @@ class LLMIntegration:
                     )
                     + no_representation_description
                 )
-        elif "PlotlyObject" in str(type(function_result)):
+        elif isinstance(function_result, PlotlyObject):
             if is_multimodal:
                 return image_description
             else:
