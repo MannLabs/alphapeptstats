@@ -11,6 +11,7 @@ from openai.types.chat import (
     ChatCompletionMessageToolCall,
 )
 from openai.types.chat.chat_completion_message_tool_call import Function
+from plots.plot_utils import PlotlyObject
 
 import alphastats.llm.llm_integration
 from alphastats.llm.llm_integration import LLMIntegration, Models
@@ -651,57 +652,84 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
 
 
 @pytest.mark.parametrize(
-    "function_result, function_name, function_args, output",
+    "function_result, function_name, function_args, output, is_multimodal",
     [
         (
             "primitive_result",
             "some_function_name",
             {"arg1": "value1"},
             "primitive_result",
+            False,
         ),
-        ([1, 2, 3], "some_function_name", {"returns": "primitive list"}, "[1, 2, 3]"),
+        (
+            [1, 2, 3],
+            "some_function_name",
+            {"returns": "primitive list"},
+            "[1, 2, 3]",
+            False,
+        ),
         (
             ("arg1", 1),
             "some_function_name",
             {"returns": "a tuple with primitive values"},
             "('arg1', 1)",
+            False,
         ),
         (
             {"arg1": "value1"},
             "some_function_name",
             {"returns": "a dictionary with primitive values"},
             "{'arg1': 'value1'}",
+            False,
         ),
         (
             ("DataFrame", pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])),
             "some_function_name",
             {"returns": "a tuple with non-primitive elements"},
-            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
+            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.',
+            False,
         ),
         (
             {"DataFrame": pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])},
             "some_function_name",
             {"returns": "a dictionary with non-primitive values"},
-            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive values"} returned a dict, containing 1 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
+            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive values"} returned a dict, containing 1 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.',
+            False,
         ),
         (
             pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"]),
             "some_function_name",
             {"arg1": "value1"},
             r'{"a":{"0":1},"b":{"0":2},"c":{"0":3}}',
+            False,
         ),
         (
             go.Figure(),
             "some_function_name",
             {"arg1": "value1"},
-            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
+            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.',
+            False,
+        ),
+        (
+            PlotlyObject(),
+            "some_function_name",
+            {"arg1": "value1"},
+            " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.",
+            False,
+        ),
+        (
+            PlotlyObject(),
+            "some_function_name",
+            {"arg1": "value1"},
+            "This is a visualization result that will be provided as an image.",
+            True,
         ),
     ],
 )
-def test_str_repr(function_result, function_name, function_args, output):
+def test_str_repr(function_result, function_name, function_args, output, is_multimodal):
     assert (
         LLMIntegration._create_string_representation(
-            function_result, function_name, function_args
+            function_result, function_name, function_args, is_multimodal=is_multimodal
         )
         == output
     )

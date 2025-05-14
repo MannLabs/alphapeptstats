@@ -450,11 +450,15 @@ class LLMIntegration:
 
         return self._parse_model_response(response)
 
-    def _handle_image(self, function_result):
+    def _handle_image(self, function_result: Any) -> List[Dict[str, str]]:
+        """Handle image generation and analysis."""
+
         image_data = None
         user_image_analysis_prompt_content = []
 
-        if "PlotlyObject" in str(type(function_result)):
+        if "PlotlyObject" in str(
+            type(function_result)
+        ):  # TODO: see if isinstance works here
             try:
                 image_data = self._plotly_to_base64(function_result)
             except Exception as e:
