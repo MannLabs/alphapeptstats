@@ -39,12 +39,22 @@ class Models(metaclass=ConstantsClass):
     GPT4O = "gpt-4o"
     OLLAMA_31_70B = "llama3.1:70b"
     OLLAMA_31_8B = "llama3.1:8b"  # for testing only
+    OLLAMA_33_70B_INSTRUCT = "llama-3.3-70b-instruct"
+    MISTRAL_LARGE_INSTRUCT = "mistral-large-instruct"
+    QWEN_25_72B_INSTRUCT = "qwen2.5-72b-instruct"
 
 
 class ModelFlags(metaclass=ConstantsClass):
     """Requirements for the different models."""
 
     REQUIRES_API_KEY = [Models.GPT4O]
+    REQUIRES_BASE_URL = [
+        Models.OLLAMA_31_70B,
+        Models.OLLAMA_31_8B,
+        Models.OLLAMA_33_70B_INSTRUCT,
+        Models.MISTRAL_LARGE_INSTRUCT,
+        Models.QWEN_25_72B_INSTRUCT,
+    ]
     MULTIMODAL = [Models.GPT4O]
 
 
@@ -109,9 +119,9 @@ class LLMIntegration:
     ):
         self._model = model_name
 
-        if model_name in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
+        if model_name in ModelFlags.REQUIRES_BASE_URL:
             url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self._client = OpenAI(base_url=url, api_key="ollama")
+            self._client = OpenAI(base_url=url, api_key=api_key)
         elif model_name in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
         else:
@@ -648,8 +658,8 @@ class LLMIntegration:
 
             if tool_calls:
                 if content:
-                    raise ValueError(
-                        f"Unexpected content {content} with tool calls {tool_calls}."
+                    self._append_message(
+                        Roles.ASSISTANT, content, pin_message=pin_message
                     )
 
                 content, _ = self._handle_function_calls(tool_calls)
