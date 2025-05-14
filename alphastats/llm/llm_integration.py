@@ -578,8 +578,6 @@ class LLMIntegration:
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
         logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-        for message in self._messages:
-            print(message)
         result = self._client.chat.completions.create(
             model=self._model,
             messages=self._messages,
