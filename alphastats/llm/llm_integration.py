@@ -654,6 +654,8 @@ class LLMIntegration:
 
         total_tokens += tools_tokens * api_call_count
 
+        total_tokens += tools_tokens * api_call_count
+
         return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
