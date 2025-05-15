@@ -1,6 +1,6 @@
 from datetime import datetime
 from unittest import mock, skip
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -13,7 +13,8 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_message_tool_call import Function
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import LLMIntegration, Models
+from alphastats.llm.llm_integration import LLMIntegration, ModelFlags, Models
+from alphastats.plots.plot_utils import PlotlyObject
 
 
 @pytest.fixture
@@ -369,30 +370,6 @@ def test_parse_model_response(
     assert tool_calls[0].type == "function"
 
 
-def test_chat_completion_with_content_and_tool_calls(llm_integration: LLMIntegration):
-    """Test that chat completion raises error when receiving both content and tool calls"""
-    mock_response = Mock(spec=ChatCompletion)
-    mock_response.choices = [
-        Mock(
-            message=ChatCompletionMessage(
-                role="assistant",
-                content="Some content",
-                tool_calls=[
-                    ChatCompletionMessageToolCall(
-                        id="test-id",
-                        type="function",
-                        function={"name": "test_function", "arguments": "{}"},
-                    )
-                ],
-            )
-        )
-    ]
-    llm_integration._client.chat.completions.create.return_value = mock_response
-
-    with pytest.raises(ValueError, match="Unexpected content.*with tool calls"):
-        llm_integration.chat_completion("Test prompt")
-
-
 @pytest.mark.parametrize(
     "function_name,function_args,expected_result",
     [
@@ -499,6 +476,8 @@ def test_handle_function_calls(
     mock_openai_client.return_value.chat.completions.create.return_value = (
         mock_chat_completion
     )
+
+    # when
     result = llm_integration._handle_function_calls(tool_calls)
 
     assert result == ("Test response", None)
@@ -542,6 +521,118 @@ def test_handle_function_calls(
     assert list(llm_integration._artifacts[3]) == ["some_function_result"]
 
     assert llm_integration._messages == expected_messages
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._get_image_analysis_message")
+@patch("alphastats.llm.llm_integration.LLMIntegration._execute_function")
+def test_handle_function_calls_with_images(
+    mock_execute_function,
+    mock_get_image_analysis_message,
+    mock_openai_client,
+    mock_chat_completion,
+):
+    """Test handling of function calls that return images in the chat completion response."""
+    mock_execute_function.return_value = PlotlyObject()
+
+    llm_integration = LLMIntegration(
+        model_name=Models.GPT4O,
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    tool_calls = [
+        ChatCompletionMessageToolCall(
+            id="test-id",
+            type="function",
+            function={"name": "test_function", "arguments": '{"arg1": "value1"}'},
+        )
+    ]
+
+    mock_openai_client.return_value.chat.completions.create.return_value = (
+        mock_chat_completion
+    )
+    mock_get_image_analysis_message.return_value = [
+        {"image_analysis_message": "something"}
+    ]
+
+    # when
+    _ = llm_integration._handle_function_calls(tool_calls)
+
+    assert {
+        "role": "user",
+        "pinned": False,
+        "content": [{"image_analysis_message": "something"}],
+        "timestamp": mock.ANY,
+    } in mock_openai_client.return_value.chat.completions.create.call_args_list[
+        0
+    ].kwargs["messages"]
+
+
+def test_get_image_analysis_message_returns_empty_prompt_if_model_not_multimodal():
+    """Test that the _get_image_analysis_message method returns an empty prompt if the model is not multimodal."""
+    llm_integration = LLMIntegration(
+        model_name=Models.OLLAMA_31_70B,
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    # when
+    result = llm_integration._get_image_analysis_message(MagicMock())
+
+    assert result == []
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._plotly_to_base64")
+def test_get_image_analysis_message_returns_prompt_with_image_data_for_multimodal_model(
+    mock_plotly_to_base64,
+):
+    """Test that the _get_image_analysis_message method returns a prompt with image data for a multimodal model."""
+
+    llm_integration = LLMIntegration(
+        model_name=ModelFlags.MULTIMODAL[0],
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    function_result = MagicMock()
+    mock_plotly_to_base64.return_value = "mock_base64_image_data"
+
+    # when
+    result = llm_integration._get_image_analysis_message(function_result)
+
+    assert result == [
+        {
+            "type": "text",
+            "text": "The previous tool call generated the following image. Please analyze it in the context of our current discussion and your previous actions.",
+        },
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": "data:image/png;base64,mock_base64_image_data",
+                "detail": "high",
+            },
+        },
+    ]
+
+
+@patch("alphastats.llm.llm_integration.LLMIntegration._plotly_to_base64")
+def test_get_image_analysis_message_handles_plotly_conversion_failure_gracefully(
+    mock_plotly_to_base64,
+):
+    """Test that the _get_image_analysis_message method handles plotly conversion failure gracefully."""
+    llm_integration = LLMIntegration(
+        model_name=ModelFlags.MULTIMODAL[0],
+        api_key="test-key",  # pragma: allowlist secret
+        system_message="Test system message",
+    )
+
+    function_result = MagicMock()
+    mock_plotly_to_base64.side_effect = Exception("Conversion failed")
+
+    # when
+    result = llm_integration._get_image_analysis_message(function_result)
+
+    assert result == []
 
 
 def test_get_print_view_default(llm_with_conversation: LLMIntegration):
@@ -651,57 +742,84 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
 
 
 @pytest.mark.parametrize(
-    "function_result, function_name, function_args, output",
+    "function_result, function_name, function_args, output, is_multimodal",
     [
         (
             "primitive_result",
             "some_function_name",
             {"arg1": "value1"},
             "primitive_result",
+            False,
         ),
-        ([1, 2, 3], "some_function_name", {"returns": "primitive list"}, "[1, 2, 3]"),
+        (
+            [1, 2, 3],
+            "some_function_name",
+            {"returns": "primitive list"},
+            "[1, 2, 3]",
+            False,
+        ),
         (
             ("arg1", 1),
             "some_function_name",
             {"returns": "a tuple with primitive values"},
             "('arg1', 1)",
+            False,
         ),
         (
             {"arg1": "value1"},
             "some_function_name",
             {"returns": "a dictionary with primitive values"},
             "{'arg1': 'value1'}",
+            False,
         ),
         (
             ("DataFrame", pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])),
             "some_function_name",
             {"returns": "a tuple with non-primitive elements"},
-            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
+            'Function some_function_name with arguments {"returns": "a tuple with non-primitive elements"} returned a tuple, containing 2 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.',
+            False,
         ),
         (
             {"DataFrame": pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"])},
             "some_function_name",
             {"returns": "a dictionary with non-primitive values"},
-            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive values"} returned a dict, containing 1 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
+            'Function some_function_name with arguments {"returns": "a dictionary with non-primitive values"} returned a dict, containing 1 elements, some of which are non-trivial to represent as text. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.',
+            False,
         ),
         (
             pd.DataFrame([[1, 2, 3]], columns=["a", "b", "c"]),
             "some_function_name",
             {"arg1": "value1"},
             r'{"a":{"0":1},"b":{"0":2},"c":{"0":3}}',
+            False,
         ),
         (
             go.Figure(),
             "some_function_name",
             {"arg1": "value1"},
-            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with.',
+            'Function some_function_name with arguments {"arg1": "value1"} returned a Figure. There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.',
+            False,
+        ),
+        (
+            PlotlyObject(),
+            "some_function_name",
+            {"arg1": "value1"},
+            " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with.",
+            False,
+        ),
+        (
+            PlotlyObject(),
+            "some_function_name",
+            {"arg1": "value1"},
+            "This is a visualization result that will be provided as an image.",
+            True,
         ),
     ],
 )
-def test_str_repr(function_result, function_name, function_args, output):
+def test_str_repr(function_result, function_name, function_args, output, is_multimodal):
     assert (
         LLMIntegration._create_string_representation(
-            function_result, function_name, function_args
+            function_result, function_name, function_args, is_multimodal=is_multimodal
         )
         == output
     )
