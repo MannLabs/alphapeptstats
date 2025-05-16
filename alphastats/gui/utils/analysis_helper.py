@@ -20,6 +20,7 @@ from alphastats.gui.utils.analysis import (
 from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
 from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.ui_helper import (
+    has_llm_support,
     show_button_download_df,
 )
 from alphastats.llm.uniprot_utils import get_annotations_for_feature
@@ -116,7 +117,9 @@ def _display(
                 analysis_result, analysis_method, parameters
             )
             st.toast("Saved to results page!", icon="✅")
-            if isinstance(analysis_result, DifferentialExpressionTwoGroupsResult):
+            if has_llm_support() and isinstance(
+                analysis_result, DifferentialExpressionTwoGroupsResult
+            ):
                 st.page_link("pages/06_LLM.py", label="➔ Continue with LLM analysis")
 
     with c2:

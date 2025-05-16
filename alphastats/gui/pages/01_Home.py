@@ -8,6 +8,7 @@ from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
+    has_llm_support,
     img_to_bytes,
     sidebar_info,
 )
@@ -69,9 +70,9 @@ else:
         loaded_file_path = SessionManager().load(file_to_load, st.session_state)
         st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
 
-
-st.markdown("#### Configure LLM")
-llm_config()
+if has_llm_support():
+    st.markdown("#### Configure LLM")
+    llm_config()
 
 ##
 st.markdown(

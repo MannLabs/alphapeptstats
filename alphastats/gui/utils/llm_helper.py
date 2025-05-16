@@ -19,6 +19,7 @@ from alphastats.gui.utils.state_keys import (
     SavedAnalysisKeys,
     StateKeys,
 )
+from alphastats.gui.utils.ui_helper import has_llm_support
 from alphastats.llm.llm_integration import (
     LLMIntegration,
     MessageKeys,
@@ -39,7 +40,9 @@ from alphastats.llm.uniprot_utils import (
 )
 from alphastats.plots.plot_utils import PlotlyObject
 
-LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
+LLM_ENABLED_ANALYSIS = (
+    [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS] if has_llm_support() else []
+)
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 # TODO: Deduplicate this code without introducing a circular import
