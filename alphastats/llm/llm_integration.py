@@ -504,7 +504,7 @@ class LLMIntegration:
                         is_image_analysis_text = True
                     elif part.get("type") == "image_url":
                         has_image_url = True
-            return is_image_analysis_text and has_image_url
+            return is_image_analysis_text or has_image_url
         return False
 
     @staticmethod
