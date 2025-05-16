@@ -7,6 +7,9 @@ set -e -u
 
 rm -rf dist_pyinstaller build_pyinstaller
 
+# TODO: this is only required for ARM
+conda install -c conda-forge hdf5
+
 WHL_NAME=$(cd dist && ls ./*.whl && cd ..)
 pip install "dist/${WHL_NAME}"
 
