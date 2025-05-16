@@ -11,7 +11,7 @@
         <line choice="AlphaPeptStats"/>
     </choices-outline>
     <choice id="AlphaPeptStats" title="AlphaPeptStats">
-        <pkg-ref id="alphastats.pkg"/>
+        <pkg-ref id=" AlphaPeptStats.pkg"/>
     </choice>
-    <pkg-ref id="alphastats.pkg" auth="Root">alphastats.pkg</pkg-ref>
+    <pkg-ref id=" AlphaPeptStats.pkg" auth="Root"> AlphaPeptStats.pkg</pkg-ref>
 </installer-script>
