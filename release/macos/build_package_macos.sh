@@ -4,7 +4,7 @@ set -e -u
 # Build the install package for MacOS.
 # This script must be run from the root of the repository after running build_installer_macos.sh
 
-PACKAGE_NAME=alphastats
+PACKAGE_NAME=AlphaPeptStats
 # BUILD_NAME is taken from environment variables, e.g. alphastats-1.2.3-macos-darwin-arm64 or alphastats-1.2.3-macos-darwin-x64
 rm -rf ${BUILD_NAME}.pkg
 
