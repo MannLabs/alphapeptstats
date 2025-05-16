@@ -7,7 +7,7 @@ set -e -u
 
 rm -rf dist_pyinstaller build_pyinstaller
 
-pip install "dist/alphastats-0.6.9-py3-none-any.whl"
+pip install "dist/alphastats-0.6.10-dev0-py3-none-any.whl"
 
 # Creating the stand-alone pyinstaller folder
 pyinstaller release/pyinstaller/alphastats.spec --distpath dist_pyinstaller --workpath build_pyinstaller -y
