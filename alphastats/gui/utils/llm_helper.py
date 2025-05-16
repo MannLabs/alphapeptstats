@@ -729,9 +729,10 @@ def show_llm_chat(
                 st.markdown(
                     f"*tokens: {str(llm_integration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
                 )
-        with st.spinner("Processing prompt..."), warnings.catch_warnings(
-            record=True
-        ) as caught_warnings:
+        with (
+            st.spinner("Processing prompt..."),
+            warnings.catch_warnings(record=True) as caught_warnings,
+        ):
             llm_integration.chat_completion(prompt)
             selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS] = (
                 caught_warnings

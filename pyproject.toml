@@ -73,5 +73,7 @@ ignore = [
     "E501",  # Line too long  (ruff wraps code, but not docstrings)
     "B028",  #  No explicit `stacklevel` keyword argument found (for warnings)
 #    "B905"  # This causes problems in numba code: `zip()` without an explicit `strict=` parameter
-     "B019" # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks  TODO: revisit
+     "B019", # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks  TODO: revisit
+
+    "UP006", "UP035"  # TODO enable these
 ]
