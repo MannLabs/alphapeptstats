@@ -82,7 +82,7 @@ If you like this software, you can give us a [star](https://github.com/MannLabs/
 our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues)
 or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more
 interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the
-[the Contributors License Agreement](misc/CLA.md).
+[Contributors License Agreement](misc/CLA.md).
 """
 )
 

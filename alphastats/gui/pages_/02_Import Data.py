@@ -29,8 +29,8 @@ def _finalize_data_loading(
     """Finalize the data loading process."""
     st.session_state[StateKeys.DATASET] = dataset
 
-    st.page_link("pages/03_Data Overview.py", label="➔ Go to data overview page..")
-    st.page_link("pages/05_Analysis.py", label="➔ Go to analysis page..")
+    st.page_link("pages_/03_Data Overview.py", label="➔ Go to data overview page..")
+    st.page_link("pages_/05_Analysis.py", label="➔ Go to analysis page..")
 
 
 st.set_page_config(layout="wide")
@@ -43,7 +43,7 @@ st.markdown("## Import Data")
 saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
 if saved_sessions:
     st.page_link(
-        "pages/01_Home.py", label="➔ Load a previous session on the main page.."
+        "pages_/01_Home.py", label="➔ Load a previous session on the main page.."
     )
 
 st.markdown("### Start a new session")
@@ -70,8 +70,8 @@ if c2.button("Start new Session with example DataSet", key="_load_example_data")
 st.markdown("### Import Proteomics Data")
 if StateKeys.DATASET in st.session_state:
     st.info("DataSet already present.")
-    st.page_link("pages/03_Data Overview.py", label="➔ Go to data overview page..")
-    st.page_link("pages/05_Analysis.py", label="➔ Go to analysis page..")
+    st.page_link("pages_/03_Data Overview.py", label="➔ Go to data overview page..")
+    st.page_link("pages_/05_Analysis.py", label="➔ Go to analysis page..")
     st.stop()
 
 

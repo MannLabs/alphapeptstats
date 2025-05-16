@@ -120,7 +120,7 @@ def _display(
             if has_llm_support() and isinstance(
                 analysis_result, DifferentialExpressionTwoGroupsResult
             ):
-                st.page_link("pages/06_LLM.py", label="➔ Continue with LLM analysis")
+                st.page_link("pages_/06_LLM.py", label="➔ Continue with LLM analysis")
 
     with c2:
         download_function(

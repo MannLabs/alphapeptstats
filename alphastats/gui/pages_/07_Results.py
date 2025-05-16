@@ -68,4 +68,4 @@ for key, saved_analysis in st.session_state[StateKeys.SAVED_ANALYSES].items():
             st.write("No LLM chat available yet for this analysis.")
 
         # passing parameters is not possible yet https://github.com/streamlit/streamlit/issues/8112
-        st.page_link("pages/06_LLM.py", label="=> Create/Continue chat...")
+        st.page_link("pages_/06_LLM.py", label="=> Create/Continue chat...")
