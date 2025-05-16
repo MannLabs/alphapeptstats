@@ -5,8 +5,8 @@
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue ./build_pyinstaller
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue ./dist_pyinstaller
 
-# Make sure you include the required extra packages and always use the stable or very-stable options!
-pip install "dist/alphastats-0.6.10-dev0-py3-none-any.whl"
+$WHL_NAME = (Get-ChildItem -Path "dist" -Filter "*.whl").Name
+pip install "dist/$WHL_NAME"
 
 # Creating the stand-alone pyinstaller folder
 pyinstaller release/pyinstaller/alphastats.spec  --distpath dist_pyinstaller --workpath build_pyinstaller -y

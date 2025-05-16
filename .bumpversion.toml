@@ -46,13 +46,7 @@ filename = "./docs/conf.py"
 filename = "./release/linux/control"
 
 [[tool.bumpversion.files]]
-filename = "./release/linux/build_installer_linux.sh"
-
-[[tool.bumpversion.files]]
 filename = "./release/macos/Info.plist"
-
-[[tool.bumpversion.files]]
-filename = "./release/macos/build_installer_macos.sh"
 
 [[tool.bumpversion.files]]
 filename = "./release/macos/build_package_macos.sh"
@@ -62,6 +56,3 @@ filename = "/release/macos/distribution.xml"
 
 [[tool.bumpversion.files]]
 filename = "./release/windows/alphastats_innoinstaller.iss"
-
-[[tool.bumpversion.files]]
-filename = "./release/windows/build_installer_windows.ps1"
