@@ -64,7 +64,7 @@ AlphaPeptStats can be used as
 
 ### Pip Installation
 
-AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command.
+AlphaStats can be installed in an existing Python >=3.9 environment with a single `bash` command.
 
 ```bash
 pip install alphastats
