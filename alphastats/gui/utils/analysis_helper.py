@@ -111,7 +111,10 @@ def _display(
     with c1:
         if show_save_button and st.button(
             "💾 Save analysis to results page..",
-            help="This will save the analysis to the results page and allow LLM interpretation.",
+            help="This will save the analysis to the results page"
+            + " and allow LLM interpretation."
+            if has_llm_support()
+            else "",
         ):
             _save_analysis_to_session_state(
                 analysis_result, analysis_method, parameters

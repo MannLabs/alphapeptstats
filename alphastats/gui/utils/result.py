@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import TYPE_CHECKING, Literal
 
+import pytz
 import streamlit as st
 
 from alphastats.dataset.keys import ConstantsClass
@@ -134,7 +136,7 @@ class ResultComponent(ABC):  # move to new file
     def _display_object(self) -> None:
         """Function to display the result object."""
         if self._display_selection == self.DisplaySelection.PLOT:
-            st.plotly_chart(self.plot.update())
+            st.plotly_chart(self.plot.update(), key=str(datetime.now(tz=pytz.utc)))
         elif self._display_selection == self.DisplaySelection.RAW_DATAFRAME:
             st.dataframe(self.dataframe)
         elif self._display_selection == self.DisplaySelection.ANNOTATED_DATAFRAME:
