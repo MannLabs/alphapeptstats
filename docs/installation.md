@@ -14,9 +14,5 @@ AlphaStats can be installed in an existing Python 3.8 environment with a single 
 pip install alphastats
 ```
 
-#### MacOS M1
-On M1 Mac the installation initally might fail due to a missing local HDF5 installation. To solve this issue install pytables manually:
-
-```bash
-conda install -c anaconda pytables
-```
+If you receive an error like `library 'hdf5' not found`, your computer is missing the HDF5 library. Install it via your favorite package manager or use `conda create --name alphastats python=3.9 hdf5`.
+Alternatively, use ```conda install -c anaconda pytables```.

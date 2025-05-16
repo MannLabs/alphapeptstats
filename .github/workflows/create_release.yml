@@ -20,5 +20,5 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
       build_nodejs_ui: false
       test_app: false
-      skip_macos_arm64_build: true
+      skip_macos_arm64_build: false
       python_version: "3.10"

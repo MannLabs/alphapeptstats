@@ -1,4 +1,8 @@
 recursive-include alphastats *
 include LICENSE.txt
 include README.md
-recursive-exclude alphastats/logs *
+recursive-exclude logs *
+recursive-exclude tests *
+
+global-exclude */__pycache__/*
+global-exclude *.pyc *.nbi *.nbc

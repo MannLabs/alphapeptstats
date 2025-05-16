@@ -52,7 +52,7 @@ version = {attr = "alphastats.__version__"}
 alphastats = "alphastats.gui.gui:run"
 
 [tool.ruff]
-extend-exclude = [".bumpversion.cfg", ".secrets.baseline"]
+extend-exclude = [".secrets.baseline"]
 
  [tool.ruff.lint]
  select =  [
