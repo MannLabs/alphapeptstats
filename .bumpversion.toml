@@ -65,4 +65,3 @@ filename = "./release/windows/alphastats_innoinstaller.iss"
 
 [[tool.bumpversion.files]]
 filename = "./release/windows/build_installer_windows.ps1"
-
