@@ -43,7 +43,7 @@ st.markdown("## Import Data")
 saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
 if saved_sessions:
     st.page_link(
-        "AlphaPeptStats.py", label="➔ Load a previous session on the main page.."
+        "pages/01_Home.py", label="➔ Load a previous session on the main page.."
     )
 
 st.markdown("### Start a new session")
