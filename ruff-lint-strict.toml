@@ -27,6 +27,7 @@ exclude = [
     "alphastats/gui/utils/overview_helper.py",
     "alphastats/gui/utils/preprocessing_helper.py",
     "alphastats/gui/utils/ui_helper.py",
+    "alphastats/gui/pages/*.py",
     "alphastats/gui/pages_/*.py",
     "alphastats/gui/AlphaPeptStats.py",
     "alphastats/gui/gui.py",
