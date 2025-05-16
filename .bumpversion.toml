@@ -49,9 +49,6 @@ filename = "./release/linux/control"
 filename = "./release/linux/build_installer_linux.sh"
 
 [[tool.bumpversion.files]]
-filename = "./release/linux/create_installer_linux.sh" # TODO remove with old release workflow
-
-[[tool.bumpversion.files]]
 filename = "./release/macos/Info.plist"
 
 [[tool.bumpversion.files]]
@@ -59,9 +56,6 @@ filename = "./release/macos/build_installer_macos.sh"
 
 [[tool.bumpversion.files]]
 filename = "./release/macos/build_package_macos.sh"
-
-[[tool.bumpversion.files]]
-filename = "./release/macos/create_installer_macos.sh" # TODO remove with old release workflow
 
 [[tool.bumpversion.files]]
 filename = "/release/macos/distribution.xml"
@@ -72,5 +66,3 @@ filename = "./release/windows/alphastats_innoinstaller.iss"
 [[tool.bumpversion.files]]
 filename = "./release/windows/build_installer_windows.ps1"
 
-[[tool.bumpversion.files]]
-filename = "./release/windows/create_installer_windows.sh" # TODO remove with old release workflow
