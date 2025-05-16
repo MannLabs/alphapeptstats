@@ -1240,9 +1240,10 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
 
     def test_multiple_features_all_invalid(self):
         features = ["Invalid1", "Invalid2"]
-        with self.assertWarns(UserWarning) as warning, self.assertRaises(
-            ValueError
-        ) as context:
+        with (
+            self.assertWarns(UserWarning) as warning,
+            self.assertRaises(ValueError) as context,
+        ):
             self.obj._get_multiple_feature_ids_from_strings(features)
             self.assertIn(
                 "Could not find the following features: Invalid1, Invalid2",

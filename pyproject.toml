@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alphastats"
-requires-python = ">=3.8,<4"
+requires-python = ">=3.9,<4"
 dynamic = ["version", "dependencies"]
 
 authors = [
@@ -28,7 +28,6 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -74,5 +73,7 @@ ignore = [
     "E501",  # Line too long  (ruff wraps code, but not docstrings)
     "B028",  #  No explicit `stacklevel` keyword argument found (for warnings)
 #    "B905"  # This causes problems in numba code: `zip()` without an explicit `strict=` parameter
-     "B019" # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks  TODO: revisit
+     "B019", # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks  TODO: revisit
+
+    "UP006", "UP035"  # TODO enable these
 ]

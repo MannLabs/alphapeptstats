@@ -13,11 +13,13 @@ from alphastats.gui.utils.state_keys import StateKeys
 @pytest.fixture
 def mock_streamlit():
     """Fixture to mock streamlit module."""
-    with patch("streamlit.info") as mock_info, patch(
-        "streamlit.error"
-    ) as mock_error, patch("streamlit.success") as mock_success, patch(
-        "streamlit.toast"
-    ) as mock_toast, patch("streamlit.session_state", {}) as mock_session_state:
+    with (
+        patch("streamlit.info") as mock_info,
+        patch("streamlit.error") as mock_error,
+        patch("streamlit.success") as mock_success,
+        patch("streamlit.toast") as mock_toast,
+        patch("streamlit.session_state", {}) as mock_session_state,
+    ):
         yield {
             "info": mock_info,
             "error": mock_error,

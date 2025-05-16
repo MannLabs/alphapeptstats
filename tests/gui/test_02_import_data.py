@@ -6,7 +6,7 @@ from alphastats.gui.utils.state_keys import StateKeys
 
 from .conftest import APP_FOLDER, data_buf, metadata_buf
 
-TESTED_PAGE = f"{APP_FOLDER}/pages/02_Import Data.py"
+TESTED_PAGE = f"{APP_FOLDER}/pages_/02_Import Data.py"
 
 
 def test_page_02_loads_without_input():

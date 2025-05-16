@@ -100,8 +100,8 @@ def load_example_data():
     filepath = os.path.join(folder_to_load, "proteinGroups.txt")
     metadatapath = (
         os.path.join(_parent_directory, "example_data", "metadata.xlsx")
-        .replace("pages/", "")
-        .replace("pages\\", "")
+        .replace("pages_/", "")
+        .replace("pages_\\", "")
     )
 
     loader = MaxQuantLoader(file=filepath)
