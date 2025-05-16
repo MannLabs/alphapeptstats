@@ -26,7 +26,7 @@ datas, binaries, hidden_imports = PyInstaller.utils.hooks.collect_all(
 )
 
 # add extra packages that don't have pyinstaller hooks
-extra_pkgs = ["openai" ] # other alphaX packages would be added here
+extra_pkgs = ["openai", "streamlit", "st_cytoscape"] # other alphaX packages would be added here
 for pkg in extra_pkgs:
 	_datas, _binaries, _hidden_imports = PyInstaller.utils.hooks.collect_all(
 		pkg,
