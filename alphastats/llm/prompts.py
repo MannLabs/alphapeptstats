@@ -43,7 +43,7 @@ def _get_experimental_design_prompt(
     column = parameter_dict["column"]
     return (
         "We've recently identified several proteins that appear to be differently regulated in cells "
-        f"when comparing {group1} and {group2} in the {column} group. "
+        f"when comparing {group1} and {group2} in the {column} group."
     )
 
 
@@ -170,3 +170,19 @@ def get_tool_call_message(tool_calls: list[ChatCompletionMessageToolCall]) -> st
             for tool_call in tool_calls
         ]
     )
+
+
+ITERABLE_ARTIFACT_REPRESENTATION_PROMPT = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
+SINGLE_ARTIFACT_REPRESENTATION_PROMPT = "Function {} with arguments {} returned a {}."
+IMAGE_REPRESENTATION_PROMPT = (
+    "This is a visualization result that will be provided as an image."
+)
+NO_REPRESENTATION_PROMPT = (
+    " There is currently no text representation for this artifact that can be interpreted meaningfully. "
+    "If the user asks for guidance how to interpret the artifact please rely on the description of the tool function and the arguments it was called with."
+)
+
+IMAGE_ANALYSIS_PROMPT = (
+    "The previous tool call generated the following image. "
+    "Please analyze it in the context of our current discussion and your previous actions."
+)

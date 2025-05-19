@@ -1,10 +1,11 @@
 """Module to integrate different LLM APIs and handle chat interactions."""
 
+import base64
 import json
 import logging
 import warnings
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import plotly.io as pio
@@ -24,7 +25,15 @@ from alphastats.llm.llm_functions import (
 from alphastats.llm.llm_utils import (
     get_subgroups_for_each_group,
 )
-from alphastats.llm.prompts import get_tool_call_message
+from alphastats.llm.prompts import (
+    IMAGE_ANALYSIS_PROMPT,
+    IMAGE_REPRESENTATION_PROMPT,
+    ITERABLE_ARTIFACT_REPRESENTATION_PROMPT,
+    NO_REPRESENTATION_PROMPT,
+    SINGLE_ARTIFACT_REPRESENTATION_PROMPT,
+    get_tool_call_message,
+)
+from alphastats.plots.plot_utils import PlotlyObject
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +47,22 @@ class Models(metaclass=ConstantsClass):
     GPT4O = "gpt-4o"
     OLLAMA_31_70B = "llama3.1:70b"
     OLLAMA_31_8B = "llama3.1:8b"  # for testing only
+    OLLAMA_33_70B_INSTRUCT = "llama-3.3-70b-instruct"
+    MISTRAL_LARGE_INSTRUCT = "mistral-large-instruct"
+    QWEN_25_72B_INSTRUCT = "qwen2.5-72b-instruct"
 
 
 class ModelFlags(metaclass=ConstantsClass):
     """Requirements for the different models."""
 
     REQUIRES_API_KEY = [Models.GPT4O]
+    REQUIRES_BASE_URL = [
+        Models.OLLAMA_31_70B,
+        Models.OLLAMA_31_8B,
+        Models.OLLAMA_33_70B_INSTRUCT,
+        Models.MISTRAL_LARGE_INSTRUCT,
+        Models.QWEN_25_72B_INSTRUCT,
+    ]
     MULTIMODAL = [Models.GPT4O]
 
 
@@ -60,6 +79,7 @@ class MessageKeys(metaclass=ConstantsClass):
     ARTIFACTS = "artifacts"
     PINNED = "pinned"
     TIMESTAMP = "timestamp"
+    IMAGE_URL = "image_url"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -107,9 +127,9 @@ class LLMIntegration:
     ):
         self._model = model_name
 
-        if model_name in [Models.OLLAMA_31_70B, Models.OLLAMA_31_8B]:
+        if model_name in ModelFlags.REQUIRES_BASE_URL:
             url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self._client = OpenAI(base_url=url, api_key="ollama")
+            self._client = OpenAI(base_url=url, api_key=api_key)
         elif model_name in [Models.GPT4O]:
             self._client = OpenAI(api_key=api_key)
         else:
@@ -125,6 +145,7 @@ class LLMIntegration:
         self._artifacts = {}
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
         self._all_messages = []  # full conversation history for display
+
         if system_message is not None:
             self._append_message("system", system_message, pin_message=True)
 
@@ -154,21 +175,32 @@ class LLMIntegration:
 
         return tools
 
+    @staticmethod
+    def _plotly_to_base64(figure) -> str:
+        """Convert Plotly figure to base64-encoded PNG image."""
+        img_bytes = pio.to_image(figure, format="png")
+        return base64.b64encode(img_bytes).decode("utf-8")
+
     def _append_message(
         self,
         role: str,
-        content: str,
+        content: Union[str, List[Dict[str, Any]]],
         *,
         tool_calls: Optional[List[ChatCompletionMessageToolCall]] = None,
         tool_call_id: Optional[str] = None,
         pin_message: bool = False,
+        keep_list: bool = False,
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
             MessageKeys.ROLE: role,
-            MessageKeys.CONTENT: content,
             MessageKeys.PINNED: pin_message,
         }
+
+        if keep_list:
+            message[MessageKeys.CONTENT] = content
+        else:
+            message[MessageKeys.CONTENT] = str(content)
 
         if tool_calls is not None:
             message[MessageKeys.TOOL_CALLS] = tool_calls
@@ -208,24 +240,50 @@ class LLMIntegration:
         float
             The estimated number of tokens
         """
+        total_tokens = 0
         try:
             enc = tiktoken.encoding_for_model(model)
-            total_tokens = sum(
-                [
-                    len(enc.encode(message[MessageKeys.CONTENT]))
-                    for message in messages
-                    if message
-                ]
-            )
+            for message in messages:
+                if message and MessageKeys.CONTENT in message:
+                    content = message[MessageKeys.CONTENT]
+                    if isinstance(content, str):
+                        total_tokens += len(enc.encode(content))
+                    elif isinstance(content, list):
+                        for part in content:
+                            if (
+                                isinstance(part, dict)
+                                and part.get("type") == "text"
+                                and isinstance(part.get("text"), str)
+                            ):
+                                total_tokens += len(enc.encode(part["text"]))
+                            elif (
+                                isinstance(part, dict)
+                                and part.get("type") == "image_url"
+                            ):
+                                total_tokens += (
+                                    250  # Placeholder token count for an image
+                                )
         except KeyError:
-            # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
-            total_tokens = sum(
-                [
-                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
-                    for message in messages
-                    if message
-                ]
-            )
+            for message in messages:
+                if message and MessageKeys.CONTENT in message:
+                    content = message[MessageKeys.CONTENT]
+                    if isinstance(content, str):
+                        total_tokens += len(content) / average_chars_per_token
+                    elif isinstance(content, list):
+                        for part in content:
+                            if (
+                                isinstance(part, dict)
+                                and part.get("type") == "text"
+                                and isinstance(part.get("text"), str)
+                            ):
+                                total_tokens += (
+                                    len(part["text"]) / average_chars_per_token
+                                )
+                            elif (
+                                isinstance(part, dict)
+                                and part.get("type") == "image_url"
+                            ):
+                                total_tokens += 250  # Placeholder
         return total_tokens
 
     def _truncate_conversation_history(
@@ -366,26 +424,95 @@ class LLMIntegration:
             artifact_id = f"{function_name}_{tool_call.id}"
             new_artifacts[artifact_id] = function_result
 
-            content = json.dumps(
+            result_representation = self._create_string_representation(
+                function_result,
+                function_name,
+                function_args,
+                self._model in ModelFlags.MULTIMODAL,
+            )
+
+            message = json.dumps(
                 {
-                    MessageKeys.RESULT: self._create_string_representation(
-                        function_result, function_name, function_args
-                    ),
+                    MessageKeys.RESULT: result_representation,
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
-            self._append_message(Roles.TOOL, content, tool_call_id=tool_call.id)
+
+            self._append_message(Roles.TOOL, message, tool_call_id=tool_call.id)
+
+            if isinstance(function_result, PlotlyObject) and (
+                image_analysis_message := self._get_image_analysis_message(
+                    function_result
+                )
+            ):
+                self._append_message(
+                    Roles.USER,
+                    image_analysis_message,
+                    pin_message=False,
+                    keep_list=True,
+                )
 
         post_artifact_message_idx = len(self._all_messages)
-        self._artifacts[post_artifact_message_idx] = new_artifacts.values()
+        self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
 
         response = self._chat_completion_create()
 
         return self._parse_model_response(response)
 
+    def _get_image_analysis_message(self, function_result: Any) -> List[Dict[str, str]]:
+        """Get prompt to handle image generation and analysis."""
+
+        image_analysis_message = []
+
+        if self._model not in ModelFlags.MULTIMODAL:
+            return image_analysis_message
+
+        try:
+            image_data = self._plotly_to_base64(function_result)
+        except Exception as e:
+            logger.warning(f"Failed to convert Plotly figure to image: {str(e)}")
+        else:
+            image_analysis_message = [
+                {
+                    "type": "text",
+                    "text": (IMAGE_ANALYSIS_PROMPT),
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{image_data}",
+                        "detail": "high",
+                    },
+                },
+            ]
+
+        return image_analysis_message
+
+    @staticmethod
+    def _is_image_analysis_message(message: Dict[str, Any]) -> bool:
+        """Check if a user message is an image analysis prompt."""
+        if message[MessageKeys.ROLE] == Roles.USER and isinstance(
+            message[MessageKeys.CONTENT], list
+        ):
+            is_image_analysis_text = False
+            has_image_url = False
+            for part in message[MessageKeys.CONTENT]:
+                if isinstance(part, dict):
+                    if part.get("type") == "text" and part.get("text", "").startswith(
+                        IMAGE_REPRESENTATION_PROMPT[:20]
+                    ):
+                        is_image_analysis_text = True
+                    elif part.get("type") == "image_url":
+                        has_image_url = True
+            return is_image_analysis_text or has_image_url
+        return False
+
     @staticmethod
     def _create_string_representation(
-        function_result: Any, function_name: str, function_args: Dict
+        function_result: Any,
+        function_name: str,
+        function_args: Dict,
+        is_multimodal: bool,
     ) -> str:
         """Create a string representation of the function result.
 
@@ -397,6 +524,8 @@ class LLMIntegration:
             The name of the function
         function_args : Dict
             The arguments passed to the function
+        is_multimodal : bool
+            Whether the current model supports multimodal inputs
 
         Returns
         -------
@@ -407,49 +536,49 @@ class LLMIntegration:
         primitive_types = (int, float, str, bool)
         simple_iterable_types = (list, tuple, set)
 
-        iterable_artifact_description = "Function {} with arguments {} returned a {}, containing {} elements, some of which are non-trivial to represent as text."
-        single_artifact_description = "Function {} with arguments {} returned a {}."
-        LLM_instructions = " There is currently no text representation for this artifact that can be interpreted meaningfully. If the user asks for guidance how to interpret the artifact please rely on the desription of the tool function and the arguments it was called with."
+        if isinstance(function_result, PlotlyObject):
+            return (
+                IMAGE_REPRESENTATION_PROMPT
+                if is_multimodal
+                else NO_REPRESENTATION_PROMPT
+            )
+
         if isinstance(function_result, primitive_types):
             return str(function_result)
-        elif isinstance(function_result, pd.DataFrame):
+
+        if isinstance(function_result, pd.DataFrame):
             return function_result.to_json()
-        elif isinstance(function_result, dict):
-            if all(
-                isinstance(element, primitive_types)
-                for element in function_result.values()
-            ):
-                return str(function_result)
-            else:
-                return (
-                    iterable_artifact_description.format(
-                        function_name,
-                        json.dumps(function_args),
-                        result_type,
-                        len(function_result),
-                    )
-                    + LLM_instructions
-                )
+
+        items_to_check = None
+        is_collection_type = False
+
+        if isinstance(function_result, dict):
+            items_to_check = function_result.values()
+            is_collection_type = True
         elif isinstance(function_result, simple_iterable_types):
-            if all(isinstance(element, primitive_types) for element in function_result):
+            items_to_check = function_result
+            is_collection_type = True
+
+        if is_collection_type:
+            if all(isinstance(item, primitive_types) for item in items_to_check):
                 return str(function_result)
             else:
                 return (
-                    iterable_artifact_description.format(
+                    ITERABLE_ARTIFACT_REPRESENTATION_PROMPT.format(
                         function_name,
                         json.dumps(function_args),
                         result_type,
                         len(function_result),
                     )
-                    + LLM_instructions
+                    + NO_REPRESENTATION_PROMPT
                 )
-        else:
-            return (
-                single_artifact_description.format(
-                    function_name, json.dumps(function_args), result_type
-                )
-                + LLM_instructions
+
+        return (
+            SINGLE_ARTIFACT_REPRESENTATION_PROMPT.format(
+                function_name, json.dumps(function_args), result_type
             )
+            + NO_REPRESENTATION_PROMPT
+        )
 
     def _chat_completion_create(self) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
@@ -482,6 +611,9 @@ class LLMIntegration:
             ):
                 continue
             if not show_all and MessageKeys.TOOL_CALLS in message:
+                continue
+
+            if self._is_image_analysis_message(message):
                 continue
 
             print_view.append(
@@ -539,8 +671,8 @@ class LLMIntegration:
 
             if tool_calls:
                 if content:
-                    raise ValueError(
-                        f"Unexpected content {content} with tool calls {tool_calls}."
+                    self._append_message(
+                        Roles.ASSISTANT, content, pin_message=pin_message
                     )
 
                 content, _ = self._handle_function_calls(tool_calls)

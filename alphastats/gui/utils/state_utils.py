@@ -1,5 +1,6 @@
 """Functions to initialize and empty the session state."""
 
+import os
 import uuid
 from copy import deepcopy
 
@@ -24,6 +25,7 @@ INIT_STATES = {
     StateKeys.LLM_CHATS: {},
     StateKeys.ANNOTATION_STORE: {},
     StateKeys.MAX_TOKENS: 10000,
+    StateKeys.BASE_URL: os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
     StateKeys.MODEL_NAME: (
         Models.GPT4O
     ),  # TDOO: change to None: this is just for convenience now
