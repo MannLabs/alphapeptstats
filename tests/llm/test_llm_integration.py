@@ -13,9 +13,13 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_message_tool_call import Function
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import LLMIntegration, ModelFlags, Models
+from alphastats.llm.llm_integration import (
+    LLMClientWrapper,
+    LLMIntegration,
+    ModelFlags,
+    Models,
+)
 from alphastats.plots.plot_utils import PlotlyObject
-from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, Models
 
 
 @pytest.fixture
