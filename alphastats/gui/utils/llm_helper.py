@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import warnings
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -708,7 +709,8 @@ def show_llm_chat(
                 elif isinstance(
                     artifact, (PlotlyObject, plotly_object)
                 ):  # TODO can there be non-plotly types here
-                    st.plotly_chart(artifact)
+                    # TODO: find a better solution for the key
+                    st.plotly_chart(artifact, key=str(datetime.now()))  # noqa: DTZ005)
                 elif not isinstance(artifact, str):
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)

@@ -135,6 +135,7 @@ class ResultComponent(ABC):  # move to new file
     def _display_object(self) -> None:
         """Function to display the result object."""
         if self._display_selection == self.DisplaySelection.PLOT:
+            # TODO: find a better solution for the key
             st.plotly_chart(self.plot.update(), key=str(datetime.now()))  # noqa: DTZ005
         elif self._display_selection == self.DisplaySelection.RAW_DATAFRAME:
             st.dataframe(self.dataframe)
