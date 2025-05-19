@@ -544,8 +544,10 @@ def test_handle_function_calls_with_images(
     mock_execute_function.return_value = PlotlyObject()
 
     llm_integration = LLMIntegration(
-        model_name=Models.GPT4O,
-        api_key="test-key",  # pragma: allowlist secret
+        LLMClientWrapper(
+            model_name=Models.GPT4O,
+            api_key="test-key",  # pragma: allowlist secret
+        ),
         system_message="Test system message",
     )
 
@@ -580,8 +582,10 @@ def test_handle_function_calls_with_images(
 def test_get_image_analysis_message_returns_empty_prompt_if_model_not_multimodal():
     """Test that the _get_image_analysis_message method returns an empty prompt if the model is not multimodal."""
     llm_integration = LLMIntegration(
-        model_name=Models.OLLAMA_31_70B,
-        api_key="test-key",  # pragma: allowlist secret
+        LLMClientWrapper(
+            model_name=Models.OLLAMA_31_70B,
+            api_key="test-key",  # pragma: allowlist secret
+        ),
         system_message="Test system message",
     )
 
@@ -598,8 +602,10 @@ def test_get_image_analysis_message_returns_prompt_with_image_data_for_multimoda
     """Test that the _get_image_analysis_message method returns a prompt with image data for a multimodal model."""
 
     llm_integration = LLMIntegration(
-        model_name=ModelFlags.MULTIMODAL[0],
-        api_key="test-key",  # pragma: allowlist secret
+        LLMClientWrapper(
+            model_name=ModelFlags.MULTIMODAL[0],
+            api_key="test-key",  # pragma: allowlist secret
+        ),
         system_message="Test system message",
     )
 
@@ -630,8 +636,10 @@ def test_get_image_analysis_message_handles_plotly_conversion_failure_gracefully
 ):
     """Test that the _get_image_analysis_message method handles plotly conversion failure gracefully."""
     llm_integration = LLMIntegration(
-        model_name=ModelFlags.MULTIMODAL[0],
-        api_key="test-key",  # pragma: allowlist secret
+        LLMClientWrapper(
+            model_name=ModelFlags.MULTIMODAL[0],
+            api_key="test-key",  # pragma: allowlist secret
+        ),
         system_message="Test system message",
     )
 
