@@ -49,6 +49,7 @@ class SessionManager:
 
         """
         self._save_folder_path = Path(save_folder_path)
+        self.warnings = []
 
     @staticmethod
     def _clean_copy(source: dict, target: dict | SessionStateProxy) -> None:
@@ -130,10 +131,13 @@ class SessionManager:
             if (
                 version := loaded_data[SavedSessionKeys.META][SavedSessionKeys.VERSION]
             ) != __version__:
-                logging.warning(
+                msg = (
                     f"Version mismatch: Session {file_name} was saved with version {version}, but current version is {__version__}."
                     f"This might lead to unexpected behavior."
                 )
+                logging.warning(msg)
+
+                self.warnings.append(msg)
 
             # clean and init first to have a defined state
             model_name = session_state[StateKeys.MODEL_NAME]
@@ -143,6 +147,15 @@ class SessionManager:
             empty_session_state()
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
+
+            if model_name != session_state[StateKeys.MODEL_NAME]:
+                msg = f"Saved LLM client used a different model: before {model_name}, now {session_state[StateKeys.MODEL_NAME]}"
+                logging.warning(msg)
+                self.warnings.append(msg)
+            if base_url != session_state[StateKeys.BASE_URL]:
+                msg = f"Saved LLM client used a different base_url: before {base_url}, now {session_state[StateKeys.BASE_URL]}"
+                self.warnings.append(msg)
+                logging.warning(msg)
 
             for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
                 if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:

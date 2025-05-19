@@ -72,8 +72,11 @@ else:
         "Load",
         help="Load the selected session. Note that this will overwrite the current session.",
     ):
-        loaded_file_path = SessionManager().load(file_to_load, st.session_state)
+        session_manager = SessionManager()
+        loaded_file_path = session_manager.load(file_to_load, st.session_state)
         st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
+        for warning in session_manager.warnings:
+            st.warning(warning)
 
 
 ##
