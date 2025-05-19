@@ -150,6 +150,8 @@ class SessionManager:
                 self.warnings.append(msg)
                 logging.warning(msg)
 
+            session_state[StateKeys.OPENAI_API_KEY] = api_key
+
             for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
                 if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
                     # TODO: this re-initializes all llm clients with the same model name
