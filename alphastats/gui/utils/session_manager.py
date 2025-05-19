@@ -63,13 +63,6 @@ class SessionManager:
         keys_to_save = StateKeys.get_values()
         keys_to_save.remove(StateKeys.OPENAI_API_KEY)  # do not store key on disk
 
-        source = source.copy()
-
-        for chat in source.get(StateKeys.LLM_CHATS, {}).values():
-            if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
-                # cannot pickle LLM client due to SSLContext object
-                llm_integration.client_wrapper = None
-
         target.update(
             {key: value for key, value in source.items() if key in keys_to_save}
         )
