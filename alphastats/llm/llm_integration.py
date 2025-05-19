@@ -113,7 +113,7 @@ class LLMClientWrapper:
         if model_name in ModelFlags.REQUIRES_BASE_URL:
             url = f"{base_url}/v1"  # TODO: enable to configure this per model
             self.client = OpenAI(base_url=url, api_key=api_key)
-        elif model_name in [Models.GPT4O]:
+        elif model_name in Models.get_values():
             self.client = OpenAI(api_key=api_key)
         else:
             raise ValueError(f"Invalid model name: {model_name}")
@@ -461,7 +461,7 @@ class LLMIntegration:
                 function_result,
                 function_name,
                 function_args,
-                self._model in ModelFlags.MULTIMODAL,
+                self.client_wrapper.model_name in ModelFlags.MULTIMODAL,
             )
 
             message = json.dumps(
@@ -499,7 +499,7 @@ class LLMIntegration:
 
         image_analysis_message = []
 
-        if self._model not in ModelFlags.MULTIMODAL:
+        if self.client_wrapper.model_name not in ModelFlags.MULTIMODAL:
             return image_analysis_message
 
         try:
