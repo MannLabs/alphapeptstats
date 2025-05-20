@@ -27,5 +27,7 @@ st_cytoscape==0.0.5
 stqdm==0.0.5
 tiktoken>=0.7.0
 
-# TODO not a direct dependency, but without, the 3.10 CI runner runs into "Dependency resolution exceeded maximum depth"
-matplotlib==3.10.3 ; python_version == "3.10"
+# TODO without these the 3.10 CI runner runs into "Dependency resolution exceeded maximum depth" for matplotlib
+click==8.0.1; python_version == "3.10"
+data_cache>=0.1.6; python_version == "3.10"
+nbformat>=5.0; python_version == "3.10"
