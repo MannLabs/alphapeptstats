@@ -183,7 +183,7 @@ class LLMIntegration:
     def __getstate__(self):
         """Return the state to pickle, without the client wrapper."""
         dict_to_pickle = dict(self.__dict__)
-        for k, v in dict_to_pickle.items():
+        for k, v in self.__dict__.items():
             if LLMClientWrapper.__name__ in str(type(v)):
                 del dict_to_pickle[k]
         return dict_to_pickle

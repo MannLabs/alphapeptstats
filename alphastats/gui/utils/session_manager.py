@@ -133,24 +133,26 @@ class SessionManager:
                 self.warnings.append(msg)
 
             # clean and init first to have a defined state
-            model_name = session_state[StateKeys.MODEL_NAME]
-            api_key = session_state[StateKeys.OPENAI_API_KEY]
-            base_url = session_state[StateKeys.BASE_URL]
+            model_name_current_session = session_state[StateKeys.MODEL_NAME]
+            api_key_current_session = session_state[StateKeys.OPENAI_API_KEY]
+            base_url_current_session = session_state[StateKeys.BASE_URL]
 
             empty_session_state()
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
 
-            if model_name != session_state[StateKeys.MODEL_NAME]:
-                msg = f"Saved LLM client used a different model: before {model_name}, now {session_state[StateKeys.MODEL_NAME]}"
+            if model_name_current_session != session_state[StateKeys.MODEL_NAME]:
+                msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name_current_session}"
                 logging.warning(msg)
                 self.warnings.append(msg)
-            if base_url != session_state[StateKeys.BASE_URL]:
-                msg = f"Saved LLM client used a different base_url: before {base_url}, now {session_state[StateKeys.BASE_URL]}"
+            if base_url_current_session != session_state[StateKeys.BASE_URL]:
+                msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url_current_session}"
                 self.warnings.append(msg)
                 logging.warning(msg)
 
-            session_state[StateKeys.OPENAI_API_KEY] = api_key
+            session_state[StateKeys.OPENAI_API_KEY] = api_key_current_session
+            session_state[StateKeys.MODEL_NAME] = model_name_current_session
+            session_state[StateKeys.BASE_URL] = base_url_current_session
 
             for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
                 if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
@@ -158,9 +160,9 @@ class SessionManager:
                     # once we have a 'proper' llm config page, this should be done there:
                     # basically, we need to re-initialize the client wrapper with the model name
                     llm_integration.client_wrapper = LLMClientWrapper(
-                        model_name=model_name,
-                        api_key=api_key,
-                        base_url=base_url,
+                        model_name=model_name_current_session,
+                        api_key=api_key_current_session,
+                        base_url=base_url_current_session,
                     )
 
             return str(file_path)
