@@ -29,7 +29,9 @@ def llm_integration(mock_openai_client) -> LLMIntegration:
     dataset = Mock()
     dataset.plot_intensity = Mock(return_value="Plot created")
     dataset.custom_function = Mock(return_value="Dataset function called")
-    dataset.metadata = pd.DataFrame({"group1": ["A", "B"], "group2": ["C", "D"]})
+    dataset.metadata = pd.DataFrame(
+        {"sample_": ["S1", "S2"], "group1": ["A", "B"], "group2": ["C", "D"]}
+    )
     return LLMIntegration(
         model_name=Models.GPT4O,
         api_key="test-key",  # pragma: allowlist secret
