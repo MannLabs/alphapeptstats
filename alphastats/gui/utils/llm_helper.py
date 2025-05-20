@@ -20,7 +20,11 @@ from alphastats.gui.utils.state_keys import (
     SavedAnalysisKeys,
     StateKeys,
 )
-from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_organisms
+from alphastats.llm.enrichment_analysis import (
+    HUMAN_ORGANISM_ID,
+    get_enrichment_data,
+    gprofiler_organisms,
+)
 from alphastats.llm.llm_integration import (
     LLMIntegration,
     MessageKeys,
@@ -47,7 +51,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 # TODO: Deduplicate this code without introducing a circular import
 
 
-class ENRICHMENT_ANALYSIS_KEYS(metaclass=ConstantsClass):
+class EnrichmentAnalysisKeys(metaclass=ConstantsClass):
     """Keys for accessing the session state for enrichment analysis."""
 
     PARAMETERS = "parameters"
@@ -150,8 +154,8 @@ def init_llm_chat_state(
         selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
     if selected_llm_chat.get(LLMKeys.ENRICHMENT_ANALYSIS) is None:
         selected_llm_chat[LLMKeys.ENRICHMENT_ANALYSIS] = {
-            ENRICHMENT_ANALYSIS_KEYS.PARAMETERS: {},
-            ENRICHMENT_ANALYSIS_KEYS.RESULT: None,
+            EnrichmentAnalysisKeys.PARAMETERS: {},
+            EnrichmentAnalysisKeys.RESULT: None,
         }
     if selected_llm_chat.get(LLMKeys.ENRICHMENT_COLUMNS) is None:
         selected_llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = []
@@ -202,9 +206,9 @@ def initialize_initial_prompt_modules(
         uniprot_info = ""
     enrichment_data = (
         None
-        if llm_chat[LLMKeys.ENRICHMENT_ANALYSIS].get(ENRICHMENT_ANALYSIS_KEYS.RESULT)
+        if llm_chat[LLMKeys.ENRICHMENT_ANALYSIS].get(EnrichmentAnalysisKeys.RESULT)
         is None
-        else llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][ENRICHMENT_ANALYSIS_KEYS.RESULT][
+        else llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][EnrichmentAnalysisKeys.RESULT][
             llm_chat[LLMKeys.ENRICHMENT_COLUMNS]
         ]
     )
@@ -607,8 +611,9 @@ def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
 @st.fragment
 def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
     new_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+        EnrichmentAnalysisKeys.PARAMETERS
     ].copy()
+    NO_ENRICHMENT = "<no enrichment>"
     with st.form(key="enrichment_analysis_form"):
         st.markdown(
             "##### Enrichment analysis",
@@ -621,33 +626,35 @@ def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
                 options=list(gprofiler_organisms.keys()),
                 index=list(gprofiler_organisms.keys()).index(
                     llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-                    ].get(ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID, "9606")
+                        EnrichmentAnalysisKeys.PARAMETERS
+                    ].get(EnrichmentAnalysisKeys.ORGANISM_ID, HUMAN_ORGANISM_ID)
                 ),
                 format_func=lambda x: f"{gprofiler_organisms[x]} ({x})",
                 disabled=disabled,
             )
         with c2:
-            options = ["string", "gprofiler", "don't run"]
+            options = ["string", "gprofiler", NO_ENRICHMENT]
             display_names = {"string": "STRING", "gprofiler": "GProfiler"}
-            tool = st.selectbox(
+            enrichment_tool = st.selectbox(
                 "External enrichment tool",
                 options=options,
                 index=options.index(
                     llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-                    ].get(ENRICHMENT_ANALYSIS_KEYS.TOOL, "gprofiler")
+                        EnrichmentAnalysisKeys.PARAMETERS
+                    ].get(EnrichmentAnalysisKeys.TOOL, "gprofiler")
                 ),
                 format_func=lambda x: display_names.get(x, x),
                 disabled=disabled,
+                help="Select the tool for enrichment analysis. If you select don't run, make sure to adjust the CoT prompt to remove the enrichment interpretation step, or call enrichment on the fly.",
             )
         with c3:
             include_background = st.checkbox(
-                "Include background",
+                "Use experiment background",
                 value=llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                    ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-                ].get(ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND, True),
+                    EnrichmentAnalysisKeys.PARAMETERS
+                ].get(EnrichmentAnalysisKeys.INCLUDE_BACKGROUND, True),
                 disabled=disabled,
+                help="Use experiment background proteins in the enrichment analysis. This is recommended for most analyses, as using the whole ontology background can significantly distort results if the experiment is not representative of the whole genome.",
             )
         submit_button = st.form_submit_button(
             "Run enrichment analysis",
@@ -656,19 +663,22 @@ def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
         if submit_button:
             new_settings.update(
                 {
-                    ENRICHMENT_ANALYSIS_KEYS.ORGANISM_ID: organism_id,
-                    ENRICHMENT_ANALYSIS_KEYS.TOOL: tool,
-                    ENRICHMENT_ANALYSIS_KEYS.INCLUDE_BACKGROUND: include_background,
+                    EnrichmentAnalysisKeys.ORGANISM_ID: organism_id,
+                    EnrichmentAnalysisKeys.TOOL: enrichment_tool,
+                    EnrichmentAnalysisKeys.INCLUDE_BACKGROUND: include_background,
                 }
             )
     old_settings = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-        ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
+        EnrichmentAnalysisKeys.PARAMETERS
+    ]
+    enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
+        EnrichmentAnalysisKeys.RESULT
     ]
     if new_settings != old_settings:
-        with st.spinner("Running enrichment analysis..."):
-            if tool == "don't run":
-                enrichment_data = None
-            else:
+        if enrichment_tool == NO_ENRICHMENT:
+            enrichment_data = None
+        else:
+            with st.spinner("Running enrichment analysis..."):
                 feature_to_repr_map = st.session_state[
                     StateKeys.DATASET
                 ]._feature_to_repr_map
@@ -686,12 +696,12 @@ def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
                         )
                     ),
                     organism_id=organism_id,
-                    tool=tool,
+                    tool=enrichment_tool,
                     include_background=include_background,
                 )
-                if (
-                    isinstance(enrichment_data, pd.DataFrame)
-                    and st.session_state.get(StateKeys.ENRICHMENT_COLUMNS) == []
+                if st.session_state.get(StateKeys.ENRICHMENT_COLUMNS) == [] or any(
+                    column not in enrichment_data.columns
+                    for column in st.session_state.get(StateKeys.ENRICHMENT_COLUMNS)
                 ):
                     st.session_state[StateKeys.ENRICHMENT_COLUMNS] = list(
                         enrichment_data.columns
@@ -699,16 +709,13 @@ def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
                     llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = st.session_state.get(
                         StateKeys.ENRICHMENT_COLUMNS
                     )
-            llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][ENRICHMENT_ANALYSIS_KEYS.RESULT] = (
-                enrichment_data
-            )
-            llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-                ENRICHMENT_ANALYSIS_KEYS.PARAMETERS
-            ].update(new_settings)
-    else:
-        enrichment_data = llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][
-            ENRICHMENT_ANALYSIS_KEYS.RESULT
-        ]
+        llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][EnrichmentAnalysisKeys.RESULT] = (
+            enrichment_data
+        )
+        llm_chat[LLMKeys.ENRICHMENT_ANALYSIS][EnrichmentAnalysisKeys.PARAMETERS].update(
+            new_settings
+        )
+
     if isinstance(enrichment_data, pd.DataFrame):
         st.dataframe(enrichment_data)
         st.multiselect(
@@ -757,7 +764,7 @@ def configure_initial_prompt(
     with c2:
         st.markdown("#####")
         if st.button(
-            "Update prompts with selected features and UniProt information",
+            "Update prompts with selected features, UniProt information and enrichment analysis",
             disabled=disabled,
             help="Regenerate system message and initial prompt based on current selections",
         ):

@@ -19,7 +19,6 @@ def empty_session_state() -> None:
 
 INIT_STATES = {
     StateKeys.USER_SESSION_ID: str(uuid.uuid4()),
-    StateKeys.ORGANISM: 9606,  # human
     StateKeys.WORKFLOW: DefaultStates.WORKFLOW.copy(),
     StateKeys.SAVED_ANALYSES: {},
     StateKeys.LLM_CHATS: {},

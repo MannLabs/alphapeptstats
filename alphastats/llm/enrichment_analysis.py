@@ -14,9 +14,10 @@ from alphastats.gui.utils.state_keys import StateKeys
 if TYPE_CHECKING:
     from alphastats.dataset.dataset import DataSet
 
+HUMAN_ORGANISM_ID = "9606"
 
 gprofiler_organisms = {
-    "9606": "hsapiens",
+    HUMAN_ORGANISM_ID: "hsapiens",
     "10090": "mmusculus",
     "10116": "rnorvegicus",
     "7227": "dmelanogaster",
@@ -66,7 +67,7 @@ def _wrap_exceptions_requests_post(
 def _get_functional_annotation_stringdb(
     identifiers: list[str],
     background_identifiers: Optional | list[str] = None,
-    species_id: str = "9606",
+    species_id: str = HUMAN_ORGANISM_ID,
     timeout: int = 600,
 ) -> pd.DataFrame:
     """Get functional annotation from STRING for a list of gene identifiers.
@@ -117,7 +118,7 @@ def _get_functional_annotation_stringdb(
 
 def _map_short_representation_to_stringdb(
     short_representations: list[str],
-    species: str = "9606",
+    species: str = HUMAN_ORGANISM_ID,
     timeout: int = 600,
 ) -> list[str]:
     """Map feature representations to STRING identifiers.
@@ -234,7 +235,7 @@ def _get_functional_annotation_gprofiler(
 
 def get_enrichment_data(
     difexpressed: list[str],
-    organism_id: str = "9606",
+    organism_id: str = HUMAN_ORGANISM_ID,
     tool: str = "string",
     *,
     include_background: bool = True,

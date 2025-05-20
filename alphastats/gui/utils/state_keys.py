@@ -15,7 +15,6 @@ class StateKeys(metaclass=ConstantsClass):
 
     USER_SESSION_ID = "user_session_id"
     DATASET = "dataset"
-    ORGANISM = "organism"  # TODO: this is essentially a constant
 
     WORKFLOW = "workflow"
 

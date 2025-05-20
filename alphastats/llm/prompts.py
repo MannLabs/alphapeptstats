@@ -68,7 +68,7 @@ def _get_protein_data_prompt(
         )
     if enrichment_data is not None:
         enrichment_prompt = (
-            f"{newline}{newline}We have also performed an enrichment analysis of all regulated proteins to identify overrepresented ontology terms. These are the tabular results of the analysis:{newline}{newline}"
+            f"{newline}{newline}We have also performed an enrichment analysis of all regulated proteins to identify overrepresented ontology terms. These are the results in markdown tabular format:{newline}{newline}"
             f"{enrichment_data.to_markdown(index=False)}"
         )
     else:
