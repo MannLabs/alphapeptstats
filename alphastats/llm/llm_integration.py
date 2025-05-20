@@ -113,7 +113,7 @@ class LLMClientWrapper:
         if model_name in ModelFlags.REQUIRES_BASE_URL:
             url = f"{base_url}/v1"  # TODO: enable to configure this per model
             self.client = OpenAI(
-                base_url=url, api_key="" if api_key is None else api_key
+                base_url=url, api_key="no_api_key" if api_key is None else api_key
             )
         elif model_name in ModelFlags.REQUIRES_API_KEY:
             self.client = OpenAI(api_key=api_key)
