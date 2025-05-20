@@ -141,30 +141,52 @@ class SessionManager:
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
 
-            if model_name_current_session != session_state[StateKeys.MODEL_NAME]:
-                msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name_current_session}"
-                logging.warning(msg)
-                self.warnings.append(msg)
-            if base_url_current_session != session_state[StateKeys.BASE_URL]:
-                msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url_current_session}"
-                self.warnings.append(msg)
-                logging.warning(msg)
-
-            session_state[StateKeys.OPENAI_API_KEY] = api_key_current_session
-            session_state[StateKeys.MODEL_NAME] = model_name_current_session
-            session_state[StateKeys.BASE_URL] = base_url_current_session
-
-            for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
-                if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
-                    # TODO: this re-initializes all llm clients with the same model name
-                    # once we have a 'proper' llm config page, this should be done there:
-                    # basically, we need to re-initialize the client wrapper with the model name
-                    llm_integration.client_wrapper = LLMClientWrapper(
-                        model_name=model_name_current_session,
-                        api_key=api_key_current_session,
-                        base_url=base_url_current_session,
-                    )
+            self._add_clients_to_llm_chats(
+                model_name_current_session,
+                api_key_current_session,
+                base_url_current_session,
+                session_state,
+            )
 
             return str(file_path)
 
         raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")
+
+    def _add_clients_to_llm_chats(
+        self,
+        model_name: str,
+        api_key: str,
+        base_url: str,
+        session_state: SessionStateProxy,
+    ) -> None:
+        """Amend the loaded LLM chats with clients (using current model name, api key and base url).
+
+        TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
+        """
+        if model_name != session_state[StateKeys.MODEL_NAME]:
+            msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name}"
+            logging.warning(msg)
+            self.warnings.append(msg)
+
+        if base_url != session_state[StateKeys.BASE_URL]:
+            msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url}"
+            self.warnings.append(msg)
+            logging.warning(msg)
+        session_state[StateKeys.OPENAI_API_KEY] = api_key
+        session_state[StateKeys.MODEL_NAME] = model_name
+        session_state[StateKeys.BASE_URL] = base_url
+
+        for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
+            chat[StateKeys.MODEL_NAME] = model_name
+            chat[StateKeys.BASE_URL] = base_url
+
+            if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
+                # TODO: this re-initializes all llm clients with the same model name
+                # once we have a 'proper' llm config page, this should be done there:
+                # basically, we need to re-initialize the client wrapper with the model name
+                # and ask the user for token(s) again.
+                llm_integration.client_wrapper = LLMClientWrapper(
+                    model_name=model_name,
+                    api_key=api_key,
+                    base_url=base_url,
+                )
