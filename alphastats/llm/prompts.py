@@ -42,7 +42,7 @@ def _get_experimental_design_prompt(
     column = parameter_dict["column"]
     return (
         "We've recently identified several proteins that appear to be differently regulated in cells "
-        f"when comparing {group1} and {group2} in the {column} group."
+        f"when comparing {group1} and {group2} in the {column} grouping."
     )
 
 
@@ -51,8 +51,11 @@ def _get_protein_data_prompt(
     downregulated_features: list[str],
     uniprot_info: str,
     feature_to_repr_map: dict,
+    parameter_dict: dict,
 ) -> str:
     """Get the initial prompt for the LLM model."""
+    group1 = parameter_dict["group1"]
+    group2 = parameter_dict["group2"]
     if uniprot_info:
         uniprot_instructions = (
             f"We have already retireved relevant information from Uniprot for these proteins:{newline}{newline}{uniprot_info}{newline}{newline}"
@@ -79,8 +82,8 @@ def _get_protein_data_prompt(
     )
     return (
         f"From our proteomics experiments, we know the following:{newline}{newline}"
-        f"Comma-separated list of proteins that are upregulated: {', '.join(upregulated_genes)}.{newline}{newline}"
-        f"Comma-separated list of proteins that are downregulated: {', '.join(downregulated_genes)}.{newline}{newline}"
+        f"Comma-separated list of proteins that are upregulated (high in {group1}): {', '.join(upregulated_genes)}.{newline}{newline}"
+        f"Comma-separated list of proteins that are downregulated (high in {group2}): {', '.join(downregulated_genes)}.{newline}{newline}"
         f"{uniprot_instructions}"
     )
 

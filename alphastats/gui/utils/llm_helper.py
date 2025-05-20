@@ -185,6 +185,7 @@ def initialize_initial_prompt_modules(
         llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
         uniprot_info,
         feature_to_repr_map=feature_to_repr_map,
+        parameter_dict=plot_parameters,
     )
 
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
