@@ -29,7 +29,7 @@ class SavedSessionKeys:
 STATE_SAVE_FOLDER_PATH = (
     (Path(__file__).absolute().parent.parent.parent.parent / "sessions")
     if (state_save_folder_path := os.environ.get("STATE_SAVE_FOLDER_PATH")) is None
-    else state_save_folder_path
+    else Path(state_save_folder_path)
 )
 
 
