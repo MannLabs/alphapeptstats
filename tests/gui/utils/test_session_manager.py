@@ -151,7 +151,15 @@ def test_save_and_load_with_llm(
     assert session_state_before_load == {
         **EXPECTED_STATE,
         **llm_state,
-        **{StateKeys.LLM_CHATS: {"some_datetime": {LLMKeys.LLM_INTEGRATION: mock.ANY}}},
+        **{
+            StateKeys.LLM_CHATS: {
+                "some_datetime": {
+                    LLMKeys.LLM_INTEGRATION: mock.ANY,
+                    LLMKeys.BASE_URL: "some_url",
+                    LLMKeys.MODEL_NAME: "some_model_name",
+                }
+            }
+        },
     }
 
     mock_empty_session_state.assert_called_once()
