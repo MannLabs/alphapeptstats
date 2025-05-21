@@ -110,6 +110,21 @@ This is indicated by a dialog telling you `“alphastats. ... .pkg” Not Opened
 4. In the dialog windows, click `Open Anyway`.
 
 
+## Docker version
+The containerized version can be used to run alphapeptstats without any installation (apart from Docker)
+
+### 1. Setting up Docker
+Install the latest version of docker (https://docs.docker.com/engine/install/).
+
+### 2. Start the container
+```bash
+PORT=8501
+SESSIONS_PATH=./sessions
+docker run -p $PORT:8501 -v $SESSIONS_PATH:/app/sessions mannlabs/alphastats:latest
+```
+After initial download of the container, alphapeptstats will start running on [http://localhost:$PORT](http://localhost:8501).
+Note: this will create a directory `$SESSIONS_PATH` where sessions will be stored.
+
 ---
 ## GUI
 ![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)

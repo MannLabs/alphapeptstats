@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -27,7 +28,9 @@ class SavedSessionKeys:
 
 
 STATE_SAVE_FOLDER_PATH = (
-    Path(__file__).absolute().parent.parent.parent.parent / "sessions"
+    (Path(__file__).absolute().parent.parent.parent.parent / "sessions")
+    if (state_save_folder_path := os.environ.get("STATE_SAVE_FOLDER_PATH")) is None
+    else Path(state_save_folder_path)
 )
 
 
