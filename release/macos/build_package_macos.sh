@@ -4,7 +4,7 @@ set -e -u
 # Build the install package for MacOS.
 # This script must be run from the root of the repository after running build_installer_macos.sh
 
-PACKAGE_NAME=alphastats
+PACKAGE_NAME=AlphaPeptStats
 # BUILD_NAME is taken from environment variables, e.g. alphastats-1.2.3-macos-darwin-arm64 or alphastats-1.2.3-macos-darwin-x64
 rm -rf ${BUILD_NAME}.pkg
 
@@ -27,5 +27,5 @@ cd -
 
 chmod 777 release/macos/scripts/*
 
-pkgbuild --root dist_pyinstaller/${PACKAGE_NAME} --identifier de.mpg.biochem.${PACKAGE_NAME}.app --version 0.6.9 --install-location /Applications/${PACKAGE_NAME}.app --scripts release/macos/scripts ${PACKAGE_NAME}.pkg
+pkgbuild --root dist_pyinstaller/${PACKAGE_NAME} --identifier de.mpg.biochem.${PACKAGE_NAME}.app --version 0.6.10-dev0 --install-location /Applications/${PACKAGE_NAME}.app --scripts release/macos/scripts ${PACKAGE_NAME}.pkg
 productbuild --distribution release/macos/distribution.xml --resources release/macos/Resources --package-path ${PACKAGE_NAME}.pkg ${BUILD_NAME}.pkg

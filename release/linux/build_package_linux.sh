@@ -4,6 +4,7 @@ set -e -u
 # Build the install package for Linux.
 # This script must be run from the root of the repository after running build_installer_linux.sh
 
+# Prerequisites: wheel has been build, e.g. using build_wheel.sh
 PACKAGE_NAME=alphastats
 
 # BUILD_NAME is taken from environment variables, e.g. 'alphastats-1.2.1-linux-x64'

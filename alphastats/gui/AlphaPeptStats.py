@@ -48,6 +48,9 @@ from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/rese
 )
 
 
+st.markdown("### Configure LLM")
+llm_config()
+
 st.markdown("""### Load previous session""")
 saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
 
@@ -62,16 +65,19 @@ else:
         label=f"Select a session to load (from {STATE_SAVE_FOLDER_PATH})",
     )
 
+    c1.info(
+        "Note that all LLM chats will be initialized with the one model configured above."
+    )
     if st.button(
         "Load",
         help="Load the selected session. Note that this will overwrite the current session.",
     ):
-        loaded_file_path = SessionManager().load(file_to_load, st.session_state)
+        session_manager = SessionManager()
+        loaded_file_path = session_manager.load(file_to_load, st.session_state)
         st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
+        for warning in session_manager.warnings:
+            st.warning(warning)
 
-
-st.markdown("#### Configure LLM")
-llm_config()
 
 ##
 st.markdown(

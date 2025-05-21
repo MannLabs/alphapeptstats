@@ -15,7 +15,6 @@ class StateKeys(metaclass=ConstantsClass):
 
     USER_SESSION_ID = "user_session_id"
     DATASET = "dataset"
-    ORGANISM = "organism"  # TODO: this is essentially a constant
 
     WORKFLOW = "workflow"
 
@@ -38,6 +37,7 @@ class StateKeys(metaclass=ConstantsClass):
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
+    ENRICHMENT_COLUMNS = "enrichment_columns"
 
 
 class LLMKeys(metaclass=ConstantsClass):
@@ -47,6 +47,7 @@ class LLMKeys(metaclass=ConstantsClass):
     SELECTED_FEATURES_UP = "selected_features_up"
     SELECTED_FEATURES_DOWN = "selected_features_down"
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
+    ENRICHMENT_ANALYSIS = "enrichment_analysis"
 
     IS_INITIALIZED = "is_initialized"
     # Mirrored by StateKeys for handling reactivity and making it available to functions reading from the session state
@@ -58,6 +59,7 @@ class LLMKeys(metaclass=ConstantsClass):
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
+    ENRICHMENT_COLUMNS = "enrichment_columns"
 
 
 class KeySyncNames(metaclass=ConstantsClass):
@@ -90,6 +92,7 @@ WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     ),
     SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA, None),
     SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
+    SyncedLLMKey(StateKeys.ENRICHMENT_COLUMNS, LLMKeys.ENRICHMENT_COLUMNS, None),
 ]
 
 # These keys are synced between the StateKeys and LLMKeys classes, but only if the LLM is already initialized with a specific model.

@@ -13,6 +13,7 @@ from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     configure_initial_prompt,
     display_uniprot,
+    enrichment_analysis,
     format_analysis_key,
     get_selected_regulated_features,
     init_llm_chat_state,
@@ -27,7 +28,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMIntegration, ModelFlags
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, ModelFlags
 from alphastats.llm.prompts import get_system_message
 
 st.set_page_config(layout="wide")
@@ -189,6 +190,9 @@ display_uniprot(
     disabled=is_llm_integration_initialized,
 )
 
+##################################### Enrichment analysis ####################################
+enrichment_analysis(selected_llm_chat, disabled=is_llm_integration_initialized)
+
 
 ##################################### System and initial prompt #####################################
 
@@ -258,11 +262,15 @@ if not is_llm_integration_initialized:
         st.stop()
 
     try:
-        llm_integration = LLMIntegration(
+        client_wrapper = LLMClientWrapper(
             model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
-            system_message=system_message,
             api_key=st.session_state[StateKeys.OPENAI_API_KEY],
             base_url=st.session_state[StateKeys.BASE_URL],
+        )
+
+        llm_integration = LLMIntegration(
+            client_wrapper=client_wrapper,
+            system_message=system_message,
             dataset=st.session_state[StateKeys.DATASET],
             genes_of_interest=list(regulated_features_dict.keys()),
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
@@ -295,7 +303,7 @@ with c1:
         help="Show all messages in the chat interface.",
     )
 with c2:
-    show_inidvidual_tokens = st.checkbox(
+    show_individual_tokens = st.checkbox(
         "Show individual token estimates",
         key="show_individual_tokens",
         help="Show individual token estimates for each message.",
@@ -305,5 +313,5 @@ show_llm_chat(
     selected_llm_chat[LLMKeys.LLM_INTEGRATION],
     selected_analysis_key,
     show_all,
-    show_inidvidual_tokens,
+    show_individual_tokens,
 )

@@ -1,38 +1,23 @@
-import os
-
-
 def run():
-    file_path = os.path.realpath(__file__)
-    os.chdir(os.path.dirname(file_path))
-    # this is to avoid 'AxiosError: Request failed with status code 403' locally, cf. https://github.com/streamlit/streamlit/issues/8983
-    # Do not use this in production!
-    extra_args = (
-        "--server.enableXsrfProtection false"
-        if os.environ.get("DISABLE_XSRF", False)
-        else ""
-    )
+    import os
+    import sys
 
-    os.system(
-        f"python -m streamlit run AlphaPeptStats.py --global.developmentMode=false {extra_args}"
-    )
+    from streamlit.web import cli as stcli
 
-    # TODO why are we starting the app a second time here?
-    # _this_file = os.path.abspath(__file__)
-    # _this_directory = os.path.dirname(_this_file)
-    #
-    # file_path = os.path.join(_this_directory, "AlphaPeptStats.py")
-    #
-    # HOME = os.path.expanduser("~")
-    # ST_PATH = os.path.join(HOME, ".streamlit")
-    #
-    # for folder in [ST_PATH]:
-    #     if not os.path.isdir(folder):
-    #         os.mkdir(folder)
-    #
-    # print(f"Starting AlphaPeptStats from {file_path}")
-    #
-    # args = ["streamlit", "run", file_path, "--global.developmentMode=false"]
-    #
-    # sys.argv = args
-    #
-    # sys.exit(stcli.main())
+    file_path = os.path.join(os.path.dirname(__file__), "AlphaPeptStats.py")
+
+    args = [
+        "streamlit",
+        "run",
+        file_path,
+        "--global.developmentMode=false",
+    ]
+
+    # # this is to avoid 'AxiosError: Request failed with status code 403' locally, cf. https://github.com/streamlit/streamlit/issues/8983
+    # # Do not use this in production!
+    if os.environ.get("DISABLE_XSRF", 0):
+        args.extend(["--server.enableXsrfProtection", "false"])
+
+    sys.argv = args
+
+    sys.exit(stcli.main())

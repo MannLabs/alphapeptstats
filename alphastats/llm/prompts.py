@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, Optional
 
+import pandas as pd
 from openai.types.chat import ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
@@ -52,6 +53,7 @@ def _get_protein_data_prompt(
     uniprot_info: str,
     feature_to_repr_map: dict,
     parameter_dict: dict,
+    enrichment_data: Optional | pd.DataFrame = None,
 ) -> str:
     """Get the initial prompt for the LLM model."""
     group1 = parameter_dict["group1"]
@@ -67,6 +69,14 @@ def _get_protein_data_prompt(
             "You have the ability to retrieve curated information from Uniprot about these proteins. "
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
+    if enrichment_data is not None:
+        enrichment_prompt = (
+            f"{newline}{newline}We have also performed an enrichment analysis of all regulated proteins to identify overrepresented ontology terms. These are the results in markdown tabular format:{newline}{newline}"
+            f"{enrichment_data.to_markdown(index=False)}"
+        )
+    else:
+        enrichment_prompt = ""
+
     upregulated_genes = list(
         map(
             feature_to_repr_map.get,
@@ -84,7 +94,7 @@ def _get_protein_data_prompt(
         f"From our proteomics experiments, we know the following:{newline}{newline}"
         f"Comma-separated list of proteins that are upregulated (high in '{group1}'): {', '.join(upregulated_genes)}.{newline}{newline}"
         f"Comma-separated list of proteins that are downregulated (high in '{group2}'): {', '.join(downregulated_genes)}.{newline}{newline}"
-        f"{uniprot_instructions}"
+        f"{uniprot_instructions}{enrichment_prompt}"
     )
 
 
@@ -108,7 +118,7 @@ LLMInstructions = {
         f"- Identify relationships between differentially expressed proteins by using your broad biological knowledge including the information from UniProt{newline}"
         f"- Look for protein complexes and pathways operating together{newline}"
         f"2. Ontology Analysis:{newline}"
-        f"- Interpret the information from the enrichment analysis{newline}"
+        f"- Interpret the information from the enrichment analysis (run an analysis with gprofiler and background included in case no result is provided){newline}"
         f"- Examine which cellular processes are most affected based on protein changes{newline}"
         f"- Identify regulatory hubs and cross-talk between ontology terms{newline}"
         f"3. Critical Review:{newline}"

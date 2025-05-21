@@ -21,6 +21,7 @@ from alphastats.llm.llm_functions import (
     get_general_assistant_functions,
     get_uniprot_info_for_search_string,
 )
+from alphastats.loader.generic_loader import GenericLoader
 
 
 def _get_method_parameters(method: Callable) -> Dict:
@@ -162,25 +163,39 @@ def test_get_annotation_from_uniprot_by_feature_list_error(mock_uniprot_annotati
     mock_uniprot_annotation.assert_not_called()
 
 
-class DummyDataset:
-    _feature_to_repr_map = {
+def SyntheticDataSet():
+    # Create a mock with the same interface as DataSet
+    loader = GenericLoader(
+        file="testfiles/synthetic/preprocessing_pentests.csv",
+        intensity_column="Intensity [sample]",
+        index_column="Protein IDs",
+        gene_names_column="Gene names",
+    )
+    metadata_path = "testfiles/synthetic/preprocessing_pentests_metadata.csv"
+    obj = DataSet(
+        loader=loader,
+        metadata_path_or_df=metadata_path,
+        sample_column="sample",
+    )
+    obj._feature_to_repr_map = {
         "id1;id4": "gene2;gene4",
         "id2": "gene2",
         "id3": "gene1",
         "id5;id1": "ids:id5",
     }
-    _gene_to_features_map = {
+    obj._gene_to_features_map = {
         "gene1": ["id3"],
         "gene2": ["id1;id4", "id2"],
         "gene4": ["id1;id4"],
     }
-    _protein_to_features_map = {
+    obj._protein_to_features_map = {
         "id1": ["id1;id4", "id5;id1"],
         "id2": ["id2"],
         "id3": ["id3"],
         "id4": ["id1;id4"],
         "id5": ["id5;id1"],
     }
+    return obj
 
 
 testdata_test_get_uniprot_info_for_search_string = [
@@ -189,6 +204,7 @@ testdata_test_get_uniprot_info_for_search_string = [
     ({}, "id1;id4", ["id1;id4"], "id1;id4: "),  # feature id
     ({}, "gene4", ["id1;id4"], "gene4: "),  # by gene
     ({}, "id1", ["id1;id4", "id5;id1"], "id1: "),  # by protein
+    ({}, "id6", ["id6"], "id6: "),  # not in dataset
 ]
 
 
@@ -212,7 +228,7 @@ def test_get_uniprot_info_for_search_string(
 ):
     """Test that the function retrieves the correct UniProt information for the LLM input."""
 
-    mock_session_state[StateKeys.DATASET] = DummyDataset()
+    mock_session_state[StateKeys.DATASET] = SyntheticDataSet()
     mock_session_state[StateKeys.ANNOTATION_STORE] = store_init.copy()
     mock_session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
     mock_get_annotation_from_uniprot.return_value = ({}, call_arg[0])
@@ -233,14 +249,3 @@ def test_get_uniprot_info_for_search_string(
     # it should always be in the store afterwards
     assert call_arg[0] in mock_session_state[StateKeys.ANNOTATION_STORE]
     assert result == expected_result
-
-
-@patch("streamlit.session_state", new_callable=dict)
-def test_get_uniprot_info_for_search_string_error(mock_session_state):
-    # not valid
-    mock_session_state[StateKeys.DATASET] = DummyDataset()
-    mock_session_state[StateKeys.ANNOTATION_STORE] = {}
-    mock_session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
-    llm_input = "id6"
-    with pytest.raises(ValueError, match="id6 not found in dataset."):
-        get_uniprot_info_for_search_string(llm_input)

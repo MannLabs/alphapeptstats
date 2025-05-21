@@ -61,7 +61,6 @@ AlphaPeptStats can be used as
  * python library (pip-installation), or
  * Graphical User Interface (either pip-installation or one-click installer).
 
-Further we provide a Dockerimage for the GUI.
 
 ### Pip Installation
 
@@ -77,6 +76,9 @@ In case you want to use the Graphical User Interface, use following command in t
 alphastats gui
 ```
 If you get an `AxiosError: Request failed with status code 403'` when uploading files, try running `DISABLE_XSRF=1 alphastats gui`.
+
+If you receive an error like `library 'hdf5' not found`, your computer is missing the HDF5 library. Install it via your favorite package manager or use `conda create --name alphastats python=3.9 hdf5`.
+Alternatively, use ```conda install -c anaconda pytables```.
 
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
@@ -97,15 +99,26 @@ You can overwrite the url of the server by the environmental variable `OLLAMA_BA
 
 One click Installer for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases).
 
+#### Windows
+Download the latest `alphastats-X.Y.Z-windows-amd64.exe` build and double click it to install. If you receive a warning during installation click *Run anyway*.
+Important note: always install AlphaPeptStats into a new folder, as the installer will not properly overwrite existing installations.
 
-### Docker Image
+#### Linux
+Download the latest `alphastats-X.Y.Z-linux-x64.deb` build and install it via `dpkg -i alphastats-X.Y.Z-linux-x64.deb`.
 
-We provide two Dockerfiles, one for the library and one for the Graphical User Interface.
-The Image can be pulled from Dockerhub
+#### MacOS
+Download the latest build suitable for your chip architecture
+(can be looked up by clicking on the Apple Symbol > *About this Mac* > *Chip* ("M1", "M2", "M3" -> `arm64`, "Intel" -> `x64`),
+`alphastats-X.Y.Z-macos-darwin-arm64.pkg` or `alphastats-X.Y.Z-macos-darwin-x64.pkg`. Open the parent folder of the downloaded file in Finder,
+right-click and select *open*. If you receive a warning during installation click *Open*.
 
-```bash
-docker pull elenakrismer/alphapeptstats_streamlit
-```
+In newer MacOS versions, additional steps are required to enable installation of unverified software.
+This is indicated by a dialog telling you `“alphastats. ... .pkg” Not Opened`.
+1. Close this dialog by clicking `Done`.
+2. Choose `Apple menu` > `System Settings`, then `Privacy & Security` in the sidebar. (You may need to scroll down.)
+3. Go to `Security`, locate the line "alphadia.pkg was blocked to protect your Mac" then click `Open Anyway`.
+4. In the dialog windows, click `Open Anyway`.
+
 
 ---
 ## GUI
