@@ -8,8 +8,9 @@ from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
+    has_llm_support,
     img_to_bytes,
-    sidebar_info, has_llm_support,
+    sidebar_info,
 )
 
 st.set_page_config(layout="wide")
