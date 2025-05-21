@@ -82,8 +82,8 @@ def _get_protein_data_prompt(
     )
     return (
         f"From our proteomics experiments, we know the following:{newline}{newline}"
-        f"Comma-separated list of proteins that are upregulated (high in {group1}): {', '.join(upregulated_genes)}.{newline}{newline}"
-        f"Comma-separated list of proteins that are downregulated (high in {group2}): {', '.join(downregulated_genes)}.{newline}{newline}"
+        f"Comma-separated list of proteins that are upregulated (high in '{group1}'): {', '.join(upregulated_genes)}.{newline}{newline}"
+        f"Comma-separated list of proteins that are downregulated (high in '{group2}'): {', '.join(downregulated_genes)}.{newline}{newline}"
         f"{uniprot_instructions}"
     )
 
