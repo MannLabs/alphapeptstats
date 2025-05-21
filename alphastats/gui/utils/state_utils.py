@@ -19,7 +19,6 @@ def empty_session_state() -> None:
 
 INIT_STATES = {
     StateKeys.USER_SESSION_ID: str(uuid.uuid4()),
-    StateKeys.ORGANISM: 9606,  # human
     StateKeys.WORKFLOW: DefaultStates.WORKFLOW.copy(),
     StateKeys.SAVED_ANALYSES: {},
     StateKeys.LLM_CHATS: {},
@@ -33,6 +32,7 @@ INIT_STATES = {
     StateKeys.PROMPT_EXPERIMENTAL_DESIGN: None,
     StateKeys.PROMPT_PROTEIN_DATA: None,
     StateKeys.PROMPT_INSTRUCTIONS: None,
+    StateKeys.ENRICHMENT_COLUMNS: [],
 }
 
 

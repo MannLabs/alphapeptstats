@@ -16,7 +16,6 @@ def test_page_02_loads_without_input():
 
     assert not at.exception
 
-    assert at.session_state[StateKeys.ORGANISM] == 9606
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
 
 
@@ -28,7 +27,6 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
 
     assert not at.exception
 
-    assert at.session_state[StateKeys.ORGANISM] == 9606
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
 
 
