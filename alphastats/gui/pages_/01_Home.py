@@ -8,9 +8,8 @@ from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
-    has_llm_support,
     img_to_bytes,
-    sidebar_info,
+    sidebar_info, has_llm_support,
 )
 
 st.set_page_config(layout="wide")
@@ -49,6 +48,10 @@ from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/rese
 )
 
 
+if has_llm_support():
+    st.markdown("### Configure LLM")
+    llm_config()
+
 st.markdown("""### Load previous session""")
 saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
 
@@ -63,16 +66,20 @@ else:
         label=f"Select a session to load (from {STATE_SAVE_FOLDER_PATH})",
     )
 
+    if has_llm_support():
+        c1.info(
+            "Note that all LLM chats will be initialized with the one model configured above."
+        )
     if st.button(
         "Load",
         help="Load the selected session. Note that this will overwrite the current session.",
     ):
-        loaded_file_path = SessionManager().load(file_to_load, st.session_state)
+        session_manager = SessionManager()
+        loaded_file_path = session_manager.load(file_to_load, st.session_state)
         st.toast(f"Session state loaded from {loaded_file_path}", icon="✅")
+        for warning in session_manager.warnings:
+            st.warning(warning)
 
-if has_llm_support():
-    st.markdown("#### Configure LLM")
-    llm_config()
 
 ##
 st.markdown(
@@ -82,7 +89,7 @@ If you like this software, you can give us a [star](https://github.com/MannLabs/
 our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues)
 or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more
 interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the
-[Contributors License Agreement](misc/CLA.md).
+[the Contributors License Agreement](misc/CLA.md).
 """
 )
 
