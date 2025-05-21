@@ -598,7 +598,6 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
 
 
 ANALYSIS_OPTIONS = {
-    PlottingOptions.VOLCANO_PLOT: VolcanoPlotAnalysis,
     PlottingOptions.PCA_PLOT: PCAPlotAnalysis,
     PlottingOptions.UMAP_PLOT: UMAPPlotAnalysis,
     PlottingOptions.TSNE_PLOT: TSNEPlotAnalysis,
@@ -606,7 +605,6 @@ ANALYSIS_OPTIONS = {
     PlottingOptions.INTENSITY_PLOT: IntensityPlot,
     PlottingOptions.CLUSTERMAP: ClustermapAnalysis,
     PlottingOptions.DENDROGRAM: DendrogramAnalysis,
-    StatisticOptions.DIFFERENTIAL_EXPRESSION: DifferentialExpressionAnalysis,
     StatisticOptions.TUKEY_TEST: TukeyTestAnalysis,
     StatisticOptions.ANOVA: AnovaAnalysis,
     StatisticOptions.ANCOVA: AncovaAnalysis,
