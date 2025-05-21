@@ -141,8 +141,7 @@ def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
         # calling plot.update_layout is vital here as it enables the savefig function to work
-        # TODO: find a better solution for the key
-        st.plotly_chart(plot.update(), key=str(datetime.now()))  # noqa: DTZ005)
+        st.plotly_chart(plot.update(), key=str(id(plot)))
     except Exception:
         st.pyplot(plot)
 

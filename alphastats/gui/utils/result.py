@@ -75,6 +75,8 @@ class ResultComponent(ABC):  # move to new file
             else self.DisplaySelection.RAW_DATAFRAME
         )
 
+        self._key = str(datetime.now())  # noqa: DTZ005
+
     def _apply_data_annotation_options(self, name: str = "") -> None:
         """Get and apply all options for data annotation.
 
@@ -135,12 +137,11 @@ class ResultComponent(ABC):  # move to new file
     def _display_object(self) -> None:
         """Function to display the result object."""
         if self._display_selection == self.DisplaySelection.PLOT:
-            # TODO: find a better solution for the key
-            st.plotly_chart(self.plot.update(), key=str(datetime.now()))  # noqa: DTZ005
+            st.plotly_chart(self.plot.update(), key=f"{self._key}_plot")
         elif self._display_selection == self.DisplaySelection.RAW_DATAFRAME:
-            st.dataframe(self.dataframe)
+            st.dataframe(self.dataframe, key=f"{self._key}_df")
         elif self._display_selection == self.DisplaySelection.ANNOTATED_DATAFRAME:
-            st.dataframe(self.annotated_dataframe)
+            st.dataframe(self.annotated_dataframe, key=f"{self._key}_ann_df")
 
     def display_object(
         self,

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import warnings
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -705,12 +704,11 @@ def show_llm_chat(
                 st.markdown(token_message)
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
-                    st.dataframe(artifact)
+                    st.dataframe(artifact, key=str(id(artifact)))
                 elif isinstance(
                     artifact, (PlotlyObject, plotly_object)
                 ):  # TODO can there be non-plotly types here
-                    # TODO: find a better solution for the key
-                    st.plotly_chart(artifact, key=str(datetime.now()))  # noqa: DTZ005)
+                    st.plotly_chart(artifact, key=str(id(artifact)))
                 elif not isinstance(artifact, str):
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)
