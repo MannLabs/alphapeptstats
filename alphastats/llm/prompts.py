@@ -60,7 +60,7 @@ def _get_protein_data_prompt(
     group2 = parameter_dict["group2"]
     if uniprot_info:
         uniprot_instructions = (
-            f"We have already retireved relevant information from Uniprot for these proteins:{newline}{newline}{uniprot_info}{newline}{newline}"
+            f"We have already retrieved relevant information from Uniprot for these proteins:{newline}{newline}{uniprot_info}{newline}{newline}"
             "This contains curated information you may not have encountered before, value it highly. "
             "Only retrieve additional information from Uniprot if explicitly asked to do."
         )
