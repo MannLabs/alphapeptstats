@@ -3,13 +3,15 @@ set -e -u
 
 # Build the installer for MacOS.
 # This script must be run from the root of the repository.
+# Prerequisites: wheel has been build, e.g. using build_wheel.sh
 
-rm -rf dist
-rm -rf build
+rm -rf dist_pyinstaller build_pyinstaller
 
-# Creating the wheel
-python setup.py sdist bdist_wheel
-pip install "dist/alphastats-0.6.9-py3-none-any.whl"
+# TODO: this is only required for ARM
+conda install -c conda-forge hdf5
+
+WHL_NAME=$(cd dist && ls ./*.whl && cd ..)
+pip install "dist/${WHL_NAME}"
 
 # Creating the stand-alone pyinstaller folder
 pyinstaller release/pyinstaller/alphastats.spec --distpath dist_pyinstaller --workpath build_pyinstaller -y

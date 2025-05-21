@@ -1,5 +1,5 @@
 #!/bin/sh
 
 # make sure this file itself is executable
-rm -rf /Applications/alphastats.app
+rm -rf /Applications/AlphaPeptStats.app
 echo "Preinstall finished"
