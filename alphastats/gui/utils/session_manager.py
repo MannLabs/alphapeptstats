@@ -11,8 +11,9 @@ from cloudpickle import cloudpickle
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats import __version__
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
+from alphastats.llm.llm_integration import LLMClientWrapper
 
 
 class SavedSessionKeys:
@@ -48,13 +49,16 @@ class SessionManager:
 
         """
         self._save_folder_path = Path(save_folder_path)
+        self.warnings = []
 
     @staticmethod
-    def _copy(source: dict, target: dict | SessionStateProxy) -> None:
+    def _clean_copy(source: dict, target: dict | SessionStateProxy) -> None:
         """Copy a session state dictionary from `source` to `target`, only considering keys in `StateKeys`.
 
         The restriction to the keys in `StateKeys` is to avoid storing unnecessary data, and avoids
         potential issues when using different versions (e.g. new widgets).
+
+        Also, the LLM client is removed from the session state to avoid pickling issues.
         """
         keys_to_save = StateKeys.get_values()
         keys_to_save.remove(StateKeys.OPENAI_API_KEY)  # do not store key on disk
@@ -77,7 +81,7 @@ class SessionManager:
         Only considering keys in `StateKeys` are saved.
         """
         state_data_to_save = {}
-        self._copy(session_state.to_dict(), state_data_to_save)
+        self._clean_copy(session_state.to_dict(), state_data_to_save)
         self._save_folder_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now(tz=pytz.utc).strftime("%Y%m%d-%H%M%S")
@@ -120,16 +124,69 @@ class SessionManager:
             if (
                 version := loaded_data[SavedSessionKeys.META][SavedSessionKeys.VERSION]
             ) != __version__:
-                logging.warning(
+                msg = (
                     f"Version mismatch: Session {file_name} was saved with version {version}, but current version is {__version__}."
                     f"This might lead to unexpected behavior."
                 )
+                logging.warning(msg)
+
+                self.warnings.append(msg)
 
             # clean and init first to have a defined state
+            model_name_current_session = session_state[StateKeys.MODEL_NAME]
+            api_key_current_session = session_state[StateKeys.OPENAI_API_KEY]
+            base_url_current_session = session_state[StateKeys.BASE_URL]
+
             empty_session_state()
             init_session_state()
-            self._copy(loaded_state_data, session_state)
+            self._clean_copy(loaded_state_data, session_state)
+
+            self._add_clients_to_llm_chats(
+                model_name_current_session,
+                api_key_current_session,
+                base_url_current_session,
+                session_state,
+            )
 
             return str(file_path)
 
         raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")
+
+    def _add_clients_to_llm_chats(
+        self,
+        model_name: str,
+        api_key: str,
+        base_url: str,
+        session_state: SessionStateProxy,
+    ) -> None:
+        """Amend the loaded LLM chats with clients (using current model name, api key and base url).
+
+        TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
+        """
+        if model_name != session_state[StateKeys.MODEL_NAME]:
+            msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name}"
+            logging.warning(msg)
+            self.warnings.append(msg)
+
+        if base_url != session_state[StateKeys.BASE_URL]:
+            msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url}"
+            self.warnings.append(msg)
+            logging.warning(msg)
+        session_state[StateKeys.OPENAI_API_KEY] = api_key
+        session_state[StateKeys.MODEL_NAME] = model_name
+        session_state[StateKeys.BASE_URL] = base_url
+
+        for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
+            chat[StateKeys.MODEL_NAME] = model_name
+            chat[StateKeys.BASE_URL] = base_url
+
+            if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
+                # TODO: this re-initializes all llm clients with the same model name
+                # once we have a 'proper' llm config page, this should be done there:
+                # basically, we need to re-initialize the client wrapper with the model name
+                # and ask the user for token(s) again.
+                llm_integration.client_wrapper = LLMClientWrapper(
+                    model_name=model_name,
+                    api_key=api_key,
+                    base_url=base_url,
+                )

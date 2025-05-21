@@ -490,7 +490,7 @@ class DataSet:
 
         return volcano_plot.plot
 
-    def _get_feature_ids_from_string(self, string: str) -> List[str]:
+    def _get_feature_ids_from_search_string(self, string: str) -> List[str]:
         """Get the feature id from a string representing a feature.
 
         Goes through id mapping dictionaries and finds the completest match.
@@ -502,10 +502,6 @@ class DataSet:
 
         if string in self._feature_to_repr_map:
             return [string]
-        if string in self._protein_to_features_map:
-            return self._protein_to_features_map[string]
-        if string in self._gene_to_features_map:
-            return self._gene_to_features_map[string]
         representation_keys = [
             feature
             for feature, representation in self._feature_to_repr_map.items()
@@ -513,6 +509,10 @@ class DataSet:
         ]
         if representation_keys:
             return representation_keys
+        if string in self._protein_to_features_map:
+            return self._protein_to_features_map[string]
+        if string in self._gene_to_features_map:
+            return self._gene_to_features_map[string]
         raise ValueError(f"Feature {string} is not in the (processed) data.")
 
     def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
@@ -527,7 +527,7 @@ class DataSet:
         protein_ids = []
         for feature in features:
             try:
-                for protein_id in self._get_feature_ids_from_string(feature):
+                for protein_id in self._get_feature_ids_from_search_string(feature):
                     protein_ids.append(protein_id)
             except ValueError:
                 unmapped_features.append(feature)
