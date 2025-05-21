@@ -4,7 +4,7 @@ from alphastats.gui.utils.state_keys import StateKeys
 
 from .conftest import APP_FOLDER, create_dataset_alphapept
 
-TESTED_PAGE = f"{APP_FOLDER}/pages/03_Data Overview.py"
+TESTED_PAGE = f"{APP_FOLDER}/pages_/03_Data Overview.py"
 
 
 def test_page_03_loads_without_input():

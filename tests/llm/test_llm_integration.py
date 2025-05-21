@@ -264,9 +264,10 @@ def test_truncate_conversation_history_tool_output_popped(llm_integration):
     # removal of assistant would suffice for total tokens, but tool output should be dropped as well
     llm_integration._append_message("assistant", message_content.strip())
     llm_integration._append_message("tool", message_content.strip())
-    with pytest.warns(
-        UserWarning, match=r".*Truncating conversation history.*"
-    ), pytest.warns(UserWarning, match=r".*Removing corresponsing tool.*"):
+    with (
+        pytest.warns(UserWarning, match=r".*Truncating conversation history.*"),
+        pytest.warns(UserWarning, match=r".*Removing corresponsing tool.*"),
+    ):
         llm_integration._append_message("user", message_content.strip())
 
     assert len(llm_integration._messages) == 2
@@ -443,10 +444,13 @@ def test_execute_function_with_error(
     def failing_function(**kwargs):
         raise ValueError("Test error")
 
-    with patch(
-        "alphastats.llm.llm_integration.GENERAL_FUNCTION_MAPPING",
-        {"failing_function": failing_function},
-    ), pytest.raises(ValueError, match="Test error"):
+    with (
+        patch(
+            "alphastats.llm.llm_integration.GENERAL_FUNCTION_MAPPING",
+            {"failing_function": failing_function},
+        ),
+        pytest.raises(ValueError, match="Test error"),
+    ):
         llm_integration._execute_function("failing_function", {"param1": "value1"})
 
 

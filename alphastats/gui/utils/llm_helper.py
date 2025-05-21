@@ -20,6 +20,7 @@ from alphastats.gui.utils.state_keys import (
     SavedAnalysisKeys,
     StateKeys,
 )
+from alphastats.gui.utils.ui_helper import has_llm_support
 from alphastats.llm.enrichment_analysis import (
     HUMAN_ORGANISM_ID,
     get_enrichment_data,
@@ -46,7 +47,9 @@ from alphastats.llm.uniprot_utils import (
 )
 from alphastats.plots.plot_utils import PlotlyObject
 
-LLM_ENABLED_ANALYSIS = [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS]
+LLM_ENABLED_ANALYSIS = (
+    [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS] if has_llm_support() else []
+)
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 # TODO: Deduplicate this code without introducing a circular import
@@ -864,11 +867,11 @@ def show_llm_chat(
                 st.markdown(token_message)
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
-                    st.dataframe(artifact)
+                    st.dataframe(artifact, key=str(id(artifact)))
                 elif isinstance(
                     artifact, (PlotlyObject, plotly_object)
                 ):  # TODO can there be non-plotly types here
-                    st.plotly_chart(artifact)
+                    st.plotly_chart(artifact, key=str(id(artifact)))
                 elif not isinstance(artifact, str):
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)
@@ -889,9 +892,10 @@ def show_llm_chat(
                 st.markdown(
                     f"*tokens: {str(LLMIntegration.estimate_tokens([{MessageKeys.CONTENT:prompt}], model=model_name))}*"
                 )
-        with st.spinner("Processing prompt..."), warnings.catch_warnings(
-            record=True
-        ) as caught_warnings:
+        with (
+            st.spinner("Processing prompt..."),
+            warnings.catch_warnings(record=True) as caught_warnings,
+        ):
             llm_integration.chat_completion(prompt)
             selected_analysis_session_state[LLMKeys.RECENT_CHAT_WARNINGS] = (
                 caught_warnings

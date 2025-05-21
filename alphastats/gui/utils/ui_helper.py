@@ -122,3 +122,8 @@ class ResultParameters(metaclass=ConstantsClass):
     DRAW_LINES = "draw_lines"
     LABEL_SIGNIFICANT = "label_significant"
     RENDERER = "renderer"
+
+
+def has_llm_support():
+    """Check if the current environment has LLM support."""
+    return False

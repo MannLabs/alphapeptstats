@@ -1,17 +1,11 @@
+import importlib.resources as importlib_resources
 import logging
-import sys
 from typing import Union
 
 import numpy as np
 import pandas as pd
 
 from alphastats.dataset.utils import find_duplicates_in_list
-
-if sys.version_info >= (3, 9):
-    import importlib.resources as importlib_resources
-else:
-    # TODO drop this together with support for python 3.8
-    import importlib_resources
 
 
 # TODO make the child classes instantiated this class

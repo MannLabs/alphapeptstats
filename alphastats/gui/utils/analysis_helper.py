@@ -20,6 +20,7 @@ from alphastats.gui.utils.analysis import (
 from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
 from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.gui.utils.ui_helper import (
+    has_llm_support,
     show_button_download_df,
 )
 from alphastats.llm.uniprot_utils import get_annotations_for_feature
@@ -110,14 +111,19 @@ def _display(
     with c1:
         if show_save_button and st.button(
             "💾 Save analysis to results page..",
-            help="This will save the analysis to the results page and allow LLM interpretation.",
+            help="This will save the analysis to the results page"
+            + " and allow LLM interpretation."
+            if has_llm_support()
+            else "",
         ):
             _save_analysis_to_session_state(
                 analysis_result, analysis_method, parameters
             )
             st.toast("Saved to results page!", icon="✅")
-            if isinstance(analysis_result, DifferentialExpressionTwoGroupsResult):
-                st.page_link("pages/06_LLM.py", label="➔ Continue with LLM analysis")
+            if has_llm_support() and isinstance(
+                analysis_result, DifferentialExpressionTwoGroupsResult
+            ):
+                st.page_link("pages_/06_LLM.py", label="➔ Continue with LLM analysis")
 
     with c2:
         download_function(
@@ -135,7 +141,7 @@ def display_figure(plot: PlotlyObject) -> None:
     """Display plotly or seaborn figure."""
     try:
         # calling plot.update_layout is vital here as it enables the savefig function to work
-        st.plotly_chart(plot.update())
+        st.plotly_chart(plot.update(), key=str(id(plot)))
     except Exception:
         st.pyplot(plot)
 

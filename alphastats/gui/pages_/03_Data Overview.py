@@ -32,6 +32,7 @@ with c1:
     st.plotly_chart(
         get_intensity_distribution_unprocessed().update_layout(plot_bgcolor="white"),
         use_container_width=True,
+        key="fig_intensity_distribution_unprocessed",
     )
 
 with c2:
@@ -39,11 +40,13 @@ with c2:
     st.plotly_chart(
         get_intensity_distribution_processed().update_layout(plot_bgcolor="white"),
         use_container_width=True,
+        key="fig_intensity_distribution_processed",
     )
 
 st.plotly_chart(
     get_sample_histogram_matrix().update_layout(plot_bgcolor="white"),
     use_container_width=True,
+    key="fig_sample_histogram_matrix",
 )
 
 display_matrix()

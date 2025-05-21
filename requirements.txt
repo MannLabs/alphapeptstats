@@ -7,7 +7,7 @@ gprofiler-official==1.0.0
 kaleido==0.2.1
 nbformat>=5.0
 numba-stats==0.5.0
-numba==0.56.4
+numba==0.57.0
 numpy==1.23.5
 ollama==0.3.3
 openai==1.12.0
@@ -20,7 +20,7 @@ scikit-learn==1.2.2
 scipy==1.10.1
 sklearn_pandas==2.2.0
 statsmodels==0.14.0
-streamlit==1.38.0
+streamlit==1.45.1
 swifter==1.2.0
 tables==3.7.0 # TODO 3.10.1 is required for supporting apple M1 builds but needs python >= 3.10
 tqdm>=4.64.0

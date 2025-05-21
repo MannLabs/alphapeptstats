@@ -58,7 +58,7 @@ if not (
     st.info(
         f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
     )
-    st.page_link("pages/05_Analysis.py", label="➔ Go to Analysis page...")
+    st.page_link("pages_/05_Analysis.py", label="➔ Go to Analysis page...")
     st.stop()
 
 selected_analysis_key = st.selectbox(
@@ -236,8 +236,8 @@ if (
     model := selected_llm_chat[LLMKeys.MODEL_NAME]
 ) in ModelFlags.REQUIRES_API_KEY and not st.session_state.get(StateKeys.OPENAI_API_KEY):
     st.page_link(
-        "AlphaPeptStats.py",
-        label=f"❗ Please configure an OpenAI API key to use the {model} model on the ➔ start page",
+        "pages_/01_Home.py",
+        label=f"❗ Please configure an API key to use the {model} model on the ➔ Home page",
     )
     st.stop()
 

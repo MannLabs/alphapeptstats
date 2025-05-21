@@ -64,7 +64,7 @@ AlphaPeptStats can be used as
 
 ### Pip Installation
 
-AlphaStats can be installed in an existing Python 3.8/3.9/3.10 environment with a single `bash` command.
+AlphaStats can be installed in an existing Python >=3.9 environment with a single `bash` command.
 
 ```bash
 pip install alphastats
@@ -83,16 +83,6 @@ Alternatively, use ```conda install -c anaconda pytables```.
 AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
-### LLM Support
-If you want to use local Large Language Models to help interpret the data,
-you need either a OpenAI API key (to use ChatGPT-4o)
-or provide a server running Ollama.
-
-For provisioning Ollama, first download and install the runtime (https://ollama.com/download).
-Then, pull the recommended model: `ollama pull llama3.1:70b`.
-
-By default, Ollama models are served at `http://localhost:11434`, which is also the default for AlphaPeptStats.
-You can overwrite the url of the server by the environmental variable `OLLAMA_BASE_URL`.
 
 
 ### One Click Installer
@@ -139,7 +129,7 @@ AlphaStats was developed by the [Mann Group at the University of Copenhagen](htt
 ---
 ## How to contribute
 
-If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues) or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the [the Contributors License Agreement](misc/CLA.md).
+If you like this software, you can give us a [star](https://github.com/MannLabs/alphapeptstats/stargazers) to boost our visibility! All direct contributions are also welcome. Feel free to post a new [issue](https://github.com/MannLabs/alphapeptstats/issues) or clone the repository and create a [pull request](https://github.com/MannLabs/alphapeptstats/pulls) with a new branch. For an even more interactive participation, check out the [discussions](https://github.com/MannLabs/alphapeptstats/discussions) and the [Contributors License Agreement](misc/CLA.md).
 
 
 ### Notes for developers
