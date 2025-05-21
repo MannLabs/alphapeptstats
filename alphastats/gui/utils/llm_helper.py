@@ -218,6 +218,7 @@ def initialize_initial_prompt_modules(
         llm_chat[LLMKeys.SELECTED_FEATURES_DOWN],
         uniprot_info,
         feature_to_repr_map=feature_to_repr_map,
+        parameter_dict=plot_parameters,
         enrichment_data=enrichment_data,
     )
 
