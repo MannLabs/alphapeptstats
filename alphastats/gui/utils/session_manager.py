@@ -144,16 +144,12 @@ class SessionManager:
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
 
-            if any(
-                chat.get(LLMKeys.LLM_INTEGRATION)
-                for chat in loaded_state_data.get(StateKeys.LLM_CHATS, {}).values()
-            ):
-                self._add_clients_to_llm_chats(
-                    model_name_current_session,
-                    api_key_current_session,
-                    base_url_current_session,
-                    session_state,
-                )
+            self._add_clients_to_llm_chats(
+                model_name_current_session,
+                api_key_current_session,
+                base_url_current_session,
+                session_state,
+            )
 
             return str(file_path)
 
@@ -170,6 +166,10 @@ class SessionManager:
 
         TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
         """
+        chats = session_state.get(StateKeys.LLM_CHATS, {}).values()
+        if not any(chat.get(LLMKeys.LLM_INTEGRATION) for chat in chats):
+            return
+
         if model_name != session_state.get(StateKeys.MODEL_NAME, ""):
             msg = f"Saved LLM client used a different model: before {session_state.get(StateKeys.MODEL_NAME, '')}, now {model_name}"
             logging.warning(msg)
@@ -183,7 +183,7 @@ class SessionManager:
         session_state[StateKeys.MODEL_NAME] = model_name
         session_state[StateKeys.BASE_URL] = base_url
 
-        for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
+        for chat in chats:
             chat[StateKeys.MODEL_NAME] = model_name
             chat[StateKeys.BASE_URL] = base_url
 
