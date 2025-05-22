@@ -5,8 +5,6 @@
 name: Build and run tests
 
 on:
-  push:
-    branches: [ main, development ]
   pull_request:
 
 jobs:
