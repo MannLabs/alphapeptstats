@@ -28,6 +28,7 @@ INIT_STATES = {
     StateKeys.MODEL_NAME: (
         Models.GPT4O
     ),  # TDOO: change to None: this is just for convenience now
+    StateKeys.OPENAI_API_KEY: "",  # pragma: allowlist secret
     StateKeys.SELECTED_ANALYSIS: None,
     StateKeys.PROMPT_EXPERIMENTAL_DESIGN: None,
     StateKeys.PROMPT_PROTEIN_DATA: None,

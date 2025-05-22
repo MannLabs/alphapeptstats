@@ -166,6 +166,10 @@ class SessionManager:
 
         TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
         """
+        chats = session_state.get(StateKeys.LLM_CHATS, {}).values()
+        if not any(chat.get(LLMKeys.LLM_INTEGRATION) for chat in chats):
+            return
+
         if model_name != session_state[StateKeys.MODEL_NAME]:
             msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name}"
             logging.warning(msg)
@@ -179,7 +183,7 @@ class SessionManager:
         session_state[StateKeys.MODEL_NAME] = model_name
         session_state[StateKeys.BASE_URL] = base_url
 
-        for chat in session_state.get(StateKeys.LLM_CHATS, {}).values():
+        for chat in chats:
             chat[StateKeys.MODEL_NAME] = model_name
             chat[StateKeys.BASE_URL] = base_url
 
