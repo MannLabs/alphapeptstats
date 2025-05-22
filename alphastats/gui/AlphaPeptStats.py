@@ -16,6 +16,8 @@ if has_llm_support():
 
 pages.append("pages_/07_Results.py")
 
+pages = [st.Page(page) for page in pages]
+
 pg = st.navigation(pages)
 
 pg.run()
