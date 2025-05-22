@@ -5,4 +5,17 @@ alphastats.egg-info
 _build
 build
 dist
+dist_pyinstaller
+build_pyinstaller
+
 .coverage
+
+# editors
+.idea
+.vscode
+
+**/.ipynb_checkpoints
+
+**/*secrets.toml
+
+sessions/

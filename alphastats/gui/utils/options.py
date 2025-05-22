@@ -1,123 +1,57 @@
-import streamlit as st
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.generic_loader import GenericLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
+from alphastats.loader.mztab_loader import mzTabLoader
+from alphastats.loader.spectronaut_loader import SpectronautLoader
 
-
-plotting_options = {
-    "Sampledistribution Plot": {
-        "settings": {
-            "method": {"options": ["violin", "box"], "label": "Plot layout"},
-            "color": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
-        },
-        "function": st.session_state.dataset.plot_sampledistribution,
+SOFTWARE_OPTIONS = {
+    "MaxQuant": {
+        "import_file": "Please upload proteinGroups.txt",
+        "intensity_column": ["LFQ intensity [sample]", "Intensity [sample]"],
+        "index_column": [
+            "Protein IDs",
+            "Gene names",
+            "Majority protein IDs",
+            "Protein names",
+        ],
+        "loader_function": MaxQuantLoader,
     },
-    "Intensity Plot": {
-        "settings": {
-            "protein_id": {
-                "options": st.session_state.dataset.mat.columns.to_list(),
-                "label": "ProteinID/ProteinGroup",
-            },
-            "method": {
-                "options": ["violin", "box", "scatter"],
-                "label": "Plot layout",
-            },
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
-        },
-        "function": st.session_state.dataset.plot_intensity,
+    "AlphaPept": {
+        "import_file": "Please upload results_proteins.csv or results.hdf",
+        "intensity_column": ["[sample]_LFQ"],
+        "index_column": ["Unnamed: 0"],
+        "loader_function": AlphaPeptLoader,  # TODO loader_function -> loader_class or loader
     },
-    "PCA Plot": {
-        "settings": {
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
-            "circle": {"label": "Circle"},
-        },
-        "function": st.session_state.dataset.plot_pca,
+    "DIANN": {
+        "import_file": "Please upload report.pg_matrix.tsv",
+        "intensity_column": ["[sample]"],
+        "index_column": ["Protein.Group"],
+        "loader_function": DIANNLoader,
     },
-    "UMAP Plot": {
-        "settings": {
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
-            "circle": {"label": "Circle"},
-        },
-        "function": st.session_state.dataset.plot_umap,
+    "FragPipe": {
+        "import_file": "Please upload combined_protein.tsv file from FragPipe.",
+        "intensity_column": ["[sample] MaxLFQ Intensity", "[sample] Intensity"],
+        "index_column": ["Protein", "Protein ID"],
+        "loader_function": FragPipeLoader,
     },
-    "t-SNE Plot": {
-        "settings": {
-            "group": {
-                "options": [None] + st.session_state.metadata_columns,
-                "label": "Color according to",
-            },
-            "circle": {"label": "Circle"},
-        },
-        "function": st.session_state.dataset.plot_tsne,
+    "Spectronaut": {
+        "import_file": "Please upload spectronaut.tsv",
+        "intensity_column": ["PG.Quantity", "F.PeakArea", "PG.Log2Quantity"],
+        "index_column": ["PG.ProteinGroups", "PEP.StrippedSequence"],
+        "loader_function": SpectronautLoader,
     },
-    "Volcano Plot": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.plot_volcano,
+    "Other": {
+        "import_file": "Please upload your proteomics file.",
+        "intensity_column": [],
+        "index_column": [],
+        "loader_function": GenericLoader,
     },
-    "Clustermap": {"function": st.session_state.dataset.plot_clustermap},
-    "Dendrogram": {"function": st.session_state.dataset.plot_dendrogram},
-}
-
-statistic_options = {
-    "Differential Expression Analysis - T-test": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.diff_expression_analysis,
-    },
-    "Differential Expression Analysis - Wald-test": {
-        "between_two_groups": True,
-        "function": st.session_state.dataset.diff_expression_analysis,
-    },
-    "Tukey - Test": {
-        "settings": {
-            "protein_id": {
-                "options": st.session_state.dataset.mat.columns.to_list(),
-                "label": "ProteinID/ProteinGroup",
-            },
-            "group": {
-                "options": st.session_state.metadata_columns,
-                "label": "A metadata variable to calculate pairwise tukey",
-            },
-        },
-        "function": st.session_state.dataset.tukey_test,
-    },
-    "ANOVA": {
-        "settings": {
-            "column": {
-                "options": st.session_state.metadata_columns,
-                "label": "A variable from the metadata to calculate ANOVA",
-            },
-            "protein_ids": {
-                "options": ["all"] + st.session_state.dataset.mat.columns.to_list(),
-                "label": "All ProteinIDs/or specific ProteinID to perform ANOVA",
-            },
-            "tukey": {"label": "Follow-up Tukey"},
-        },
-        "function": st.session_state.dataset.anova,
-    },
-    "ANCOVA": {
-        "settings": {
-            "protein_id": {
-                "options": [None] + st.session_state.dataset.mat.columns.to_list(),
-                "label": "Color according to",
-            },
-            "covar": {
-                "options": st.session_state.metadata_columns,
-                "label": "Name(s) of column(s) in metadata with the covariate.",
-            },
-            "between": {
-                "options": st.session_state.metadata_columns,
-                "label": "Name of the column in the metadata with the between factor.",
-            },
-        },
-        "function": st.session_state.dataset.ancova,
+    "mzTab": {
+        "import_file": "Please upload your .mzTab file with quantitative proteomics data.",
+        "intensity_column": ["protein_abundance_[sample]"],
+        "index_column": ["accession"],
+        "loader_function": mzTabLoader,
     },
 }

@@ -1,25 +1,33 @@
-pandas==2.0.2
-scikit-learn==1.2.2
-data_cache>=0.1.6
-plotly==5.15.0
-statsmodels==0.14.0
-sklearn_pandas==2.2.0
-pingouin==0.5.3
-scipy==1.10.1
-tqdm>=4.64.0
-diffxpy==0.7.4
 anndata==0.9.1
-umap-learn==0.5.3
-streamlit==1.22.0
-tables==3.7.0
-numpy==1.23.5
-numba==0.56.4
-numba-stats==0.5.0
-swifter==1.2.0
-click==8.0.1
-kaleido==0.2.1
 combat==0.3.3
-xlsxwriter==3.1.0
-pyteomics==4.6.0
+diffxpy==0.7.4
+gprofiler-official==1.0.0
+kaleido==0.2.1
+numba-stats==0.5.0
+numba==0.57.0
+numpy==1.23.5
+ollama==0.3.3
+openai==1.12.0
 openpyxl>=3.0.10
-nbformat>=5.0
+pandas==2.0.2
+pingouin==0.5.3
+plotly==5.15.0
+pyteomics==4.6.0
+scikit-learn==1.2.2
+scipy==1.10.1
+sklearn_pandas==2.2.0
+statsmodels==0.14.0
+streamlit==1.45.1
+swifter==1.2.0
+tables==3.7.0 # TODO 3.10.1 is required for supporting apple M1 builds but needs python >= 3.10
+tqdm>=4.64.0
+umap-learn==0.5.3
+xlsxwriter==3.1.0
+st_cytoscape==0.0.5
+stqdm==0.0.5
+tiktoken>=0.7.0
+
+# TODO without these the 3.10 CI runner runs into "Dependency resolution exceeded maximum depth" for matplotlib
+click==8.0.1; python_version == "3.10"
+data_cache>=0.1.6; python_version == "3.10"
+nbformat>=5.0; python_version == "3.10"

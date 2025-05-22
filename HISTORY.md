@@ -1,5 +1,7 @@
 # Changelog
 
+# for versions >= 0.6.8, change log is found on the respective GitHub release page
+
 # 0.6.7
 * FIX allowing to save multiple plots of the same type
 * FIX uninitialized functions
@@ -17,7 +19,7 @@
 # 0.6.3
 * ENH download metadata template in the GUI
 * ENH multicova analysis
-* ENH filter data completeness `dataset.preprocess(data_completeness=0.7)` 
+* ENH filter data completeness `dataset.preprocess(data_completeness=0.7)`
 * ADD `GenericLoader` for not supported data formats
 
 # 0.6.2
@@ -38,7 +40,7 @@
 # 0.5.3
 * FIX FragPipe loading issue
 
-# 0.5.2
+# 0.5.2
 * FIX FragPipe import #173
 
 # 0.5.1
@@ -46,7 +48,7 @@
 
 # 0.5.0
 * ADD plot Sample Distribution Histogram
-* ADD paired-ttest option 
+* ADD paired-ttest option
 * ENH add option to remove samples in GUI
 * ADD pyComBat Batch correction Behdenna A, Haziza J, Azencot CA and Nordor A. (2020) pyComBat, a Python tool for batch effects correction in high-throughput molecular data using empirical Bayes methods. bioRxiv doi: 10.1101/2020.03.17.995431
 * remove iteration utilities, remove C++ dependency
@@ -71,7 +73,7 @@
 * ADD functionionality `dataset.reset_preprocessing()` to reset all preprocessing steps
 
 # 0.4.0
-* SAM implementation from Isabel (MultiCova) 
+* SAM implementation from Isabel (MultiCova)
 * Volcano Plot with permutation based FDR line
 * Bug fix when reseting matrix and saving info
 
@@ -133,18 +135,3 @@
 * remove dependency for Microsoft Visual Studio C++ (dash_bio) (Windows PCs)
 * clustermap with seaborn, adding bar labels is possible
 * save plotting data, preprocessing, method in figure object (accessible using figure.plotting_data, figure.method, figure.preprocessing)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

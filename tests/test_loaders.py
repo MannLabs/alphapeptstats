@@ -1,37 +1,27 @@
-import unittest
-import pandas as pd
-import logging
-from unittest.mock import patch
-import logging
-import shutil
-import os
 import copy
+import logging
+import os
+import shutil
+import unittest
+from unittest.mock import patch
 
+import pandas as pd
 
-from alphastats.loader.BaseLoader import BaseLoader
-from alphastats.loader.DIANNLoader import DIANNLoader
-from alphastats.loader.MaxQuantLoader import MaxQuantLoader
-from alphastats.loader.AlphaPeptLoader import AlphaPeptLoader
-from alphastats.loader.FragPipeLoader import FragPipeLoader
-from alphastats.loader.SpectronautLoader import SpectronautLoader
-from alphastats.loader.mzTabLoader import mzTabLoader
-from contextlib import contextmanager
+from alphastats.loader.alphapept_loader import AlphaPeptLoader
+from alphastats.loader.diann_loader import DIANNLoader
+from alphastats.loader.fragpipe_loader import FragPipeLoader
+from alphastats.loader.maxquant_loader import MaxQuantLoader
+from alphastats.loader.mztab_loader import mzTabLoader
+from alphastats.loader.spectronaut_loader import SpectronautLoader
 
 logger = logging.getLogger(__name__)
 
 
 class BaseTestLoader:
-    #  parent class of test loader for common tests among loaders
+    # parent class of test loader for common tests among loaders
     # this is wrapped in a nested class so it doesnt get called separatly when testing
     # plus to avoid multiple inheritance
     class BaseTest(unittest.TestCase):
-        @contextmanager
-        def assertNotRaises(self, exc_type):
-            try:
-                yield None
-            except exc_type:
-                raise self.failureException("{} raised".format(exc_type.__name__))
-
         def test_dataformat(self):
             # check if loaded data is pandas dataframe
             self.assertIsInstance(self.obj.rawinput, pd.DataFrame)
@@ -47,12 +37,13 @@ class BaseTestLoader:
         def test_check_if_columns_are_present_no_error(self):
             # check if columns are present
             # check if error gets raised when column is not present
-            with self.assertNotRaises(KeyError):
-                self.obj._check_if_columns_are_present()
+            self.obj._check_if_columns_are_present()
+
+            # nothing raised -> ok
 
         @patch("logging.Logger.warning")
         def test_check_if_indexcolumn_is_unique_warning(self, mock):
-            #  check if indexcolumn is unique
+            # check if indexcolumn is unique
             # check if error gets raised when duplicate
             obj = copy.deepcopy(self.obj)
             obj.rawinput[obj.index_column] = "non unique"
@@ -61,15 +52,9 @@ class BaseTestLoader:
 
         # @patch("logging.Logger.warning")
         # def test_check_if_indexcolumn_is_unique_no_warning(self,mock):
-        #  check if indexcolumn is unique
+        # check if indexcolumn is unique
         # self.obj.check_if_indexcolumn_is_unique()
         # mock.assert_not_called()
-
-        def test_check_if_file_exists(self):
-            # check if error gets raised when file doesnt exist
-            with self.assertRaises(OSError):
-                wrong_file_path = "wrong/file/path"
-                self.obj._check_if_file_exists(file=wrong_file_path)
 
         def test_add_contaminantion_column(self):
             column_added = "contamination_library" in self.obj.rawinput
@@ -109,13 +94,13 @@ class TestAlphaPeptLoader(BaseTestLoader.BaseTest):
 
         # test function with different entries
         entry_one = "sp|P0DMV9|HS71B_HUMAN,sp|P0DMV8|HS71A_HUMAN"
-        entry_one_protein_id = self.obj._standardize_protein_group_column(
+        entry_one_protein_id = self.obj.standardize_protein_group_column(
             entry=entry_one
         )
         self.assertEqual(entry_one_protein_id, "P0DMV9;P0DMV8")
 
         entry_two = "ENSEMBL:ENSBTAP00000007350"
-        entry_two_protein_id = self.obj._standardize_protein_group_column(
+        entry_two_protein_id = self.obj.standardize_protein_group_column(
             entry=entry_two
         )
         self.assertEqual(entry_two_protein_id, "ENSBTAP00000007350")
@@ -125,7 +110,7 @@ class TestMaxQuantLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
         cls.obj = MaxQuantLoader(file="testfiles/maxquant/proteinGroups.txt")
-        cls.df_dim = (2611, 2531)
+        cls.df_dim = (2249, 2531)
 
     def test_set_filter_columns_to_true_false(self):
         # check if + has been replaced by TRUE FALSE
@@ -199,18 +184,16 @@ class TestmzTabLoader(BaseTestLoader.BaseTest):
         cls.obj = mzTabLoader(file="testfiles/mzTab/test.mztab")
         cls.df_dim = (283, 265)
 
+
 class TestSpectronautLoader(BaseTestLoader.BaseTest):
     @classmethod
     def setUpClass(cls):
-
-        if os.path.isfile("testfiles/spectronaut/results.tsv") == False:
+        if not os.path.isfile("testfiles/spectronaut/results.tsv"):
             shutil.unpack_archive(
                 "testfiles/spectronaut/results.tsv.zip", "testfiles/spectronaut/"
             )
 
-        cls.obj = SpectronautLoader(
-            file="testfiles/spectronaut/results.tsv", filter_qvalue=False
-        )
+        cls.obj = SpectronautLoader(file="testfiles/spectronaut/results.tsv")
         cls.df_dim = (2458, 11)
 
     def test_reading_non_european_comma(self):
@@ -219,30 +202,15 @@ class TestSpectronautLoader(BaseTestLoader.BaseTest):
         """
         s = SpectronautLoader(
             file="testfiles/spectronaut/results_non_european_comma.tsv",
-            filter_qvalue=False,
         )
-        mean = s.rawinput[
-            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03_PG.Quantity"
+        s.rawinput[
+            "20221015_EV_TP_40SPD_LITDIA_MS1_Rapid_MS2_Rapid_57w_100ng_03.PG.Quantity"
         ].mean()
-
-    def test_qvalue_filtering(self):
-        obj = SpectronautLoader(
-            file="testfiles/spectronaut/results.tsv",
-            filter_qvalue=True,
-            qvalue_cutoff=0.00000001,
-        )
-        self.assertEqual(obj.rawinput.shape, (2071, 10))
-
-    def test_qvalue_filtering_warning(self):
-        with self.assertWarns(Warning):
-            df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
-            df.drop(columns=["EG.Qvalue"], axis=1)
-            SpectronautLoader(file=df)
 
     def test_gene_name_column(self):
         df = pd.read_csv("testfiles/spectronaut/results.tsv", sep="\t", decimal=",")
         df["PG.Genes"] = 0
-        s = SpectronautLoader(file=df, filter_qvalue=False)
+        SpectronautLoader(file=df)
 
     @classmethod
     def tearDownClass(cls):

@@ -1,7 +1,8 @@
 if __name__ == "__main__":
     try:
-        import alphastats
         import multiprocessing
+
+        import alphastats  # noqa: F401 TODO check if this can be removed
 
         multiprocessing.freeze_support()
 

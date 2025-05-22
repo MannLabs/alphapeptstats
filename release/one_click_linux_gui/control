@@ -1,6 +1,0 @@
-Package: alphastats
-Version: 0.6.9
-Architecture: all
-Maintainer: MannLabs
-Description: alphastats
-  Downstream analysis of mass-spectrometry-based proteomics data.

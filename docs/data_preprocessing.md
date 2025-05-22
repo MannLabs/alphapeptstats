@@ -17,7 +17,7 @@ DataSet.preprocess(
 
 - Should I remove contaminations/ `remove_contaminations=True`? Generally speaking - Yes (source)
 
-Various proteomics software annotates contaminants differently or not at all. MaxQuant describes contaminations or ProteinGroups that should be removed in `Only identified by site`, `Reverse`, `Potential contaminant`. Likewise MaxQuant, AlphaPept flags spurious proteins as `Reverse`. 
+Various proteomics software annotates contaminants differently or not at all. MaxQuant describes contaminations or ProteinGroups that should be removed in `Only identified by site`, `Reverse`, `Potential contaminant`. Likewise MaxQuant, AlphaPept flags spurious proteins as `Reverse`.
 
 In addition, AlphaStats identifies contaminations based on the contamination library created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full).
 
@@ -29,15 +29,15 @@ Depending on the software and the settings, data could already have been normali
 AlphaStats has the following Normalization methods implemented:
 
  - **Z-Score Normalization (Standardization)**: Centers the protein intensity of each sample, meaning scaling the variance to 1.
- 
+
  - **Quantile Normalization**: Aims to correct technical bias by adjusting the distribution of protein intensities for each sample. This normalization method is suitable when it is assumed that only a small portion of the protein expression varies among certain conditions, while the majority of the proteome remains stable ([Dubois et al., 2022](https://doi.org/10.1016/j.biosystems.2022.104661) ).
- 
- - **Linear Normalization** 
+
+ - **Linear Normalization**
  - **Variance Stabilization Transformation**
 
 
 > **Note**
-> It has been shown that normalizing the data first and then imputing the data performs better, than the other way around 
+> It has been shown that normalizing the data first and then imputing the data performs better, than the other way around
 ([Karpievitch et al. 2012](https://doi.org/10.1186/1471-2105-13-S16-S5)). This preprocessing order is also acquired in
 AlphaStats (unless preprocessing is done in several steps).
 
@@ -45,7 +45,7 @@ AlphaStats (unless preprocessing is done in several steps).
 ## Imputation
 
 Especially, missing values are challenging when it comes to analyzing proteomic mass spectrometry data. Missing values can either be missing completely at random (MCAR), due to technical limitations or missing not at random (MNAR) meaning that the abundance is below the detection limit of the platform or completely absent.
- 
+
 To deal with missing values, AlphaStats has the following methods implemented:
 
 - **k-nearest neighbors (kNN)**: Missing values are imputed using the mean protein intensity of k-nearest neighbors
@@ -67,5 +67,3 @@ In case the proteomics data contains more samples than the metadata, the proteom
 ## Remove Samples
 
 If you want to remove samples from your `DataSet`, outliers for instance you can give a list of sample names `DataSet.preprocess(remove_samples=["sample1", "sample3"])`.
-
-

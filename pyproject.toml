@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alphastats"
+requires-python = ">=3.9,<4"
+dynamic = ["version", "dependencies"]
+
+authors = [
+    {name = "Mann Labs", email = "elena.krismer@gmail.com"}
+]
+description = "An open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics"
+readme = "README.md"
+keywords = [
+    "bioinformatics",
+    "software",
+    "mass spectrometry",
+    "proteomics",
+]
+license = {text = "Apache"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    # "Development Status :: 5 - Production/Stable",
+    # "Development Status :: 6 - Mature",
+    # "Development Status :: 7 - Inactive"
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.urls]
+Homepage = "https://github.com/MannLabs/alphastats"
+Documentation = "https://mannlabs.github.io/alphapeptstats/"
+Source = "https://github.com/MannLabs/alphastats"
+PyPi = "https://pypi.org/project/alphastats/"
+
+[tool.setuptools.packages]
+find = {include = ["alphastats", "alphastats.*"]}
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+version = {attr = "alphastats.__version__"}
+
+[project.scripts]
+alphastats = "alphastats.gui.gui:run"
+
+[tool.ruff]
+extend-exclude = [".secrets.baseline"]
+
+ [tool.ruff.lint]
+ select =  [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+ ]
+
+ignore = [
+    "E501",  # Line too long  (ruff wraps code, but not docstrings)
+    "B028",  #  No explicit `stacklevel` keyword argument found (for warnings)
+#    "B905"  # This causes problems in numba code: `zip()` without an explicit `strict=` parameter
+     "B019", # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks  TODO: revisit
+
+    "UP006", "UP035"  # TODO enable these
+]
