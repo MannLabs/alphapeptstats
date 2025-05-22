@@ -136,20 +136,24 @@ class SessionManager:
                 self.warnings.append(msg)
 
             # clean and init first to have a defined state
-            model_name_current_session = session_state[StateKeys.MODEL_NAME]
-            api_key_current_session = session_state[StateKeys.OPENAI_API_KEY]
-            base_url_current_session = session_state[StateKeys.BASE_URL]
+            model_name_current_session = session_state.get(StateKeys.MODEL_NAME, "")
+            api_key_current_session = session_state.get(StateKeys.OPENAI_API_KEY, "")
+            base_url_current_session = session_state.get(StateKeys.BASE_URL, "")
 
             empty_session_state()
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
 
-            self._add_clients_to_llm_chats(
-                model_name_current_session,
-                api_key_current_session,
-                base_url_current_session,
-                session_state,
-            )
+            if any(
+                chat.get(LLMKeys.LLM_INTEGRATION)
+                for chat in loaded_state_data.get(StateKeys.LLM_CHATS, {}).values()
+            ):
+                self._add_clients_to_llm_chats(
+                    model_name_current_session,
+                    api_key_current_session,
+                    base_url_current_session,
+                    session_state,
+                )
 
             return str(file_path)
 
@@ -166,13 +170,13 @@ class SessionManager:
 
         TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
         """
-        if model_name != session_state[StateKeys.MODEL_NAME]:
-            msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name}"
+        if model_name != session_state.get(StateKeys.MODEL_NAME, ""):
+            msg = f"Saved LLM client used a different model: before {session_state.get(StateKeys.MODEL_NAME, '')}, now {model_name}"
             logging.warning(msg)
             self.warnings.append(msg)
 
-        if base_url != session_state[StateKeys.BASE_URL]:
-            msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url}"
+        if base_url != session_state.get(StateKeys.BASE_URL, ""):
+            msg = f"Saved LLM client used a different base_url: before {session_state.get(StateKeys.BASE_URL, '')}, now {base_url}"
             self.warnings.append(msg)
             logging.warning(msg)
         session_state[StateKeys.OPENAI_API_KEY] = api_key
