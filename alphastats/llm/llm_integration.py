@@ -50,6 +50,7 @@ class Models(metaclass=ConstantsClass):
     OLLAMA_33_70B_INSTRUCT = "llama-3.3-70b-instruct"
     MISTRAL_LARGE_INSTRUCT = "mistral-large-instruct"
     QWEN_25_72B_INSTRUCT = "qwen2.5-72b-instruct"
+    QWEN_25_VL_72B_INSTRUCT = "qwen2.5-vl-72b-instruct"
 
 
 class ModelFlags(metaclass=ConstantsClass):
@@ -62,8 +63,13 @@ class ModelFlags(metaclass=ConstantsClass):
         Models.OLLAMA_33_70B_INSTRUCT,
         Models.MISTRAL_LARGE_INSTRUCT,
         Models.QWEN_25_72B_INSTRUCT,
+        Models.QWEN_25_VL_72B_INSTRUCT,
     ]
-    MULTIMODAL = [Models.GPT4O]
+    MULTIMODAL = [
+        Models.GPT4O,
+        Models.QWEN_25_72B_INSTRUCT,
+        Models.QWEN_25_VL_72B_INSTRUCT,
+    ]
 
 
 class MessageKeys(metaclass=ConstantsClass):
