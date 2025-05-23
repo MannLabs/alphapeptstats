@@ -5,7 +5,7 @@
 ; so all paths are given relative to the location of this .iss file.
 
 #define MyAppName "AlphaPeptStats"
-#define MyAppVersion "0.6.10-dev0"
+#define MyAppVersion "0.7.1-dev0"
 #define MyAppPublisher "MannLabs"
 #define MyAppURL "https://github.com/MannLabs/alphapeptstats"
 #define MyAppExeName "alphastats_gui.exe"
