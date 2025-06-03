@@ -327,7 +327,7 @@ class LLMIntegration:
                                 and part.get("type") == "image_url"
                             ):
                                 total_tokens += 250  # Placeholder
-        return total_tokens
+        return int(total_tokens)
 
     def _truncate_conversation_history(
         self, average_chars_per_token: float = 3.6

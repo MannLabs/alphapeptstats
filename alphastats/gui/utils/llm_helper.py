@@ -869,6 +869,8 @@ def show_llm_chat(
                     st.dataframe(artifact, key=str(id(artifact)))
                 elif isinstance(
                     artifact, (PlotlyObject, plotly_object)
+                ) or "PlotlyObject" in str(
+                    type(artifact)
                 ):  # TODO can there be non-plotly types here
                     st.plotly_chart(artifact, key=str(id(artifact)))
                 elif not isinstance(artifact, str):
