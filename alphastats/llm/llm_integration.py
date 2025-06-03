@@ -12,7 +12,7 @@ import plotly.io as pio
 import pytz
 import tiktoken
 from IPython.display import HTML, Markdown, display
-from openai import OpenAI
+from litellm import completion
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
@@ -38,32 +38,28 @@ from alphastats.plots.plot_utils import PlotlyObject
 logger = logging.getLogger(__name__)
 
 
-class Models(metaclass=ConstantsClass):
-    """Names of the available models.
-
-    Note that this will be directly passed to the OpenAI client.
-    """
-
-    GPT4O = "gpt-4o"
-    OLLAMA_31_70B = "llama3.1:70b"
-    OLLAMA_31_8B = "llama3.1:8b"  # for testing only
-    OLLAMA_33_70B_INSTRUCT = "llama-3.3-70b-instruct"
-    MISTRAL_LARGE_INSTRUCT = "mistral-large-instruct"
-    QWEN_25_72B_INSTRUCT = "qwen2.5-72b-instruct"
-
-
-class ModelFlags(metaclass=ConstantsClass):
-    """Requirements for the different models."""
-
-    REQUIRES_API_KEY = [Models.GPT4O]
-    REQUIRES_BASE_URL = [
-        Models.OLLAMA_31_70B,
-        Models.OLLAMA_31_8B,
-        Models.OLLAMA_33_70B_INSTRUCT,
-        Models.MISTRAL_LARGE_INSTRUCT,
-        Models.QWEN_25_72B_INSTRUCT,
-    ]
-    MULTIMODAL = [Models.GPT4O]
+# TODO: encapsulate the needs_api_key, needs_base_url, multimodal logic
+MODELS = {
+    "openai/gpt-4o": {
+        "needs_api_key": True,
+        "multimodal": True,
+    },
+    "anthropic/claude-sonnet-4-20250514": {
+        "needs_api_key": True,
+    },
+    "ollama/llama3.1:8b": {
+        "needs_base_url": True,
+    },
+    "ollama/llama-3.3-70b-instruct": {
+        "needs_base_url": True,
+    },
+    "ollama/mistral-large-instruct": {
+        "needs_base_url": True,
+    },
+    "openai/Qwen/qwen2.5-72b-instruct": {
+        "needs_base_url": True,
+    },
+}
 
 
 class MessageKeys(metaclass=ConstantsClass):
@@ -110,17 +106,16 @@ class LLMClientWrapper:
         api_key : str, optional
             The API key for authentication, by default None
         """
-        if model_name in ModelFlags.REQUIRES_BASE_URL:
-            url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self.client = OpenAI(
-                base_url=url, api_key="no_api_key" if api_key is None else api_key
-            )
-        elif model_name in ModelFlags.REQUIRES_API_KEY:
-            self.client = OpenAI(api_key=api_key)
-        else:
+        self.api_key = api_key
+        model = MODELS.get(model_name)
+        if model is None:
             raise ValueError(
-                f"Invalid model name: {model_name}. Available models: {Models.get_values()}"
+                f"Invalid model name: {model_name}. Available models: {list(MODELS.keys())}"
             )
+
+        self.base_url = base_url if model.get("needs_base_url", False) else None
+        self.api_key = api_key if model.get("needs_api_key", False) else None
+        self.is_multimodal = model.get("multimodal", False)
 
         self.model_name = model_name
 
@@ -128,12 +123,17 @@ class LLMClientWrapper:
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
     ) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
-        logger.info(f"Calling 'chat.completions.create' {messages[-1]} ..")
-        return self.client.chat.completions.create(
+        last_message = messages[-1]
+        logger.info(f"Calling 'chat.completions.create' {last_message} ..")
+
+        response = completion(
             model=self.model_name,
             messages=messages,
             tools=tools,
+            api_key=self.api_key if self.api_key else None,
+            api_base=self.base_url if self.base_url else None,
         )
+        return response
 
 
 class LLMIntegration:
@@ -473,7 +473,7 @@ class LLMIntegration:
                 function_result,
                 function_name,
                 function_args,
-                self.client_wrapper.model_name in ModelFlags.MULTIMODAL,
+                self.client_wrapper.is_multimodal,
             )
 
             message = json.dumps(
@@ -511,7 +511,7 @@ class LLMIntegration:
 
         image_analysis_message = []
 
-        if self.client_wrapper.model_name not in ModelFlags.MULTIMODAL:
+        if not self.client_wrapper.is_multimodal:
             return image_analysis_message
 
         try:

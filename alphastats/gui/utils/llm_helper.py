@@ -27,11 +27,10 @@ from alphastats.llm.enrichment_analysis import (
     gprofiler_organisms,
 )
 from alphastats.llm.llm_integration import (
+    MODELS,
     LLMClientWrapper,
     LLMIntegration,
     MessageKeys,
-    ModelFlags,
-    Models,
     Roles,
 )
 from alphastats.llm.prompts import (
@@ -75,7 +74,7 @@ def llm_config() -> None:
 
     c1, _ = st.columns((1, 2))
     with c1:
-        models = Models.get_values()
+        models = list(MODELS.keys())
         new_model = st.selectbox(
             "Select LLM",
             models,
@@ -85,7 +84,7 @@ def llm_config() -> None:
             st.session_state[StateKeys.MODEL_NAME] = new_model
             on_change_save_state()
 
-        requires_api_key = new_model in ModelFlags.REQUIRES_API_KEY
+        requires_api_key = MODELS[new_model].get("needs_api_key", False)
 
         new_base_url = current_base_url
         api_key = st.text_input(
@@ -94,7 +93,7 @@ def llm_config() -> None:
         )
         set_api_key(api_key)
 
-        if new_model in ModelFlags.REQUIRES_BASE_URL:
+        if MODELS[new_model].get("needs_base_url", False):
             new_base_url = st.text_input(
                 "base url",
                 value=current_base_url,
