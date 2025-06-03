@@ -4,6 +4,7 @@ diffxpy==0.7.4
 gprofiler-official==1.0.0
 kaleido==0.2.1
 litellm==1.72.0
+eval_type_backport==0.2.2  # required for litellm to work with Python 3.9
 numba-stats==0.5.0
 numba==0.57.0
 numpy==1.23.5
