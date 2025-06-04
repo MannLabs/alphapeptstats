@@ -333,6 +333,8 @@ class LLMIntegration:
         float
             The estimated number of tokens
         """
+        # TODO we could store this with each message to avoid re-calculating it
+
         total_tokens = 0
         try:
             tiktoken_model_name = model.split("/")[-1]  # TODO this is a hack!

@@ -895,7 +895,7 @@ def show_llm_chat(
                     st.write(artifact)
 
     st.markdown(
-        f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
+        f"*total tokens in context: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
     )
 
     if selected_analysis_session_state.get(LLMKeys.RECENT_CHAT_WARNINGS):
