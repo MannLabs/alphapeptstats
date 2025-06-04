@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import warnings
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -89,20 +88,21 @@ def llm_config() -> None:
         supports_base_url = Model(new_model_name).supports_base_url()
 
         api_key = st.text_input(
-            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}",
+            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear.",
             type="password",
         )
         set_api_key(api_key)
 
         new_base_url = (
             st.text_input(
-                "API base url",
+                "API base url. Enter a space to clear.",
                 value=current_base_url,
                 help="Optional base URL for the LLM API. E.g. if you are using Ollama, this is usually http://localhost:11434.",
             )
             if supports_base_url
             else None
         )
+        new_base_url = None if new_base_url.strip() == "" else new_base_url.strip()
 
         if new_base_url != current_base_url:
             st.session_state[StateKeys.BASE_URL] = new_base_url
@@ -379,23 +379,27 @@ def set_api_key(api_key: str = None) -> None:
     if not api_key:
         api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
 
+    if not api_key.strip():
+        api_key = None
+
     if api_key:
-        st.info(f"API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}")
-    else:
-        try:
-            if Path("./.streamlit/secrets.toml").exists():
-                api_key = st.secrets["api_key"]
-                st.toast("API key loaded from secrets.toml.", icon="✅")
-            else:
-                st.info(
-                    "Please enter an OpenAI key or provide it in a secrets.toml file in the "
-                    "alphastats/gui/.streamlit directory like "
-                    "`api_key = <key>`"
-                )
-        except KeyError:
-            st.error("API key not found in secrets.toml .")
-        except Exception as e:
-            st.error(f"Error loading API key: {e}.")
+        st.info(f"API key set: '{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}'")
+    # TODO reactivate secrets.toml support when re-thinking model config
+    # else:
+    #     try:
+    #         if Path("./.streamlit/secrets.toml").exists():
+    #             api_key = st.secrets["api_key"]
+    #             st.toast("API key loaded from secrets.toml.", icon="✅")
+    #         else:
+    #             st.info(
+    #                 "Please enter an LLM API key or provide it in a secrets.toml file in the "
+    #                 "alphastats/gui/.streamlit directory like "
+    #                 "`api_key = <key>`"
+    #             )
+    #     except KeyError:
+    #         st.error("API key not found in secrets.toml .")
+    #     except Exception as e:
+    #         st.error(f"Error loading API key: {e}.")
 
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
 
