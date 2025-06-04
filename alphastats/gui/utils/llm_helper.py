@@ -379,8 +379,7 @@ def set_api_key(api_key: str = None) -> None:
     if not api_key:
         api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
 
-    if not api_key.strip():
-        api_key = None
+    api_key = api_key.strip() if api_key else api_key
 
     if api_key:
         st.info(f"API key set: '{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}'")

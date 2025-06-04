@@ -317,7 +317,8 @@ class LLMIntegration:
         """
         total_tokens = 0
         try:
-            enc = tiktoken.encoding_for_model(model)
+            tiktoken_model_name = model.split("/")[-1]  # TODO this is a hack!
+            enc = tiktoken.encoding_for_model(tiktoken_model_name)
             for message in messages:
                 if message and MessageKeys.CONTENT in message:
                     content = message[MessageKeys.CONTENT]
