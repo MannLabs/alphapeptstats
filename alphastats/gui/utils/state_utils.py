@@ -7,7 +7,7 @@ from copy import deepcopy
 import streamlit as st
 
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
-from alphastats.llm.llm_integration import MODELS
+from alphastats.llm.llm_integration import Model
 
 
 def empty_session_state() -> None:
@@ -26,7 +26,7 @@ INIT_STATES = {
     StateKeys.MAX_TOKENS: 10000,
     StateKeys.BASE_URL: os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
     StateKeys.MODEL_NAME: (
-        next(iter(MODELS.keys()))
+        next(iter(Model.get_available_models()))
     ),  # TDOO: change to None: this is just for convenience now
     StateKeys.OPENAI_API_KEY: "",  # pragma: allowlist secret
     StateKeys.SELECTED_ANALYSIS: None,

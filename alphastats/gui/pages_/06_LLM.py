@@ -28,7 +28,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import MODELS, LLMClientWrapper, LLMIntegration
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, Model
 from alphastats.llm.prompts import get_system_message
 
 st.set_page_config(layout="wide")
@@ -232,13 +232,13 @@ st.info(
     f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
 )
 
-model = selected_llm_chat[LLMKeys.MODEL_NAME]
-if MODELS[model].get("needs_api_key", False) and not st.session_state.get(
+model_name = selected_llm_chat[LLMKeys.MODEL_NAME]
+if Model(model_name).requires_api_key() and not st.session_state.get(
     StateKeys.OPENAI_API_KEY
 ):
     st.page_link(
         "pages_/01_Home.py",
-        label=f"❗ Please configure an API key to use the {model} model on the ➔ Home page",
+        label=f"❗ Please configure an API key to use the {model_name} model on the ➔ Home page",
     )
     st.stop()
 

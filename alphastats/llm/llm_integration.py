@@ -38,28 +38,61 @@ from alphastats.plots.plot_utils import PlotlyObject
 logger = logging.getLogger(__name__)
 
 
-# TODO: encapsulate the needs_api_key, needs_base_url, multimodal logic
-MODELS = {
-    "openai/gpt-4o": {
-        "needs_api_key": True,
-        "multimodal": True,
-    },
-    "anthropic/claude-sonnet-4-20250514": {
-        "needs_api_key": True,
-    },
-    "ollama/llama3.1:8b": {
-        "needs_base_url": True,
-    },
-    "ollama/llama-3.3-70b-instruct": {
-        "needs_base_url": True,
-    },
-    "ollama/mistral-large-instruct": {
-        "needs_base_url": True,
-    },
-    "openai/Qwen/qwen2.5-72b-instruct": {
-        "needs_base_url": True,
-    },
-}
+class Model:
+    class ModelProperties(metaclass=ConstantsClass):
+        """Properties of the models used in the LLM integration."""
+
+        REQUIRES_API_KEY = "requires_api_key"  # pragma: allowlist secret
+        SUPPORTS_BASE_URL = "supports_base_url"
+        MULTIMODAL = "multimodal"
+
+    MODELS = {
+        "openai/gpt-4o": {
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
+        "anthropic/claude-sonnet-4-20250514": {
+            ModelProperties.REQUIRES_API_KEY: True,
+        },
+        "ollama/llama3.1:8b": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+        },
+        "ollama/llama-3.3-70b-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+        },
+        "ollama/mistral-large-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+        },
+        "ollama/Qwen/qwen2.5-72b-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+        },
+    }
+
+    def __init__(self, model_name: str):
+        """Initialize the Models class."""
+        if model_name not in self.MODELS:
+            raise ValueError(
+                f"Invalid model name: {model_name}. Available models: {list(self.MODELS.keys())}"
+            )
+
+        self._model_properties = self.MODELS[model_name]
+
+    def requires_api_key(self) -> bool:
+        """Check if the model supports API key authentication."""
+        return self._model_properties.get(self.ModelProperties.REQUIRES_API_KEY, False)
+
+    def supports_base_url(self) -> bool:
+        """Check if the model supports a custom base URL."""
+        return self._model_properties.get(self.ModelProperties.SUPPORTS_BASE_URL, False)
+
+    def is_multimodal(self) -> bool:
+        """Check if the model supports multimodal inputs."""
+        return self._model_properties.get(self.ModelProperties.MULTIMODAL, False)
+
+    @staticmethod
+    def get_available_models() -> List[str]:
+        """Get a list of available model names."""
+        return list(Model.MODELS.keys())
 
 
 class MessageKeys(metaclass=ConstantsClass):
@@ -106,18 +139,17 @@ class LLMClientWrapper:
         api_key : str, optional
             The API key for authentication, by default None
         """
-        self.api_key = api_key
-        model = MODELS.get(model_name)
-        if model is None:
-            raise ValueError(
-                f"Invalid model name: {model_name}. Available models: {list(MODELS.keys())}"
-            )
-
-        self.base_url = base_url if model.get("needs_base_url", False) else None
-        self.api_key = api_key if model.get("needs_api_key", False) else None
-        self.is_multimodal = model.get("multimodal", False)
 
         self.model_name = model_name
+        model = Model(model_name)
+
+        if model.requires_api_key() and not api_key:
+            raise ValueError("API key is required for this model.")
+
+        self.api_key = api_key
+
+        self.base_url = base_url
+        self.is_multimodal = model.is_multimodal()
 
     def chat_completion_create(
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
