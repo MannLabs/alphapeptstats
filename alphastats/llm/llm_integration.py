@@ -95,6 +95,10 @@ class Model:
         return list(Model.MODELS.keys())
 
 
+# we do not want to pass our internal keys to the LLM
+DO_NOT_PASS_PREFIX = "___"
+
+
 class MessageKeys(metaclass=ConstantsClass):
     """Keys for the message dictionary."""
 
@@ -104,10 +108,10 @@ class MessageKeys(metaclass=ConstantsClass):
     TOOL_CALL_ID = "tool_call_id"
     RESULT = "result"
     ARTIFACT_ID = "artifact_id"
-    IN_CONTEXT = "in_context"
+    IN_CONTEXT = f"{DO_NOT_PASS_PREFIX}in_context"
     ARTIFACTS = "artifacts"
-    PINNED = "pinned"
-    TIMESTAMP = "timestamp"
+    PINNED = f"{DO_NOT_PASS_PREFIX}pinned"
+    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"
     IMAGE_URL = "image_url"
 
 
@@ -155,17 +159,30 @@ class LLMClientWrapper:
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
     ) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
-        last_message = messages[-1]
+
+        messages_ = self._strip_off_internal_keys(messages)
+
+        last_message = messages_[-1]
         logger.info(f"Calling 'chat.completions.create' {last_message} ..")
 
         response = completion(
             model=self.model_name,
-            messages=messages,
+            messages=messages_,
             tools=tools,
             api_key=self.api_key if self.api_key else None,
             api_base=self.base_url if self.base_url else None,
         )
         return response
+
+    @staticmethod
+    def _strip_off_internal_keys(
+        messages: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Strip off internal keys from the messages."""
+        return [
+            {k: v for k, v in message.items() if not k.startswith(DO_NOT_PASS_PREFIX)}
+            for message in messages
+        ]
 
 
 class LLMIntegration:
