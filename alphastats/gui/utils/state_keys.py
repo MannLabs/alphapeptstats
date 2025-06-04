@@ -101,7 +101,7 @@ MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(
         StateKeys.BASE_URL,
         LLMKeys.BASE_URL,
-        os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        os.getenv("OLLAMA_BASE_URL"),
     ),
     SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
 ]
