@@ -102,7 +102,11 @@ def llm_config() -> None:
             if supports_base_url
             else None
         )
-        new_base_url = None if new_base_url.strip() == "" else new_base_url.strip()
+        new_base_url = (
+            new_base_url.strip()
+            if new_base_url and new_base_url.strip() != ""
+            else None
+        )
 
         if new_base_url != current_base_url:
             st.session_state[StateKeys.BASE_URL] = new_base_url
@@ -370,8 +374,7 @@ def set_api_key(api_key: str = None) -> None:
     """Put the API key in the session state.
 
     If provided, use the `api_key`.
-    If not, take the key from the secrets.toml file.
-    Show a message if the file is not found.
+    If the provided key is all blank, set to None
 
     Args:
         api_key (str, optional): The API key. Defaults to None.
@@ -379,10 +382,14 @@ def set_api_key(api_key: str = None) -> None:
     if not api_key:
         api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
 
-    api_key = api_key.strip() if api_key else api_key
+    api_key = api_key.strip() if api_key and api_key.strip() != "" else None
 
-    if api_key:
-        st.info(f"API key set: '{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}'")
+    api_key_display = (
+        f"{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
+        if api_key is not None
+        else None
+    )
+    st.info(f"API key set: '{api_key_display}'")
     # TODO reactivate secrets.toml support when re-thinking model config
     # else:
     #     try:
