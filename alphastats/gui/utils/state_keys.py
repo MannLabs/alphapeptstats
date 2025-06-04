@@ -21,7 +21,9 @@ class StateKeys(metaclass=ConstantsClass):
     SAVED_ANALYSES = "saved_analyses"
 
     # LLM
-    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
+    OPENAI_API_KEY = (
+        "openai_api_key"  # pragma: allowlist secret  # TODO: rename to LLM_API_KEY
+    )
 
     LLM_CHATS = "llm_chats"
 
