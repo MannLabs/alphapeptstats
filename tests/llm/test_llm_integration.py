@@ -21,13 +21,13 @@ OLLAMA_MODEL_NAME = "ollama/llama3.1:8b"
 
 
 @pytest.fixture
-def mock_openai_client():
+def mock_completion():
     with patch("alphastats.llm.llm_integration.completion") as mock_client:
         yield mock_client
 
 
 @pytest.fixture
-def llm_integration(mock_openai_client) -> LLMIntegration:
+def llm_integration(mock_completion) -> LLMIntegration:
     """Fixture providing a basic LLM instance with test configuration"""
     dataset = Mock()
     dataset.plot_intensity = Mock(return_value="Plot created")
@@ -420,7 +420,7 @@ def test_execute_function_with_error(
         llm_integration._execute_function("failing_function", {"param1": "value1"})
 
 
-def test_execute_function_without_dataset(mock_openai_client):
+def test_execute_function_without_dataset(mock_completion):
     """Test function execution when dataset is not available"""
     llm = LLMIntegration(
         LLMClientWrapper(
@@ -438,7 +438,7 @@ def test_execute_function_without_dataset(mock_openai_client):
 
 @patch("alphastats.llm.llm_integration.LLMIntegration._execute_function")
 def test_handle_function_calls(
-    mock_execute_function, mock_openai_client, mock_chat_completion
+    mock_execute_function, mock_completion, mock_chat_completion
 ):
     """Test handling of function calls in the chat completion response."""
     mock_execute_function.return_value = "some_function_result"
@@ -459,7 +459,7 @@ def test_handle_function_calls(
         )
     ]
 
-    mock_openai_client.return_value = mock_chat_completion
+    mock_completion.return_value = mock_chat_completion
 
     # when
     result = llm_integration._handle_function_calls(tool_calls)
@@ -498,7 +498,7 @@ def test_handle_function_calls(
             "timestamp": mock.ANY,
         },
     ]
-    mock_openai_client.assert_called_once_with(
+    mock_completion.assert_called_once_with(
         model=GPT_MODEL_NAME,
         messages=expected_messages,
         tools=llm_integration._tools,
@@ -516,7 +516,7 @@ def test_handle_function_calls(
 def test_handle_function_calls_with_images(
     mock_execute_function,
     mock_get_image_analysis_message,
-    mock_openai_client,
+    mock_completion,
     mock_chat_completion,
 ):
     """Test handling of function calls that return images in the chat completion response."""
@@ -538,7 +538,7 @@ def test_handle_function_calls_with_images(
         )
     ]
 
-    mock_openai_client.return_value = mock_chat_completion
+    mock_completion.return_value = mock_chat_completion
     mock_get_image_analysis_message.return_value = [
         {"image_analysis_message": "something"}
     ]
@@ -551,7 +551,7 @@ def test_handle_function_calls_with_images(
         "pinned": False,
         "content": [{"image_analysis_message": "something"}],
         "timestamp": mock.ANY,
-    } in mock_openai_client.call_args_list[0].kwargs["messages"]
+    } in mock_completion.call_args_list[0].kwargs["messages"]
 
 
 def test_get_image_analysis_message_returns_empty_prompt_if_model_not_multimodal():
