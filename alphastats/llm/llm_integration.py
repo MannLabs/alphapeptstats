@@ -788,61 +788,6 @@ class LLMIntegration:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message(Roles.SYSTEM, error_message)
 
-    # TODO this seems to be for notebooks?
-    # we need some "export mode" where everything is shown
-    def display_chat_history(self):
-        """
-        Display the chat history, including messages, function calls, and associated artifacts.
-
-        This method renders the chat history in a structured format, aligning artifacts
-        with their corresponding messages and the model's interpretation.
-
-        Returns
-        -------
-        None
-        """
-        for message in self._messages:
-            role = message[MessageKeys.ROLE]
-            content = message[MessageKeys.CONTENT]
-            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
-
-            if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
-                display(
-                    Markdown(
-                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
-                    )
-                )
-                for tool_call in message[MessageKeys.TOOL_CALLS]:
-                    function_name = tool_call.function.name
-                    function_args = tool_call.function.arguments
-                    display(Markdown(f"*Function Call*: `{function_name}`"))
-                    display(Markdown(f"*Arguments*: ```json\n{function_args}\n```"))
-
-            elif role == Roles.TOOL:
-                tool_result = json.loads(content)
-                artifact_id = tool_result.get(MessageKeys.ARTIFACT_ID)
-                if artifact_id and artifact_id in self._artifacts:
-                    artifact = self._artifacts[artifact_id]
-                    display(
-                        Markdown(
-                            f"**Function Result** (Artifact ID: {artifact_id}, *{str(tokens)} tokens*):"
-                        )
-                    )
-                    self._display_artifact(artifact)
-                else:
-                    display(
-                        Markdown(
-                            f"**Function Result** *({str(tokens)} tokens)*: {content}"
-                        )
-                    )
-
-            else:
-                display(
-                    Markdown(
-                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
-                    )
-                )
-
     def _display_artifact(self, artifact):
         """
         Display an artifact based on its type.
