@@ -25,7 +25,7 @@ plotly.io.templates["alphastats_colors"] = plotly.graph_objects.layout.Template(
 plotly.io.templates.default = "simple_white+alphastats_colors"
 
 
-class PlotlyObject(plotly.graph_objs._figure.Figure):
+class PlotlyObject(go.Figure):
     plotting_data = None
     preprocessing = None
     method = None
