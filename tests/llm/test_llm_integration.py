@@ -772,42 +772,42 @@ def sample_messages():
     return [
         {
             MessageKeys.CONTENT: "m1",
-            MessageKeys.EXCHANGE_ID: "ex1",
+            MessageKeys.EXCHANGE_ID: 1,
             MessageKeys.PINNED: True,
         },
         {
             MessageKeys.CONTENT: "m2",
-            MessageKeys.EXCHANGE_ID: "ex1",
+            MessageKeys.EXCHANGE_ID: 1,
             MessageKeys.PINNED: False,
         },
         {
             MessageKeys.CONTENT: "m3",
-            MessageKeys.EXCHANGE_ID: "ex2",
+            MessageKeys.EXCHANGE_ID: 2,
             MessageKeys.PINNED: False,
         },
         {
             MessageKeys.CONTENT: "m4",
-            MessageKeys.EXCHANGE_ID: "ex2",
+            MessageKeys.EXCHANGE_ID: 2,
             MessageKeys.PINNED: False,
         },
         {
             MessageKeys.CONTENT: "m5",
-            MessageKeys.EXCHANGE_ID: "ex3",
+            MessageKeys.EXCHANGE_ID: 3,
             MessageKeys.PINNED: True,
         },
         {
             MessageKeys.CONTENT: "m6",
-            MessageKeys.EXCHANGE_ID: "ex4",
+            MessageKeys.EXCHANGE_ID: 4,
             MessageKeys.PINNED: False,
         },
         {
             MessageKeys.CONTENT: "m7",
-            MessageKeys.EXCHANGE_ID: "ex5",
+            MessageKeys.EXCHANGE_ID: 5,
             MessageKeys.PINNED: True,
         },
         {
             MessageKeys.CONTENT: "m8",
-            MessageKeys.EXCHANGE_ID: "ex6",
+            MessageKeys.EXCHANGE_ID: 6,
             MessageKeys.PINNED: False,
         },
         # 4 messages pinned => 400 tokens

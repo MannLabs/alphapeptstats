@@ -230,7 +230,8 @@ class LLMIntegration:
         self._artifacts = {}
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
 
-        # an "exchange" is a message from the user and a response from the LLM, at least 2, but maybe more messages
+        # an "exchange" is a message from the user and a response from the LLM (incl. tool calls and responses)
+        # => at least 2, but maybe more messages
         self._exchange_count = 0
 
         if system_message is not None:
@@ -425,12 +426,11 @@ class LLMIntegration:
         # find out which messages we can keep
         total_tokens_added = pinned_tokens
         exchange_ids_to_keep = set()
-        for exchange_id, exchange_token_count in reversed(
+        for exchange_id, exchange_token_count in reversed(  # youngest first
             not_pinned_exchanges_token_count.items()
         ):
-            # youngest first
-            if total_tokens_added + exchange_token_count <= self._max_tokens:
-                total_tokens_added += exchange_token_count
+            total_tokens_added += exchange_token_count
+            if total_tokens_added <= self._max_tokens:
                 exchange_ids_to_keep.add(exchange_id)
                 continue
             break
