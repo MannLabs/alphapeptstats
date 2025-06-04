@@ -13,7 +13,7 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_message_tool_call import Function
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, MessageKeys
 from alphastats.plots.plot_utils import PlotlyObject
 
 GPT_MODEL_NAME = "openai/gpt-4o"
@@ -48,22 +48,25 @@ def llm_integration(mock_completion) -> LLMIntegration:
 def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
     """Setup LLM with a sample conversation history"""
     # Add various message types to conversation history
-    llm_integration._all_messages = [
+    llm_integration._messages = [
         {
             "role": "system",
             "content": "System message",
+            "___exchange_id": 1,
             "___pinned": True,
             "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "user",
             "content": "User message 1",
+            "___exchange_id": 2,
             "___pinned": False,
             "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "assistant",
             "content": "Assistant message 1",
+            "___exchange_id": 2,
             "___pinned": False,
             "___timestamp": "2022-01-01T00:00:00",
         },
@@ -73,30 +76,32 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
             "tool_calls": [
                 {"id": "123", "type": "function", "function": {"name": "test"}}
             ],
+            "___exchange_id": 2,
             "___pinned": False,
             "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "tool",
             "content": "Tool response",
+            "___exchange_id": 2,
             "___pinned": False,
             "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "user",
             "content": "User message 2",
+            "___exchange_id": 3,
             "___pinned": False,
             "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "assistant",
             "content": "Assistant message 2",
+            "___exchange_id": 3,
             "___pinned": False,
             "___timestamp": "2022-01-01T00:00:00",
         },
     ]
-
-    llm_integration._messages = llm_integration._all_messages[0:3].copy()
 
     # Add some artifacts
     llm_integration._artifacts = {
@@ -162,12 +167,12 @@ def test_append_message(mock_datetime, llm_integration: LLMIntegration):
     llm_integration._append_message("user", "Test message")
 
     assert len(llm_integration._messages) == 2  # Including system message
-    assert len(llm_integration._all_messages) == 2
     assert llm_integration._messages[-1] == {
+        "___exchange_id": 0,
+        "___timestamp": "2022-01-01T00:00:00",
+        "___pinned": False,
         "role": "user",
         "content": "Test message",
-        "___pinned": False,
-        "___timestamp": "2022-01-01T00:00:00",
     }
 
 
@@ -184,78 +189,6 @@ def test_append_message_with_tool_calls(llm_integration: LLMIntegration):
     llm_integration._append_message("assistant", "Test message", tool_calls=tool_calls)
 
     assert llm_integration._messages[-1]["tool_calls"] == tool_calls
-
-
-@pytest.mark.parametrize(
-    "num_messages,message_length,max_tokens,expected_messages",
-    [
-        (5, 100, 200, 2),  # Should truncate to 2 messages
-        (3, 50, 1000, 3),  # Should keep all messages
-        (10, 20, 100, 5),  # Should truncate to 5 messages
-    ],
-)
-def test_truncate_conversation_history_success(
-    llm_integration, num_messages, message_length, max_tokens, expected_messages
-):
-    """Test conversation history truncation with different scenarios"""
-    # Add multiple messages
-    message_content = "Test " * message_length
-    llm_integration._max_tokens = max_tokens
-    for _ in range(num_messages):
-        llm_integration._append_message("user", message_content.strip())
-
-    llm_integration._truncate_conversation_history()
-
-    # Adding 1 to account for the initial system message
-    assert len(llm_integration._messages) <= expected_messages + 1
-    assert llm_integration._messages[0]["role"] == "system"
-
-
-def test_truncate_conversation_history_pinned_too_large(llm_integration):
-    """Test conversation history truncation with pinned messages that exceed the token limit"""
-    # Add multiple messages
-    message_content = "Test " * 100
-    llm_integration._max_tokens = 200
-    llm_integration._append_message("user", message_content.strip(), pin_message=True)
-    llm_integration._append_message("user", message_content.strip(), pin_message=False)
-    with pytest.raises(ValueError, match=r".*all remaining messages are pinned.*"):
-        llm_integration._append_message(
-            "assistant", message_content.strip(), pin_message=True
-        )
-
-
-def test_truncate_conversation_history_tool_output_popped(llm_integration):
-    message_content = "Test " * 50
-    llm_integration._max_tokens = 120
-    # removal of assistant would suffice for total tokens, but tool output should be dropped as well
-    llm_integration._append_message("assistant", message_content.strip())
-    llm_integration._append_message("tool", message_content.strip())
-    with (
-        pytest.warns(UserWarning, match=r".*Truncating conversation history.*"),
-        pytest.warns(UserWarning, match=r".*Removing corresponsing tool.*"),
-    ):
-        llm_integration._append_message("user", message_content.strip())
-
-    assert len(llm_integration._messages) == 2
-    assert llm_integration._messages[0]["role"] == "system"
-    assert llm_integration._messages[1]["role"] == "user"
-
-
-def test_truncate_conversation_history_last_tool_output_error(llm_integration):
-    message_content = "Test " * 50
-    llm_integration._max_tokens = 100
-    # removal of assistant would suffice for total tokens, but tool output should be dropped as well
-    llm_integration._append_message("assistant", message_content.strip())
-    with pytest.raises(ValueError, match=r".*last call exceeds the token limit.*"):
-        llm_integration._append_message("tool", message_content.strip())
-
-
-def test_truncate_conversation_history_single_large_message(llm_integration):
-    llm_integration._max_tokens = 1
-    with pytest.raises(
-        ValueError, match=r".*only remaining message exceeds the token limit*"
-    ):
-        llm_integration._truncate_conversation_history()
 
 
 def test_estimate_tokens_gpt():
@@ -300,18 +233,21 @@ def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_comp
         {
             "content": "Test system message",
             "role": "system",
+            "___exchange_id": 0,
             "___pinned": True,
             "___timestamp": mock.ANY,
         },
         {
             "content": "Test prompt",
             "role": "user",
+            "___exchange_id": 1,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
         {
             "content": "Test response",
             "role": "assistant",
+            "___exchange_id": 1,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -472,6 +408,7 @@ def test_handle_function_calls(
         {
             "role": "system",
             "content": "Test system message",
+            "___exchange_id": 0,
             "___pinned": True,
             "___timestamp": mock.ANY,
         },
@@ -487,6 +424,7 @@ def test_handle_function_calls(
                     type="function",
                 )
             ],
+            "___exchange_id": 0,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -494,6 +432,7 @@ def test_handle_function_calls(
             "role": "tool",
             "content": '{"result": "some_function_result", "artifact_id": "test_function_test-id"}',
             "tool_call_id": "test-id",
+            "___exchange_id": 0,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -654,7 +593,7 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "artifacts": [],
             "content": "User message 2",
             "role": "user",
-            "___in_context": False,
+            "___in_context": True,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -662,7 +601,7 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "artifacts": ["Artifact for message 6"],
             "content": "Assistant message 2",
             "role": "assistant",
-            "___in_context": False,
+            "___in_context": True,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -703,7 +642,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "artifacts": [],
             "content": "Assistant with tool calls",
             "role": "assistant",
-            "___in_context": False,
+            "___in_context": True,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -711,7 +650,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "artifacts": ["Tool artifact 1", "Tool artifact 2"],
             "content": "Tool response",
             "role": "tool",
-            "___in_context": False,
+            "___in_context": True,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -719,7 +658,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "artifacts": [],
             "content": "User message 2",
             "role": "user",
-            "___in_context": False,
+            "___in_context": True,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -727,7 +666,7 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "artifacts": ["Artifact for message 6"],
             "content": "Assistant message 2",
             "role": "assistant",
-            "___in_context": False,
+            "___in_context": True,
             "___pinned": False,
             "___timestamp": mock.ANY,
         },
@@ -816,3 +755,105 @@ def test_str_repr(function_result, function_name, function_args, output, is_mult
         )
         == output
     )
+
+
+@pytest.fixture
+def llm_integration_ut():
+    """Create a mock instance with required attributes and methods"""
+    instance = LLMIntegration(MagicMock())
+    instance._max_tokens = 1000
+    instance.estimate_tokens = MagicMock(return_value=100)  # Default token estimate
+    return instance
+
+
+@pytest.fixture
+def sample_messages():
+    """Create sample messages for truncation testing"""
+    return [
+        {
+            MessageKeys.CONTENT: "m1",
+            MessageKeys.EXCHANGE_ID: "ex1",
+            MessageKeys.PINNED: True,
+        },
+        {
+            MessageKeys.CONTENT: "m2",
+            MessageKeys.EXCHANGE_ID: "ex1",
+            MessageKeys.PINNED: False,
+        },
+        {
+            MessageKeys.CONTENT: "m3",
+            MessageKeys.EXCHANGE_ID: "ex2",
+            MessageKeys.PINNED: False,
+        },
+        {
+            MessageKeys.CONTENT: "m4",
+            MessageKeys.EXCHANGE_ID: "ex2",
+            MessageKeys.PINNED: False,
+        },
+        {
+            MessageKeys.CONTENT: "m5",
+            MessageKeys.EXCHANGE_ID: "ex3",
+            MessageKeys.PINNED: True,
+        },
+        {
+            MessageKeys.CONTENT: "m6",
+            MessageKeys.EXCHANGE_ID: "ex4",
+            MessageKeys.PINNED: False,
+        },
+        {
+            MessageKeys.CONTENT: "m7",
+            MessageKeys.EXCHANGE_ID: "ex5",
+            MessageKeys.PINNED: True,
+        },
+        {
+            MessageKeys.CONTENT: "m8",
+            MessageKeys.EXCHANGE_ID: "ex6",
+            MessageKeys.PINNED: False,
+        },
+        # 4 messages pinned => 400 tokens
+    ]
+
+
+def test_empty_messages_list(llm_integration_ut):
+    """Test with empty messages list"""
+    result = llm_integration_ut._truncate([])
+    assert result == []
+
+
+def test_all_messages_fit_within_limit(llm_integration_ut, sample_messages):
+    """Test when all messages fit within token limit"""
+    result = llm_integration_ut._truncate(sample_messages)
+    assert result == sample_messages
+
+
+def test_pinned_messages_exceed_limit_raises_error(llm_integration_ut, sample_messages):
+    """Test that pinned messages exceeding limit raises ValueError"""
+    llm_integration_ut._max_tokens = 100
+
+    with pytest.raises(ValueError) as exc_info:
+        llm_integration_ut._truncate(sample_messages)
+
+    assert "Pinned messages exceed the maximum token limit" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "max_tokens,expected_messages",
+    [
+        (400, ["m1", "m2", "m5", "m7"]),
+        (401, ["m1", "m2", "m5", "m7"]),
+        (499, ["m1", "m2", "m5", "m7"]),
+        (500, ["m1", "m2", "m5", "m7", "m8"]),
+        (600, ["m1", "m2", "m5", "m6", "m7", "m8"]),
+        (799, ["m1", "m2", "m5", "m6", "m7", "m8"]),  # "m3" + "m4" do not fit
+        (800, ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"]),
+    ],
+)
+def test_correct_truncation(
+    llm_integration_ut, sample_messages, max_tokens, expected_messages
+):
+    """Test that messages are truncated correctly based on max_tokens and exchanges."""
+    llm_integration_ut._max_tokens = max_tokens
+
+    result = llm_integration_ut._truncate(sample_messages)
+
+    assert [msg["content"] for msg in result] == expected_messages
