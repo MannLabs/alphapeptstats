@@ -57,14 +57,18 @@ class Model:
         "ollama/llama3.1:8b": {
             ModelProperties.SUPPORTS_BASE_URL: True,
         },
-        "ollama/llama-3.3-70b-instruct": {
+        "GWDG/llama-3.3-70b-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
         },
-        "ollama/mistral-large-instruct": {
+        "GWDG/mistral-large-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
         },
-        "ollama/Qwen/qwen2.5-72b-instruct": {
+        "GWDG/qwen2.5-72b-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
         },
     }
 
@@ -140,8 +144,11 @@ class LLMClientWrapper:
             The API key for authentication, by default None
         """
 
-        self.model_name = model_name
         model = Model(model_name)
+        if model_name.startswith("GWDG"):
+            # The GWDG supplies an openai like API
+            model_name = model_name.replace("GWDG/", "openai/")
+        self.model_name = model_name
 
         if model.requires_api_key() and not api_key:
             raise ValueError("API key is required for this model.")
