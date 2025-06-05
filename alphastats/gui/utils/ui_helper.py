@@ -72,7 +72,7 @@ def _display_sidebar_html_table():
 
     html_string += "</table>"
 
-    st.sidebar.markdown("### DateSet info")
+    st.sidebar.markdown("### DataSet info")
     st.sidebar.markdown(html_string, unsafe_allow_html=True)
 
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import warnings
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -30,8 +29,7 @@ from alphastats.llm.llm_integration import (
     LLMClientWrapper,
     LLMIntegration,
     MessageKeys,
-    ModelFlags,
-    Models,
+    Model,
     Roles,
 )
 from alphastats.llm.prompts import (
@@ -70,52 +68,64 @@ class EnrichmentAnalysisKeys(metaclass=ConstantsClass):
 def llm_config() -> None:
     """Show the configuration options for the LLM interpretation."""
 
-    current_model = st.session_state.get(StateKeys.MODEL_NAME, None)
+    current_model_name = st.session_state.get(StateKeys.MODEL_NAME, None)
     current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
 
     c1, _ = st.columns((1, 2))
     with c1:
-        models = Models.get_values()
-        new_model = st.selectbox(
+        new_model_name = st.selectbox(
             "Select LLM",
-            models,
-            index=models.index(current_model) if current_model is not None else 0,
+            models := Model.get_available_models(),
+            index=models.index(current_model_name)
+            if current_model_name is not None
+            else 0,
         )
-        if new_model != current_model:
-            st.session_state[StateKeys.MODEL_NAME] = new_model
+        if new_model_name != current_model_name:
+            st.session_state[StateKeys.MODEL_NAME] = new_model_name
             on_change_save_state()
 
-        requires_api_key = new_model in ModelFlags.REQUIRES_API_KEY
+        requires_api_key = Model(new_model_name).requires_api_key()
+        supports_base_url = Model(new_model_name).supports_base_url()
 
-        new_base_url = current_base_url
         api_key = st.text_input(
-            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}",
+            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear.",
             type="password",
         )
         set_api_key(api_key)
 
-        if new_model in ModelFlags.REQUIRES_BASE_URL:
-            new_base_url = st.text_input(
-                "base url",
+        new_base_url = (
+            st.text_input(
+                "API base url. Enter a space to clear.",
                 value=current_base_url,
+                help="Optional base URL for the LLM API. E.g. if you are using Ollama, this is usually http://localhost:11434.",
             )
-            if new_base_url != current_base_url:
-                st.session_state[StateKeys.BASE_URL] = new_base_url
-                on_change_save_state()
-            st.info(f"Expecting Ollama API at {new_base_url}.")
+            if supports_base_url
+            else None
+        )
+        new_base_url = (
+            new_base_url.strip()
+            if new_base_url and new_base_url.strip() != ""
+            else None
+        )
+
+        if new_base_url != current_base_url:
+            st.session_state[StateKeys.BASE_URL] = new_base_url
+            on_change_save_state()
+        if supports_base_url:
+            st.info(f"Expecting LLM API at '{new_base_url}'.")
 
         test_connection = st.button("Test connection")
         if test_connection:
-            with st.spinner(f"Testing connection to {new_model}.."):
+            with st.spinner(f"Testing connection to {new_model_name}.."):
                 error = llm_connection_test(
-                    model_name=new_model,
+                    model_name=new_model_name,
                     api_key=st.session_state[StateKeys.OPENAI_API_KEY],
                     base_url=new_base_url,
                 )
                 if error is None:
-                    st.success(f"Connection to {new_model} successful!")
+                    st.success(f"Connection to {new_model_name} successful!")
                 else:
-                    st.error(f"Connection to {new_model} failed: {str(error)}")
+                    st.error(f"Connection to {new_model_name} failed: {str(error)}")
 
         tokens = st.number_input(
             "Maximal number of tokens",
@@ -126,7 +136,7 @@ def llm_config() -> None:
             st.session_state[StateKeys.MAX_TOKENS] = tokens
             on_change_save_state()
 
-        if current_model != new_model or new_base_url != current_base_url:
+        if current_model_name != new_model_name or new_base_url != current_base_url:
             st.rerun(scope="app")
 
 
@@ -364,8 +374,7 @@ def set_api_key(api_key: str = None) -> None:
     """Put the API key in the session state.
 
     If provided, use the `api_key`.
-    If not, take the key from the secrets.toml file.
-    Show a message if the file is not found.
+    If the provided key is all blank, set to None
 
     Args:
         api_key (str, optional): The API key. Defaults to None.
@@ -373,23 +382,30 @@ def set_api_key(api_key: str = None) -> None:
     if not api_key:
         api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
 
-    if api_key:
-        st.info(f"API key set: {api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}")
-    else:
-        try:
-            if Path("./.streamlit/secrets.toml").exists():
-                api_key = st.secrets["api_key"]
-                st.toast("API key loaded from secrets.toml.", icon="✅")
-            else:
-                st.info(
-                    "Please enter an OpenAI key or provide it in a secrets.toml file in the "
-                    "alphastats/gui/.streamlit directory like "
-                    "`api_key = <key>`"
-                )
-        except KeyError:
-            st.error("API key not found in secrets.toml .")
-        except Exception as e:
-            st.error(f"Error loading API key: {e}.")
+    api_key = api_key.strip() if api_key and api_key.strip() != "" else None
+
+    api_key_display = (
+        f"{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
+        if api_key is not None
+        else None
+    )
+    st.info(f"API key set: '{api_key_display}'")
+    # TODO reactivate secrets.toml support when re-thinking model config
+    # else:
+    #     try:
+    #         if Path("./.streamlit/secrets.toml").exists():
+    #             api_key = st.secrets["api_key"]
+    #             st.toast("API key loaded from secrets.toml.", icon="✅")
+    #         else:
+    #             st.info(
+    #                 "Please enter an LLM API key or provide it in a secrets.toml file in the "
+    #                 "alphastats/gui/.streamlit directory like "
+    #                 "`api_key = <key>`"
+    #             )
+    #     except KeyError:
+    #         st.error("API key not found in secrets.toml .")
+    #     except Exception as e:
+    #         st.error(f"Error loading API key: {e}.")
 
     st.session_state[StateKeys.OPENAI_API_KEY] = api_key
 
@@ -870,6 +886,8 @@ def show_llm_chat(
                     st.dataframe(artifact, key=str(id(artifact)))
                 elif isinstance(
                     artifact, (PlotlyObject, plotly_object)
+                ) or "PlotlyObject" in str(
+                    type(artifact)
                 ):  # TODO can there be non-plotly types here
                     st.plotly_chart(artifact, key=str(id(artifact)))
                 elif not isinstance(artifact, str):

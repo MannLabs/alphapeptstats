@@ -388,7 +388,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             color_list=self._parameters["color_list"],
         )
         # TODO currently there's no other way to obtain both the plot and the underlying data
-        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
+        #  Should be refactored such that the interface provided by DataSet.plot_volcano() is used
         #  One option could be to always return the whole analysis object.
 
         return volcano_plot.plot, volcano_plot
