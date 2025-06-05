@@ -921,13 +921,6 @@ def show_llm_chat(
 
         st.rerun(scope="fragment")
 
-    st.download_button(
-        "Download chat log",
-        llm_integration.get_chat_log_txt(),
-        f"chat_log_{model_name}.txt",
-        "text/plain",
-    )
-
     st.markdown(
         "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
     )
