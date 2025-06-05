@@ -76,13 +76,13 @@ class Model:
         """Initialize the Models class."""
         if model_name not in self.MODELS:
             raise ValueError(
-                f"Invalid model name: {model_name}. Available models: {list(self.MODELS.keys())}"
+                f"Invalid model name: {model_name}. Available models: {self.get_available_models()}"
             )
 
         self._model_properties = self.MODELS[model_name]
 
     def requires_api_key(self) -> bool:
-        """Check if the model supports API key authentication."""
+        """Check if the model requires API key authentication."""
         return self._model_properties.get(self.ModelProperties.REQUIRES_API_KEY, False)
 
     def supports_base_url(self) -> bool:
