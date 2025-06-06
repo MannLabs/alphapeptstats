@@ -69,6 +69,11 @@ def llm_config() -> None:
     """Show the configuration options for the LLM interpretation."""
 
     current_model_name = st.session_state.get(StateKeys.MODEL_NAME, None)
+    if current_model_name not in Model.get_available_models():
+        st.warning(
+            f"Model '{current_model_name}' is not available. Please select a different model."
+        )
+        current_model_name = None
     current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
 
     c1, _ = st.columns((1, 2))

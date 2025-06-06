@@ -233,6 +233,7 @@ st.info(
 )
 
 model_name = selected_llm_chat[LLMKeys.MODEL_NAME]
+model_is_supported = model_name in Model.get_available_models()
 if Model(model_name).requires_api_key() and not st.session_state.get(
     StateKeys.OPENAI_API_KEY
 ):
@@ -244,12 +245,20 @@ if Model(model_name).requires_api_key() and not st.session_state.get(
 
 c1, c2, _ = st.columns((0.2, 0.2, 0.6))
 llm_submitted = c1.button(
-    "Run LLM interpretation ...", disabled=is_llm_integration_initialized
+    "Run LLM interpretation ...",
+    disabled=is_llm_integration_initialized or not model_is_supported,
 )
 
 llm_reset = c2.button(
     "❌ Reset LLM interpretation ...", disabled=not is_llm_integration_initialized
 )
+
+if not model_is_supported:
+    st.warning(
+        f"The selected model `{model_name}` is not supported for LLM interpretation. "
+        "Please select a different model on the Home page."
+    )
+    st.stop()
 if llm_reset:
     del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
     del selected_llm_chat[LLMKeys.MODEL_NAME]

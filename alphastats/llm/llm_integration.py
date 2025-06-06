@@ -75,11 +75,11 @@ class Model:
     def __init__(self, model_name: str):
         """Initialize the Models class."""
         if model_name not in self.MODELS:
-            raise ValueError(
+            warnings.warn(
                 f"Invalid model name: {model_name}. Available models: {self.get_available_models()}"
             )
 
-        self._model_properties = self.MODELS[model_name]
+        self._model_properties = self.MODELS.get(model_name, {})
 
     def requires_api_key(self) -> bool:
         """Check if the model requires API key authentication."""
@@ -222,14 +222,6 @@ class LLMIntegration:
 
         if system_message is not None:
             self._append_message("system", system_message, pin_message=True)
-
-    def __getstate__(self):
-        """Return the state to pickle, without the client wrapper."""
-        dict_to_pickle = dict(self.__dict__)
-        for k, v in self.__dict__.items():
-            if LLMClientWrapper.__name__ in str(type(v)):
-                del dict_to_pickle[k]
-        return dict_to_pickle
 
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
