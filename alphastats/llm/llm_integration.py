@@ -422,7 +422,8 @@ class LLMIntegration:
 
         if pinned_tokens > self._max_tokens:
             raise ValueError(
-                "Pinned messages exceed the maximum token limit. Please increase the token limit or unpin some messages."
+                # TODO enable increasing the token limit.
+                "Pinned messages exceed the maximum token limit. Please increase the token limit."  #  or unpin some messages.
             )
 
         # find out which messages we can keep
