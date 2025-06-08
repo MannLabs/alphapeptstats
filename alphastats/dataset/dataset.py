@@ -106,11 +106,10 @@ class DataSet:
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
 
-        # TODO: Make these public attributes
         (
-            self._gene_to_features_map,
-            self._protein_to_features_map,
-            self._feature_to_repr_map,
+            self.gene_to_features_map,
+            self.protein_to_features_map,
+            self.feature_to_repr_map,
         ) = self._create_id_dicts()
 
         print("DataSet has been created.")
@@ -257,9 +256,9 @@ class DataSet:
             )
         )
         (
-            self._gene_to_features_map,
-            self._protein_to_features_map,
-            self._feature_to_repr_map,
+            self.gene_to_features_map,
+            self.protein_to_features_map,
+            self.feature_to_repr_map,
         ) = self._create_id_dicts()
 
     def reset_preprocessing(self):
@@ -271,9 +270,9 @@ class DataSet:
             self.preprocessing_info,
         ) = self._get_init_dataset()
         (
-            self._gene_to_features_map,
-            self._protein_to_features_map,
-            self._feature_to_repr_map,
+            self.gene_to_features_map,
+            self.protein_to_features_map,
+            self.feature_to_repr_map,
         ) = self._create_id_dicts()
 
     def batch_correction(self, batch: str) -> None:
@@ -488,7 +487,7 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             preprocessing_info=self.preprocessing_info,
-            feature_to_repr_map=self._feature_to_repr_map,
+            feature_to_repr_map=self.feature_to_repr_map,
             group1=group1,
             group2=group2,
             column=column,
@@ -514,19 +513,19 @@ class DataSet:
         string : str
             The string representating the feature."""
 
-        if string in self._feature_to_repr_map:
+        if string in self.feature_to_repr_map:
             return [string]
         representation_keys = [
             feature
-            for feature, representation in self._feature_to_repr_map.items()
+            for feature, representation in self.feature_to_repr_map.items()
             if representation == string
         ]
         if representation_keys:
             return representation_keys
-        if string in self._protein_to_features_map:
-            return self._protein_to_features_map[string]
-        if string in self._gene_to_features_map:
-            return self._gene_to_features_map[string]
+        if string in self.protein_to_features_map:
+            return self.protein_to_features_map[string]
+        if string in self.gene_to_features_map:
+            return self.gene_to_features_map[string]
         raise ValueError(f"Feature {string} is not in the (processed) data.")
 
     def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
@@ -598,7 +597,7 @@ class DataSet:
             intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
-            feature_to_repr_map=self._feature_to_repr_map,
+            feature_to_repr_map=self.feature_to_repr_map,
             group=group,
             subgroups=subgroups,
             method=method,

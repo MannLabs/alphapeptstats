@@ -1078,7 +1078,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         """Test id maps"""
 
         self.assertDictEqual(
-            self.obj._gene_to_features_map,
+            self.obj.gene_to_features_map,
             {
                 "G1": ["P1"],
                 "G2": ["P2"],
@@ -1104,7 +1104,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             },
         )
         self.assertDictEqual(
-            self.obj._protein_to_features_map,
+            self.obj.protein_to_features_map,
             {
                 "P1": ["P1"],
                 "P2": ["P2"],
@@ -1133,7 +1133,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             },
         )
         self.assertDictEqual(
-            self.obj._feature_to_repr_map,
+            self.obj.feature_to_repr_map,
             {
                 "P1": "G1",
                 "P2": "G2",
@@ -1172,21 +1172,21 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
             metadata_path_or_df="testfiles/synthetic/preprocessing_pentests_metadata.csv",
             sample_column="sample",
         )
-        self.obj._feature_to_repr_map = {
+        self.obj.feature_to_repr_map = {
             "P1": "G1",
             "P2": "ids:P2",
             "P3": "G3",
             "P5;P6": "G5;G6",
             "P6;P7": "G6;G7",
         }
-        self.obj._gene_to_features_map = {
+        self.obj.gene_to_features_map = {
             "G1": ["P1"],
             "G3": ["P3"],
             "G5": ["P5;P6"],
             "G6": ["P5;P6", "P6;P7"],
             "G7": ["P6;P7"],
         }
-        self.obj._protein_to_features_map = {
+        self.obj.protein_to_features_map = {
             "P1": ["P1"],
             "P2": ["P2"],
             "P3": ["P3"],

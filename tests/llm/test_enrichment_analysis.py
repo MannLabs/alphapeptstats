@@ -397,7 +397,7 @@ def test_get_background_data_no_background_provided():
 def test_get_background_with_streamlit_dataset(mock_session_state, mock_shorten):
     # Mock the dataset in Streamlit session state
     mock_dataset = Mock()
-    mock_dataset._feature_to_repr_map.values.return_value = [
+    mock_dataset.feature_to_repr_map.values.return_value = [
         "gene1:info1",
         "gene2:info2",
         "gene3:info3",
