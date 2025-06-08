@@ -558,11 +558,17 @@ def display_uniprot(
             ],
             format_func=lambda x: feature_to_repr_map[x],
         )
-        if preview_feature is not None:
-            uniprot_url = "https://www.uniprot.org/uniprotkb/"
-            st.markdown(
-                f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
+        if (
+            preview_feature is not None
+            and (
+                primary_accession := st.session_state[StateKeys.ANNOTATION_STORE][
+                    preview_feature
+                ].get("primaryAccession")
             )
+            is not None
+        ):
+            uniprot_url = "https://www.uniprot.org/uniprotkb/"
+            st.markdown(f"[Open in Uniprot ...]({uniprot_url}{primary_accession})")
             st.markdown(f"Text generated from feature id {preview_feature}:")
             st.markdown(
                 format_uniprot_annotation(
