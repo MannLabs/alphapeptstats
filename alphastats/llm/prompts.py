@@ -8,16 +8,13 @@ from typing import Any, Optional
 import pandas as pd
 from openai.types.chat import ChatCompletionMessageToolCall
 
-from alphastats.dataset.dataset import DataSet
 from alphastats.dataset.keys import ConstantsClass
-from alphastats.llm.llm_utils import get_subgroups_for_each_group
 
 newline = os.linesep
 
 
-def get_system_message(dataset: DataSet) -> str:
+def get_system_message(subgroups: dict) -> str:
     """Get the system message for the LLM model."""
-    subgroups = get_subgroups_for_each_group(dataset.metadata)
 
     return (
         f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.{newline}"
