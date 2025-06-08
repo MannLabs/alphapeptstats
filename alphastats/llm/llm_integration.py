@@ -493,6 +493,7 @@ class LLMIntegration:
         """
         # TODO avoid infinite loops
         new_artifacts = {}
+        pending_image_analysis_user_messages: List[List[Dict[str, Any]]] = []
 
         tool_call_message = get_tool_call_message(tool_calls)
         self._append_message(Roles.ASSISTANT, tool_call_message, tool_calls=tool_calls)
@@ -516,26 +517,33 @@ class LLMIntegration:
                 self.client_wrapper.is_multimodal,
             )
 
-            message = json.dumps(
+            message_content_for_tool_response = json.dumps(
                 {
                     MessageKeys.RESULT: result_representation,
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
 
-            self._append_message(Roles.TOOL, message, tool_call_id=tool_call.id)
+            self._append_message(
+                Roles.TOOL, message_content_for_tool_response, tool_call_id=tool_call.id
+            )
 
             if isinstance(function_result, PlotlyObject) and (
-                image_analysis_message := self._get_image_analysis_message(
+                image_analysis_content_parts := self._get_image_analysis_message(
                     function_result
                 )
             ):
-                self._append_message(
-                    Roles.USER,
-                    image_analysis_message,
-                    pin_message=False,
-                    keep_list=True,
+                pending_image_analysis_user_messages.append(
+                    image_analysis_content_parts
                 )
+
+        for user_message_content_parts in pending_image_analysis_user_messages:
+            self._append_message(
+                Roles.USER,
+                user_message_content_parts,
+                pin_message=False,
+                keep_list=True,
+            )
 
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
