@@ -3,6 +3,7 @@ from typing import Dict
 import streamlit as st
 from openai import AuthenticationError
 
+from alphastats.dataset.dataset import DataSet
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
@@ -73,8 +74,9 @@ selected_analysis_key = st.selectbox(
 )
 
 if selected_analysis_key == CUSTOM_ANALYSIS_KEY:
+    st.warning("Custom analysis selected. This is a placeholder for custom analysis.")
+
     # TODO replace all this with custom import fields
-    fake_feature_to_repr_map = {"blah": "blah1", "blub": "blub1"}
     fake_plot_parameters = {
         "group1": "Group 1",
         "group2": "Group 2",
@@ -82,14 +84,18 @@ if selected_analysis_key == CUSTOM_ANALYSIS_KEY:
     }
     fake_regulated_features_dict = {"blah": "up", "blub": "down"}
     fake_subgroups = {"G1": "G1"}
-    st.warning("Custom analysis selected. This is a placeholder for custom analysis.")
 
     volcano_plot = None
     plot_parameters = fake_plot_parameters
 
-    feature_to_repr_map = fake_feature_to_repr_map
     regulated_features_dict = fake_regulated_features_dict
     subgroups = fake_subgroups
+
+    *_, feature_to_repr_map = DataSet.create_id_dicts(
+        list(fake_regulated_features_dict.keys()),
+        list(fake_regulated_features_dict.keys()),
+    )  # TODO where to get this from?
+
 else:
     if (
         selected_analysis := st.session_state[StateKeys.SAVED_ANALYSES].get(
@@ -101,7 +107,6 @@ else:
     volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
     plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 
-    feature_to_repr_map = dataset.feature_to_repr_map
     subgroups = get_subgroups_for_each_group(dataset.metadata)
 
     regulated_features_df = volcano_plot.annotated_dataframe[
@@ -113,6 +118,8 @@ else:
             regulated_features_df["significant"].tolist(),
         )
     )
+
+    feature_to_repr_map = dataset.feature_to_repr_map
 
     st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 
