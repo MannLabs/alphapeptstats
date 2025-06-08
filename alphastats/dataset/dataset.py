@@ -155,9 +155,23 @@ class DataSet:
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
 
-    def _create_id_dicts(self, sep: str = ";") -> Tuple[dict, dict, dict]:
-        """
-        Create mappings from gene and protein to feature, and from feature to representation.
+    def _create_id_dicts(self) -> Tuple[dict, dict, dict]:
+        """Wrapper around create_id_dicts."""
+        return self.create_id_dicts(
+            features_list=self.mat.columns.to_list(),
+            proteins_list=self.rawinput[Cols.INDEX],
+            gene_names_list=self.rawinput.get(Cols.GENE_NAMES, None),
+        )
+
+    @staticmethod
+    def create_id_dicts(
+        features_list: list[str],
+        proteins_list: list[str],
+        gene_names_list: Optional[list[str]] = None,
+        sep: str = ";",
+    ) -> Tuple[dict, dict, dict]:
+        """Create mappings from gene and protein to feature, and from feature to representation.
+
         Features are the entities measured in each sample, usually protein groups represented by semicolon separated protein ids.
         This is to maintain the many-to-many relationships between the three entities feature, protein and gene.
 
@@ -167,6 +181,10 @@ class DataSet:
         3. feature_to_repr_map: Maps each feature to its representation string.
 
         Args:
+            features_list: list[str]: A list of features (usually protein groups).
+            proteins_list: list[str]: A list of protein identifiers corresponding to the features.
+            gene_names_list (Optional[list[str]]): A list of gene names corresponding to the features. Default is None.
+
             sep (str): The separator used to split gene and protein identifiers. Default is ";".
 
         Returns:
@@ -176,14 +194,12 @@ class DataSet:
             - feature_to_repr_map (dict): A dictionary mapping features to their representation strings.
         """
 
-        features = set(self.mat.columns.to_list())
+        features = set(features_list)
         gene_to_features_map = defaultdict(list)
         protein_to_features_map = defaultdict(list)
         feature_to_repr_map = {}
 
-        for proteins, feature in zip(
-            self.rawinput[Cols.INDEX], self.rawinput[Cols.INDEX]
-        ):
+        for proteins, feature in zip(proteins_list, proteins_list):
             if feature not in features:
                 continue
             # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
@@ -191,10 +207,8 @@ class DataSet:
             for protein in proteins.split(sep):
                 protein_to_features_map[protein].append(feature)
 
-        if Cols.GENE_NAMES in self.rawinput.columns:
-            for genes, feature in zip(
-                self.rawinput[Cols.GENE_NAMES], self.rawinput[Cols.INDEX]
-            ):
+        if gene_names_list is not None:
+            for genes, feature in zip(gene_names_list, proteins_list):
                 if feature not in features:
                     continue
                 if isinstance(genes, str):
