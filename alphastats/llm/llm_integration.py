@@ -75,11 +75,11 @@ class Model:
     def __init__(self, model_name: str):
         """Initialize the Models class."""
         if model_name not in self.MODELS:
-            warnings.warn(
+            raise ValueError(
                 f"Invalid model name: {model_name}. Available models: {self.get_available_models()}"
             )
 
-        self._model_properties = self.MODELS.get(model_name, {})
+        self._model_properties = self.MODELS[model_name]
 
     def requires_api_key(self) -> bool:
         """Check if the model requires API key authentication."""
