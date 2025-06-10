@@ -3,7 +3,6 @@ from typing import Dict
 import streamlit as st
 from openai import AuthenticationError
 
-from alphastats.dataset.dataset import DataSet
 from alphastats.dataset.keys import Cols
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
@@ -45,19 +44,13 @@ dataset = st.session_state.get(StateKeys.DATASET, None)
 ##################################### Select Analysis #####################################
 
 st.markdown("#### Select Analysis for LLM interpretation")
-CUSTOM_ANALYSIS_KEY = "custom"
 if not (
     available_analyses_keys := [
         key
         for key, analysis in st.session_state[StateKeys.SAVED_ANALYSES].items()
         if analysis[SavedAnalysisKeys.METHOD] in LLM_ENABLED_ANALYSIS
     ]
-    + [CUSTOM_ANALYSIS_KEY]
 ):
-    if dataset is None:
-        st.info("Import data first.")
-        st.stop()
-
     st.info(
         f"Create a supported analysis first on the 'Analysis' page. Currently supported: {LLM_ENABLED_ANALYSIS}"
     )
@@ -73,62 +66,49 @@ selected_analysis_key = st.selectbox(
     key=StateKeys.SELECTED_ANALYSIS,
 )
 
-if selected_analysis_key == CUSTOM_ANALYSIS_KEY:
-    st.warning("Custom analysis selected. This is a placeholder for custom analysis.")
 
-    # TODO replace all this with custom import fields
-    fake_plot_parameters = {
-        "group1": "Group 1",
-        "group2": "Group 2",
-        "column": "Column",
-    }
-    fake_regulated_features_dict = {"blah": "up", "blub": "down"}
-    fake_subgroups = {"G1": "G1"}
-
-    volcano_plot = None
-    plot_parameters = fake_plot_parameters
-
-    regulated_features_dict = fake_regulated_features_dict
-    subgroups = fake_subgroups
-
-    *_, feature_to_repr_map = DataSet.create_id_dicts(
-        list(fake_regulated_features_dict.keys()),
-        list(fake_regulated_features_dict.keys()),
-    )  # TODO where to get this from?
-
-else:
-    if (
-        selected_analysis := st.session_state[StateKeys.SAVED_ANALYSES].get(
-            selected_analysis_key, None
-        )
-    ) is None:
-        st.stop()
-
-    volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
-    plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
-
-    subgroups = get_subgroups_for_each_group(dataset.metadata)
-
-    regulated_features_df = volcano_plot.annotated_dataframe[
-        volcano_plot.annotated_dataframe["significant"] != "non_sig"
-    ]
-    regulated_features_dict = dict(
-        zip(
-            regulated_features_df[Cols.INDEX],
-            regulated_features_df["significant"].tolist(),
-        )
-    )
-
-    feature_to_repr_map = dataset.feature_to_repr_map
-
-    st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
-
+# TODO: this is what we need for the custom analysis:
+# fake_plot_parameters = {
+#     "group1": "Group 1",
+#     "group2": "Group 2",
+#     "column": "Column",
+# }
+# fake_regulated_features_dict = {"blah": "up", "blub": "down"}
+# fake_subgroups = {"G1": "G1"}
+# *_, feature_to_repr_map = TODO create for all ids, not just the regulated ones
 # TODO this is here just temporarily to test the custom analysis
-with st.expander("Analysis parameters", expanded=dataset is not None):
-    st.markdown(f"```{plot_parameters=}```")
-    st.markdown(f"```{regulated_features_dict=}```")
-    st.markdown(f"```{subgroups=}```")
-    st.markdown(f"```{feature_to_repr_map=}```")
+# with st.expander("Analysis parameters", expanded=dataset is not None):
+#     st.markdown(f"```{plot_parameters=}```")
+#     st.markdown(f"```{regulated_features_dict=}```")
+#     st.markdown(f"```{subgroups=}```")
+#     st.markdown(f"```{feature_to_repr_map=}```")
+
+if (
+    selected_analysis := st.session_state[StateKeys.SAVED_ANALYSES].get(
+        selected_analysis_key, None
+    )
+) is None:
+    st.stop()
+
+volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
+plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
+
+subgroups = get_subgroups_for_each_group(dataset.metadata)
+
+regulated_features_df = volcano_plot.annotated_dataframe[
+    volcano_plot.annotated_dataframe["significant"] != "non_sig"
+]
+regulated_features_dict = dict(
+    zip(
+        regulated_features_df[Cols.INDEX],
+        regulated_features_df["significant"].tolist(),
+    )
+)
+
+feature_to_repr_map = dataset.feature_to_repr_map
+
+st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
+
 
 if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
     st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
