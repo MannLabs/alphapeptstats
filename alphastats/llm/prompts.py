@@ -118,7 +118,7 @@ LLMInstructions = {
         f"- Identify relationships between differentially expressed proteins by using your broad biological knowledge including the information from UniProt{newline}"
         f"- Look for protein complexes and pathways operating together{newline}"
         f"2. Ontology Analysis:{newline}"
-        f"- Interpret the information from the enrichment analysis (run an analysis with gprofiler and background included in case no result is provided){newline}"
+        f"- Interpret the information from the enrichment analysis if provided, use your background knowledge on the regulated proteins otherwise.{newline}"
         f"- Examine which cellular processes are most affected based on protein changes{newline}"
         f"- Identify regulatory hubs and cross-talk between ontology terms{newline}"
         f"3. Critical Review:{newline}"

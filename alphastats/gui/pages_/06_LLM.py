@@ -287,7 +287,9 @@ if not is_llm_integration_initialized:
         )
 
         with st.spinner("Processing initial prompt..."):
-            llm_integration.chat_completion(initial_prompt, pin_message=True)
+            llm_integration.chat_completion(
+                initial_prompt, pin_message=True, pass_tools=False
+            )
 
         st.rerun(scope="app")
     except AuthenticationError:
