@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from streamlit.testing.v1 import AppTest
 
@@ -10,7 +10,7 @@ TESTED_PAGE = f"{APP_FOLDER}/pages_/03_Data Overview.py"
 
 
 @patch("streamlit.page_link")  # to avoid errors with the relative paths
-def test_page_03_loads_without_input():
+def test_page_03_loads_without_input(mock_page_link: MagicMock):
     """Test if the page loads without any input and inititalizes the session state with the correct values."""
     at = AppTest(TESTED_PAGE, default_timeout=200)
     at.run()
