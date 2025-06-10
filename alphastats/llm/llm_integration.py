@@ -244,14 +244,6 @@ class LLMIntegration:
         if system_message is not None:
             self._append_message("system", system_message, pin_message=True)
 
-    def __getstate__(self):
-        """Return the state to pickle, without the client wrapper."""
-        dict_to_pickle = dict(self.__dict__)
-        for k, v in self.__dict__.items():
-            if LLMClientWrapper.__name__ in str(type(v)):
-                del dict_to_pickle[k]
-        return dict_to_pickle
-
     def _get_tools(self) -> List[Dict[str, Any]]:
         """
         Get the list of available tools or functions.
