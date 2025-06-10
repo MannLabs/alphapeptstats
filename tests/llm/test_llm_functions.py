@@ -6,7 +6,7 @@
 
 import inspect
 from typing import Callable, Dict
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -177,34 +177,13 @@ def SyntheticDataSet():
         metadata_path_or_df=metadata_path,
         sample_column="sample",
     )
-    obj.id_holder.feature_to_repr_map = {
-        "id1;id4": "gene2;gene4",
-        "id2": "gene2",
-        "id3": "gene1",
-        "id5;id1": "ids:id5",
-    }
-    obj.id_holder.gene_to_features_map = {
-        "gene1": ["id3"],
-        "gene2": ["id1;id4", "id2"],
-        "gene4": ["id1;id4"],
-    }
-    obj.id_holder.protein_to_features_map = {
-        "id1": ["id1;id4", "id5;id1"],
-        "id2": ["id2"],
-        "id3": ["id3"],
-        "id4": ["id1;id4"],
-        "id5": ["id5;id1"],
-    }
+    obj.id_holder = MagicMock()
     return obj
 
 
 testdata_test_get_uniprot_info_for_search_string = [
-    ({}, "gene2;gene4", ["id1;id4"], "gene2;gene4: "),  # repr
-    ({"id2": {}}, "gene2", ["id2"], "gene2: "),  # repr over gene key
-    ({}, "id1;id4", ["id1;id4"], "id1;id4: "),  # feature id
-    ({}, "gene4", ["id1;id4"], "gene4: "),  # by gene
-    ({}, "id1", ["id1;id4", "id5;id1"], "id1: "),  # by protein
-    ({}, "id6", ["id6"], "id6: "),  # not in dataset
+    ({}, "gene1", ["id1;id2"], "gene1: "),
+    ({"id2": {}}, "gene2", ["id2"], "gene2: "),
 ]
 
 
@@ -228,7 +207,10 @@ def test_get_uniprot_info_for_search_string(
 ):
     """Test that the function retrieves the correct UniProt information for the LLM input."""
 
-    mock_session_state[StateKeys.DATASET] = SyntheticDataSet()
+    dataset = SyntheticDataSet()
+    dataset.id_holder.get_feature_ids_from_search_string.return_value = call_arg
+    mock_session_state[StateKeys.DATASET] = dataset
+
     mock_session_state[StateKeys.ANNOTATION_STORE] = store_init.copy()
     mock_session_state[StateKeys.SELECTED_UNIPROT_FIELDS] = []
     mock_get_annotation_from_uniprot.return_value = ({}, call_arg[0])
@@ -237,7 +219,9 @@ def test_get_uniprot_info_for_search_string(
         get_annotation_from_store_by_feature_list
     )
 
+    # when
     result = get_uniprot_info_for_search_string(llm_input)
+
     assert mock_get_annotation_from_store.call_args[0][0] == call_arg
 
     # if the feature is not in the store, the function should call get_annotation_from_uniprot_by_feature_list
@@ -249,3 +233,4 @@ def test_get_uniprot_info_for_search_string(
     # it should always be in the store afterwards
     assert call_arg[0] in mock_session_state[StateKeys.ANNOTATION_STORE]
     assert result == expected_result
+    dataset.id_holder.get_feature_ids_from_search_string.assert_called_with(llm_input)

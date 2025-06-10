@@ -6,7 +6,7 @@ import scipy
 
 from alphastats.dataset.factory import DataSetFactory
 from alphastats.dataset.harmonizer import DataHarmonizer
-from alphastats.dataset.idholder import IdHolder
+from alphastats.dataset.id_holder import IdHolder
 from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import Plot
 from alphastats.dataset.preprocessing import Preprocess
