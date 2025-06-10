@@ -99,6 +99,10 @@ class Model:
         return list(Model.MODELS.keys())
 
 
+# we do not want to pass our internal keys to the LLM
+DO_NOT_PASS_PREFIX = "___"
+
+
 class MessageKeys(metaclass=ConstantsClass):
     """Keys for the message dictionary."""
 
@@ -108,10 +112,10 @@ class MessageKeys(metaclass=ConstantsClass):
     TOOL_CALL_ID = "tool_call_id"
     RESULT = "result"
     ARTIFACT_ID = "artifact_id"
-    IN_CONTEXT = "in_context"
+    IN_CONTEXT = f"{DO_NOT_PASS_PREFIX}in_context"
     ARTIFACTS = "artifacts"
-    PINNED = "pinned"
-    TIMESTAMP = "timestamp"
+    PINNED = f"{DO_NOT_PASS_PREFIX}pinned"
+    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"
     IMAGE_URL = "image_url"
 
 
@@ -162,17 +166,30 @@ class LLMClientWrapper:
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
     ) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
-        last_message = messages[-1]
+
+        messages_ = self._strip_off_internal_keys(messages)
+
+        last_message = messages_[-1]
         logger.info(f"Calling 'chat.completions.create' {last_message} ..")
 
         response = completion(
             model=self.model_name,
-            messages=messages,
+            messages=messages_,
             tools=tools,
             api_key=self.api_key if self.api_key else None,
             api_base=self.base_url if self.base_url else None,
         )
         return response
+
+    @staticmethod
+    def _strip_off_internal_keys(
+        messages: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Strip off internal keys from the messages."""
+        return [
+            {k: v for k, v in message.items() if not k.startswith(DO_NOT_PASS_PREFIX)}
+            for message in messages
+        ]
 
 
 class LLMIntegration:
@@ -485,6 +502,7 @@ class LLMIntegration:
         """
         # TODO avoid infinite loops
         new_artifacts = {}
+        pending_image_analysis_user_messages: List[List[Dict[str, Any]]] = []
 
         tool_call_message = get_tool_call_message(tool_calls)
         self._append_message(Roles.ASSISTANT, tool_call_message, tool_calls=tool_calls)
@@ -508,26 +526,33 @@ class LLMIntegration:
                 self.client_wrapper.is_multimodal,
             )
 
-            message = json.dumps(
+            message_content_for_tool_response = json.dumps(
                 {
                     MessageKeys.RESULT: result_representation,
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
 
-            self._append_message(Roles.TOOL, message, tool_call_id=tool_call.id)
+            self._append_message(
+                Roles.TOOL, message_content_for_tool_response, tool_call_id=tool_call.id
+            )
 
             if isinstance(function_result, PlotlyObject) and (
-                image_analysis_message := self._get_image_analysis_message(
+                image_analysis_content_parts := self._get_image_analysis_message(
                     function_result
                 )
             ):
-                self._append_message(
-                    Roles.USER,
-                    image_analysis_message,
-                    pin_message=False,
-                    keep_list=True,
+                pending_image_analysis_user_messages.append(
+                    image_analysis_content_parts
                 )
+
+        for user_message_content_parts in pending_image_analysis_user_messages:
+            self._append_message(
+                Roles.USER,
+                user_message_content_parts,
+                pin_message=False,
+                keep_list=True,
+            )
 
         post_artifact_message_idx = len(self._all_messages)
         self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
