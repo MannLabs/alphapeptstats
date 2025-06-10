@@ -57,14 +57,18 @@ class Model:
         "ollama/llama3.1:8b": {
             ModelProperties.SUPPORTS_BASE_URL: True,
         },
-        "ollama/llama-3.3-70b-instruct": {
+        "GWDG/llama-3.3-70b-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
         },
-        "ollama/mistral-large-instruct": {
+        "GWDG/mistral-large-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
         },
-        "ollama/Qwen/qwen2.5-72b-instruct": {
+        "GWDG/qwen2.5-72b-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
         },
     }
 
@@ -72,13 +76,13 @@ class Model:
         """Initialize the Models class."""
         if model_name not in self.MODELS:
             raise ValueError(
-                f"Invalid model name: {model_name}. Available models: {list(self.MODELS.keys())}"
+                f"Invalid model name: {model_name}. Available models: {self.get_available_models()}"
             )
 
         self._model_properties = self.MODELS[model_name]
 
     def requires_api_key(self) -> bool:
-        """Check if the model supports API key authentication."""
+        """Check if the model requires API key authentication."""
         return self._model_properties.get(self.ModelProperties.REQUIRES_API_KEY, False)
 
     def supports_base_url(self) -> bool:
@@ -145,8 +149,11 @@ class LLMClientWrapper:
             The API key for authentication, by default None
         """
 
-        self.model_name = model_name
         model = Model(model_name)
+        if model_name.startswith("GWDG"):
+            # The GWDG supplies an openai like API
+            model_name = model_name.replace("GWDG/", "openai/")
+        self.model_name = model_name
 
         if model.requires_api_key() and not api_key:
             raise ValueError("API key is required for this model.")
@@ -520,6 +527,7 @@ class LLMIntegration:
         """
         # TODO avoid infinite loops
         new_artifacts = {}
+        pending_image_analysis_user_messages: List[List[Dict[str, Any]]] = []
 
         tool_call_message = get_tool_call_message(tool_calls)
         self._append_message(Roles.ASSISTANT, tool_call_message, tool_calls=tool_calls)
@@ -543,28 +551,36 @@ class LLMIntegration:
                 self.client_wrapper.is_multimodal,
             )
 
-            message = json.dumps(
+            message_content_for_tool_response = json.dumps(
                 {
                     MessageKeys.RESULT: result_representation,
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
 
-            self._append_message(Roles.TOOL, message, tool_call_id=tool_call.id)
+            self._append_message(
+                Roles.TOOL, message_content_for_tool_response, tool_call_id=tool_call.id
+            )
 
             if isinstance(function_result, PlotlyObject) and (
-                image_analysis_message := self._get_image_analysis_message(
+                image_analysis_content_parts := self._get_image_analysis_message(
                     function_result
                 )
             ):
-                self._append_message(
-                    Roles.USER,
-                    image_analysis_message,
-                    pin_message=False,
-                    keep_list=True,
+                pending_image_analysis_user_messages.append(
+                    image_analysis_content_parts
                 )
 
+        for user_message_content_parts in pending_image_analysis_user_messages:
+            self._append_message(
+                Roles.USER,
+                user_message_content_parts,
+                pin_message=False,
+                keep_list=True,
+            )
+
         post_artifact_message_idx = len(self._messages)
+
         self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
 
         response = self.client_wrapper.chat_completion_create(

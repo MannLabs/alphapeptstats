@@ -165,6 +165,7 @@ class SessionManager:
         """Amend the loaded LLM chats with clients (using current model name, api key and base url).
 
         TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
+        TODO: check if this is still needed, as we use llmlite now
         """
         chats = session_state.get(StateKeys.LLM_CHATS, {}).values()
         if not any(chat.get(LLMKeys.LLM_INTEGRATION) for chat in chats):
