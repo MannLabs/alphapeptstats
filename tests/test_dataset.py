@@ -1078,7 +1078,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
         """Test id maps"""
 
         self.assertDictEqual(
-            self.obj.gene_to_features_map,
+            self.obj.id_holder.gene_to_features_map,
             {
                 "G1": ["P1"],
                 "G2": ["P2"],
@@ -1104,7 +1104,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             },
         )
         self.assertDictEqual(
-            self.obj.protein_to_features_map,
+            self.obj.id_holder.protein_to_features_map,
             {
                 "P1": ["P1"],
                 "P2": ["P2"],
@@ -1133,7 +1133,7 @@ class TestSyntheticDataSet(BaseTestDataSet.BaseTest):
             },
         )
         self.assertDictEqual(
-            self.obj.feature_to_repr_map,
+            self.obj.id_holder.feature_to_repr_map,
             {
                 "P1": "G1",
                 "P2": "G2",
@@ -1172,21 +1172,21 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
             metadata_path_or_df="testfiles/synthetic/preprocessing_pentests_metadata.csv",
             sample_column="sample",
         )
-        self.obj.feature_to_repr_map = {
+        self.obj.id_holder.feature_to_repr_map = {
             "P1": "G1",
             "P2": "ids:P2",
             "P3": "G3",
             "P5;P6": "G5;G6",
             "P6;P7": "G6;G7",
         }
-        self.obj.gene_to_features_map = {
+        self.obj.id_holder.gene_to_features_map = {
             "G1": ["P1"],
             "G3": ["P3"],
             "G5": ["P5;P6"],
             "G6": ["P5;P6", "P6;P7"],
             "G7": ["P6;P7"],
         }
-        self.obj.protein_to_features_map = {
+        self.obj.id_holder.protein_to_features_map = {
             "P1": ["P1"],
             "P2": ["P2"],
             "P3": ["P3"],
@@ -1196,28 +1196,28 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
         }
 
     def test_feature_in_feature_to_repr_map(self):
-        result = self.obj._get_feature_ids_from_search_string("P5;P6")
+        result = self.obj.id_holder.get_feature_ids_from_search_string("P5;P6")
         self.assertEqual(result, ["P5;P6"])
 
     def test_feature_in_gene_to_features_map(self):
-        result = self.obj._get_feature_ids_from_search_string("G5")
+        result = self.obj.id_holder.get_feature_ids_from_search_string("G5")
         self.assertEqual(result, ["P5;P6"])
 
     def test_feature_in_protein_to_features_map(self):
-        result = self.obj._get_feature_ids_from_search_string("P5")
+        result = self.obj.id_holder.get_feature_ids_from_search_string("P5")
         self.assertEqual(result, ["P5;P6"])
 
     def test_gene_with_additional_feature(self):
-        result = self.obj._get_feature_ids_from_search_string("G6")
+        result = self.obj.id_holder.get_feature_ids_from_search_string("G6")
         self.assertEqual(result, ["P5;P6", "P6;P7"])
 
     def test_representation_matching_feature(self):
-        result = self.obj._get_feature_ids_from_search_string("ids:P2")
+        result = self.obj.id_holder.get_feature_ids_from_search_string("ids:P2")
         self.assertEqual(result, ["P2"])
 
     def test_feature_not_found(self):
         with self.assertRaises(ValueError) as context:
-            self.obj._get_feature_ids_from_search_string("NonExistentFeature")
+            self.obj.id_holder.get_feature_ids_from_search_string("NonExistentFeature")
         self.assertEqual(
             str(context.exception),
             "Feature NonExistentFeature is not in the (processed) data.",
@@ -1225,13 +1225,13 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
 
     def test_multiple_features_all_valid(self):
         features = ["P1", "G3", "ids:P2"]
-        result = self.obj._get_multiple_feature_ids_from_strings(features)
+        result = self.obj.id_holder.get_multiple_feature_ids_from_strings(features)
         self.assertEqual(result, ["P1", "P3", "P2"])
 
     def test_multiple_features_some_invalid(self):
         features = ["P1", "NonExistentFeature", "G5"]
         with self.assertWarns(UserWarning) as warning:
-            result = self.obj._get_multiple_feature_ids_from_strings(features)
+            result = self.obj.id_holder.get_multiple_feature_ids_from_strings(features)
             self.assertEqual(result, ["P1", "P5;P6"])
             self.assertIn(
                 "Could not find the following features: NonExistentFeature",
@@ -1244,7 +1244,7 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
             self.assertWarns(UserWarning) as warning,
             self.assertRaises(ValueError) as context,
         ):
-            self.obj._get_multiple_feature_ids_from_strings(features)
+            self.obj.id_holder.get_multiple_feature_ids_from_strings(features)
             self.assertIn(
                 "Could not find the following features: Invalid1, Invalid2",
                 str(warning.warnings[0]),
@@ -1253,13 +1253,13 @@ class TestGetFeatureIdsFromString(unittest.TestCase):
 
     def test_multiple_features_with_duplicates(self):
         features = ["P1", "G5", "P1", "G5"]
-        result = self.obj._get_multiple_feature_ids_from_strings(features)
+        result = self.obj.id_holder.get_multiple_feature_ids_from_strings(features)
         self.assertEqual(result, ["P1", "P5;P6", "P1", "P5;P6"])
 
     def test_multiple_features_empty_list(self):
         features = []
         with self.assertRaises(ValueError) as context:
-            self.obj._get_multiple_feature_ids_from_strings(features)
+            self.obj.id_holder.get_multiple_feature_ids_from_strings(features)
             self.assertEqual(str(context.exception), "No valid features provided.")
 
 

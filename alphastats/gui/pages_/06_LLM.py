@@ -41,7 +41,7 @@ st.markdown("## LLM Interpretation")
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
-feature_to_repr_map = st.session_state[StateKeys.DATASET].feature_to_repr_map
+feature_to_repr_map = st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map
 
 
 ##################################### Select Analysis #####################################
@@ -184,7 +184,7 @@ is_llm_integration_initialized = (
 
 display_uniprot(
     regulated_features_dict,
-    st.session_state[StateKeys.DATASET].feature_to_repr_map,
+    st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map,
     model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
     selected_analysis_key=selected_analysis_key,
     disabled=is_llm_integration_initialized,

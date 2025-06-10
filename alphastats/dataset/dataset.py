@@ -1,5 +1,3 @@
-import warnings
-from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
@@ -8,6 +6,7 @@ import scipy
 
 from alphastats.dataset.factory import DataSetFactory
 from alphastats.dataset.harmonizer import DataHarmonizer
+from alphastats.dataset.idholder import IdHolder
 from alphastats.dataset.keys import Cols
 from alphastats.dataset.plotting import Plot
 from alphastats.dataset.preprocessing import Preprocess
@@ -106,13 +105,17 @@ class DataSet:
         self.metadata: pd.DataFrame = metadata
         self.preprocessing_info: Dict = preprocessing_info
 
-        (
-            self.gene_to_features_map,
-            self.protein_to_features_map,
-            self.feature_to_repr_map,
-        ) = self._create_id_dicts()
+        self.id_holder = self._init_id_holder()
 
         print("DataSet has been created.")
+
+    def _init_id_holder(self):
+        """Initialize the IdHolder with the current state of the DataSet."""
+        return IdHolder(
+            features_list=self.mat.columns.to_list(),
+            proteins_list=self.rawinput[Cols.INDEX],
+            gene_names_list=self.rawinput.get(Cols.GENE_NAMES, None),
+        )
 
     def _get_init_dataset(
         self,
@@ -154,69 +157,6 @@ class DataSet:
                 "Invalid index_column: consider reloading your data with: AlphaPeptLoader, MaxQuantLoader, DIANNLoader, FragPipeLoader, SpectronautLoader"
             )
 
-    def _create_id_dicts(self) -> Tuple[dict, dict, dict]:
-        """Wrapper around create_id_dicts."""
-        return self.create_id_dicts(
-            features_list=self.mat.columns.to_list(),
-            proteins_list=self.rawinput[Cols.INDEX],
-            gene_names_list=self.rawinput.get(Cols.GENE_NAMES, None),
-        )
-
-    @staticmethod
-    def create_id_dicts(
-        features_list: list[str],
-        proteins_list: list[str],
-        gene_names_list: Optional[list[str]] = None,
-        sep: str = ";",
-    ) -> Tuple[dict, dict, dict]:
-        """Create mappings from gene and protein to feature, and from feature to representation.
-
-        Features are the entities measured in each sample, usually protein groups represented by semicolon separated protein ids.
-        This is to maintain the many-to-many relationships between the three entities feature, protein and gene.
-
-        This method processes the raw input data to generate three dictionaries:
-        1. gene_to_features_map: Maps each gene to a list of features.
-        2. protein_to_features_map: Maps each protein to a list of features.
-        3. feature_to_repr_map: Maps each feature to its representation string.
-
-        Args:
-            features_list: list[str]: A list of features (usually protein groups).
-            proteins_list: list[str]: A list of protein identifiers corresponding to the features.
-            gene_names_list (Optional[list[str]]): A list of gene names corresponding to the features. Default is None.
-
-            sep (str): The separator used to split gene and protein identifiers. Default is ";".
-
-        Returns:
-            Tuple[dict, dict, dict]: A tuple containing three dictionaries:
-            - gene_to_features_map (dict): A dictionary mapping genes to features.
-            - protein_to_features_map (dict): A dictionary mapping proteins to features.
-            - feature_to_repr_map (dict): A dictionary mapping features to their representation strings.
-        """
-
-        features = set(features_list)
-        gene_to_features_map = defaultdict(list)
-        protein_to_features_map = defaultdict(list)
-        feature_to_repr_map = {}
-
-        for proteins, feature in zip(proteins_list, proteins_list):
-            if feature not in features:
-                continue
-            # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
-            feature_to_repr_map[feature] = "ids:" + proteins
-            for protein in proteins.split(sep):
-                protein_to_features_map[protein].append(feature)
-
-        if gene_names_list is not None:
-            for genes, feature in zip(gene_names_list, proteins_list):
-                if feature not in features:
-                    continue
-                if isinstance(genes, str):
-                    for gene in genes.split(sep):
-                        gene_to_features_map[gene].append(feature)
-                    feature_to_repr_map[feature] = genes
-
-        return gene_to_features_map, protein_to_features_map, feature_to_repr_map
-
     def _get_preprocess(self) -> Preprocess:
         """Return instance of the Preprocess object."""
         return Preprocess(
@@ -255,11 +195,7 @@ class DataSet:
                 **kwargs,
             )
         )
-        (
-            self.gene_to_features_map,
-            self.protein_to_features_map,
-            self.feature_to_repr_map,
-        ) = self._create_id_dicts()
+        self.id_holder = self._init_id_holder()
 
     def reset_preprocessing(self):
         """Reset all preprocessing steps"""
@@ -269,11 +205,8 @@ class DataSet:
             self.metadata,
             self.preprocessing_info,
         ) = self._get_init_dataset()
-        (
-            self.gene_to_features_map,
-            self.protein_to_features_map,
-            self.feature_to_repr_map,
-        ) = self._create_id_dicts()
+
+        self.id_holder = self._init_id_holder()
 
     def batch_correction(self, batch: str) -> None:
         """A wrapper for Preprocess.batch_correction(), see documentation there."""
@@ -487,7 +420,7 @@ class DataSet:
             rawinput=self.rawinput,
             metadata=self.metadata,
             preprocessing_info=self.preprocessing_info,
-            feature_to_repr_map=self.feature_to_repr_map,
+            feature_to_repr_map=self.id_holder.feature_to_repr_map,
             group1=group1,
             group2=group2,
             column=column,
@@ -502,56 +435,6 @@ class DataSet:
         )
 
         return volcano_plot.plot
-
-    def _get_feature_ids_from_search_string(self, string: str) -> List[str]:
-        """Get the feature id from a string representing a feature.
-
-        Goes through id mapping dictionaries and finds the completest match.
-
-        Parameters
-        ----------
-        string : str
-            The string representating the feature."""
-
-        if string in self.feature_to_repr_map:
-            return [string]
-        representation_keys = [
-            feature
-            for feature, representation in self.feature_to_repr_map.items()
-            if representation == string
-        ]
-        if representation_keys:
-            return representation_keys
-        if string in self.protein_to_features_map:
-            return self.protein_to_features_map[string]
-        if string in self.gene_to_features_map:
-            return self.gene_to_features_map[string]
-        raise ValueError(f"Feature {string} is not in the (processed) data.")
-
-    def _get_multiple_feature_ids_from_strings(self, features: List) -> List:
-        """Get the feature ids from a list of strings representing features.
-
-        Parameters
-        ----------
-        features : list
-            A list of strings representing the features."""
-
-        unmapped_features = []
-        protein_ids = []
-        for feature in features:
-            try:
-                for protein_id in self._get_feature_ids_from_search_string(feature):
-                    protein_ids.append(protein_id)
-            except ValueError:
-                unmapped_features.append(feature)
-        if unmapped_features:
-            warnings.warn(
-                f"Could not find the following features: {', '.join(unmapped_features)}"
-            )
-        if not protein_ids:
-            raise ValueError("No valid features provided.")
-
-        return protein_ids
 
     def plot_intensity(
         self,
@@ -589,7 +472,7 @@ class DataSet:
             features = [substring.strip() for substring in feature.split(",")]
         else:
             features = [feature]
-        protein_id = self._get_multiple_feature_ids_from_strings(features)
+        protein_id = self.id_holder.get_multiple_feature_ids_from_strings(features)
 
         intensity_plot = IntensityPlot(
             mat=self.mat,
@@ -597,7 +480,7 @@ class DataSet:
             intensity_column=self._intensity_column,
             preprocessing_info=self.preprocessing_info,
             protein_id=protein_id,
-            feature_to_repr_map=self.feature_to_repr_map,
+            feature_to_repr_map=self.id_holder.feature_to_repr_map,
             group=group,
             subgroups=subgroups,
             method=method,

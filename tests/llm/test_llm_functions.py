@@ -177,18 +177,18 @@ def SyntheticDataSet():
         metadata_path_or_df=metadata_path,
         sample_column="sample",
     )
-    obj.feature_to_repr_map = {
+    obj.id_holder.feature_to_repr_map = {
         "id1;id4": "gene2;gene4",
         "id2": "gene2",
         "id3": "gene1",
         "id5;id1": "ids:id5",
     }
-    obj.gene_to_features_map = {
+    obj.id_holder.gene_to_features_map = {
         "gene1": ["id3"],
         "gene2": ["id1;id4", "id2"],
         "gene4": ["id1;id4"],
     }
-    obj.protein_to_features_map = {
+    obj.id_holder.protein_to_features_map = {
         "id1": ["id1;id4", "id5;id1"],
         "id2": ["id2"],
         "id3": ["id3"],

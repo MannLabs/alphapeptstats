@@ -367,5 +367,5 @@ def _get_background(background: list[str]) -> list[str]:
             ) from e
         background_identifiers = background
     else:
-        background_identifiers = dataset.feature_to_repr_map.values()
+        background_identifiers = dataset.id_holder.feature_to_repr_map.values()
     return _shorten_representations(background_identifiers)
