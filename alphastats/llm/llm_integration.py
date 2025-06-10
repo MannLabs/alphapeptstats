@@ -12,7 +12,7 @@ import plotly.io as pio
 import pytz
 import tiktoken
 from IPython.display import HTML, Markdown, display
-from openai import OpenAI
+from litellm import completion
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
@@ -38,32 +38,65 @@ from alphastats.plots.plot_utils import PlotlyObject
 logger = logging.getLogger(__name__)
 
 
-class Models(metaclass=ConstantsClass):
-    """Names of the available models.
+class Model:
+    class ModelProperties(metaclass=ConstantsClass):
+        """Properties of the models used in the LLM integration."""
 
-    Note that this will be directly passed to the OpenAI client.
-    """
+        REQUIRES_API_KEY = "requires_api_key"  # pragma: allowlist secret
+        SUPPORTS_BASE_URL = "supports_base_url"
+        MULTIMODAL = "multimodal"
 
-    GPT4O = "gpt-4o"
-    OLLAMA_31_70B = "llama3.1:70b"
-    OLLAMA_31_8B = "llama3.1:8b"  # for testing only
-    OLLAMA_33_70B_INSTRUCT = "llama-3.3-70b-instruct"
-    MISTRAL_LARGE_INSTRUCT = "mistral-large-instruct"
-    QWEN_25_72B_INSTRUCT = "qwen2.5-72b-instruct"
+    MODELS = {
+        "openai/gpt-4o": {
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
+        "anthropic/claude-sonnet-4-20250514": {
+            ModelProperties.REQUIRES_API_KEY: True,
+        },
+        "ollama/llama3.1:8b": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+        },
+        "GWDG/llama-3.3-70b-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+        },
+        "GWDG/mistral-large-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+        },
+        "GWDG/qwen2.5-72b-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
+    }
 
+    def __init__(self, model_name: str):
+        """Initialize the Models class."""
+        if model_name not in self.MODELS:
+            raise ValueError(
+                f"Invalid model name: {model_name}. Available models: {self.get_available_models()}"
+            )
 
-class ModelFlags(metaclass=ConstantsClass):
-    """Requirements for the different models."""
+        self._model_properties = self.MODELS[model_name]
 
-    REQUIRES_API_KEY = [Models.GPT4O]
-    REQUIRES_BASE_URL = [
-        Models.OLLAMA_31_70B,
-        Models.OLLAMA_31_8B,
-        Models.OLLAMA_33_70B_INSTRUCT,
-        Models.MISTRAL_LARGE_INSTRUCT,
-        Models.QWEN_25_72B_INSTRUCT,
-    ]
-    MULTIMODAL = [Models.GPT4O]
+    def requires_api_key(self) -> bool:
+        """Check if the model requires API key authentication."""
+        return self._model_properties.get(self.ModelProperties.REQUIRES_API_KEY, False)
+
+    def supports_base_url(self) -> bool:
+        """Check if the model supports a custom base URL."""
+        return self._model_properties.get(self.ModelProperties.SUPPORTS_BASE_URL, False)
+
+    def is_multimodal(self) -> bool:
+        """Check if the model supports multimodal inputs."""
+        return self._model_properties.get(self.ModelProperties.MULTIMODAL, False)
+
+    @staticmethod
+    def get_available_models() -> List[str]:
+        """Get a list of available model names."""
+        return list(Model.MODELS.keys())
 
 
 class MessageKeys(metaclass=ConstantsClass):
@@ -110,30 +143,36 @@ class LLMClientWrapper:
         api_key : str, optional
             The API key for authentication, by default None
         """
-        if model_name in ModelFlags.REQUIRES_BASE_URL:
-            url = f"{base_url}/v1"  # TODO: enable to configure this per model
-            self.client = OpenAI(
-                base_url=url, api_key="no_api_key" if api_key is None else api_key
-            )
-        elif model_name in ModelFlags.REQUIRES_API_KEY:
-            self.client = OpenAI(api_key=api_key)
-        else:
-            raise ValueError(
-                f"Invalid model name: {model_name}. Available models: {Models.get_values()}"
-            )
 
+        model = Model(model_name)
+        if model_name.startswith("GWDG"):
+            # The GWDG supplies an openai like API
+            model_name = model_name.replace("GWDG/", "openai/")
         self.model_name = model_name
+
+        if model.requires_api_key() and not api_key:
+            raise ValueError("API key is required for this model.")
+
+        self.api_key = api_key
+
+        self.base_url = base_url
+        self.is_multimodal = model.is_multimodal()
 
     def chat_completion_create(
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
     ) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
-        logger.info(f"Calling 'chat.completions.create' {messages[-1]} ..")
-        return self.client.chat.completions.create(
+        last_message = messages[-1]
+        logger.info(f"Calling 'chat.completions.create' {last_message} ..")
+
+        response = completion(
             model=self.model_name,
             messages=messages,
             tools=tools,
+            api_key=self.api_key if self.api_key else None,
+            api_base=self.base_url if self.base_url else None,
         )
+        return response
 
 
 class LLMIntegration:
@@ -285,7 +324,8 @@ class LLMIntegration:
         """
         total_tokens = 0
         try:
-            enc = tiktoken.encoding_for_model(model)
+            tiktoken_model_name = model.split("/")[-1]  # TODO this is a hack!
+            enc = tiktoken.encoding_for_model(tiktoken_model_name)
             for message in messages:
                 if message and MessageKeys.CONTENT in message:
                     content = message[MessageKeys.CONTENT]
@@ -327,7 +367,7 @@ class LLMIntegration:
                                 and part.get("type") == "image_url"
                             ):
                                 total_tokens += 250  # Placeholder
-        return total_tokens
+        return int(total_tokens)
 
     def _truncate_conversation_history(
         self, average_chars_per_token: float = 3.6
@@ -474,7 +514,7 @@ class LLMIntegration:
                 function_result,
                 function_name,
                 function_args,
-                self.client_wrapper.model_name in ModelFlags.MULTIMODAL,
+                self.client_wrapper.is_multimodal,
             )
 
             message_content_for_tool_response = json.dumps(
@@ -519,7 +559,7 @@ class LLMIntegration:
 
         image_analysis_message = []
 
-        if self.client_wrapper.model_name not in ModelFlags.MULTIMODAL:
+        if not self.client_wrapper.is_multimodal:
             return image_analysis_message
 
         try:

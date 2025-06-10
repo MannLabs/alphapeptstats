@@ -13,23 +13,21 @@ from openai.types.chat import (
 from openai.types.chat.chat_completion_message_tool_call import Function
 
 import alphastats.llm.llm_integration
-from alphastats.llm.llm_integration import (
-    LLMClientWrapper,
-    LLMIntegration,
-    ModelFlags,
-    Models,
-)
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration
 from alphastats.plots.plot_utils import PlotlyObject
+
+GPT_MODEL_NAME = "openai/gpt-4o"
+OLLAMA_MODEL_NAME = "ollama/llama3.1:8b"
 
 
 @pytest.fixture
-def mock_openai_client():
-    with patch("alphastats.llm.llm_integration.OpenAI") as mock_client:
+def mock_completion():
+    with patch("alphastats.llm.llm_integration.completion") as mock_client:
         yield mock_client
 
 
 @pytest.fixture
-def llm_integration(mock_openai_client) -> LLMIntegration:
+def llm_integration(mock_completion) -> LLMIntegration:
     """Fixture providing a basic LLM instance with test configuration"""
     dataset = Mock()
     dataset.plot_intensity = Mock(return_value="Plot created")
@@ -155,38 +153,6 @@ def mock_general_function_mapping():
     return {"test_general_function": mock_general_function}
 
 
-def test_initialization_gpt4(mock_openai_client):
-    """Test initialization with GPT-4 configuration"""
-    LLMClientWrapper(
-        model_name=Models.GPT4O,
-        api_key="test-key",  # pragma: allowlist secret
-    )
-
-    mock_openai_client.assert_called_once_with(
-        api_key="test-key"  # pragma: allowlist secret
-    )
-
-
-def test_initialization_ollama(mock_openai_client):
-    """Test initialization with Ollama configuration"""
-    LLMClientWrapper(
-        model_name=Models.OLLAMA_31_8B,
-        base_url="http://localhost:11434",
-        api_key="some_api_key",  # pragma: allowlist secret
-    )
-
-    mock_openai_client.assert_called_once_with(
-        base_url="http://localhost:11434/v1",
-        api_key="some_api_key",  # pragma: allowlist secret
-    )
-
-
-def test_initialization_invalid_model():
-    """Test initialization with invalid model type"""
-    with pytest.raises(ValueError, match="Invalid model name"):
-        LLMClientWrapper(model_name="invalid-model")
-
-
 @patch(f"{alphastats.llm.llm_integration.__name__}.datetime")
 def test_append_message(mock_datetime, llm_integration: LLMIntegration):
     """Test message appending functionality"""
@@ -296,7 +262,7 @@ def test_estimate_tokens_gpt():
     """Test token estimation for a given message"""
     message_content = "Test message"
     tokens = LLMIntegration.estimate_tokens(
-        [{"content": message_content}], model=Models.GPT4O
+        [{"content": message_content}], model=GPT_MODEL_NAME
     )
 
     assert tokens == 2
@@ -307,11 +273,11 @@ def test_estimate_tokens_ollama():
     message_content = "Test message"
     tokens = LLMIntegration.estimate_tokens(
         [{"content": message_content}],
-        model=Models.OLLAMA_31_8B,
-        average_chars_per_token=3.6,
+        model=OLLAMA_MODEL_NAME,
+        average_chars_per_token=3.9,
     )
 
-    assert tokens == 12 / 3.6
+    assert tokens == int(12 / 3.9)
 
 
 def test_estimate_tokens_default():
@@ -319,7 +285,7 @@ def test_estimate_tokens_default():
     message_content = "Test message"
     tokens = LLMIntegration.estimate_tokens([{"content": message_content}])
 
-    assert tokens == 12 / 3.6
+    assert tokens == int(12 / 3.6)
 
 
 def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_completion):
@@ -454,9 +420,14 @@ def test_execute_function_with_error(
         llm_integration._execute_function("failing_function", {"param1": "value1"})
 
 
-def test_execute_function_without_dataset(mock_openai_client):
+def test_execute_function_without_dataset(mock_completion):
     """Test function execution when dataset is not available"""
-    llm = LLMIntegration(LLMClientWrapper(model_name=Models.GPT4O, api_key="test-key"))
+    llm = LLMIntegration(
+        LLMClientWrapper(
+            model_name=GPT_MODEL_NAME,
+            api_key="test-key",  # pragma: allowlist secret
+        )
+    )
 
     with pytest.raises(
         ValueError,
@@ -467,14 +438,14 @@ def test_execute_function_without_dataset(mock_openai_client):
 
 @patch("alphastats.llm.llm_integration.LLMIntegration._execute_function")
 def test_handle_function_calls(
-    mock_execute_function, mock_openai_client, mock_chat_completion
+    mock_execute_function, mock_completion, mock_chat_completion
 ):
     """Test handling of function calls in the chat completion response."""
     mock_execute_function.return_value = "some_function_result"
 
     llm_integration = LLMIntegration(
         LLMClientWrapper(
-            model_name=Models.GPT4O,
+            model_name=GPT_MODEL_NAME,
             api_key="test-key",  # pragma: allowlist secret
         ),
         system_message="Test system message",
@@ -488,9 +459,7 @@ def test_handle_function_calls(
         )
     ]
 
-    mock_openai_client.return_value.chat.completions.create.return_value = (
-        mock_chat_completion
-    )
+    mock_completion.return_value = mock_chat_completion
 
     # when
     result = llm_integration._handle_function_calls(tool_calls)
@@ -529,8 +498,12 @@ def test_handle_function_calls(
             "timestamp": mock.ANY,
         },
     ]
-    mock_openai_client.return_value.chat.completions.create.assert_called_once_with(
-        model="gpt-4o", messages=expected_messages, tools=llm_integration._tools
+    mock_completion.assert_called_once_with(
+        model=GPT_MODEL_NAME,
+        messages=expected_messages,
+        tools=llm_integration._tools,
+        api_key="test-key",  # pragma: allowlist secret
+        api_base=None,
     )
 
     assert list(llm_integration._artifacts[3]) == ["some_function_result"]
@@ -543,7 +516,7 @@ def test_handle_function_calls(
 def test_handle_function_calls_with_images(
     mock_execute_function,
     mock_get_image_analysis_message,
-    mock_openai_client,
+    mock_completion,
     mock_chat_completion,
 ):
     """Test handling of function calls that return images in the chat completion response."""
@@ -551,7 +524,7 @@ def test_handle_function_calls_with_images(
 
     llm_integration = LLMIntegration(
         LLMClientWrapper(
-            model_name=Models.GPT4O,
+            model_name=GPT_MODEL_NAME,
             api_key="test-key",  # pragma: allowlist secret
         ),
         system_message="Test system message",
@@ -565,9 +538,7 @@ def test_handle_function_calls_with_images(
         )
     ]
 
-    mock_openai_client.return_value.chat.completions.create.return_value = (
-        mock_chat_completion
-    )
+    mock_completion.return_value = mock_chat_completion
     mock_get_image_analysis_message.return_value = [
         {"image_analysis_message": "something"}
     ]
@@ -580,16 +551,14 @@ def test_handle_function_calls_with_images(
         "pinned": False,
         "content": [{"image_analysis_message": "something"}],
         "timestamp": mock.ANY,
-    } in mock_openai_client.return_value.chat.completions.create.call_args_list[
-        0
-    ].kwargs["messages"]
+    } in mock_completion.call_args_list[0].kwargs["messages"]
 
 
 def test_get_image_analysis_message_returns_empty_prompt_if_model_not_multimodal():
     """Test that the _get_image_analysis_message method returns an empty prompt if the model is not multimodal."""
     llm_integration = LLMIntegration(
         LLMClientWrapper(
-            model_name=Models.OLLAMA_31_70B,
+            model_name=OLLAMA_MODEL_NAME,
             api_key="test-key",  # pragma: allowlist secret
         ),
         system_message="Test system message",
@@ -609,7 +578,7 @@ def test_get_image_analysis_message_returns_prompt_with_image_data_for_multimoda
 
     llm_integration = LLMIntegration(
         LLMClientWrapper(
-            model_name=ModelFlags.MULTIMODAL[0],
+            model_name=GPT_MODEL_NAME,
             api_key="test-key",  # pragma: allowlist secret
         ),
         system_message="Test system message",
@@ -643,7 +612,7 @@ def test_get_image_analysis_message_handles_plotly_conversion_failure_gracefully
     """Test that the _get_image_analysis_message method handles plotly conversion failure gracefully."""
     llm_integration = LLMIntegration(
         LLMClientWrapper(
-            model_name=ModelFlags.MULTIMODAL[0],
+            model_name=GPT_MODEL_NAME,
             api_key="test-key",  # pragma: allowlist secret
         ),
         system_message="Test system message",
