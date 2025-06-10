@@ -785,7 +785,8 @@ class LLMIntegration:
 
         try:
             response = self.client_wrapper.chat_completion_create(
-                messages=self._truncate(self._messages), tools=self._tools if pass_tools else None
+                messages=self._truncate(self._messages),
+                tools=self._tools if pass_tools else None,
             )
 
             content, tool_calls = self._parse_model_response(response)
