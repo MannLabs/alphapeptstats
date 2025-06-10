@@ -80,7 +80,7 @@ def get_uniprot_info_for_search_string(
     dataset: DataSet = st.session_state[StateKeys.DATASET]
 
     try:
-        features = dataset._get_feature_ids_from_search_string(search_string)
+        features = dataset.id_holder.get_feature_ids_from_search_string(search_string)
     except ValueError:
         features = [feature.strip() for feature in search_string.split(",")]
 
