@@ -899,7 +899,7 @@ def show_llm_chat(
                     st.write(artifact)
 
     st.markdown(
-        f"*total tokens used: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
+        f"*total tokens in context: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
     )
 
     if selected_analysis_session_state.get(LLMKeys.RECENT_CHAT_WARNINGS):
@@ -924,13 +924,6 @@ def show_llm_chat(
             )
 
         st.rerun(scope="fragment")
-
-    st.download_button(
-        "Download chat log",
-        llm_integration.get_chat_log_txt(),
-        f"chat_log_{model_name}.txt",
-        "text/plain",
-    )
 
     st.markdown(
         "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
