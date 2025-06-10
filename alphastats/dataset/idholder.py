@@ -45,9 +45,13 @@ class IdHolder:
         3. feature_to_repr_map: Maps each feature to its representation string.
 
         Args:
-            features_list: list[str]: A list of features (usually protein groups).
-            proteins_list: list[str]: A list of protein identifiers corresponding to the features.
+            features_list: list[str]: A list of features (usually protein groups),
+                e.g. ["id1;id4", "id2", "id5;id1"] (where "id" refers to "uniprod id") if features correspond to protein groups.
+                Could be peptides in the future.
+            proteins_list: list[str]: A list of protein identifiers corresponding to the features,
+                same content as `features_list` if features are protein groups.
             gene_names_list (Optional[list[str]]): A list of gene names corresponding to the features. Default is None.
+                E.g. ["gene1;gene2", "gene3", "gene4"].
 
             sep (str): The separator used to split gene and protein identifiers. Default is ";".
 
@@ -58,24 +62,19 @@ class IdHolder:
             - feature_to_repr_map (dict): A dictionary mapping features to their representation strings.
         """
 
-        features = set(features_list)
         gene_to_features_map = defaultdict(list)
         protein_to_features_map = defaultdict(list)
         feature_to_repr_map = {}
 
-        for proteins, feature in zip(proteins_list, proteins_list):
-            if feature not in features:
-                continue
+        for proteins, feature in zip(proteins_list, features_list):
             # TODO: Shorten list if too many ids e.g. to id1;...(19) if 20 ids are present
             feature_to_repr_map[feature] = "ids:" + proteins
             for protein in proteins.split(sep):
                 protein_to_features_map[protein].append(feature)
 
         if gene_names_list is not None:
-            for genes, feature in zip(gene_names_list, proteins_list):
-                if feature not in features:
-                    continue
-                if isinstance(genes, str):
+            for genes, feature in zip(gene_names_list, features_list):
+                if isinstance(genes, str) and genes.strip() != "":
                     for gene in genes.split(sep):
                         gene_to_features_map[gene].append(feature)
                     feature_to_repr_map[feature] = genes
