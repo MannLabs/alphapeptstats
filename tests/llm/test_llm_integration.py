@@ -52,20 +52,20 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
         {
             "role": "system",
             "content": "System message",
-            "pinned": True,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": True,
+            "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "user",
             "content": "User message 1",
-            "pinned": False,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": False,
+            "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "assistant",
             "content": "Assistant message 1",
-            "pinned": False,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": False,
+            "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "assistant",
@@ -73,26 +73,26 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
             "tool_calls": [
                 {"id": "123", "type": "function", "function": {"name": "test"}}
             ],
-            "pinned": False,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": False,
+            "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "tool",
             "content": "Tool response",
-            "pinned": False,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": False,
+            "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "user",
             "content": "User message 2",
-            "pinned": False,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": False,
+            "___timestamp": "2022-01-01T00:00:00",
         },
         {
             "role": "assistant",
             "content": "Assistant message 2",
-            "pinned": False,
-            "timestamp": "2022-01-01T00:00:00",
+            "___pinned": False,
+            "___timestamp": "2022-01-01T00:00:00",
         },
     ]
 
@@ -166,8 +166,8 @@ def test_append_message(mock_datetime, llm_integration: LLMIntegration):
     assert llm_integration._messages[-1] == {
         "role": "user",
         "content": "Test message",
-        "pinned": False,
-        "timestamp": "2022-01-01T00:00:00",
+        "___pinned": False,
+        "___timestamp": "2022-01-01T00:00:00",
     }
 
 
@@ -300,20 +300,20 @@ def test_chat_completion_success(llm_integration: LLMIntegration, mock_chat_comp
         {
             "content": "Test system message",
             "role": "system",
-            "pinned": True,
-            "timestamp": mock.ANY,
+            "___pinned": True,
+            "___timestamp": mock.ANY,
         },
         {
             "content": "Test prompt",
             "role": "user",
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "content": "Test response",
             "role": "assistant",
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
     ]
 
@@ -472,8 +472,8 @@ def test_handle_function_calls(
         {
             "role": "system",
             "content": "Test system message",
-            "pinned": True,
-            "timestamp": mock.ANY,
+            "___pinned": True,
+            "___timestamp": mock.ANY,
         },
         {
             "role": "assistant",
@@ -487,20 +487,23 @@ def test_handle_function_calls(
                     type="function",
                 )
             ],
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "role": "tool",
             "content": '{"result": "some_function_result", "artifact_id": "test_function_test-id"}',
             "tool_call_id": "test-id",
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
     ]
     mock_completion.assert_called_once_with(
         model=GPT_MODEL_NAME,
-        messages=expected_messages,
+        messages=[
+            {k: v for k, v in message.items() if not k.startswith("___")}
+            for message in expected_messages
+        ],
         tools=llm_integration._tools,
         api_key="test-key",  # pragma: allowlist secret
         api_base=None,
@@ -548,9 +551,7 @@ def test_handle_function_calls_with_images(
 
     assert {
         "role": "user",
-        "pinned": False,
         "content": [{"image_analysis_message": "something"}],
-        "timestamp": mock.ANY,
     } in mock_completion.call_args_list[0].kwargs["messages"]
 
 
@@ -637,33 +638,33 @@ def test_get_print_view_default(llm_with_conversation: LLMIntegration):
             "artifacts": [],
             "content": "User message 1",
             "role": "user",
-            "in_context": True,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": True,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 2"],
             "content": "Assistant message 1",
             "role": "assistant",
-            "in_context": True,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": True,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": [],
             "content": "User message 2",
             "role": "user",
-            "in_context": False,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": False,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 6"],
             "content": "Assistant message 2",
             "role": "assistant",
-            "in_context": False,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": False,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
     ]
 
@@ -678,57 +679,57 @@ def test_get_print_view_show_all(llm_with_conversation: LLMIntegration):
             "artifacts": [],
             "content": "System message",
             "role": "system",
-            "in_context": True,
-            "pinned": True,
-            "timestamp": mock.ANY,
+            "___in_context": True,
+            "___pinned": True,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": [],
             "content": "User message 1",
             "role": "user",
-            "in_context": True,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": True,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 2"],
             "content": "Assistant message 1",
             "role": "assistant",
-            "in_context": True,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": True,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": [],
             "content": "Assistant with tool calls",
             "role": "assistant",
-            "in_context": False,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": False,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": ["Tool artifact 1", "Tool artifact 2"],
             "content": "Tool response",
             "role": "tool",
-            "in_context": False,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": False,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": [],
             "content": "User message 2",
             "role": "user",
-            "in_context": False,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": False,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
         {
             "artifacts": ["Artifact for message 6"],
             "content": "Assistant message 2",
             "role": "assistant",
-            "in_context": False,
-            "pinned": False,
-            "timestamp": mock.ANY,
+            "___in_context": False,
+            "___pinned": False,
+            "___timestamp": mock.ANY,
         },
     ]
 
