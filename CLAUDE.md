@@ -44,7 +44,7 @@ streamlit run alphastats/gui/gui.py    # Alternative GUI launch
 - `mat`: Processed intensity matrix (samples × features)
 - `metadata`: Sample annotations and experimental design
 
-**Loader System**: Plugin-based architecture with `BaseLoader` abstract base class supporting:
+**Data Loader System**: Plugin-based architecture with `BaseLoader` abstract base class supporting:
 - MaxQuant (`maxquant_loader.py`)
 - DIANN (`diann_loader.py`)
 - FragPipe (`fragpipe_loader.py`)
@@ -67,11 +67,10 @@ streamlit run alphastats/gui/gui.py    # Alternative GUI launch
 - `03_Data Overview.py`: Data exploration and QC
 - `04_Preprocessing.py`: Data cleaning and normalization
 - `05_Analysis.py`: Statistical analysis interface
-- `06_LLM.py`: AI-powered data interpretation
 - `07_Results.py`: Results visualization and export
 
 **State Management**: Sophisticated session state handling via:
-- `StateKeys` class: Constants for session state keys
+- `StateKeys` class: Constants for accessing the streamlit session state
 - `session_manager.py`: Session persistence and restoration
 - Widget syncing between different components
 
@@ -80,14 +79,6 @@ streamlit run alphastats/gui/gui.py    # Alternative GUI launch
 - `preprocessing_helper.py`: Data cleaning operations
 - `import_helper.py`: Data loading assistance
 - `ui_helper.py`: Common UI components and styling
-
-### LLM Integration
-
-**Natural Language Interface**: AI-powered data analysis through:
-- Function calling to execute DataSet methods
-- Protein annotation via UniProt integration
-- Enrichment analysis and pathway interpretation
-- Support for multiple LLM providers (OpenAI, Ollama)
 
 ### Key Design Patterns
 
@@ -146,7 +137,7 @@ streamlit run alphastats/gui/gui.py    # Alternative GUI launch
 - Test both programmatic and GUI workflows
 
 ### Testing Requirements
-- Write unit tests for new functionality
-- Include integration tests with sample data
-- Test both API and GUI interfaces
+- Write unit tests for new functionality using pytest, parametrize for multiple cases
+- Only when asked: Include integration tests with sample data
+- Only when asked: Test both API and GUI interfaces
 - Ensure backward compatibility with existing datasets
