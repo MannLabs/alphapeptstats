@@ -6,7 +6,7 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, Regulation
 from alphastats.dataset.preprocessing import PreprocessingStateKeys
 from alphastats.dataset.statistics import Statistics
 from alphastats.dataset.utils import ignore_warning
@@ -256,13 +256,13 @@ class VolcanoPlot(PlotUtils):
 
         else:
             condition = [
-                (self.res["log2fc"] < 0) & (self.res["FDR"] == "sig"),
-                (self.res["log2fc"] > 0) & (self.res["FDR"] == "sig"),
+                (self.res["log2fc"] < 0) & (self.res["FDR"] == Regulation.SIG),
+                (self.res["log2fc"] > 0) & (self.res["FDR"] == Regulation.SIG),
             ]
 
         value = ["down", "up"]
 
-        self.res["color"] = np.select(condition, value, default="non_sig")
+        self.res["color"] = np.select(condition, value, default=Regulation.NON_SIG)
 
         if len(self.color_list) > 0:
             self.res["color"] = np.where(
@@ -277,7 +277,7 @@ class VolcanoPlot(PlotUtils):
         """
 
         self.res["label"] = np.where(
-            self.res.color != "non_sig",
+            self.res.color != Regulation.NON_SIG,
             [self.feature_to_repr_map[feature] for feature in self.res[Cols.INDEX]],
             "",
         )
@@ -331,7 +331,11 @@ class VolcanoPlot(PlotUtils):
     def _color_data_points(self):
         # update coloring
         if len(self.color_list) == 0:
-            color_dict = {"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"}
+            color_dict = {
+                Regulation.NON_SIG: "#404040",
+                Regulation.UP: "#B65EAF",
+                Regulation.DOWN: "#009599",
+            }
 
         else:
             color_dict = {"no_color": "#404040", "color": "#B65EAF"}

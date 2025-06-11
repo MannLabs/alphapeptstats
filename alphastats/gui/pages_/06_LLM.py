@@ -3,7 +3,7 @@ from typing import Dict
 import streamlit as st
 from openai import AuthenticationError
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
@@ -96,7 +96,7 @@ plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 subgroups = get_subgroups_for_each_group(dataset.metadata)
 
 regulated_features_df = volcano_plot.annotated_dataframe[
-    volcano_plot.annotated_dataframe[Cols.SIGNIFICANT] != "non_sig"
+    volcano_plot.annotated_dataframe[Cols.SIGNIFICANT] != Regulation.NON_SIG
 ]
 regulated_features_dict = dict(
     zip(

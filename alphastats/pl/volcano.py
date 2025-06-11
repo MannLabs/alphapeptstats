@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import plotly.express as px
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, Regulation
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DifferentialExpressionAnalysis,
@@ -153,7 +153,11 @@ def _plot_volcano(  # noqa: PLR0913
             if column not in [log2name, "-log10(q-value)", Cols.SIGNIFICANT]
         ],
         color=Cols.SIGNIFICANT,
-        color_discrete_map={"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"},
+        color_discrete_map={
+            Regulation.NON_SIG: "#404040",
+            Regulation.UP: "#B65EAF",
+            Regulation.DOWN: "#009599",
+        },
         template="simple_white",
         render_mode=renderer,
     )
@@ -291,8 +295,8 @@ def prepare_result_df(  # noqa: PLR0913
         result_df[Cols.SIGNIFICANT] = result_df[DeaColumns.SIGNIFICANTQ]
     result_df[Cols.SIGNIFICANT] = np.where(
         result_df[Cols.SIGNIFICANT],
-        (result_df[log2name] > 0).map({True: "up", False: "down"}),
-        "non_sig",
+        (result_df[log2name] > 0).map({True: Regulation.UP, False: Regulation.DOWN}),
+        Regulation.NON_SIG,
     )
 
     # transform q-values to -log10

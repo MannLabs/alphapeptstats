@@ -32,3 +32,12 @@ class Cols(metaclass=ConstantsClass):
 
     # volcano
     SIGNIFICANT = "significant"
+
+
+class Regulation(metaclass=ConstantsClass):
+    """String constants for up- and down-regulation."""
+
+    UP = "up"
+    DOWN = "down"
+    SIG = "sig"
+    NON_SIG = "non_sig"

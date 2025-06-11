@@ -8,7 +8,7 @@ import streamlit as st
 from plotly.graph_objects import Figure
 from stqdm import stqdm
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
     DifferentialExpressionTwoGroupsResult,
@@ -316,6 +316,6 @@ def get_regulated_features(analysis_object: ResultComponent) -> list:
             analysis_object.annotated_dataframe[Cols.INDEX],
             analysis_object.annotated_dataframe[Cols.SIGNIFICANT],
         )
-        if significance != "non_sig"
+        if significance != Regulation.NON_SIG
     ]
     return regulated_features
