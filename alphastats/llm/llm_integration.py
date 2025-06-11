@@ -759,8 +759,8 @@ class LLMIntegration:
         prompt: str,
         role: str = Roles.USER,
         *,
-        pin_message=False,
-        pass_tools=True,
+        pin_message: bool = False,
+        pass_tools: bool = True,
     ) -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
@@ -773,6 +773,8 @@ class LLMIntegration:
             The role of the message sender, by default "user"
         pin_message : bool, optional
             Whether the prompt and assistant reply should be pinned, by default False
+        pass_tools : bool, optional
+            Whether to pass the tools to the model, by default True
 
         Returns
         -------

@@ -72,7 +72,7 @@ def llm_config() -> None:
         st.session_state.get(StateKeys.MODEL_NAME, None)
         if st.session_state.get(StateKeys.MODEL_NAME, None)
         in Model.get_available_models()
-        else None
+        else None  # On loading a session with a model that is no longer available, we set it to None.
     )
     current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
 
