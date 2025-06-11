@@ -8,6 +8,7 @@ import streamlit as st
 from plotly.graph_objects import Figure
 from stqdm import stqdm
 
+from alphastats.dataset.id_holder import IdHolder
 from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
@@ -233,6 +234,7 @@ def _save_analysis_to_session_state(
     analysis_results: Union[PlotlyObject, pd.DataFrame, ResultComponent],
     method: str,
     parameters: Dict,
+    id_holder: Optional[IdHolder] = None,
 ):
     """Save analysis with method and parameters to session state to show on results page."""
     analysis_key = datetime.now()  # could depend on data and parameters one day
@@ -240,6 +242,7 @@ def _save_analysis_to_session_state(
         SavedAnalysisKeys.RESULT: deepcopy(analysis_results),
         SavedAnalysisKeys.METHOD: method,
         SavedAnalysisKeys.PARAMETERS: parameters,
+        SavedAnalysisKeys.ID_HOLDER: id_holder,
         # TODO number will be given twice if user removes analysis
         SavedAnalysisKeys.NUMBER: len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
     }

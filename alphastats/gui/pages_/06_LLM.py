@@ -3,7 +3,6 @@ from typing import Dict
 import streamlit as st
 from openai import AuthenticationError
 
-from alphastats.dataset.id_holder import IdHolder
 from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
@@ -40,7 +39,7 @@ sidebar_info()
 
 st.markdown("## LLM Interpretation")
 
-dataset = st.session_state.get(StateKeys.DATASET, None)
+has_dataset = (dataset := st.session_state.get(StateKeys.DATASET, None)) is not None
 
 ##################################### Select Analysis #####################################
 
@@ -68,22 +67,6 @@ selected_analysis_key = st.selectbox(
 )
 
 
-# TODO: this is what we need for the custom analysis:
-# fake_plot_parameters = {
-#     "group1": "Group 1",
-#     "group2": "Group 2",
-#     "column": "Column",
-# }
-# fake_regulated_features_dict = {"blah": "up", "blub": "down"}
-# fake_subgroups = {"G1": "G1"}
-# *_, feature_to_repr_map = TODO create for all ids, not just the regulated ones
-# TODO this is here just temporarily to test the custom analysis
-# with st.expander("Analysis parameters", expanded=dataset is not None):
-#     st.markdown(f"```{plot_parameters=}```")
-#     st.markdown(f"```{regulated_features_dict=}```")
-#     st.markdown(f"```{subgroups=}```")
-#     st.markdown(f"```{feature_to_repr_map=}```")
-
 if (
     selected_analysis := st.session_state[StateKeys.SAVED_ANALYSES].get(
         selected_analysis_key, None
@@ -94,7 +77,7 @@ if (
 result_component: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
 plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 
-subgroups = get_subgroups_for_each_group(dataset.metadata) if dataset else {}
+subgroups = get_subgroups_for_each_group(dataset.metadata) if has_dataset else {}
 
 regulated_features_df = result_component.annotated_dataframe[
     result_component.annotated_dataframe[Cols.SIGNIFICANT] != Regulation.NON_SIG
@@ -108,11 +91,8 @@ regulated_features_dict = dict(
 
 feature_to_repr_map = (
     dataset.feature_to_repr_map
-    if dataset
-    else IdHolder(
-        features_list=list(regulated_features_dict.keys()),
-        proteins_list=list(regulated_features_dict.keys()),
-    ).feature_to_repr_map
+    if has_dataset
+    else selected_analysis[SavedAnalysisKeys.ID_HOLDER].feature_to_repr_map
 )
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
@@ -130,7 +110,7 @@ c1, c2, c3 = st.columns((1, 1, 1))
 
 ##################################### Volcano plot #####################################
 
-if dataset:
+if has_dataset:
     with c3:
         st.markdown("##### Volcano plot")
         display_figure(result_component.plot)
