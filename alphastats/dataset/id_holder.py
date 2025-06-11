@@ -10,7 +10,7 @@ class IdHolder:
         self,
         features_list: list[str],
         proteins_list: list[str],
-        gene_names_list: Optional[list[str]],
+        gene_names_list: Optional[list[str]] = None,
         sep: str = ";",
     ):
         """Initialize the IdHolder.
@@ -21,6 +21,8 @@ class IdHolder:
             gene_names_list (Optional[list[str]]): A list of gene names corresponding to the features. Default is None.
             sep (str): The separator used to split gene and protein identifiers. Default is ";".
         """
+        gene_names_list = gene_names_list or []
+
         (
             self.gene_to_features_map,
             self.protein_to_features_map,

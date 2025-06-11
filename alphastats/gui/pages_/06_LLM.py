@@ -3,6 +3,7 @@ from typing import Dict
 import streamlit as st
 from openai import AuthenticationError
 
+from alphastats.dataset.id_holder import IdHolder
 from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
@@ -105,7 +106,14 @@ regulated_features_dict = dict(
     )
 )
 
-feature_to_repr_map = dataset.feature_to_repr_map
+feature_to_repr_map = (
+    dataset.feature_to_repr_map
+    if dataset
+    else IdHolder(
+        features_list=list(regulated_features_dict.keys()),
+        proteins_list=list(regulated_features_dict.keys()),
+    ).feature_to_repr_map
+)
 
 st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
 

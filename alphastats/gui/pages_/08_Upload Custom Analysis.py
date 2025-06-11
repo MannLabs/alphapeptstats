@@ -16,7 +16,7 @@ def parse_custom_analysis_file(uploaded_file) -> pd.DataFrame:
         df = pd.read_csv(uploaded_file, sep="\t")
 
         # Check if required columns exist
-        required_columns = ["Significant", "Difference"]
+        required_columns = ["Significant", "Difference", "Protein IDs"]
         missing_columns = [col for col in required_columns if col not in df.columns]
 
         if missing_columns:
@@ -26,21 +26,31 @@ def parse_custom_analysis_file(uploaded_file) -> pd.DataFrame:
         # Extract only the required columns
         parsed_df = df[required_columns].copy()
 
-        # Convert Significant column to boolean
+        # Rename Protein IDs to index_
+        parsed_df = parsed_df.rename(columns={"Protein IDs": "index_"})
+
+        # Convert Significant column based on significance and difference direction
         # Handle both string values and NaN values
-        parsed_df[Cols.SIGNIFICANT] = parsed_df["Significant"].fillna("").astype(str)
-        parsed_df[Cols.SIGNIFICANT] = (
-            parsed_df[Cols.SIGNIFICANT]
-            .map(
-                {
-                    "+": Regulation.SIG,
-                    "": Regulation.NON_SIG,
-                    " ": Regulation.NON_SIG,
-                    "nan": Regulation.NON_SIG,
-                }
-            )
-            .fillna(Regulation.NON_SIG)
-        )
+        significant_clean = parsed_df["Significant"].fillna("").astype(str)
+        is_significant = significant_clean.map(
+            {
+                "+": True,
+                "": False,
+                " ": False,
+                "nan": False,
+            }
+        ).fillna(False)
+
+        # Create UP/DOWN based on significance and difference direction
+        parsed_df[Cols.SIGNIFICANT] = "NON_SIG"  # Default value
+
+        # Set UP for significant entries with positive difference
+        up_mask = is_significant & (parsed_df["Difference"] > 0)
+        parsed_df.loc[up_mask, Cols.SIGNIFICANT] = Regulation.UP
+
+        # Set DOWN for significant entries with negative difference
+        down_mask = is_significant & (parsed_df["Difference"] < 0)
+        parsed_df.loc[down_mask, Cols.SIGNIFICANT] = Regulation.DOWN
 
         return parsed_df
 
@@ -66,13 +76,15 @@ def create_custom_result_component(parsed_df: pd.DataFrame) -> ResultComponent:
     return result_component
 
 
-def _finalize_custom_analysis_loading(result_component: ResultComponent) -> None:
+def _finalize_custom_analysis_loading(
+    result_component: ResultComponent, parameters: dict
+) -> None:
     """Finalize the custom analysis loading process."""
     # Save to session state using existing infrastructure
     _save_analysis_to_session_state(
         analysis_results=result_component,
         method="Custom Analysis Upload",
-        parameters={},
+        parameters=parameters,
     )
 
     st.toast("Custom analysis has been uploaded successfully!", icon="✅")
@@ -99,7 +111,7 @@ if saved_sessions:
 st.markdown("### Upload Custom Analysis File")
 st.write(
     "Upload a tab-separated file containing custom analysis results. "
-    "The file should contain 'Significant' and 'Difference' columns."
+    "The file should contain 'Significant', 'Difference', and 'Protein IDs' columns."
 )
 
 # File uploader
@@ -132,14 +144,40 @@ if uploaded_file is not None:
         #     )
         #     st.metric("Significant entries", significant_count)
 
+        st.markdown("##### Analysis Parameters")
+
+        # Input fields for group1, group2, and column
+        param_col1, param_col2, param_col3 = st.columns(3)
+        with param_col1:
+            group1 = st.text_input(
+                "Group 1", placeholder="e.g., Control", key="custom_group1"
+            )
+        with param_col2:
+            group2 = st.text_input(
+                "Group 2", placeholder="e.g., Treatment", key="custom_group2"
+            )
+        with param_col3:
+            column = st.text_input(
+                "Column", placeholder="e.g., condition", key="custom_column"
+            )
+
         st.markdown("##### Create Analysis Object")
 
         if st.button("Create Custom Analysis", type="primary"):
-            # Create ResultComponent
-            result_component = create_custom_result_component(parsed_df)
+            # Validate that all parameters are provided
+            if not group1 or not group2 or not column:
+                st.error(
+                    "Please fill in all three parameters: Group 1, Group 2, and Column"
+                )
+            else:
+                # Create parameters dictionary
+                parameters = {"group1": group1, "group2": group2, "column": column}
 
-            # Finalize loading
-            _finalize_custom_analysis_loading(result_component)
+                # Create ResultComponent
+                result_component = create_custom_result_component(parsed_df)
+
+                # Finalize loading with parameters
+                _finalize_custom_analysis_loading(result_component, parameters)
 
 else:
     st.info("Please upload a custom analysis file to continue.")
@@ -151,6 +189,7 @@ else:
     example_data = {
         "Significant": ["+", "", "+", ""],
         "Difference": [1.73, -0.83, 2.14, -0.28],
+        "Protein IDs": ["P12345;Q67890", "P23456", "P34567;Q78901;R90123", "P45678"],
     }
     example_df = pd.DataFrame(example_data)
     st.dataframe(example_df, use_container_width=True)
