@@ -93,7 +93,7 @@ if (
 result_component: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
 plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 
-subgroups = get_subgroups_for_each_group(dataset.metadata)
+subgroups = get_subgroups_for_each_group(dataset.metadata) if dataset else {}
 
 regulated_features_df = result_component.annotated_dataframe[
     result_component.annotated_dataframe[Cols.SIGNIFICANT] != Regulation.NON_SIG

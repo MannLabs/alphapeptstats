@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from dataset.keys import Cols, Regulation
 
 from alphastats.gui.utils.analysis_helper import _save_analysis_to_session_state
 from alphastats.gui.utils.result import ResultComponent
@@ -8,7 +9,7 @@ from alphastats.gui.utils.state_utils import init_session_state
 from alphastats.gui.utils.ui_helper import sidebar_info
 
 
-def parse_custom_analysis_file(uploaded_file) -> pd.DataFrame | None:
+def parse_custom_analysis_file(uploaded_file) -> pd.DataFrame:
     """Parse uploaded custom analysis file and extract relevant columns."""
     try:
         # Read the uploaded file as tab-separated values
@@ -27,11 +28,18 @@ def parse_custom_analysis_file(uploaded_file) -> pd.DataFrame | None:
 
         # Convert Significant column to boolean
         # Handle both string values and NaN values
-        parsed_df["Significant"] = parsed_df["Significant"].fillna("").astype(str)
-        parsed_df["Significant"] = (
-            parsed_df["Significant"]
-            .map({"+": True, "": False, " ": False, "nan": False})
-            .fillna(False)
+        parsed_df[Cols.SIGNIFICANT] = parsed_df["Significant"].fillna("").astype(str)
+        parsed_df[Cols.SIGNIFICANT] = (
+            parsed_df[Cols.SIGNIFICANT]
+            .map(
+                {
+                    "+": Regulation.SIG,
+                    "": Regulation.NON_SIG,
+                    " ": Regulation.NON_SIG,
+                    "nan": Regulation.NON_SIG,
+                }
+            )
+            .fillna(Regulation.NON_SIG)
         )
 
         return parsed_df
@@ -116,13 +124,13 @@ if uploaded_file is not None:
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Total entries", len(parsed_df))
-        with col2:
-            significant_count = (
-                parsed_df["Significant"].sum()
-                if "Significant" in parsed_df.columns
-                else 0
-            )
-            st.metric("Significant entries", significant_count)
+        # with col2:
+        #     significant_count = (
+        #         parsed_df[Cols.SIGNIFICANT].sum()
+        #         if Regulation.SIG in parsed_df.columns
+        #         else 0
+        #     )
+        #     st.metric("Significant entries", significant_count)
 
         st.markdown("##### Create Analysis Object")
 

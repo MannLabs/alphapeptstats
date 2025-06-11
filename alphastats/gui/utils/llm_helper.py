@@ -46,7 +46,9 @@ from alphastats.llm.uniprot_utils import (
 from alphastats.plots.plot_utils import PlotlyObject
 
 LLM_ENABLED_ANALYSIS = (
-    [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS] if has_llm_support() else []
+    [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS, "Custom Analysis Upload"]
+    if has_llm_support()
+    else []
 )
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

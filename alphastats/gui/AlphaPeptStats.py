@@ -15,6 +15,7 @@ if has_llm_support():
     pages.append("pages_/06_LLM.py")
 
 pages.append("pages_/07_Results.py")
+pages.append("pages_/08_Upload Custom Analysis.py")
 
 pages = [st.Page(page) for page in pages]
 
