@@ -29,3 +29,6 @@ class Cols(metaclass=ConstantsClass):
     INDEX = "index_"
     GENE_NAMES = "gene_names_"
     SAMPLE = "sample_"
+
+    # volcano
+    SIGNIFICANT = "significant"

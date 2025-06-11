@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 import plotly.express as px
 
+from alphastats.dataset.keys import Cols
 from alphastats.tl.differential_expression_analysis import (
     DeaColumns,
     DifferentialExpressionAnalysis,
@@ -149,9 +150,9 @@ def _plot_volcano(  # noqa: PLR0913
         hover_data=[
             column
             for column in df_plot.columns
-            if column not in [log2name, "-log10(q-value)", "significant"]
+            if column not in [log2name, "-log10(q-value)", Cols.SIGNIFICANT]
         ],
-        color="significant",
+        color=Cols.SIGNIFICANT,
         color_discrete_map={"non_sig": "#404040", "up": "#B65EAF", "down": "#009599"},
         template="simple_white",
         render_mode=renderer,
@@ -201,7 +202,7 @@ def _plot_volcano(  # noqa: PLR0913
         for x, y, significant, label in zip(
             df_plot[log2name],
             df_plot["-log10(q-value)"],
-            df_plot["significant"],
+            df_plot[Cols.SIGNIFICANT],
             df_plot["label"],
         ):
             max_chars = 10
@@ -283,13 +284,13 @@ def prepare_result_df(  # noqa: PLR0913
 
     # get significant column
     if log2fc_cutoff is not None:
-        result_df["significant"] = (
+        result_df[Cols.SIGNIFICANT] = (
             result_df[log2name].abs() >= log2fc_cutoff
         ) & result_df[DeaColumns.SIGNIFICANTQ]
     else:
-        result_df["significant"] = result_df[DeaColumns.SIGNIFICANTQ]
-    result_df["significant"] = np.where(
-        result_df["significant"],
+        result_df[Cols.SIGNIFICANT] = result_df[DeaColumns.SIGNIFICANTQ]
+    result_df[Cols.SIGNIFICANT] = np.where(
+        result_df[Cols.SIGNIFICANT],
         (result_df[log2name] > 0).map({True: "up", False: "down"}),
         "non_sig",
     )

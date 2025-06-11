@@ -96,12 +96,12 @@ plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 subgroups = get_subgroups_for_each_group(dataset.metadata)
 
 regulated_features_df = volcano_plot.annotated_dataframe[
-    volcano_plot.annotated_dataframe["significant"] != "non_sig"
+    volcano_plot.annotated_dataframe[Cols.SIGNIFICANT] != "non_sig"
 ]
 regulated_features_dict = dict(
     zip(
         regulated_features_df[Cols.INDEX],
-        regulated_features_df["significant"].tolist(),
+        regulated_features_df[Cols.SIGNIFICANT].tolist(),
     )
 )
 

@@ -314,7 +314,7 @@ def get_regulated_features(analysis_object: ResultComponent) -> list:
         feature
         for feature, significance in zip(
             analysis_object.annotated_dataframe[Cols.INDEX],
-            analysis_object.annotated_dataframe["significant"],
+            analysis_object.annotated_dataframe[Cols.SIGNIFICANT],
         )
         if significance != "non_sig"
     ]
