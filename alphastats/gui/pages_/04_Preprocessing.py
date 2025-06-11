@@ -22,6 +22,7 @@ st.markdown("## Preprocessing")
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
+    st.page_link("pages_/02_Import Data.py", label="➔ Go to data import page...")
     st.stop()
 
 c1, _, c2 = st.columns([0.3, 0.1, 0.45])

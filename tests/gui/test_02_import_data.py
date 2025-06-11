@@ -30,9 +30,7 @@ def test_patched_page_02_loads_without_input(mock_file_uploader: MagicMock):
     assert at.session_state[StateKeys.USER_SESSION_ID] is not None
 
 
-@patch(
-    "streamlit.page_link"
-)  # page link is mocked to avoid errors with the relative paths
+@patch("streamlit.page_link")  # to avoid errors with the relative paths
 def test_page_02_loads_example_data(mock_page_link: MagicMock):
     """Test if the page loads the example data and has the correct session state afterwards."""
     at = AppTest(TESTED_PAGE, default_timeout=200)
@@ -56,9 +54,7 @@ def test_page_02_loads_example_data(mock_page_link: MagicMock):
 
 
 @patch("streamlit.file_uploader")
-@patch(
-    "streamlit.page_link"
-)  # page link is mocked to avoid errors with the relative paths
+@patch("streamlit.page_link")  # to avoid errors with the relative paths
 def test_page_02_loads_maxquant_testfiles(
     mock_page_link: MagicMock, mock_file_uploader: MagicMock
 ):

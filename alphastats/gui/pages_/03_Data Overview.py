@@ -19,6 +19,7 @@ st.markdown("## Data Overview")
 
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
+    st.page_link("pages_/02_Import Data.py", label="➔ Go to data import page...")
     st.stop()
 
 display_loaded_dataset(st.session_state[StateKeys.DATASET])
