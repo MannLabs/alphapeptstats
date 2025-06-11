@@ -335,7 +335,9 @@ def get_df_for_protein_selector(
     return pd.DataFrame(
         {
             "Gene": [
-                st.session_state[StateKeys.DATASET]._feature_to_repr_map[protein]
+                st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map[
+                    protein
+                ]
                 for protein in proteins
             ],
             "Selected": [protein in selected for protein in proteins],
@@ -457,7 +459,9 @@ def get_display_available_uniprot_info(regulated_features: list[str]) -> dict:
             )
         except Exception as e:
             text = f"ERROR: {e}"
-        text_repr[st.session_state[StateKeys.DATASET]._feature_to_repr_map[feature]] = {
+        text_repr[
+            st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map[feature]
+        ] = {
             "protein ids": feature,
             "generated text": text,
         }
@@ -708,7 +712,7 @@ def enrichment_analysis(llm_chat: dict, *, disabled: bool = False) -> None:
             with st.spinner("Running enrichment analysis..."):
                 feature_to_repr_map = st.session_state[
                     StateKeys.DATASET
-                ]._feature_to_repr_map
+                ].id_holder.feature_to_repr_map
                 enrichment_data = get_enrichment_data(
                     difexpressed=list(
                         map(
