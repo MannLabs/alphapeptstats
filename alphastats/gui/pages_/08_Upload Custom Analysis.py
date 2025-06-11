@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 
+from alphastats.gui.utils.analysis import CUSTOM_ANALYSIS
 from alphastats.gui.utils.analysis_helper import _save_analysis_to_session_state
 from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER_PATH, SessionManager
 from alphastats.gui.utils.state_utils import init_session_state
@@ -89,18 +90,15 @@ if uploaded_file is not None:
                 "Please fill in all three parameters: Group 1, Group 2, and Column"
             )
         else:
-            # Create parameters dictionary
             parameters = {"group1": group1, "group2": group2, "column": column}
 
-            # Create ResultComponent
             result_component, id_holder = create_custom_result_component(parsed_df)
 
-            # Finalize loading with parameters
-            # Save to session state using existing infrastructure
             _save_analysis_to_session_state(
                 analysis_results=result_component,
-                method="Custom Analysis Upload",
+                method=CUSTOM_ANALYSIS,
                 parameters=parameters,
+                id_holder=id_holder,
             )
 
             st.toast("Custom analysis has been uploaded successfully!", icon="✅")
@@ -122,6 +120,7 @@ else:
         "Significant": ["+", "", "+", ""],
         "Difference": [1.73, -0.83, 2.14, -0.28],
         "Protein IDs": ["P12345;Q67890", "P23456", "P34567;Q78901;R90123", "P45678"],
+        "Gene Names": ["Gene1", "Gene2", "Gene3", "Gene4"],
     }
     example_df = pd.DataFrame(example_data)
     st.dataframe(example_df, use_container_width=True)

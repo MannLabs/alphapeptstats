@@ -1,18 +1,20 @@
 """Utility functions to handle custom analysis file uploads and parsing."""
 
 import pandas as pd
-from dataset.id_holder import IdHolder
-from dataset.keys import Cols, Regulation
-from gui.utils.result import ResultComponent
+from streamlit.runtime.uploaded_file_manager import UploadedFile
+
+from alphastats.dataset.id_holder import IdHolder
+from alphastats.dataset.keys import Cols, Regulation
+from alphastats.gui.utils.result import ResultComponent
 
 
-def parse_custom_analysis_file(uploaded_file: str) -> pd.DataFrame:
+def parse_custom_analysis_file(uploaded_file: UploadedFile) -> pd.DataFrame:
     """Parse uploaded custom analysis file and extract relevant columns."""
     # Read the uploaded file as tab-separated values
     df = pd.read_csv(uploaded_file, sep="\t")
 
     # Check if required columns exist
-    required_columns = ["Significant", "Difference", "Protein IDs"]
+    required_columns = ["Significant", "Difference", "Protein IDs", "Gene names"]
     missing_columns = [col for col in required_columns if col not in df.columns]
 
     if missing_columns:
@@ -22,7 +24,7 @@ def parse_custom_analysis_file(uploaded_file: str) -> pd.DataFrame:
     parsed_df = df[required_columns].copy()
 
     # Rename Protein IDs to index_
-    parsed_df = parsed_df.rename(columns={"Protein IDs": "index_"})
+    parsed_df = parsed_df.rename(columns={"Protein IDs": Cols.INDEX})
 
     # Convert Significant column based on significance and difference direction
     # Handle both string values and NaN values
@@ -50,7 +52,9 @@ def parse_custom_analysis_file(uploaded_file: str) -> pd.DataFrame:
     return parsed_df
 
 
-def create_custom_result_component(parsed_df: pd.DataFrame) -> ResultComponent:
+def create_custom_result_component(
+    parsed_df: pd.DataFrame,
+) -> tuple[ResultComponent, IdHolder]:
     """Create a simplified ResultComponent from parsed custom analysis data."""
     # Create basic ResultComponent with minimal required attributes
     result_component = ResultComponent(
@@ -67,6 +71,6 @@ def create_custom_result_component(parsed_df: pd.DataFrame) -> ResultComponent:
     id_holder = IdHolder(
         features_list=list(parsed_df["index_"]),
         proteins_list=list(parsed_df["Gene names"]),
-    ).feature_to_repr_map
+    )
 
     return result_component, id_holder
