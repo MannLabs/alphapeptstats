@@ -29,3 +29,15 @@ class Cols(metaclass=ConstantsClass):
     INDEX = "index_"
     GENE_NAMES = "gene_names_"
     SAMPLE = "sample_"
+
+    # volcano
+    SIGNIFICANT = "significant"
+
+
+class Regulation(metaclass=ConstantsClass):
+    """String constants for up- and down-regulation."""
+
+    UP = "up"
+    DOWN = "down"
+    SIG = "sig"
+    NON_SIG = "non_sig"

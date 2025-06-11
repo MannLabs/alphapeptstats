@@ -3,7 +3,7 @@ from typing import Dict
 import streamlit as st
 from openai import AuthenticationError
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import ResultComponent
 from alphastats.gui.utils.analysis_helper import (
     display_figure,
@@ -90,18 +90,18 @@ if (
 ) is None:
     st.stop()
 
-volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
+result_component: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
 plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
 
 subgroups = get_subgroups_for_each_group(dataset.metadata)
 
-regulated_features_df = volcano_plot.annotated_dataframe[
-    volcano_plot.annotated_dataframe["significant"] != "non_sig"
+regulated_features_df = result_component.annotated_dataframe[
+    result_component.annotated_dataframe[Cols.SIGNIFICANT] != Regulation.NON_SIG
 ]
 regulated_features_dict = dict(
     zip(
         regulated_features_df[Cols.INDEX],
-        regulated_features_df["significant"].tolist(),
+        regulated_features_df[Cols.SIGNIFICANT].tolist(),
     )
 )
 
@@ -125,7 +125,7 @@ c1, c2, c3 = st.columns((1, 1, 1))
 if dataset:
     with c3:
         st.markdown("##### Volcano plot")
-        display_figure(volcano_plot.plot)
+        display_figure(result_component.plot)
 
 
 if not regulated_features_dict:
@@ -134,10 +134,14 @@ if not regulated_features_dict:
 
 # Separate upregulated and downregulated features
 upregulated_features = [
-    key for key in regulated_features_dict if regulated_features_dict[key] == "up"
+    key
+    for key in regulated_features_dict
+    if regulated_features_dict[key] == Regulation.UP
 ]
 downregulated_features = [
-    key for key in regulated_features_dict if regulated_features_dict[key] == "down"
+    key
+    for key in regulated_features_dict
+    if regulated_features_dict[key] == Regulation.DOWN
 ]
 
 
