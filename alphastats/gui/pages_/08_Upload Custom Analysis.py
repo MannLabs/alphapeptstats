@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from dataset.keys import Cols, Regulation
 
 from alphastats.gui.utils.analysis import CUSTOM_ANALYSIS
 from alphastats.gui.utils.analysis_helper import _save_analysis_to_session_state
@@ -56,17 +57,14 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Total entries", len(parsed_df))
-    # with col2:
-    #     significant_count = (
-    #         parsed_df[Cols.SIGNIFICANT].sum()
-    #         if Regulation.SIG in parsed_df.columns
-    #         else 0
-    #     )
-    #     st.metric("Significant entries", significant_count)
+    with col2:
+        st.metric(
+            "Significant entries",
+            len(parsed_df[parsed_df[Cols.SIGNIFICANT] != Regulation.NON_SIG]),
+        )
 
     st.markdown("##### Analysis Parameters")
 
-    # Input fields for group1, group2, and column
     param_col1, param_col2, param_col3 = st.columns(3)
     with param_col1:
         group1 = st.text_input(
@@ -84,7 +82,6 @@ if uploaded_file is not None:
     st.markdown("##### Create Analysis Object")
 
     if st.button("Create Custom Analysis", type="primary"):
-        # Validate that all parameters are provided
         if not group1 or not group2 or not column:
             st.error(
                 "Please fill in all three parameters: Group 1, Group 2, and Column"
@@ -112,7 +109,6 @@ if uploaded_file is not None:
 else:
     st.info("Please upload a custom analysis file to continue.")
 
-    # Show example of expected format
     st.markdown("##### Expected File Format")
     st.write("Your file should be tab-separated with at least these columns:")
 
