@@ -210,7 +210,7 @@ def _plot_volcano(  # noqa: PLR0913
             df_plot["label"],
         ):
             max_chars = 10
-            if significant == "up":
+            if significant == Regulation.UP:
                 fig.add_annotation(
                     x=x,
                     y=y,

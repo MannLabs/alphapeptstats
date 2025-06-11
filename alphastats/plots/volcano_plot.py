@@ -260,7 +260,7 @@ class VolcanoPlot(PlotUtils):
                 (self.res["log2fc"] > 0) & (self.res["FDR"] == Regulation.SIG),
             ]
 
-        value = ["down", "up"]
+        value = [Regulation.DOWN, Regulation.UP]
 
         self.res["color"] = np.select(condition, value, default=Regulation.NON_SIG)
 
