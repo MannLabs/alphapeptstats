@@ -755,7 +755,12 @@ class LLMIntegration:
         return chatlog
 
     def chat_completion(
-        self, prompt: str, role: str = Roles.USER, *, pin_message=False
+        self,
+        prompt: str,
+        role: str = Roles.USER,
+        *,
+        pin_message: bool = False,
+        pass_tools: bool = True,
     ) -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
@@ -768,6 +773,8 @@ class LLMIntegration:
             The role of the message sender, by default "user"
         pin_message : bool, optional
             Whether the prompt and assistant reply should be pinned, by default False
+        pass_tools : bool, optional
+            Whether to pass the tools to the model, by default True
 
         Returns
         -------
@@ -780,7 +787,8 @@ class LLMIntegration:
 
         try:
             response = self.client_wrapper.chat_completion_create(
-                messages=self._truncate(self._messages), tools=self._tools
+                messages=self._truncate(self._messages),
+                tools=self._tools if pass_tools else None,
             )
 
             content, tool_calls = self._parse_model_response(response)

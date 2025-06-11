@@ -287,7 +287,10 @@ if not is_llm_integration_initialized:
         )
 
         with st.spinner("Processing initial prompt..."):
-            llm_integration.chat_completion(initial_prompt, pin_message=True)
+            # Do not pass tools on first chat completion, since not all models handle them correctly and we want to make sure the (CoT) initial prompt is processed correctly.
+            llm_integration.chat_completion(
+                initial_prompt, pin_message=True, pass_tools=False
+            )
 
         st.rerun(scope="app")
     except AuthenticationError:

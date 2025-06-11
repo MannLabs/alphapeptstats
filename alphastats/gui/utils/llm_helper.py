@@ -68,7 +68,12 @@ class EnrichmentAnalysisKeys(metaclass=ConstantsClass):
 def llm_config() -> None:
     """Show the configuration options for the LLM interpretation."""
 
-    current_model_name = st.session_state.get(StateKeys.MODEL_NAME, None)
+    current_model_name = (
+        st.session_state.get(StateKeys.MODEL_NAME, None)
+        if st.session_state.get(StateKeys.MODEL_NAME, None)
+        in Model.get_available_models()
+        else None  # On loading a session with a model that is no longer available, we set it to None.
+    )
     current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
 
     c1, _ = st.columns((1, 2))
