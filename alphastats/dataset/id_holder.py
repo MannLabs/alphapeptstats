@@ -21,7 +21,7 @@ class IdHolder:
             gene_names_list (Optional[list[str]]): A list of gene names corresponding to the features. Default is None.
             sep (str): The separator used to split gene and protein identifiers. Default is ";".
         """
-        gene_names_list = gene_names_list or []
+        gene_names_list = gene_names_list if gene_names_list is not None else []
 
         (
             self.gene_to_features_map,
