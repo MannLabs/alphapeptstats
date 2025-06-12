@@ -45,6 +45,9 @@ class StatisticOptions(metaclass=ConstantsClass):
     ANCOVA = "ANCOVA"
 
 
+CUSTOM_ANALYSIS = "Custom Analysis"
+
+
 class NewAnalysisOptions(metaclass=ConstantsClass):
     """Keys for the new analysis options, the order determines order in UI."""
 

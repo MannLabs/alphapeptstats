@@ -1,0 +1,58 @@
+"""Utility functions to handle custom analysis file uploads and parsing."""
+
+from collections import defaultdict
+
+import pandas as pd
+from streamlit.runtime.uploaded_file_manager import UploadedFile
+
+from alphastats.dataset.id_holder import IdHolder
+from alphastats.dataset.keys import Cols, Regulation
+from alphastats.gui.utils.result import ResultComponent
+
+
+def parse_custom_analysis_file(uploaded_file: UploadedFile) -> pd.DataFrame:
+    """Parse uploaded custom analysis file and extract relevant columns."""
+    df = pd.read_csv(uploaded_file, sep="\t")
+
+    required_columns = ["Significant", "Difference", "Protein IDs", "Gene names"]
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        raise ValueError(f"Missing required columns: {missing_columns}")
+    parsed_df = df[required_columns].copy()
+
+    parsed_df = parsed_df.rename(columns={"Protein IDs": Cols.INDEX})
+
+    significant_clean = parsed_df["Significant"].fillna("").astype(str)
+    significance_mapping = defaultdict(lambda: False)
+    significance_mapping["+"] = True
+    is_significant = significant_clean.map(significance_mapping).fillna(False)  # noqa: FBT003
+
+    parsed_df[Cols.SIGNIFICANT] = Regulation.NON_SIG
+    up_mask = is_significant & (parsed_df["Difference"] > 0)
+    parsed_df.loc[up_mask, Cols.SIGNIFICANT] = Regulation.UP
+    down_mask = is_significant & (parsed_df["Difference"] < 0)
+    parsed_df.loc[down_mask, Cols.SIGNIFICANT] = Regulation.DOWN
+
+    return parsed_df
+
+
+def create_custom_result_component(
+    parsed_df: pd.DataFrame,
+) -> tuple[ResultComponent, IdHolder]:
+    """Create a simplified ResultComponent and an IdHolder from parsed custom analysis data."""
+    result_component = ResultComponent(
+        dataframe=parsed_df,
+        preprocessing={},
+        method={},
+        feature_to_repr_map={},
+        is_plottable=False,
+    )
+
+    result_component.annotated_dataframe = parsed_df.copy()
+
+    id_holder = IdHolder(
+        features_list=list(parsed_df["index_"]),
+        proteins_list=list(parsed_df["Gene names"]),
+    )
+
+    return result_component, id_holder

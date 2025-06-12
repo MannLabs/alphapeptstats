@@ -116,6 +116,7 @@ class SavedAnalysisKeys(metaclass=ConstantsClass):
     METHOD = "method"
     PARAMETERS = "parameters"
     NUMBER = "number"
+    ID_HOLDER = "id_holder"
 
 
 class DefaultStates(metaclass=ConstantsClass):

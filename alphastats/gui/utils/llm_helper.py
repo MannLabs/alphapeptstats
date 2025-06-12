@@ -9,7 +9,7 @@ import streamlit as st
 
 from alphastats.dataset.keys import ConstantsClass
 from alphastats.dataset.plotting import plotly_object
-from alphastats.gui.utils.analysis import NewAnalysisOptions
+from alphastats.gui.utils.analysis import CUSTOM_ANALYSIS, NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
     MODEL_SYNCED_LLM_KEYS,
     WIDGET_SYNCED_LLM_KEYS,
@@ -46,7 +46,9 @@ from alphastats.llm.uniprot_utils import (
 from alphastats.plots.plot_utils import PlotlyObject
 
 LLM_ENABLED_ANALYSIS = (
-    [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS] if has_llm_support() else []
+    [NewAnalysisOptions.DIFFERENTIAL_EXPRESSION_TWO_GROUPS, CUSTOM_ANALYSIS]
+    if has_llm_support()
+    else []
 )
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
