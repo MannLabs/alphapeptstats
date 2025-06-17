@@ -51,7 +51,7 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
         },
-        "openai/gpt-o3": {
+        "openai/o3": {
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
         },
