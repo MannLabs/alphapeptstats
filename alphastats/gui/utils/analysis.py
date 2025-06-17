@@ -234,8 +234,8 @@ class IntensityPlot(AbstractIntensityPlot, ABC):
 
         protein_id_or_gene_name = st.selectbox(
             "Gene or protein identifier to plot",
-            options=list(self._dataset._gene_to_features_map.keys())
-            + list(self._dataset._protein_to_features_map.keys()),
+            options=list(self._dataset.id_holder.gene_to_features_map.keys())
+            + list(self._dataset.id_holder.protein_to_features_map.keys()),
         )
 
         self._parameters.update(
@@ -374,7 +374,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             rawinput=self._dataset.rawinput,
             metadata=self._dataset.metadata,
             preprocessing_info=self._dataset.preprocessing_info,
-            feature_to_repr_map=self._dataset._feature_to_repr_map,
+            feature_to_repr_map=self._dataset.id_holder.feature_to_repr_map,
             group1=self._parameters[AnalysisParameters.TWOGROUP_GROUP1],
             group2=self._parameters[AnalysisParameters.TWOGROUP_GROUP2],
             column=self._parameters[AnalysisParameters.TWOGROUP_COLUMN],
@@ -388,7 +388,7 @@ class VolcanoPlotAnalysis(AbstractGroupCompareAnalysis):
             color_list=self._parameters["color_list"],
         )
         # TODO currently there's no other way to obtain both the plot and the underlying data
-        #  Should be refactored such that the interface provided by DateSet.plot_volcano() is used
+        #  Should be refactored such that the interface provided by DataSet.plot_volcano() is used
         #  One option could be to always return the whole analysis object.
 
         return volcano_plot.plot, volcano_plot
@@ -592,7 +592,7 @@ class DifferentialExpressionTwoGroupsAnalysis(AbstractGroupCompareAnalysis):
             dea_result,
             preprocessing=self._dataset.preprocessing_info,
             method=self._parameters,
-            feature_to_repr_map=self._dataset._feature_to_repr_map,
+            feature_to_repr_map=self._dataset.id_holder.feature_to_repr_map,
             is_plottable=True,
         ), None  # None is for backwards compatibility
 

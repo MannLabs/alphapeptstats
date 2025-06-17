@@ -14,7 +14,6 @@ from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 from alphastats import __version__
 from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
-from alphastats.llm.llm_integration import LLMClientWrapper
 
 
 class SavedSessionKeys:
@@ -137,16 +136,14 @@ class SessionManager:
 
             # clean and init first to have a defined state
             model_name_current_session = session_state[StateKeys.MODEL_NAME]
-            api_key_current_session = session_state[StateKeys.OPENAI_API_KEY]
             base_url_current_session = session_state[StateKeys.BASE_URL]
 
             empty_session_state()
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
 
-            self._add_clients_to_llm_chats(
+            self._warn_on_model_change(
                 model_name_current_session,
-                api_key_current_session,
                 base_url_current_session,
                 session_state,
             )
@@ -155,16 +152,16 @@ class SessionManager:
 
         raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")
 
-    def _add_clients_to_llm_chats(
+    def _warn_on_model_change(
         self,
         model_name: str,
-        api_key: str,
         base_url: str,
         session_state: SessionStateProxy,
     ) -> None:
-        """Amend the loaded LLM chats with clients (using current model name, api key and base url).
+        """Warn if model changed on session load.
 
         TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
+        TODO: check if this is still needed, as we use llmlite now
         """
         chats = session_state.get(StateKeys.LLM_CHATS, {}).values()
         if not any(chat.get(LLMKeys.LLM_INTEGRATION) for chat in chats):
@@ -179,21 +176,3 @@ class SessionManager:
             msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url}"
             self.warnings.append(msg)
             logging.warning(msg)
-        session_state[StateKeys.OPENAI_API_KEY] = api_key
-        session_state[StateKeys.MODEL_NAME] = model_name
-        session_state[StateKeys.BASE_URL] = base_url
-
-        for chat in chats:
-            chat[StateKeys.MODEL_NAME] = model_name
-            chat[StateKeys.BASE_URL] = base_url
-
-            if (llm_integration := chat.get(LLMKeys.LLM_INTEGRATION)) is not None:
-                # TODO: this re-initializes all llm clients with the same model name
-                # once we have a 'proper' llm config page, this should be done there:
-                # basically, we need to re-initialize the client wrapper with the model name
-                # and ask the user for token(s) again.
-                llm_integration.client_wrapper = LLMClientWrapper(
-                    model_name=model_name,
-                    api_key=api_key,
-                    base_url=base_url,
-                )

@@ -28,7 +28,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, ModelFlags
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, Model
 from alphastats.llm.prompts import get_system_message
 
 st.set_page_config(layout="wide")
@@ -41,7 +41,7 @@ st.markdown("## LLM Interpretation")
 if StateKeys.DATASET not in st.session_state:
     st.info("Import data first.")
     st.stop()
-feature_to_repr_map = st.session_state[StateKeys.DATASET]._feature_to_repr_map
+feature_to_repr_map = st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map
 
 
 ##################################### Select Analysis #####################################
@@ -184,7 +184,7 @@ is_llm_integration_initialized = (
 
 display_uniprot(
     regulated_features_dict,
-    st.session_state[StateKeys.DATASET]._feature_to_repr_map,
+    st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map,
     model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
     selected_analysis_key=selected_analysis_key,
     disabled=is_llm_integration_initialized,
@@ -232,16 +232,17 @@ st.info(
     f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
 )
 
-if (
-    model := selected_llm_chat[LLMKeys.MODEL_NAME]
-) in ModelFlags.REQUIRES_API_KEY and not st.session_state.get(StateKeys.OPENAI_API_KEY):
+model_name = selected_llm_chat[LLMKeys.MODEL_NAME]
+if Model(model_name).requires_api_key() and not st.session_state.get(
+    StateKeys.OPENAI_API_KEY
+):
     st.page_link(
         "pages_/01_Home.py",
-        label=f"❗ Please configure an API key to use the {model} model on the ➔ Home page",
+        label=f"❗ Please configure an API key to use the {model_name} model on the ➔ Home page",
     )
     st.stop()
 
-c1, c2, _ = st.columns((0.2, 0.2, 0.6))
+c1, c2, c3, _ = st.columns((0.2, 0.2, 0.2, 0.6))
 llm_submitted = c1.button(
     "Run LLM interpretation ...", disabled=is_llm_integration_initialized
 )
@@ -249,6 +250,7 @@ llm_submitted = c1.button(
 llm_reset = c2.button(
     "❌ Reset LLM interpretation ...", disabled=not is_llm_integration_initialized
 )
+
 if llm_reset:
     del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
     del selected_llm_chat[LLMKeys.MODEL_NAME]
@@ -285,7 +287,10 @@ if not is_llm_integration_initialized:
         )
 
         with st.spinner("Processing initial prompt..."):
-            llm_integration.chat_completion(initial_prompt, pin_message=True)
+            # Do not pass tools on first chat completion, since not all models handle them correctly and we want to make sure the (CoT) initial prompt is processed correctly.
+            llm_integration.chat_completion(
+                initial_prompt, pin_message=True, pass_tools=False
+            )
 
         st.rerun(scope="app")
     except AuthenticationError:
@@ -294,6 +299,13 @@ if not is_llm_integration_initialized:
         )
         st.stop()
 
+if llm_integration := selected_llm_chat[LLMKeys.LLM_INTEGRATION]:
+    c3.download_button(
+        "Download chat log",
+        llm_integration.get_chat_log_txt(),
+        f"chat_log_{model_name}.txt",
+        "text/plain",
+    )
 
 c1, c2 = st.columns((1, 2))
 with c1:
@@ -310,7 +322,7 @@ with c2:
     )
 
 show_llm_chat(
-    selected_llm_chat[LLMKeys.LLM_INTEGRATION],
+    llm_integration,
     selected_analysis_key,
     show_all,
     show_individual_tokens,

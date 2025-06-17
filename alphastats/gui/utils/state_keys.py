@@ -21,7 +21,9 @@ class StateKeys(metaclass=ConstantsClass):
     SAVED_ANALYSES = "saved_analyses"
 
     # LLM
-    OPENAI_API_KEY = "openai_api_key"  # pragma: allowlist secret
+    OPENAI_API_KEY = (
+        "openai_api_key"  # pragma: allowlist secret  # TODO: rename to LLM_API_KEY
+    )
 
     LLM_CHATS = "llm_chats"
 
@@ -101,7 +103,7 @@ MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(
         StateKeys.BASE_URL,
         LLMKeys.BASE_URL,
-        os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        os.getenv("OLLAMA_BASE_URL"),
     ),
     SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
 ]
