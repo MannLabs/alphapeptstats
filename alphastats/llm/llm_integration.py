@@ -182,6 +182,20 @@ class LLMClientWrapper:
         )
         return response
 
+    def _extract_token_usage(self, response: ChatCompletion) -> Dict[str, int]:
+        """Extract the token usage from the response."""
+        if hasattr(response, "usage") and response.usage:
+            return {
+                "prompt_tokens": response.usage.prompt_tokens,
+                "completion_tokens": response.usage.completion_tokens,
+                "total_tokens": response.usage.total_tokens,
+            }
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+
     @staticmethod
     def _strip_off_internal_keys(
         messages: List[Dict[str, Any]],
@@ -364,18 +378,27 @@ class LLMIntegration:
                                     250  # Placeholder token count for an image
                                 )
         except KeyError:
-            logger.warning(
-                f"Model {model} not found in tiktoken library, using rough estimate."
-            )
-            # if the model is not in the tiktoken library (e.g. ollama) a key error is raised by encoding_for_model, we use a rough estimate instead
-            total_tokens = sum(
-                [
-                    len(message[MessageKeys.CONTENT]) / average_chars_per_token
-                    for message in messages
-                    if message
-                ]
-            )
-        return total_tokens
+            for message in messages:
+                if message and MessageKeys.CONTENT in message:
+                    content = message[MessageKeys.CONTENT]
+                    if isinstance(content, str):
+                        total_tokens += len(content) / average_chars_per_token
+                    elif isinstance(content, list):
+                        for part in content:
+                            if (
+                                isinstance(part, dict)
+                                and part.get("type") == "text"
+                                and isinstance(part.get("text"), str)
+                            ):
+                                total_tokens += (
+                                    len(part["text"]) / average_chars_per_token
+                                )
+                            elif (
+                                isinstance(part, dict)
+                                and part.get("type") == "image_url"
+                            ):
+                                total_tokens += 250  # Placeholder
+        return int(total_tokens)
 
     def _truncate(
         self, messages: List[Dict[str, Any]], average_chars_per_token: float = 3.6
@@ -698,24 +721,6 @@ class LLMIntegration:
             + NO_REPRESENTATION_PROMPT
         )
 
-    def _chat_completion_create(self) -> ChatCompletion:
-        """Create a chat completion based on the current conversation history."""
-        logger.info(f"Calling 'chat.completions.create' {self._messages[-1]} ..")
-        result = self._client.chat.completions.create(
-            model=self._model,
-            messages=self._messages,
-            tools=self._tools,
-        )
-        logger.info(".. done")
-
-        if hasattr(result, "usage") and result.usage:
-            self._token_usage["prompt_tokens"] += result.usage.prompt_tokens
-            self._token_usage["completion_tokens"] += result.usage.completion_tokens
-            self._token_usage["total_tokens"] += result.usage.total_tokens
-            logger.info(f"Token usage: {result.usage.total_tokens} tokens")
-
-        return result
-
     def get_print_view(
         self, show_all=False
     ) -> Tuple[List[Dict[str, Any]], float, float]:
@@ -752,9 +757,6 @@ class LLMIntegration:
                     MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
-
-        total_tokens += tools_tokens * api_call_count
-
         return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
@@ -768,6 +770,7 @@ class LLMIntegration:
             for artifact in message[MessageKeys.ARTIFACTS]:
                 chatlog += f"Artifact: {artifact}\n"
             chatlog += "----------\n"
+        chatlog += f"Token usage: {self.get_token_usage}\n"
         return chatlog
 
     def chat_completion(
@@ -807,6 +810,12 @@ class LLMIntegration:
                 tools=self._tools if pass_tools else None,
             )
 
+            response_usage = self.client_wrapper._extract_token_usage(response)
+            for token_type, token_count in response_usage.items():
+                self._token_usage[token_type] = (
+                    self._token_usage.get(token_type, 0) + token_count
+                )
+
             content, tool_calls = self._parse_model_response(response)
 
             if tool_calls:
@@ -843,6 +852,7 @@ class LLMIntegration:
         else:
             display(Markdown(f"```\n{str(artifact)}\n```"))
 
+    @property
     def get_token_usage(self) -> Dict[str, int]:
         """Get the actual token usage as reported by the OpenAI API.
 

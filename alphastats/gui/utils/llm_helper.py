@@ -903,7 +903,7 @@ def show_llm_chat(
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)
 
-    token_usage = llm_integration.get_token_usage()
+    token_usage = llm_integration.get_token_usage
     if token_usage["total_tokens"] > 0:
         st.markdown(
             f"*Tokens used: {token_usage['total_tokens']} (prompt: {token_usage['prompt_tokens']}, completion: {token_usage['completion_tokens']}), pinned messages: {str(pinned_tokens)}*"
@@ -935,6 +935,14 @@ def show_llm_chat(
             )
 
         st.rerun(scope="fragment")
+
+    st.download_button(
+        "Download chat log",
+        llm_integration.get_chat_log_txt(),
+        file_name=f"chat_log_{model_name}.txt",
+        mime="text/plain",
+        key=f"download_chat_log_{selected_analysis_key}",
+    )
 
     st.markdown(
         "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
