@@ -182,6 +182,20 @@ class LLMClientWrapper:
         )
         return response
 
+    def _extract_token_usage(self, response: ChatCompletion) -> Dict[str, int]:
+        """Extract the token usage from the response."""
+        if hasattr(response, "usage") and response.usage:
+            return {
+                "prompt_tokens": response.usage.prompt_tokens,
+                "completion_tokens": response.usage.completion_tokens,
+                "total_tokens": response.usage.total_tokens,
+            }
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+
     @staticmethod
     def _strip_off_internal_keys(
         messages: List[Dict[str, Any]],
@@ -231,6 +245,11 @@ class LLMIntegration:
         self._metadata = None if dataset is None else dataset.metadata
         self._genes_of_interest = genes_of_interest
         self._max_tokens = max_tokens
+        self._token_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -738,7 +757,6 @@ class LLMIntegration:
                     MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
-
         return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
@@ -752,6 +770,7 @@ class LLMIntegration:
             for artifact in message[MessageKeys.ARTIFACTS]:
                 chatlog += f"Artifact: {artifact}\n"
             chatlog += "----------\n"
+        chatlog += f"Token usage: {self.get_token_usage}\n"
         return chatlog
 
     def chat_completion(
@@ -791,6 +810,12 @@ class LLMIntegration:
                 tools=self._tools if pass_tools else None,
             )
 
+            response_usage = self.client_wrapper._extract_token_usage(response)
+            for token_type, token_count in response_usage.items():
+                self._token_usage[token_type] = (
+                    self._token_usage.get(token_type, 0) + token_count
+                )
+
             content, tool_calls = self._parse_model_response(response)
 
             if tool_calls:
@@ -826,3 +851,14 @@ class LLMIntegration:
             display(HTML(pio.to_html(artifact, full_html=False)))
         else:
             display(Markdown(f"```\n{str(artifact)}\n```"))
+
+    @property
+    def get_token_usage(self) -> Dict[str, int]:
+        """Get the actual token usage as reported by the OpenAI API.
+
+        Returns
+        -------
+        Dict[str, int]
+            A dictionary containing prompt_tokens, completion_tokens, and total_tokens
+        """
+        return self._token_usage
