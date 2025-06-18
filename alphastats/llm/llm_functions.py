@@ -94,7 +94,7 @@ def get_uniprot_info_for_search_string(
         + ": "
         + format_uniprot_annotation(
             annotation,
-            fields=fields if fields is not None else list(annotation.keys()),
+            fields=fields if fields else list(annotation.keys()),
         )
     )
 
