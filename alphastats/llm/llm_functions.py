@@ -194,7 +194,7 @@ def get_assistant_functions(
                     "properties": {
                         "feature": {
                             "type": "string",
-                            "description": "Identifier for the feature of interest. Use the same format as in the initial prompt, inidividual gene symbols, or individual protein ids.",
+                            "description": "Identifier or list of identifiers for the feature of interest. This can be a gene symbol e.g. `PRE1`, a protein identifier e.g. `P12345`, or a list of identifiers separated by commas e.g. `PRE1, PRE2, PRE3`. If you are not sure which identifier to use, ask the user.",
                         },
                         "group": {
                             "type": "string",
