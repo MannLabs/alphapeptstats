@@ -246,6 +246,7 @@ def test_dea_two_groups_get_group_members_both_grouping_methods():
                 DeaParameters.GROUPING_COLUMN: "grouping_column",
                 DeaParameters.GROUP1: ["sample1", "sample2"],
                 DeaParameters.GROUP2: ["sample3", "sample4"],
+                DeaParameters.METADATA: pd.DataFrame([[1, 2]]),
             }
         )
 
@@ -272,6 +273,22 @@ def test_dea_two_groups_get_group_members_missing_metadata():
                 DeaParameters.GROUP2: "group2",
             }
         )
+
+
+def test_dea_two_groups_get_group_members_numeric_metadata():
+    """Test success if grouping is done by numeric metadata input."""
+    group1, group2 = DifferentialExpressionAnalysisTwoGroups._get_group_members(
+        **{
+            DeaParameters.GROUPING_COLUMN: "grouping_column",
+            DeaParameters.GROUP1: 1,
+            DeaParameters.GROUP2: 2,
+            DeaParameters.METADATA: pd.DataFrame(
+                [["s1", 1], ["s2", 2]], columns=[Cols.SAMPLE, "grouping_column"]
+            ),
+        }
+    )
+    assert group1 == ["s1"]
+    assert group2 == ["s2"]
 
 
 def test_dea_ttest_perform_runs():

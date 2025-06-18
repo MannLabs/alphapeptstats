@@ -274,7 +274,6 @@ if not is_llm_integration_initialized:
             client_wrapper=client_wrapper,
             system_message=system_message,
             dataset=st.session_state[StateKeys.DATASET],
-            genes_of_interest=list(regulated_features_dict.keys()),
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
 
