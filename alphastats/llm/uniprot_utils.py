@@ -157,8 +157,8 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     # 9. Subcellular Locations
     subcellular_locations_comments = [
         c.get(
-            ["subcellularLocations", []]
-        )  # apparently there are sucbcellular location comments without subcellular locations
+            "subcellularLocations", []
+        )  # sucbcellular location comments without subcellular locations
         for c in data.get("comments", [])
         if c["commentType"] == "SUBCELLULAR LOCATION"
     ]
