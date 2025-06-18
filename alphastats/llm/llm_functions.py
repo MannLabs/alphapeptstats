@@ -169,7 +169,6 @@ def get_general_assistant_functions() -> list[dict]:
 
 
 def get_assistant_functions(
-    genes_of_interest: list[str],
     metadata: pd.DataFrame,
     subgroups_for_each_group: dict,
 ) -> list[dict]:
@@ -178,7 +177,6 @@ def get_assistant_functions(
     For more information on how to format functions for Assistants, see https://platform.openai.com/docs/assistants/tools/function-calling
 
     Args:
-        genes_of_interest (list): A list with gene names.
         metadata (pd.DataFrame): The metadata dataframe (which sample has which disease/treatment/condition/etc).
         subgroups_for_each_group (dict): A dictionary with the column names as keys and a list of unique values as values. Defaults to get_subgroups_for_each_group().
     Returns:

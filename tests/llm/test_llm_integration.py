@@ -40,7 +40,6 @@ def llm_integration(mock_completion) -> LLMIntegration:
         client_wrapper,
         system_message="Test system message",
         dataset=dataset,
-        genes_of_interest={"GENE1": "PROT1", "GENE2": "PROT2"},
     )
 
 

@@ -209,8 +209,6 @@ class LLMIntegration:
         Whether to load the tools or not, by default True
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
-    genes_of_interest: optional
-        List of regulated genes
     max_tokens : int
         The maximum number of tokens for the conversation history, by default 100000
     """
@@ -222,14 +220,12 @@ class LLMIntegration:
         system_message: str = None,
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
-        genes_of_interest: Optional[List[str]] = None,
         max_tokens=100000,
     ):
         self.client_wrapper = client_wrapper
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
-        self._genes_of_interest = genes_of_interest
         self._max_tokens = max_tokens
 
         self._tools = self._get_tools() if load_tools else None
@@ -257,10 +253,9 @@ class LLMIntegration:
         tools = [
             *get_general_assistant_functions(),
         ]
-        if self._metadata is not None and self._genes_of_interest is not None:
+        if self._metadata is not None:
             tools += (
                 *get_assistant_functions(
-                    genes_of_interest=self._genes_of_interest,
                     metadata=self._metadata,
                     subgroups_for_each_group=get_subgroups_for_each_group(
                         self._metadata
