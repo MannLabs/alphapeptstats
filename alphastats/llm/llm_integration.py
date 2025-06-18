@@ -11,7 +11,6 @@ import pandas as pd
 import plotly.io as pio
 import pytz
 import tiktoken
-from IPython.display import HTML, Markdown, display
 from litellm import completion
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
@@ -801,23 +800,3 @@ class LLMIntegration:
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message(Roles.SYSTEM, error_message)
-
-    def _display_artifact(self, artifact):
-        """
-        Display an artifact based on its type.
-
-        Parameters
-        ----------
-        artifact : Any
-            The artifact to display
-
-        Returns
-        -------
-        None
-        """
-        if isinstance(artifact, pd.DataFrame):
-            display(artifact)
-        elif str(type(artifact)) == "<class 'plotly.graph_objs._figure.Figure'>":
-            display(HTML(pio.to_html(artifact, full_html=False)))
-        else:
-            display(Markdown(f"```\n{str(artifact)}\n```"))
