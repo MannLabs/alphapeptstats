@@ -168,7 +168,7 @@ def test_append_message(mock_datetime, llm_integration: LLMIntegration):
     assert len(llm_integration._messages) == 2  # Including system message
     assert llm_integration._messages[-1] == {
         "___exchange_id": 0,
-        "___timestamp": "2022-01-01T00:00:00",
+        "___timestamp": "2022-01-01 at 00:00",
         "___pinned": False,
         "role": "user",
         "content": "Test message",

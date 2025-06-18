@@ -284,7 +284,7 @@ class LLMIntegration:
         message = {
             MessageKeys.EXCHANGE_ID: self._exchange_count,
             MessageKeys.TIMESTAMP: datetime.now(tz=pytz.utc).strftime(
-                "%Y-%m-%dT%H:%M:%S"
+                "%Y-%m-%d at %H:%M"
             ),
             MessageKeys.PINNED: pin_message,
             MessageKeys.ROLE: role,
