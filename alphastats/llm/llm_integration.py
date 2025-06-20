@@ -70,6 +70,11 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
         },
+        "vertex_ai/gemini-2.0-flash": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
     }
 
     def __init__(self, model_name: str):
@@ -150,18 +155,50 @@ class LLMClientWrapper:
         """
 
         model = Model(model_name)
-        if model_name.startswith("GWDG"):
-            # The GWDG supplies an openai like API
-            model_name = model_name.replace("GWDG/", "openai/")
         self.model_name = model_name
 
         if model.requires_api_key() and not api_key:
             raise ValueError("API key is required for this model.")
 
-        self.api_key = api_key
-
-        self.base_url = base_url
+        self.model_config = self.configure_model(
+            model_name, base_url=base_url, api_key=api_key
+        )
         self.is_multimodal = model.is_multimodal()
+
+    def configure_model(
+        self,
+        model_name: str,
+        *,
+        base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ) -> Dict[str, None]:
+        """Configure the model with the given parameters.
+
+        model_name : str
+            The type of API to use, will be forwarded to the client.
+        base_url : str, optional
+            The base URL for the API, by default None. For vertex ai this is converted to the location.
+        api_key : str, optional
+            The API key for authentication, by default None. For vertex ai this is converted to the project.
+        """
+        model_config = {}
+        if model_name.startswith("GWDG"):
+            # The GWDG supplies an openai like API
+            model_config["model"] = model_name.replace("GWDG/", "openai/")
+        else:
+            model_config["model"] = model_name
+
+        if model_name.startswith("vertex_ai/"):
+            # Vertex AI models do not require an API key or base URL
+            # In order to use vertex ai models, the user needs to set the default gcloud auth login using `gcloud auth application-default login` through the google-cloud-sdk tool.
+            model_config["vertex_project"] = api_key
+            model_config["vertex_location"] = base_url
+
+        else:
+            model_config["api_key"] = api_key if api_key else None
+            model_config["base_url"] = base_url if base_url else None
+
+        return model_config
 
     def chat_completion_create(
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
@@ -174,11 +211,9 @@ class LLMClientWrapper:
         logger.info(f"Calling 'chat.completions.create' {last_message} ..")
 
         response = completion(
-            model=self.model_name,
+            **self.model_config,
             messages=messages_,
             tools=tools,
-            api_key=self.api_key if self.api_key else None,
-            api_base=self.base_url if self.base_url else None,
         )
         return response
 
