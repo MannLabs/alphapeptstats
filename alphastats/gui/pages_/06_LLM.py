@@ -278,9 +278,6 @@ if not is_llm_integration_initialized:
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
 
-        selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
-        selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
-
         st.toast(
             f"{selected_llm_chat[LLMKeys.MODEL_NAME]} integration initialized successfully!",
             icon="✅",
@@ -291,6 +288,9 @@ if not is_llm_integration_initialized:
             llm_integration.chat_completion(
                 initial_prompt, pin_message=True, pass_tools=False
             )
+
+        selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
+        selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
 
         st.rerun(scope="app")
     except AuthenticationError:
@@ -313,6 +313,7 @@ with c2:
         help="Show individual token estimates for each message.",
     )
 
+llm_integration = selected_llm_chat[LLMKeys.LLM_INTEGRATION]
 show_llm_chat(
     llm_integration,
     selected_analysis_key,
