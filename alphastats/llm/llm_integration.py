@@ -114,7 +114,7 @@ class MessageKeys(metaclass=ConstantsClass):
     IN_CONTEXT = f"{DO_NOT_PASS_PREFIX}in_context"
     ARTIFACTS = "artifacts"
     PINNED = f"{DO_NOT_PASS_PREFIX}pinned"
-    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"
+    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"  # This is a datetime object
     IMAGE_URL = "image_url"
     EXCHANGE_ID = f"{DO_NOT_PASS_PREFIX}exchange_id"
 
@@ -283,9 +283,7 @@ class LLMIntegration:
         """Construct a message and append it to the conversation history."""
         message = {
             MessageKeys.EXCHANGE_ID: self._exchange_count,
-            MessageKeys.TIMESTAMP: datetime.now(tz=pytz.utc).strftime(
-                "%Y-%m-%d at %H:%M"
-            ),
+            MessageKeys.TIMESTAMP: datetime.now(tz=pytz.utc),
             MessageKeys.PINNED: pin_message,
             MessageKeys.ROLE: role,
         }
@@ -740,7 +738,7 @@ class LLMIntegration:
         messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            chatlog += f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
+            chatlog += f"[{message[MessageKeys.TIMESTAMP].strftime('%Y-%m-%dT%H:%M:%S')}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
             if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
             for artifact in message[MessageKeys.ARTIFACTS]:

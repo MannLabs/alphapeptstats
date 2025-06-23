@@ -874,7 +874,7 @@ def show_llm_chat(
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
             st.markdown(f"{message[MessageKeys.CONTENT]}")
-            token_message = f"{message[MessageKeys.TIMESTAMP]} "
+            token_message = f'<span style="color:grey">{message[MessageKeys.TIMESTAMP].strftime("%Y-%m-%d at %H:%M")}</span> '
             if message[MessageKeys.PINNED]:
                 token_message += ":pushpin: "
             if not message[MessageKeys.IN_CONTEXT]:
@@ -882,7 +882,7 @@ def show_llm_chat(
             if show_individual_tokens:
                 tokens = LLMIntegration.estimate_tokens([message], model=model_name)
                 token_message += f"*tokens: {str(tokens)}*"
-            st.markdown(token_message)
+            st.markdown(token_message, unsafe_allow_html=True)
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact, key=str(id(artifact)))
