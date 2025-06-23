@@ -14,7 +14,12 @@ def parse_custom_analysis_file(uploaded_file: UploadedFile) -> pd.DataFrame:
     """Parse uploaded custom analysis file and extract relevant columns."""
     df = pd.read_csv(uploaded_file, sep="\t")
 
-    required_columns = ["Significant", "Difference", "Protein IDs", "Gene names"]
+    required_columns = [
+        "Significant",
+        "Difference",
+        "Majority Protein IDs",
+        "Gene names",
+    ]
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
         raise ValueError(f"Missing required columns: {missing_columns}")
@@ -52,7 +57,8 @@ def create_custom_result_component(
 
     id_holder = IdHolder(
         features_list=list(parsed_df["index_"]),
-        proteins_list=list(parsed_df["Gene names"]),
+        proteins_list=list(parsed_df["index_"]),
+        gene_names_list=list(parsed_df["Gene names"]),
     )
 
     return result_component, id_holder

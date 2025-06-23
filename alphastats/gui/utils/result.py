@@ -59,15 +59,15 @@ class ResultComponent:  # move to new file
 
         """
         self.dataframe = dataframe
-        self.annotated_dataframe = dataframe
+        self.annotated_dataframe: pd.DataFrame | None = dataframe
         self._is_plottable = is_plottable
         self.preprocessing = preprocessing
         self.method = method
         self.feature_to_repr_map = feature_to_repr_map
 
         self.plot: Figure | None = None
-        self._data_annotation_options = {}
-        self._display_options = {}
+        self._data_annotation_options: dict | None = {}
+        self._display_options: dict | None = {}
         self._display_selection = (
             self.DisplaySelection.PLOT
             if self._is_plottable
@@ -86,8 +86,10 @@ class ResultComponent:  # move to new file
 
     def _get_data_annotation_options(self, name: str = "") -> dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_data_annotation as kwargs."""
+        del name  # unused
+        return {}
 
-    def _annotate_data(self, **kwargs) -> pd.DataFrame:
+    def _annotate_data(self, **kwargs) -> pd.DataFrame | None:
         """Implementations of this function should create the dataframe that can then directly be used by the _update_plot method to update the plot."""
 
     def _apply_display_options(self, name: str = "") -> None:

@@ -90,7 +90,7 @@ regulated_features_dict = dict(
 )
 
 feature_to_repr_map = (
-    dataset.feature_to_repr_map
+    dataset.id_holder.feature_to_repr_map
     if has_dataset
     else selected_analysis[SavedAnalysisKeys.ID_HOLDER].feature_to_repr_map
 )
