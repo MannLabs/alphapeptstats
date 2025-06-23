@@ -29,6 +29,7 @@ from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
 from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, Model
+from alphastats.llm.llm_utils import get_subgroups_for_each_group
 from alphastats.llm.prompts import get_system_message
 
 st.set_page_config(layout="wide")
@@ -38,16 +39,11 @@ sidebar_info()
 
 st.markdown("## LLM Interpretation")
 
-if StateKeys.DATASET not in st.session_state:
-    st.info("Import data first.")
-    st.stop()
-feature_to_repr_map = st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map
-
+dataset = st.session_state.get(StateKeys.DATASET, None)
 
 ##################################### Select Analysis #####################################
 
 st.markdown("#### Select Analysis for LLM interpretation")
-
 if not (
     available_analyses_keys := [
         key
@@ -70,6 +66,23 @@ selected_analysis_key = st.selectbox(
     key=StateKeys.SELECTED_ANALYSIS,
 )
 
+
+# TODO: this is what we need for the custom analysis:
+# fake_plot_parameters = {
+#     "group1": "Group 1",
+#     "group2": "Group 2",
+#     "column": "Column",
+# }
+# fake_regulated_features_dict = {"blah": "up", "blub": "down"}
+# fake_subgroups = {"G1": "G1"}
+# *_, feature_to_repr_map = TODO create for all ids, not just the regulated ones
+# TODO this is here just temporarily to test the custom analysis
+# with st.expander("Analysis parameters", expanded=dataset is not None):
+#     st.markdown(f"```{plot_parameters=}```")
+#     st.markdown(f"```{regulated_features_dict=}```")
+#     st.markdown(f"```{subgroups=}```")
+#     st.markdown(f"```{feature_to_repr_map=}```")
+
 if (
     selected_analysis := st.session_state[StateKeys.SAVED_ANALYSES].get(
         selected_analysis_key, None
@@ -77,16 +90,30 @@ if (
 ) is None:
     st.stop()
 
+volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
+plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
+
+subgroups = get_subgroups_for_each_group(dataset.metadata)
+
+regulated_features_df = volcano_plot.annotated_dataframe[
+    volcano_plot.annotated_dataframe["significant"] != "non_sig"
+]
+regulated_features_dict = dict(
+    zip(
+        regulated_features_df[Cols.INDEX],
+        regulated_features_df["significant"].tolist(),
+    )
+)
+
+feature_to_repr_map = dataset.feature_to_repr_map
+
+st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
+
+
 if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
     st.session_state[StateKeys.LLM_CHATS][selected_analysis_key] = {}
 
 selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
-
-volcano_plot: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
-plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
-
-st.markdown(f"Parameters used for analysis: `{plot_parameters}`")
-
 
 ##################################### Analysis Input #####################################
 
@@ -95,23 +122,15 @@ c1, c2, c3 = st.columns((1, 1, 1))
 
 ##################################### Volcano plot #####################################
 
-with c3:
-    st.markdown("##### Volcano plot")
-    display_figure(volcano_plot.plot)
+if dataset:
+    with c3:
+        st.markdown("##### Volcano plot")
+        display_figure(volcano_plot.plot)
 
-regulated_features_df = volcano_plot.annotated_dataframe[
-    volcano_plot.annotated_dataframe["significant"] != "non_sig"
-]
-regulated_features_dict = dict(
-    zip(
-        regulated_features_df[Cols.INDEX], regulated_features_df["significant"].tolist()
-    )
-)
 
 if not regulated_features_dict:
     st.text("No genes of interest found.")
     st.stop()
-
 
 # Separate upregulated and downregulated features
 upregulated_features = [
@@ -143,6 +162,7 @@ with c1:
     )
 
     protein_selector(
+        feature_to_repr_map,
         upregulated_features,
         "Upregulated Proteins",
         selected_analysis_key,
@@ -152,6 +172,7 @@ with c1:
 with c2:
     st.markdown("##### ")
     protein_selector(
+        feature_to_repr_map,
         downregulated_features,
         "Downregulated Proteins",
         selected_analysis_key,
@@ -184,7 +205,7 @@ is_llm_integration_initialized = (
 
 display_uniprot(
     regulated_features_dict,
-    st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map,
+    feature_to_repr_map,
     model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
     selected_analysis_key=selected_analysis_key,
     disabled=is_llm_integration_initialized,
@@ -204,7 +225,7 @@ st.write(
 with st.expander("System message", expanded=False):
     system_message = st.text_area(
         " ",
-        value=get_system_message(st.session_state[StateKeys.DATASET]),
+        value=get_system_message(subgroups),
         height=150,
         disabled=is_llm_integration_initialized,
     )
@@ -273,7 +294,7 @@ if not is_llm_integration_initialized:
         llm_integration = LLMIntegration(
             client_wrapper=client_wrapper,
             system_message=system_message,
-            dataset=st.session_state[StateKeys.DATASET],
+            dataset=dataset,
             genes_of_interest=list(regulated_features_dict.keys()),
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
