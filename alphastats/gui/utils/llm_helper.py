@@ -152,6 +152,8 @@ def llm_config() -> None:
 
 def format_analysis_key(key: str) -> str:
     """Pretty print an analysis referenced by `key`."""
+    if key not in st.session_state[StateKeys.SAVED_ANALYSES]:
+        return key
     analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
     return f"[{key}] #{analysis[SavedAnalysisKeys.NUMBER]} {analysis[SavedAnalysisKeys.METHOD]} {analysis[SavedAnalysisKeys.PARAMETERS]}"
 
@@ -252,6 +254,7 @@ def initialize_initial_prompt_modules(
 
 @st.fragment
 def protein_selector(
+    feature_to_repr_map: dict[str, str],
     regulated_features: list[str],
     title: str,
     selected_analysis_key: str,
@@ -260,6 +263,7 @@ def protein_selector(
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
+        feature_to_repr_map: Mapping from features to their representation (e.g. gene names)
         regulated_features: List of regulated features to display in the table
         title: Title to display above the editor
         selected_analysis_key: Key to access the selected analysis in the session state
@@ -273,7 +277,9 @@ def protein_selector(
         selected_analysis_key
     ]
     df = get_df_for_protein_selector(
-        regulated_features, selected_analysis_session_state[state_key]
+        feature_to_repr_map,
+        regulated_features,
+        selected_analysis_session_state[state_key],
     )
     if len(df) == 0:
         st.markdown("No significant proteins.")
@@ -327,11 +333,12 @@ def protein_selector(
 
 
 def get_df_for_protein_selector(
-    proteins: list[str], selected: list[str]
+    feature_to_repr_map: dict[str, str], proteins: list[str], selected: list[str]
 ) -> pd.DataFrame:
     """Create a DataFrame for the protein selector.
 
     Args:
+        feature_to_repr_map (dict[str, str]): A mapping from features to their representation (e.g. gene names).
         proteins (List[str]): A list of proteins.
 
     Returns:
@@ -339,12 +346,7 @@ def get_df_for_protein_selector(
     """
     return pd.DataFrame(
         {
-            "Gene": [
-                st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map[
-                    protein
-                ]
-                for protein in proteins
-            ],
+            "Gene": [feature_to_repr_map[protein] for protein in proteins],
             "Selected": [protein in selected for protein in proteins],
             "Protein": proteins,
         }
@@ -566,11 +568,17 @@ def display_uniprot(
             ],
             format_func=lambda x: feature_to_repr_map[x],
         )
-        if preview_feature is not None:
-            uniprot_url = "https://www.uniprot.org/uniprotkb/"
-            st.markdown(
-                f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
+        if (
+            preview_feature is not None
+            and (
+                primary_accession := st.session_state[StateKeys.ANNOTATION_STORE][
+                    preview_feature
+                ].get("primaryAccession")
             )
+            is not None
+        ):
+            uniprot_url = "https://www.uniprot.org/uniprotkb/"
+            st.markdown(f"[Open in Uniprot ...]({uniprot_url}{primary_accession})")
             st.markdown(f"Text generated from feature id {preview_feature}:")
             st.markdown(
                 format_uniprot_annotation(
@@ -771,7 +779,7 @@ def configure_initial_prompt(
     feature_to_repr_map: dict,
     *,
     disabled: bool,
-) -> None:
+) -> str:
     c1, c2 = st.columns((5, 1))
     with c2:
         st.markdown("#####")

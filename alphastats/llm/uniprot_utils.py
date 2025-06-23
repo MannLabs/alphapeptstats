@@ -458,7 +458,9 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
 
     # get requested fields
     texts = {
-        field: _format_uniprot_field(field, information.get(field)) for field in fields
+        # TODO .get() fails if information == "Retrieval failed"
+        field: _format_uniprot_field(field, information.get(field))
+        for field in fields
     }
     # remove empty fields
     texts = {field: text for field, text in texts.items() if text is not None}
