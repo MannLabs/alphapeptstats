@@ -118,7 +118,10 @@ class MultiCovaAnalysis:
             x=res_real[variable + "_" + "fc"],
             y=-np.log10(res_real[variable + "_" + "pval"]),
             color=res_real[sig_col],
-            color_discrete_map={"sig": "#009599", Regulation.NON_SIG: "#404040"},
+            color_discrete_map={
+                Regulation.SIG: "#009599",
+                Regulation.NON_SIG: "#404040",
+            },
             hover_name=res_real[Cols.INDEX],
             title=variable,
             labels=dict(x="beta value", y="-log10(p-value)", color=sig_level),
