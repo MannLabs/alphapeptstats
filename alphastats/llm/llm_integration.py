@@ -160,12 +160,12 @@ class LLMClientWrapper:
         if model.requires_api_key() and not api_key:
             raise ValueError("API key is required for this model.")
 
-        self.model_config = self.configure_model(
+        self.model_config = self._configure_model(
             model_name, base_url=base_url, api_key=api_key
         )
         self.is_multimodal = model.is_multimodal()
 
-    def configure_model(
+    def _configure_model(
         self,
         model_name: str,
         *,
@@ -173,6 +173,8 @@ class LLMClientWrapper:
         api_key: Optional[str] = None,
     ) -> Dict[str, None]:
         """Configure the model with the given parameters.
+
+        This method makes some model specific conversions. Any keys created in model_config need to be valid arguments to completion().
 
         model_name : str
             The type of API to use, will be forwarded to the client.
@@ -191,6 +193,7 @@ class LLMClientWrapper:
         if model_name.startswith("vertex_ai/"):
             # Vertex AI models do not require an API key or base URL
             # In order to use vertex ai models, the user needs to set the default gcloud auth login using `gcloud auth application-default login` through the google-cloud-sdk tool.
+            # If the LLM configuration gets remodelled in the interface, this switch could be implemented on the UI side.
             model_config["vertex_project"] = api_key
             model_config["vertex_location"] = base_url
 
