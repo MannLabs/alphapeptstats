@@ -50,6 +50,10 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
         },
+        "openai/o3": {
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
         "anthropic/claude-sonnet-4-20250514": {
             ModelProperties.REQUIRES_API_KEY: True,
         },
@@ -65,6 +69,11 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
         },
         "GWDG/qwen2.5-72b-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
+        "GWDG/qwen2.5-vl-72b-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
