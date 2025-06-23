@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
-from dataset.keys import Cols, Regulation
 
+from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import CUSTOM_ANALYSIS
 from alphastats.gui.utils.analysis_helper import _save_analysis_to_session_state
 from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER_PATH, SessionManager
@@ -27,16 +27,17 @@ if saved_sessions:
     )
 
 st.markdown("### Upload Custom Analysis File")
-st.write(
+upload_help_text = (
     "Upload a tab-separated file containing custom analysis results. "
     "The file should contain 'Significant', 'Difference', and 'Protein IDs' columns."
 )
+st.write(upload_help_text)
 
 # File uploader
 uploaded_file = st.file_uploader(
     "Choose a custom analysis file",
     type=["txt", "tsv", "csv"],
-    help="Upload a tab-separated file (e.g., Fig4A_VolcanoStats.txt)",
+    help=upload_help_text,
 )
 
 if uploaded_file is not None:
@@ -76,7 +77,7 @@ if uploaded_file is not None:
         )
     with param_col3:
         column = st.text_input(
-            "Column", placeholder="e.g., condition", key="custom_column"
+            "Grouping column name", placeholder="e.g., condition", key="grouping_column"
         )
 
     st.markdown("##### Create Analysis Object")
@@ -84,8 +85,10 @@ if uploaded_file is not None:
     if st.button("Create Custom Analysis", type="primary"):
         if not group1 or not group2 or not column:
             st.error(
-                "Please fill in all three parameters: Group 1, Group 2, and Column"
+                "Please fill in all three parameters: Group 1, Group 2, and Column!"
             )
+        elif group1 == group2:
+            st.error("Group 1 and Group 2 must differ!")
         else:
             parameters = {"group1": group1, "group2": group2, "column": column}
 
