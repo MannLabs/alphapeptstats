@@ -35,7 +35,7 @@ def test_parse_valid_file(mock_read_csv):
         {
             "Significant": ["+", "", "+"],
             "Difference": [1.5, -0.8, -2.1],
-            "Protein IDs": ["P12345", "P23456", "P34567"],
+            "Majority Protein IDs": ["P12345", "P23456", "P34567"],
             "Gene names": ["GENE1", "GENE2", "GENE3"],
         }
     )
@@ -72,7 +72,7 @@ def test_parse_file_missing_columns(mock_read_csv):
         {
             "Significant": ["+"],
             "Difference": [1.5],
-            "Protein IDs": ["P12345"],
+            "Majority Protein IDs": ["P12345"],
             # Missing 'Gene names'
         }
     )
@@ -95,7 +95,7 @@ def test_parse_file_with_nan_significance(mock_read_csv):
         {
             "Significant": [np.nan, "+"],
             "Difference": [1.5, -0.8],
-            "Protein IDs": ["P12345", "P23456"],
+            "Majority Protein IDs": ["P12345", "P23456"],
             "Gene names": ["GENE1", "GENE2"],
         }
     )
@@ -119,7 +119,7 @@ def test_parse_file_edge_cases(mock_read_csv):
         {
             "Significant": ["+", "+", "+"],
             "Difference": [0.0, 1.0, -1.0],
-            "Protein IDs": ["P12345", "P23456", "P34567"],
+            "Majority Protein IDs": ["P12345", "P23456", "P34567"],
             "Gene names": ["GENE1", "GENE2", "GENE3"],
         }
     )
@@ -141,7 +141,7 @@ def test_parse_file_with_spaces_in_significance(mock_read_csv):
         {
             "Significant": [" ", "+"],
             "Difference": [1.5, -0.8],
-            "Protein IDs": ["P12345", "P23456"],
+            "Majority Protein IDs": ["P12345", "P23456"],
             "Gene names": ["GENE1", "GENE2"],
         }
     )
@@ -208,7 +208,7 @@ def test_full_workflow(mock_read_csv):
         {
             "Significant": ["+", "", "+"],
             "Difference": [2.3, -1.2, -0.9],
-            "Protein IDs": ["P11111", "P22222", "P33333"],
+            "Majority Protein IDs": ["P11111", "P22222", "P33333"],
             "Gene names": ["GENEA", "GENEB", "GENEC"],
         }
     )
@@ -240,7 +240,7 @@ def test_regulation_consistency(mock_read_csv):
         {
             "Significant": ["+", "+", "+", "", "", " "],
             "Difference": [1.0, -1.0, 0.0, 1.0, -1.0, 2.0],
-            "Protein IDs": [
+            "Majority Protein IDs": [
                 "P00001",
                 "P00002",
                 "P00003",
@@ -279,7 +279,7 @@ def test_invalid_data_types(mock_read_csv):
         {
             "Significant": ["+", "+"],
             "Difference": ["invalid", 1.5],  # String in numeric column
-            "Protein IDs": ["P12345", "P23456"],
+            "Majority Protein IDs": ["P12345", "P23456"],
             "Gene names": ["GENE1", "GENE2"],
         }
     )
@@ -301,7 +301,7 @@ def test_all_missing_significance(mock_read_csv):
         {
             "Significant": ["", np.nan, " "],
             "Difference": [1.5, -0.8, 2.1],
-            "Protein IDs": ["P12345", "P23456", "P34567"],
+            "Majority Protein IDs": ["P12345", "P23456", "P34567"],
             "Gene names": ["GENE1", "GENE2", "GENE3"],
         }
     )
@@ -326,7 +326,7 @@ def test_large_dataset(mock_read_csv):
         {
             "Significant": np.random.choice(["+", "", " "], n_rows),
             "Difference": np.random.normal(0, 2, n_rows),
-            "Protein IDs": [f"P{i:05d}" for i in range(n_rows)],
+            "Majority Protein IDs": [f"P{i:05d}" for i in range(n_rows)],
             "Gene names": [f"GENE{i}" for i in range(n_rows)],
         }
     )
@@ -350,7 +350,10 @@ def test_special_characters_in_protein_ids(mock_read_csv):
         {
             "Significant": ["+", "+"],
             "Difference": [1.5, -0.8],
-            "Protein IDs": ["P12345;Q67890", "P23456|Q78901"],  # Different separators
+            "Majority Protein IDs": [
+                "P12345;Q67890",
+                "P23456|Q78901",
+            ],  # Different separators
             "Gene names": ["GENE1;GENE2", "GENE3|GENE4"],
         }
     )
@@ -375,7 +378,7 @@ def test_mixed_significance_formats(mock_read_csv):
         {
             "Significant": ["+", "TRUE", "1", "", "FALSE", "0", np.nan, " "],
             "Difference": [1.0, 2.0, 3.0, -1.0, -2.0, -3.0, 0.5, -0.5],
-            "Protein IDs": [f"P{i:05d}" for i in range(8)],
+            "Majority Protein IDs": [f"P{i:05d}" for i in range(8)],
             "Gene names": [f"GENE{i}" for i in range(8)],
         }
     )
