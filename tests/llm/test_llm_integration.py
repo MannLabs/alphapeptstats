@@ -40,7 +40,6 @@ def llm_integration(mock_completion) -> LLMIntegration:
         client_wrapper,
         system_message="Test system message",
         dataset=dataset,
-        genes_of_interest={"GENE1": "PROT1", "GENE2": "PROT2"},
     )
 
 
@@ -54,21 +53,21 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
             "content": "System message",
             "___exchange_id": 1,
             "___pinned": True,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
         {
             "role": "user",
             "content": "User message 1",
             "___exchange_id": 2,
             "___pinned": False,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
         {
             "role": "assistant",
             "content": "Assistant message 1",
             "___exchange_id": 2,
             "___pinned": False,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
         {
             "role": "assistant",
@@ -78,28 +77,28 @@ def llm_with_conversation(llm_integration: LLMIntegration) -> LLMIntegration:
             ],
             "___exchange_id": 2,
             "___pinned": False,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
         {
             "role": "tool",
             "content": "Tool response",
             "___exchange_id": 2,
             "___pinned": False,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
         {
             "role": "user",
             "content": "User message 2",
             "___exchange_id": 3,
             "___pinned": False,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
         {
             "role": "assistant",
             "content": "Assistant message 2",
             "___exchange_id": 3,
             "___pinned": False,
-            "___timestamp": "2022-01-01T00:00:00",
+            "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         },
     ]
 
@@ -169,7 +168,7 @@ def test_append_message(mock_datetime, llm_integration: LLMIntegration):
     assert len(llm_integration._messages) == 2  # Including system message
     assert llm_integration._messages[-1] == {
         "___exchange_id": 0,
-        "___timestamp": "2022-01-01T00:00:00",
+        "___timestamp": datetime(2022, 1, 1, 0, 0, 0),
         "___pinned": False,
         "role": "user",
         "content": "Test message",
@@ -439,13 +438,13 @@ def test_handle_function_calls(
     ]
     mock_completion.assert_called_once_with(
         model=GPT_MODEL_NAME,
+        api_key="test-key",  # pragma: allowlist secret
+        base_url=None,
         messages=[
             {k: v for k, v in message.items() if not k.startswith("___")}
             for message in expected_messages
         ],
         tools=llm_integration._tools,
-        api_key="test-key",  # pragma: allowlist secret
-        api_base=None,
     )
 
     assert list(llm_integration._artifacts[3]) == ["some_function_result"]

@@ -67,6 +67,9 @@ def assert_parameters(method_definition: Callable, llm_function_dict_):
     # are all required parameters marked as 'required'?
     assert set(parameters_without_default).issubset(set(parameters_dict_["required"]))
 
+    # are all required parameters defined
+    assert set(parameters_dict_["required"]).issubset(set(parameters_))
+
 
 def test_general_assistant_functions():
     """Test that the general assistant functions in the LLM match the actual functions."""
@@ -87,7 +90,9 @@ def test_general_assistant_functions():
 def test_assistant_functions():
     """Test that the assistant functions in the LLM match the actual functions."""
     # suffix '_' denotes LLM-related variables
-    assistant_functions_dict = get_assistant_functions({}, pd.DataFrame(), {})
+    assistant_functions_dict = get_assistant_functions(
+        metadata=pd.DataFrame(), subgroups_for_each_group={}
+    )
 
     all_dataset_methods = _get_class_methods(DataSet)
 

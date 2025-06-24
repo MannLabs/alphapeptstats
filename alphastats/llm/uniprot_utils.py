@@ -156,7 +156,9 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
 
     # 9. Subcellular Locations
     subcellular_locations_comments = [
-        c["subcellularLocations"]
+        c.get(
+            "subcellularLocations", []
+        )  # sucbcellular location comments without subcellular locations
         for c in data.get("comments", [])
         if c["commentType"] == "SUBCELLULAR LOCATION"
     ]
@@ -458,7 +460,9 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
 
     # get requested fields
     texts = {
-        field: _format_uniprot_field(field, information.get(field)) for field in fields
+        # TODO .get() fails if information == "Retrieval failed"
+        field: _format_uniprot_field(field, information.get(field))
+        for field in fields
     }
     # remove empty fields
     texts = {field: text for field, text in texts.items() if text is not None}

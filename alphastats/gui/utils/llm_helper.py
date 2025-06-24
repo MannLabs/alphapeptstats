@@ -91,18 +91,23 @@ def llm_config() -> None:
 
         requires_api_key = Model(new_model_name).requires_api_key()
         supports_base_url = Model(new_model_name).supports_base_url()
+        is_vertex_model = new_model_name.startswith("vertex")
 
         api_key = st.text_input(
-            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear.",
+            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear."
+            if not is_vertex_model
+            else "Vertex project id (need to set up gauth default login first)",
             type="password",
         )
         set_api_key(api_key)
 
         new_base_url = (
             st.text_input(
-                "API base url. Enter a space to clear.",
+                "API base url. Enter a space to clear."
+                if not is_vertex_model
+                else "Vertex location",
                 value=current_base_url,
-                help="Optional base URL for the LLM API. E.g. if you are using Ollama, this is usually http://localhost:11434.",
+                help="Optional base URL for the LLM API, or location in case of Vertex AI. E.g. if you are using Ollama, this is usually http://localhost:11434.",
             )
             if supports_base_url
             else None
@@ -147,6 +152,8 @@ def llm_config() -> None:
 
 def format_analysis_key(key: str) -> str:
     """Pretty print an analysis referenced by `key`."""
+    if key not in st.session_state[StateKeys.SAVED_ANALYSES]:
+        return key
     analysis = st.session_state[StateKeys.SAVED_ANALYSES][key]
     return f"[{key}] #{analysis[SavedAnalysisKeys.NUMBER]} {analysis[SavedAnalysisKeys.METHOD]} {analysis[SavedAnalysisKeys.PARAMETERS]}"
 
@@ -247,6 +254,7 @@ def initialize_initial_prompt_modules(
 
 @st.fragment
 def protein_selector(
+    feature_to_repr_map: dict[str, str],
     regulated_features: list[str],
     title: str,
     selected_analysis_key: str,
@@ -255,6 +263,7 @@ def protein_selector(
     """Creates a data editor for protein selection and returns the selected proteins.
 
     Args:
+        feature_to_repr_map: Mapping from features to their representation (e.g. gene names)
         regulated_features: List of regulated features to display in the table
         title: Title to display above the editor
         selected_analysis_key: Key to access the selected analysis in the session state
@@ -268,7 +277,9 @@ def protein_selector(
         selected_analysis_key
     ]
     df = get_df_for_protein_selector(
-        regulated_features, selected_analysis_session_state[state_key]
+        feature_to_repr_map,
+        regulated_features,
+        selected_analysis_session_state[state_key],
     )
     if len(df) == 0:
         st.markdown("No significant proteins.")
@@ -322,11 +333,12 @@ def protein_selector(
 
 
 def get_df_for_protein_selector(
-    proteins: list[str], selected: list[str]
+    feature_to_repr_map: dict[str, str], proteins: list[str], selected: list[str]
 ) -> pd.DataFrame:
     """Create a DataFrame for the protein selector.
 
     Args:
+        feature_to_repr_map (dict[str, str]): A mapping from features to their representation (e.g. gene names).
         proteins (List[str]): A list of proteins.
 
     Returns:
@@ -334,12 +346,7 @@ def get_df_for_protein_selector(
     """
     return pd.DataFrame(
         {
-            "Gene": [
-                st.session_state[StateKeys.DATASET].id_holder.feature_to_repr_map[
-                    protein
-                ]
-                for protein in proteins
-            ],
+            "Gene": [feature_to_repr_map[protein] for protein in proteins],
             "Selected": [protein in selected for protein in proteins],
             "Protein": proteins,
         }
@@ -561,11 +568,17 @@ def display_uniprot(
             ],
             format_func=lambda x: feature_to_repr_map[x],
         )
-        if preview_feature is not None:
-            uniprot_url = "https://www.uniprot.org/uniprotkb/"
-            st.markdown(
-                f"[Open in Uniprot ...]({uniprot_url + st.session_state[StateKeys.ANNOTATION_STORE][preview_feature]['primaryAccession']})"
+        if (
+            preview_feature is not None
+            and (
+                primary_accession := st.session_state[StateKeys.ANNOTATION_STORE][
+                    preview_feature
+                ].get("primaryAccession")
             )
+            is not None
+        ):
+            uniprot_url = "https://www.uniprot.org/uniprotkb/"
+            st.markdown(f"[Open in Uniprot ...]({uniprot_url}{primary_accession})")
             st.markdown(f"Text generated from feature id {preview_feature}:")
             st.markdown(
                 format_uniprot_annotation(
@@ -766,7 +779,7 @@ def configure_initial_prompt(
     feature_to_repr_map: dict,
     *,
     disabled: bool,
-) -> None:
+) -> str:
     c1, c2 = st.columns((5, 1))
     with c2:
         st.markdown("#####")
@@ -873,23 +886,16 @@ def show_llm_chat(
     )
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
-            st.markdown(
-                f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.CONTENT]}"
-            )
-            if (
-                message[MessageKeys.PINNED]
-                or not message[MessageKeys.IN_CONTEXT]
-                or show_individual_tokens
-            ):
-                token_message = ""
-                if message[MessageKeys.PINNED]:
-                    token_message += ":pushpin: "
-                if not message[MessageKeys.IN_CONTEXT]:
-                    token_message += ":x: "
-                if show_individual_tokens:
-                    tokens = LLMIntegration.estimate_tokens([message], model=model_name)
-                    token_message += f"*tokens: {str(tokens)}*"
-                st.markdown(token_message)
+            st.markdown(f"{message[MessageKeys.CONTENT]}")
+            token_message = f'<span style="color:grey">{message[MessageKeys.TIMESTAMP].strftime("%Y-%m-%d at %H:%M")}</span> '
+            if message[MessageKeys.PINNED]:
+                token_message += ":pushpin: "
+            if not message[MessageKeys.IN_CONTEXT]:
+                token_message += ":x: "
+            if show_individual_tokens:
+                tokens = LLMIntegration.estimate_tokens([message], model=model_name)
+                token_message += f"*tokens: {str(tokens)}*"
+            st.markdown(token_message, unsafe_allow_html=True)
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact, key=str(id(artifact)))
