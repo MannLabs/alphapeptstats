@@ -15,7 +15,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.multitest import multipletests
 
-from alphastats.dataset.keys import Cols
+from alphastats.dataset.keys import Cols, Regulation
 
 # code taken from Isabel Bludau - multicova
 
@@ -286,7 +286,8 @@ def annotate_fdr_significance(res_real, stats, fdr=0.01):
         np.min(stats[stats.t_cut <= abs(x)].fdr) for x in res_real["tval_s0"]
     ]
     res_real["FDR" + str(int(fdr * 100)) + "%"] = [
-        "sig" if abs(x) >= t_limit else "non_sig" for x in res_real["tval_s0"]
+        Regulation.SIG if abs(x) >= t_limit else Regulation.NON_SIG
+        for x in res_real["tval_s0"]
     ]
     return res_real
 
@@ -692,11 +693,13 @@ def full_regression_analysis(
         # @ToDo: This multiple testing should potentially be done across all covariates together?
         res_i["qval_BH"] = multipletests(res_i.pval, method="fdr_bh")[1]
         res_i["BH_FDR " + str(int(fdr * 100)) + "%"] = [
-            "sig" if abs(x) <= fdr else "non_sig" for x in res_i["qval_BH"]
+            Regulation.SIG if abs(x) <= fdr else Regulation.NON_SIG
+            for x in res_i["qval_BH"]
         ]
         res_i["qval_BH_s0"] = multipletests(res_i.pval_s0, method="fdr_bh")[1]
         res_i["BH_FDR_s0 " + str(int(fdr * 100)) + "%"] = [
-            "sig" if abs(x) <= fdr else "non_sig" for x in res_i["qval_BH_s0"]
+            Regulation.SIG if abs(x) <= fdr else Regulation.NON_SIG
+            for x in res_i["qval_BH_s0"]
         ]
 
         res_i = res_i.add_prefix(covariates[test_index] + "_")
@@ -771,7 +774,7 @@ def evaluate_seed_and_perm(
 
         for c in covariates:
             resDF.loc[i, c] = res[
-                res[c + "_FDR " + str(int(fdr * 100)) + "%"] == "sig"
+                res[c + "_FDR " + str(int(fdr * 100)) + "%"] == Regulation.SIG
             ].shape[0]
     plot_evaluate_seed_and_perm(resDF, covariates=covariates)
     return resDF
@@ -817,7 +820,7 @@ def evaluate_s0s(
 
         for c in covariates:
             resDF.loc[i, c] = res[
-                res[c + "_FDR " + str(int(fdr * 100)) + "%"] == "sig"
+                res[c + "_FDR " + str(int(fdr * 100)) + "%"] == Regulation.SIG
             ].shape[0]
 
     plot_evaluate_s0s(resDF, covariates=covariates)
