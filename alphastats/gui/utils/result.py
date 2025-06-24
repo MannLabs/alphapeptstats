@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import TYPE_CHECKING, Literal
 
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
     from plotly.graph_objects import Figure
 
 
-class ResultComponent(ABC):  # move to new file
+class ResultComponent:  # move to new file
     """Base class for providing the UI for inspecting and parameterizing the analysis based of statistical results.
 
     The intended use is that in a first step data can be annotated e.g. based on significance cutoffs and then plotted, e.g. applying cosmetic preferences like lines and colors.
@@ -60,15 +59,15 @@ class ResultComponent(ABC):  # move to new file
 
         """
         self.dataframe = dataframe
-        self.annotated_dataframe = dataframe
+        self.annotated_dataframe: pd.DataFrame | None = dataframe
         self._is_plottable = is_plottable
         self.preprocessing = preprocessing
         self.method = method
         self.feature_to_repr_map = feature_to_repr_map
 
         self.plot: Figure | None = None
-        self._data_annotation_options = {}
-        self._display_options = {}
+        self._data_annotation_options: dict | None = {}
+        self._display_options: dict | None = {}
         self._display_selection = (
             self.DisplaySelection.PLOT
             if self._is_plottable
@@ -85,12 +84,12 @@ class ResultComponent(ABC):  # move to new file
         self._data_annotation_options = self._get_data_annotation_options(name=name)
         self.annotated_dataframe = self._annotate_data(**self._data_annotation_options)
 
-    @abstractmethod
     def _get_data_annotation_options(self, name: str = "") -> dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_data_annotation as kwargs."""
+        del name  # unused
+        return {}
 
-    @abstractmethod
-    def _annotate_data(self, **kwargs) -> pd.DataFrame:
+    def _annotate_data(self, **kwargs) -> pd.DataFrame | None:
         """Implementations of this function should create the dataframe that can then directly be used by the _update_plot method to update the plot."""
 
     def _apply_display_options(self, name: str = "") -> None:
@@ -126,11 +125,9 @@ class ResultComponent(ABC):  # move to new file
             self._display_options = self._get_plot_options(name=name)
             self.plot = self._create_plot(**self._display_options)
 
-    @abstractmethod
     def _get_plot_options(self, name: str = "") -> dict:
         """Implementations of this functions should generate a streamlit interface and return a dictionary of parameters that can be passed to _update_plot as kwargs."""
 
-    @abstractmethod
     def _create_plot(self, **kwargs) -> Figure:
         """Implementations of this function should use the annotated_dataframe attribute and kwargs to create the plot that can then directly be displayed by the _display_object method."""
 

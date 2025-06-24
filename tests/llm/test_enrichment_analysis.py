@@ -293,7 +293,9 @@ def test_get_enrichment_data_gprofiler(mock_shorten, mock_gprofiler):
     tool = "gprofiler"
 
     # When
-    result = get_enrichment_data(difexpressed, organism_id, tool, background=background)
+    result = get_enrichment_data(
+        difexpressed, organism_id, tool, include_background=True, background=background
+    )
 
     # Assert that the mock functions were called with the correct arguments
     mock_shorten.assert_any_call(difexpressed)
@@ -336,7 +338,9 @@ def test_get_enrichment_data_string(mock_shorten, mock_map, mock_string):
     tool = "string"
 
     # When
-    result = get_enrichment_data(difexpressed, organism_id, tool, background=background)
+    result = get_enrichment_data(
+        difexpressed, organism_id, tool, include_background=True, background=background
+    )
 
     # Assert that the mock functions were called with the correct arguments
     mock_shorten.assert_any_call(difexpressed)
