@@ -32,7 +32,7 @@ def parse_custom_analysis_file(uploaded_file: UploadedFile) -> pd.DataFrame:
 
     parsed_df = df[required_columns].copy()
 
-    parsed_df = parsed_df.rename(columns={"Majority Protein IDs": Cols.INDEX})
+    parsed_df = parsed_df.rename(columns={MAJORITY_PROTEIN_IDS: Cols.INDEX})
 
     significant_clean = parsed_df[SIGNIFICANT].fillna("").astype(str)
     significance_mapping = defaultdict(lambda: False)
@@ -65,9 +65,9 @@ def create_custom_result_component(
     result_component.annotated_dataframe = parsed_df.copy()
 
     id_holder = IdHolder(
-        features_list=list(parsed_df["index_"]),
-        proteins_list=list(parsed_df["index_"]),
-        gene_names_list=list(parsed_df["Gene names"]),
+        features_list=list(parsed_df[Cols.INDEX]),
+        proteins_list=list(parsed_df[Cols.INDEX]),
+        gene_names_list=list(parsed_df[GENE_NAMES]),
     )
 
     return result_component, id_holder

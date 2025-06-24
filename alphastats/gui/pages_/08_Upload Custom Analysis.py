@@ -122,7 +122,12 @@ else:
     example_data = {
         "Significant": ["+", "", "+", ""],
         "Difference": [1.73, -0.83, 2.14, -0.28],
-        "Protein IDs": ["P12345;Q67890", "P23456", "P34567;Q78901;R90123", "P45678"],
+        "Majority Protein IDs": [
+            "P12345;Q67890",
+            "P23456",
+            "P34567;Q78901;R90123",
+            "P45678",
+        ],
         "Gene names": ["Gene1", "Gene2", "Gene3", "Gene4"],
     }
     example_df = pd.DataFrame(example_data)
