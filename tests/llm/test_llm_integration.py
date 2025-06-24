@@ -438,13 +438,13 @@ def test_handle_function_calls(
     ]
     mock_completion.assert_called_once_with(
         model=GPT_MODEL_NAME,
+        api_key="test-key",  # pragma: allowlist secret
+        base_url=None,
         messages=[
             {k: v for k, v in message.items() if not k.startswith("___")}
             for message in expected_messages
         ],
         tools=llm_integration._tools,
-        api_key="test-key",  # pragma: allowlist secret
-        api_base=None,
     )
 
     assert list(llm_integration._artifacts[3]) == ["some_function_result"]

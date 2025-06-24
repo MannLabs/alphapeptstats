@@ -271,68 +271,7 @@ def get_assistant_functions(
                             "description": "The method of plot to create",
                         },
                     },
-                    "required": ["group", "method"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": DataSet.plot_volcano.__name__,
-                "description": "Generates a volcano plot based on two subgroups of the same group",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "column": {
-                            "type": "string",
-                            "items": {"type": "string"},
-                            "description": f"Column name in the dataset for the group variable. Must be from {str(subgroups_for_each_group.keys())} and group1 and group2 must be from THIS very group.",
-                        },
-                        "group1": {
-                            "type": "string",
-                            "items": {"type": "string"},
-                            "description": f"Specific subgroup within the group to analyze. For each group you get from prompt you need to look up the subgroups in the dict {str(subgroups_for_each_group)} or present user with them first if you are not sure what to choose. You can use ONLY 1.",
-                        },
-                        "group2": {
-                            "type": "string",
-                            "items": {"type": "string"},
-                            "description": f"Second subgroup from the same group in {str(subgroups_for_each_group)} or present user with them first if you are not sure what to choose. You can use ONLY 1.",
-                        },
-                        "method": {
-                            "type": "string",
-                            "enum": ["wald", "ttest", "anova", "welch-ttest", "sam"],
-                            "description": "The method of plot to create",
-                        },
-                        "labels": {
-                            "type": "boolean",
-                            "description": "Whether to add gene names to the plot",
-                        },
-                        "min_fc": {
-                            "type": "string",
-                            "enum": ["0", "1", "2"],
-                            "description": "Minimal foldchange cutoff that is considered significant",
-                        },
-                        "alpha": {
-                            "type": "string",
-                            "enum": ["0.01", "0.02", "0.03", "0.04", "0.05"],
-                            "description": "Alpha value for significance",
-                        },
-                        "draw_line": {
-                            "type": "boolean",
-                            "description": "Whether to draw lines for significance",
-                        },
-                        "perm": {
-                            "type": "string",
-                            "enum": ["1", "10", "100", "1000"],
-                            "description": "Number of permutations for SAM",
-                        },
-                        "fdr": {
-                            "type": "string",
-                            "enum": ["0.005", "0.01", "0.05", "0.1"],
-                            "description": "False Discovery Rate cutoff for SAM",
-                        },
-                    },
-                    "required": ["column", "group1", "group2"],
+                    "required": ["color", "method"],
                 },
             },
         },
