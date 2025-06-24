@@ -8,9 +8,11 @@ import streamlit as st
 from plotly.graph_objects import Figure
 from stqdm import stqdm
 
+from alphastats.dataset.id_holder import IdHolder
 from alphastats.dataset.keys import Cols, Regulation
 from alphastats.gui.utils.analysis import (
     ANALYSIS_OPTIONS,
+    CUSTOM_ANALYSIS,
     DifferentialExpressionTwoGroupsResult,
     NewAnalysisOptions,
     PlottingOptions,
@@ -47,6 +49,10 @@ def display_analysis_result_with_buttons(
     elif analysis_method in NewAnalysisOptions.get_values():
         display_function = display_results
         download_function = _show_buttons_download_results
+    elif analysis_method == CUSTOM_ANALYSIS:
+        # TODO this is a bit rough, but works for now
+        display_function = lambda x, *args, **kwargs: _display_df(x.annotated_dataframe)  # noqa: E731
+        download_function = lambda x, *args, **kwargs: None  # noqa: E731
     else:
         raise ValueError(f"Analysis method {analysis_method} not found.")
 
@@ -233,6 +239,7 @@ def _save_analysis_to_session_state(
     analysis_results: Union[PlotlyObject, pd.DataFrame, ResultComponent],
     method: str,
     parameters: Dict,
+    id_holder: Optional[IdHolder] = None,
 ):
     """Save analysis with method and parameters to session state to show on results page."""
     analysis_key = datetime.now()  # could depend on data and parameters one day
@@ -240,6 +247,7 @@ def _save_analysis_to_session_state(
         SavedAnalysisKeys.RESULT: deepcopy(analysis_results),
         SavedAnalysisKeys.METHOD: method,
         SavedAnalysisKeys.PARAMETERS: parameters,
+        SavedAnalysisKeys.ID_HOLDER: id_holder,
         # TODO number will be given twice if user removes analysis
         SavedAnalysisKeys.NUMBER: len(st.session_state[StateKeys.SAVED_ANALYSES]) + 1,
     }

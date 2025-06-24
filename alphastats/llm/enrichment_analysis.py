@@ -238,7 +238,7 @@ def get_enrichment_data(
     organism_id: str = HUMAN_ORGANISM_ID,
     tool: str = "string",
     *,
-    include_background: bool = True,
+    include_background: bool = False,
     background: Optional | list[str] = None,
 ) -> pd.DataFrame:
     """Get enrichment data for a list of differentially expressed genes.
@@ -257,7 +257,7 @@ def get_enrichment_data(
     include_background : bool, optional
         Whether to include background genes in the analysis. Default is False.
     background : list of str, optional
-        A list of background genes for the enrichment analysis in case this funciton is run outside the GUI. Default is None.
+        A list of background genes for the enrichment analysis in case this function is run outside the GUI. Default is None.
 
     Returns
     -------
