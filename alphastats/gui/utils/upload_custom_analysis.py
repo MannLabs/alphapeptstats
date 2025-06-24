@@ -32,7 +32,7 @@ def parse_custom_analysis_file(uploaded_file: UploadedFile) -> pd.DataFrame:
 
     parsed_df = df[required_columns].copy()
 
-    parsed_df = parsed_df.rename(columns={"Protein IDs": Cols.INDEX})
+    parsed_df = parsed_df.rename(columns={"Majority Protein IDs": Cols.INDEX})
 
     significant_clean = parsed_df[SIGNIFICANT].fillna("").astype(str)
     significance_mapping = defaultdict(lambda: False)
