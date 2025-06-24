@@ -228,6 +228,20 @@ class LLMClientWrapper:
         )
         return response
 
+    def _extract_token_usage(self, response: ChatCompletion) -> Dict[str, int]:
+        """Extract the token usage from the response."""
+        if hasattr(response, "usage") and response.usage:
+            return {
+                "prompt_tokens": response.usage.prompt_tokens,
+                "completion_tokens": response.usage.completion_tokens,
+                "total_tokens": response.usage.total_tokens,
+            }
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+
     @staticmethod
     def _strip_off_internal_keys(
         messages: List[Dict[str, Any]],
@@ -273,6 +287,7 @@ class LLMIntegration:
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
         self._max_tokens = max_tokens
+        self._token_usage: List[Dict[str, int]] = []
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -618,6 +633,9 @@ class LLMIntegration:
             messages=self._truncate(self._messages), tools=self._tools
         )
 
+        response_usage = self.client_wrapper._extract_token_usage(response)
+        self._token_usage.append(response_usage)
+
         return self._parse_model_response(response)
 
     def _get_image_analysis_message(self, function_result: Any) -> List[Dict[str, str]]:
@@ -777,7 +795,6 @@ class LLMIntegration:
                     MessageKeys.TIMESTAMP: message[MessageKeys.TIMESTAMP],
                 }
             )
-
         return print_view, total_tokens, pinned_tokens
 
     def get_chat_log_txt(self) -> str:
@@ -791,6 +808,7 @@ class LLMIntegration:
             for artifact in message[MessageKeys.ARTIFACTS]:
                 chatlog += f"Artifact: {artifact}\n"
             chatlog += "----------\n"
+        chatlog += f"Token usage: {self.get_token_usage}\n"
         return chatlog
 
     def chat_completion(
@@ -830,6 +848,9 @@ class LLMIntegration:
                 tools=self._tools if pass_tools else None,
             )
 
+            response_usage = self.client_wrapper._extract_token_usage(response)
+            self._token_usage.append(response_usage)
+
             content, tool_calls = self._parse_model_response(response)
 
             if tool_calls:
@@ -845,3 +866,23 @@ class LLMIntegration:
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message(Roles.SYSTEM, error_message)
+
+    @property
+    def get_token_usage(self) -> Dict[str, Dict[str, int]]:
+        """Return token consumption information.
+
+        The return value has two entries:
+
+        overall : accumulated token usage across all exchanges
+        latest  : token usage reported for the most recent exchange (zeros if none yet)
+        """
+
+        overall = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+        for usage in self._token_usage:
+            for key in overall:
+                overall[key] += usage.get(key, 0)
+
+        latest = self._token_usage[-1] if self._token_usage else overall.copy()
+
+        return {"overall": overall, "latest": latest}
