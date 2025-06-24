@@ -911,9 +911,21 @@ def show_llm_chat(
                     st.warning("Don't know how to display artifact:")
                     st.write(artifact)
 
-    st.markdown(
-        f"*total tokens in context: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
-    )
+    token_usage = llm_integration.get_token_usage
+    overall = token_usage["overall"]
+    latest = token_usage["latest"]
+
+    if overall["total_tokens"] > 0:
+        st.markdown(
+            f"*Overall tokens used: {overall['total_tokens']} (prompt: {overall['prompt_tokens']}, completion: {overall['completion_tokens']}), pinned messages: {str(pinned_tokens)}*"
+        )
+        st.markdown(
+            f"*Tokens in the last exchange: {latest['total_tokens']} (prompt: {latest['prompt_tokens']}, completion: {latest['completion_tokens']})*"
+        )
+    else:
+        st.markdown(
+            f"*Estimated tokens in context: {str(total_tokens)}, tokens used for pinned messages: {str(pinned_tokens)}*"
+        )
 
     if selected_analysis_session_state.get(LLMKeys.RECENT_CHAT_WARNINGS):
         st.warning("Warnings during last chat completion:")
@@ -937,6 +949,14 @@ def show_llm_chat(
             )
 
         st.rerun(scope="fragment")
+
+    st.download_button(
+        "Download chat log",
+        llm_integration.get_chat_log_txt(),
+        file_name=f"chat_log_{model_name}.txt",
+        mime="text/plain",
+        key="download_chat_log",
+    )
 
     st.markdown(
         "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"

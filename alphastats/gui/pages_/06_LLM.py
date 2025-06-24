@@ -290,9 +290,6 @@ if not is_llm_integration_initialized:
             max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
         )
 
-        selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
-        selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
-
         st.toast(
             f"{selected_llm_chat[LLMKeys.MODEL_NAME]} integration initialized successfully!",
             icon="✅",
@@ -304,20 +301,15 @@ if not is_llm_integration_initialized:
                 initial_prompt, pin_message=True, pass_tools=False
             )
 
+        selected_llm_chat[LLMKeys.LLM_INTEGRATION] = llm_integration
+        selected_llm_chat[LLMKeys.IS_INITIALIZED] = True
+
         st.rerun(scope="app")
     except AuthenticationError:
         st.warning(
             "Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX"
         )
         st.stop()
-
-if llm_integration := selected_llm_chat[LLMKeys.LLM_INTEGRATION]:
-    c3.download_button(
-        "Download chat log",
-        llm_integration.get_chat_log_txt(),
-        f"chat_log_{model_name}.txt",
-        "text/plain",
-    )
 
 c1, c2 = st.columns((1, 2))
 with c1:
@@ -333,6 +325,7 @@ with c2:
         help="Show individual token estimates for each message.",
     )
 
+llm_integration = selected_llm_chat[LLMKeys.LLM_INTEGRATION]
 show_llm_chat(
     llm_integration,
     selected_analysis_key,
