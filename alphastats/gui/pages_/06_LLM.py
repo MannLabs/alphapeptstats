@@ -110,7 +110,7 @@ c1, c2, c3 = st.columns((1, 1, 1))
 
 ##################################### Volcano plot #####################################
 
-if has_dataset:
+if result_component.plot:
     with c3:
         st.markdown("##### Volcano plot")
         display_figure(result_component.plot)
