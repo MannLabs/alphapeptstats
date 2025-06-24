@@ -93,18 +93,23 @@ def llm_config() -> None:
 
         requires_api_key = Model(new_model_name).requires_api_key()
         supports_base_url = Model(new_model_name).supports_base_url()
+        is_vertex_model = new_model_name.startswith("vertex")
 
         api_key = st.text_input(
-            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear.",
+            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear."
+            if not is_vertex_model
+            else "Vertex project id (need to set up gauth default login first)",
             type="password",
         )
         set_api_key(api_key)
 
         new_base_url = (
             st.text_input(
-                "API base url. Enter a space to clear.",
+                "API base url. Enter a space to clear."
+                if not is_vertex_model
+                else "Vertex location",
                 value=current_base_url,
-                help="Optional base URL for the LLM API. E.g. if you are using Ollama, this is usually http://localhost:11434.",
+                help="Optional base URL for the LLM API, or location in case of Vertex AI. E.g. if you are using Ollama, this is usually http://localhost:11434.",
             )
             if supports_base_url
             else None
@@ -883,23 +888,16 @@ def show_llm_chat(
     )
     for message in messages:
         with st.chat_message(message[MessageKeys.ROLE]):
-            st.markdown(
-                f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.CONTENT]}"
-            )
-            if (
-                message[MessageKeys.PINNED]
-                or not message[MessageKeys.IN_CONTEXT]
-                or show_individual_tokens
-            ):
-                token_message = ""
-                if message[MessageKeys.PINNED]:
-                    token_message += ":pushpin: "
-                if not message[MessageKeys.IN_CONTEXT]:
-                    token_message += ":x: "
-                if show_individual_tokens:
-                    tokens = LLMIntegration.estimate_tokens([message], model=model_name)
-                    token_message += f"*tokens: {str(tokens)}*"
-                st.markdown(token_message)
+            st.markdown(f"{message[MessageKeys.CONTENT]}")
+            token_message = f'<span style="color:grey">{message[MessageKeys.TIMESTAMP].strftime("%Y-%m-%d at %H:%M")}</span> '
+            if message[MessageKeys.PINNED]:
+                token_message += ":pushpin: "
+            if not message[MessageKeys.IN_CONTEXT]:
+                token_message += ":x: "
+            if show_individual_tokens:
+                tokens = LLMIntegration.estimate_tokens([message], model=model_name)
+                token_message += f"*tokens: {str(tokens)}*"
+            st.markdown(token_message, unsafe_allow_html=True)
             for artifact in message[MessageKeys.ARTIFACTS]:
                 if isinstance(artifact, pd.DataFrame):
                     st.dataframe(artifact, key=str(id(artifact)))

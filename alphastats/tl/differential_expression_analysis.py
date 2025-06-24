@@ -221,8 +221,8 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
 
     def _extend_validation(
         self,
-        group1: list | str,
-        group2: list | str,
+        group1: list | str | float,
+        group2: list | str | float,
         grouping_column: str | None = None,
         metadata: pd.DataFrame | None = None,
     ) -> None:
@@ -254,8 +254,8 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
 
     @staticmethod
     def _get_group_members(
-        group1: list | str,
-        group2: list | str,
+        group1: list | str | float,
+        group2: list | str | float,
         grouping_column: str | None = None,
         metadata: pd.DataFrame | None = None,
     ) -> tuple(list, list):
@@ -285,9 +285,9 @@ class DifferentialExpressionAnalysisTwoGroups(DifferentialExpressionAnalysis, AB
             group1_samples = group1
             group2_samples = group2
         else:
-            if not isinstance(group1, str) or not isinstance(group2, str):
+            if isinstance(group1, list) or isinstance(group2, list):
                 raise TypeError(
-                    "If grouping_column is provided, group1 and group2 must be strings matching elements in the column."
+                    "If grouping_column is provided, group1 and group2 must be singular values matching elements in the column."
                 )
             if not isinstance(metadata, pd.DataFrame):
                 raise TypeError(
