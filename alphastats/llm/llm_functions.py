@@ -116,7 +116,7 @@ def get_general_assistant_functions() -> list[dict]:
             "type": "function",
             "function": {
                 "name": get_uniprot_info_for_search_string.__name__,
-                "description": "Get the gene function and description by UniProt lookup of gene identifier or protein id. When picking the representation from a comma separated list, always include the whole item, even if it contains semicolons or other separators. e.g. from `A;B, ids:123, C` submit `A:B` (not only `A` and/or `B`) and `ids:123`, not `123`.",
+                "description": "Get the gene function and description by UniProt lookup of gene identifier or protein id. When picking the representation from a comma separated list, always include the whole item, even if it contains semicolons or other separators. e.g. from `A;B, ids:123, C` submit `A;B` (not only `A` and/or `B`) and `ids:123`, not `123`.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -209,12 +209,12 @@ def get_assistant_functions(
                         },
                         "method": {
                             "type": "string",
-                            "enum": ["violin", "box", "scatter", "all"],
+                            "enum": ["box", "violin", "scatter", "all"],
                             "description": "The method of plot to create",
                         },
                         "add_significance": {
                             "type": "boolean",
-                            "description": "Whether to add significance markers to the plot",
+                            "description": "Whether to add significance markers to the plot. This is only possible if the group has exactly two subgroups and just one feature is selected.",
                         },
                         "log_scale": {
                             "type": "boolean",
@@ -248,7 +248,7 @@ def get_assistant_functions(
                             "description": "Flag to draw circles around groups in the scatterplot",
                         },
                     },
-                    "required": ["group", "method", "circle"],
+                    "required": ["group", "method"],
                 },
             },
         },
@@ -256,7 +256,7 @@ def get_assistant_functions(
             "type": "function",
             "function": {
                 "name": DataSet.plot_sampledistribution.__name__,
-                "description": "Generates a histogram plot for each sample in the dataset matrix.",
+                "description": "Generates an intensity distribution plot for each sample in the dataset matrix.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -275,5 +275,4 @@ def get_assistant_functions(
                 },
             },
         },
-        # {"type": "code_interpreter"},
     ]
