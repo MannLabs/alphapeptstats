@@ -287,11 +287,7 @@ class LLMIntegration:
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
         self._max_tokens = max_tokens
-        self._token_usage = {
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0,
-        }
+        self._token_usage: List[Dict[str, int]] = []
 
         self._tools = self._get_tools() if load_tools else None
 
@@ -637,6 +633,9 @@ class LLMIntegration:
             messages=self._truncate(self._messages), tools=self._tools
         )
 
+        response_usage = self.client_wrapper._extract_token_usage(response)
+        self._token_usage.append(response_usage)
+
         return self._parse_model_response(response)
 
     def _get_image_analysis_message(self, function_result: Any) -> List[Dict[str, str]]:
@@ -850,10 +849,7 @@ class LLMIntegration:
             )
 
             response_usage = self.client_wrapper._extract_token_usage(response)
-            for token_type, token_count in response_usage.items():
-                self._token_usage[token_type] = (
-                    self._token_usage.get(token_type, 0) + token_count
-                )
+            self._token_usage.append(response_usage)
 
             content, tool_calls = self._parse_model_response(response)
 
@@ -872,12 +868,21 @@ class LLMIntegration:
             self._append_message(Roles.SYSTEM, error_message)
 
     @property
-    def get_token_usage(self) -> Dict[str, int]:
-        """Get the actual token usage as reported by the OpenAI API.
+    def get_token_usage(self) -> Dict[str, Dict[str, int]]:
+        """Return token consumption information.
 
-        Returns
-        -------
-        Dict[str, int]
-            A dictionary containing prompt_tokens, completion_tokens, and total_tokens
+        The return value has two entries:
+
+        overall : accumulated token usage across all exchanges
+        latest  : token usage reported for the most recent exchange (zeros if none yet)
         """
-        return self._token_usage
+
+        overall = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+        for usage in self._token_usage:
+            for key in overall:
+                overall[key] += usage.get(key, 0)
+
+        latest = self._token_usage[-1] if self._token_usage else overall.copy()
+
+        return {"overall": overall, "latest": latest}

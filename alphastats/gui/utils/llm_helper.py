@@ -910,9 +910,15 @@ def show_llm_chat(
                     st.write(artifact)
 
     token_usage = llm_integration.get_token_usage
-    if token_usage["total_tokens"] > 0:
+    overall = token_usage["overall"]
+    latest = token_usage["latest"]
+
+    if overall["total_tokens"] > 0:
         st.markdown(
-            f"*Tokens used: {token_usage['total_tokens']} (prompt: {token_usage['prompt_tokens']}, completion: {token_usage['completion_tokens']}), pinned messages: {str(pinned_tokens)}*"
+            f"*Overall tokens used: {overall['total_tokens']} (prompt: {overall['prompt_tokens']}, completion: {overall['completion_tokens']}), pinned messages: {str(pinned_tokens)}*"
+        )
+        st.markdown(
+            f"*Tokens in the last exchange: {latest['total_tokens']} (prompt: {latest['prompt_tokens']}, completion: {latest['completion_tokens']})*"
         )
     else:
         st.markdown(
@@ -947,7 +953,7 @@ def show_llm_chat(
         llm_integration.get_chat_log_txt(),
         file_name=f"chat_log_{model_name}.txt",
         mime="text/plain",
-        key=f"download_chat_log_{selected_analysis_key}",
+        key="download_chat_log",
     )
 
     st.markdown(
