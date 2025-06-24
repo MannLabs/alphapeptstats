@@ -3,7 +3,7 @@
 import base64
 import json
 import logging
-import warnings
+from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -51,6 +51,10 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
         },
+        "openai/o3": {
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
         "anthropic/claude-sonnet-4-20250514": {
             ModelProperties.REQUIRES_API_KEY: True,
         },
@@ -66,6 +70,11 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
         },
         "GWDG/qwen2.5-72b-instruct": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
+        "GWDG/qwen2.5-vl-72b-instruct": {
             ModelProperties.SUPPORTS_BASE_URL: True,
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
@@ -99,6 +108,10 @@ class Model:
         return list(Model.MODELS.keys())
 
 
+# we do not want to pass our internal keys to the LLM
+DO_NOT_PASS_PREFIX = "___"
+
+
 class MessageKeys(metaclass=ConstantsClass):
     """Keys for the message dictionary."""
 
@@ -108,11 +121,12 @@ class MessageKeys(metaclass=ConstantsClass):
     TOOL_CALL_ID = "tool_call_id"
     RESULT = "result"
     ARTIFACT_ID = "artifact_id"
-    IN_CONTEXT = "in_context"
+    IN_CONTEXT = f"{DO_NOT_PASS_PREFIX}in_context"
     ARTIFACTS = "artifacts"
-    PINNED = "pinned"
-    TIMESTAMP = "timestamp"
+    PINNED = f"{DO_NOT_PASS_PREFIX}pinned"
+    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"
     IMAGE_URL = "image_url"
+    EXCHANGE_ID = f"{DO_NOT_PASS_PREFIX}exchange_id"
 
 
 class Roles(metaclass=ConstantsClass):
@@ -162,17 +176,30 @@ class LLMClientWrapper:
         self, *, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]]
     ) -> ChatCompletion:
         """Create a chat completion based on the current conversation history."""
-        last_message = messages[-1]
+
+        messages_ = self._strip_off_internal_keys(messages)
+
+        last_message = messages_[-1]
         logger.info(f"Calling 'chat.completions.create' {last_message} ..")
 
         response = completion(
             model=self.model_name,
-            messages=messages,
+            messages=messages_,
             tools=tools,
             api_key=self.api_key if self.api_key else None,
             api_base=self.base_url if self.base_url else None,
         )
         return response
+
+    @staticmethod
+    def _strip_off_internal_keys(
+        messages: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Strip off internal keys from the messages."""
+        return [
+            {k: v for k, v in message.items() if not k.startswith(DO_NOT_PASS_PREFIX)}
+            for message in messages
+        ]
 
 
 class LLMIntegration:
@@ -218,7 +245,10 @@ class LLMIntegration:
 
         self._artifacts = {}
         self._messages = []  # the conversation history used for the LLM, could be truncated at some point.
-        self._all_messages = []  # full conversation history for display
+
+        # an "exchange" is a message from the user and a response from the LLM (incl. tool calls and responses)
+        # => at least 2, but maybe more messages
+        self._exchange_count = 0
 
         if system_message is not None:
             self._append_message("system", system_message, pin_message=True)
@@ -267,8 +297,12 @@ class LLMIntegration:
     ) -> None:
         """Construct a message and append it to the conversation history."""
         message = {
-            MessageKeys.ROLE: role,
+            MessageKeys.EXCHANGE_ID: self._exchange_count,
+            MessageKeys.TIMESTAMP: datetime.now(tz=pytz.utc).strftime(
+                "%Y-%m-%dT%H:%M:%S"
+            ),
             MessageKeys.PINNED: pin_message,
+            MessageKeys.ROLE: role,
         }
 
         if keep_list:
@@ -282,14 +316,7 @@ class LLMIntegration:
         if tool_call_id is not None:
             message[MessageKeys.TOOL_CALL_ID] = tool_call_id
 
-        message[MessageKeys.TIMESTAMP] = datetime.now(tz=pytz.utc).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )
-
         self._messages.append(message)
-        self._all_messages.append(message)
-
-        self._truncate_conversation_history()
 
     @staticmethod
     def estimate_tokens(
@@ -314,6 +341,8 @@ class LLMIntegration:
         float
             The estimated number of tokens
         """
+        # TODO we could store this with each message to avoid re-calculating it
+
         total_tokens = 0
         try:
             tiktoken_model_name = model.split("/")[-1]  # TODO this is a hack!
@@ -361,13 +390,15 @@ class LLMIntegration:
                                 total_tokens += 250  # Placeholder
         return int(total_tokens)
 
-    def _truncate_conversation_history(
-        self, average_chars_per_token: float = 3.6
-    ) -> None:
+    def _truncate(
+        self, messages: List[Dict[str, Any]], average_chars_per_token: float = 3.6
+    ) -> List[Dict[str, Any]]:
         """
-        Truncate the conversation history to stay within token limits.
+        Truncate messages to stay within token limits.
 
-        In the process pinned messages are preserved. If a tool call is removed, corresponding tool outputs are also removed, as this would otherwise raise an error in the chat completion.
+        Assumes that messages are ordered "oldest first".
+        In the process pinned messages and their corresponding exchanges are preserved.
+        The most recent exchanges are kept until the token limit is reached.
 
         Parameters
         ----------
@@ -376,42 +407,54 @@ class LLMIntegration:
         """
         # TODO: avoid important messages being removed (e.g. facts about genes)
         # TODO: find out how messages can be None type and handle them earlier
-        while (
-            self.estimate_tokens(
-                self._messages, self.client_wrapper.model_name, average_chars_per_token
+
+        pinned_exchange_ids = set()
+        not_pinned_exchanges_token_count = defaultdict(lambda: 0)
+        pinned_tokens = 0
+
+        # first, get pinned exchanges and token counts
+        for message in messages:
+            exchange_id = message[MessageKeys.EXCHANGE_ID]
+
+            message_token_count = self.estimate_tokens(
+                [message], self.client_wrapper.model_name, average_chars_per_token
             )
-            > self._max_tokens
+
+            if message[MessageKeys.PINNED]:
+                pinned_exchange_ids.add(exchange_id)
+            if exchange_id in pinned_exchange_ids:
+                pinned_tokens += message_token_count
+                continue
+
+            not_pinned_exchanges_token_count[exchange_id] += message_token_count
+
+        if pinned_tokens > self._max_tokens:
+            raise ValueError(
+                # TODO enable increasing the token limit.
+                "Pinned messages exceed the maximum token limit. Please increase the token limit."  #  or unpin some messages.
+            )
+
+        # find out which messages we can keep
+        total_tokens_added = pinned_tokens
+        exchange_ids_to_keep = set()
+        for exchange_id, exchange_token_count in reversed(  # youngest first
+            not_pinned_exchanges_token_count.items()
         ):
-            if len(self._messages) == 1:
-                raise ValueError(
-                    "Truncating conversation history failed, as the only remaining message exceeds the token limit. Please increase the token limit and reset the LLM interpretation."
-                )
-            oldest_not_pinned = -1
-            for message_idx, message in enumerate(self._messages):
-                if not message[MessageKeys.PINNED]:
-                    oldest_not_pinned = message_idx
-                    break
-            if oldest_not_pinned == -1:
-                raise ValueError(
-                    "Truncating conversation history failed, as all remaining messages are pinned. Please increase the token limit and reset the LLM interpretation, or unpin messages."
-                )
-            removed_message = self._messages.pop(oldest_not_pinned)
-            warnings.warn(
-                f"Truncating conversation history to stay within token limits.\nRemoved message:{removed_message[MessageKeys.ROLE]}: {removed_message[MessageKeys.CONTENT][0:30]}..."
-            )
-            while (
-                removed_message[MessageKeys.ROLE] == Roles.ASSISTANT
-                and self._messages[oldest_not_pinned][MessageKeys.ROLE] == Roles.TOOL
+            total_tokens_added += exchange_token_count
+            if total_tokens_added <= self._max_tokens:
+                exchange_ids_to_keep.add(exchange_id)
+                continue
+            break
+
+        # finally, filter messages based on the kept exchange IDs
+        kept_messages = []
+        for message in messages:
+            if message[MessageKeys.EXCHANGE_ID] in pinned_exchange_ids.union(
+                exchange_ids_to_keep
             ):
-                # This is required as the chat completion fails if there are tool outputs without corresponding tool calls in the message history.
-                removed_toolmessage = self._messages.pop(oldest_not_pinned)
-                warnings.warn(
-                    f"Removing corresponsing tool output as well.\nRemoved message:{removed_toolmessage[MessageKeys.ROLE]}: {removed_toolmessage[MessageKeys.CONTENT][0:30]}..."
-                )
-                if len(self._messages) == oldest_not_pinned:
-                    raise ValueError(
-                        "Truncating conversation history failed, as the artifact from the last call exceeds the token limit. Please increase the token limit and reset the LLM interpretation."
-                    )
+                kept_messages.append(message)
+
+        return kept_messages
 
     def _parse_model_response(
         self, response: ChatCompletion
@@ -485,6 +528,7 @@ class LLMIntegration:
         """
         # TODO avoid infinite loops
         new_artifacts = {}
+        pending_image_analysis_user_messages: List[List[Dict[str, Any]]] = []
 
         tool_call_message = get_tool_call_message(tool_calls)
         self._append_message(Roles.ASSISTANT, tool_call_message, tool_calls=tool_calls)
@@ -508,32 +552,40 @@ class LLMIntegration:
                 self.client_wrapper.is_multimodal,
             )
 
-            message = json.dumps(
+            message_content_for_tool_response = json.dumps(
                 {
                     MessageKeys.RESULT: result_representation,
                     MessageKeys.ARTIFACT_ID: artifact_id,
                 }
             )
 
-            self._append_message(Roles.TOOL, message, tool_call_id=tool_call.id)
+            self._append_message(
+                Roles.TOOL, message_content_for_tool_response, tool_call_id=tool_call.id
+            )
 
             if isinstance(function_result, PlotlyObject) and (
-                image_analysis_message := self._get_image_analysis_message(
+                image_analysis_content_parts := self._get_image_analysis_message(
                     function_result
                 )
             ):
-                self._append_message(
-                    Roles.USER,
-                    image_analysis_message,
-                    pin_message=False,
-                    keep_list=True,
+                pending_image_analysis_user_messages.append(
+                    image_analysis_content_parts
                 )
 
-        post_artifact_message_idx = len(self._all_messages)
+        for user_message_content_parts in pending_image_analysis_user_messages:
+            self._append_message(
+                Roles.USER,
+                user_message_content_parts,
+                pin_message=False,
+                keep_list=True,
+            )
+
+        post_artifact_message_idx = len(self._messages)
+
         self._artifacts[post_artifact_message_idx] = list(new_artifacts.values())
 
         response = self.client_wrapper.chat_completion_create(
-            messages=self._messages, tools=self._tools
+            messages=self._truncate(self._messages), tools=self._tools
         )
 
         return self._parse_model_response(response)
@@ -667,9 +719,10 @@ class LLMIntegration:
         print_view = []
         total_tokens = 0
         pinned_tokens = 0
-        for message_idx, message in enumerate(self._all_messages):
+        truncated_messages = self._truncate(self._messages)
+        for message_idx, message in enumerate(self._messages):
             tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
-            in_context = message in self._messages
+            in_context = message in truncated_messages
             if in_context:
                 total_tokens += tokens
             if message[MessageKeys.PINNED]:
@@ -711,7 +764,12 @@ class LLMIntegration:
         return chatlog
 
     def chat_completion(
-        self, prompt: str, role: str = Roles.USER, *, pin_message=False
+        self,
+        prompt: str,
+        role: str = Roles.USER,
+        *,
+        pin_message: bool = False,
+        pass_tools: bool = True,
     ) -> None:
         """
         Generate a chat completion based on the given prompt and manage any resulting artifacts.
@@ -724,17 +782,22 @@ class LLMIntegration:
             The role of the message sender, by default "user"
         pin_message : bool, optional
             Whether the prompt and assistant reply should be pinned, by default False
+        pass_tools : bool, optional
+            Whether to pass the tools to the model, by default True
 
         Returns
         -------
         Tuple[str, Dict[str, Any]]
             A tuple containing the generated response and a dictionary of new artifacts
         """
+        self._exchange_count += 1
+
         self._append_message(role, prompt, pin_message=pin_message)
 
         try:
             response = self.client_wrapper.chat_completion_create(
-                messages=self._messages, tools=self._tools
+                messages=self._truncate(self._messages),
+                tools=self._tools if pass_tools else None,
             )
 
             content, tool_calls = self._parse_model_response(response)
@@ -752,61 +815,6 @@ class LLMIntegration:
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message(Roles.SYSTEM, error_message)
-
-    # TODO this seems to be for notebooks?
-    # we need some "export mode" where everything is shown
-    def display_chat_history(self):
-        """
-        Display the chat history, including messages, function calls, and associated artifacts.
-
-        This method renders the chat history in a structured format, aligning artifacts
-        with their corresponding messages and the model's interpretation.
-
-        Returns
-        -------
-        None
-        """
-        for message in self._messages:
-            role = message[MessageKeys.ROLE]
-            content = message[MessageKeys.CONTENT]
-            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
-
-            if role == Roles.ASSISTANT and MessageKeys.TOOL_CALLS in message:
-                display(
-                    Markdown(
-                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
-                    )
-                )
-                for tool_call in message[MessageKeys.TOOL_CALLS]:
-                    function_name = tool_call.function.name
-                    function_args = tool_call.function.arguments
-                    display(Markdown(f"*Function Call*: `{function_name}`"))
-                    display(Markdown(f"*Arguments*: ```json\n{function_args}\n```"))
-
-            elif role == Roles.TOOL:
-                tool_result = json.loads(content)
-                artifact_id = tool_result.get(MessageKeys.ARTIFACT_ID)
-                if artifact_id and artifact_id in self._artifacts:
-                    artifact = self._artifacts[artifact_id]
-                    display(
-                        Markdown(
-                            f"**Function Result** (Artifact ID: {artifact_id}, *{str(tokens)} tokens*):"
-                        )
-                    )
-                    self._display_artifact(artifact)
-                else:
-                    display(
-                        Markdown(
-                            f"**Function Result** *({str(tokens)} tokens)*: {content}"
-                        )
-                    )
-
-            else:
-                display(
-                    Markdown(
-                        f"**{role.capitalize()}**: {content} *({str(tokens)} tokens)*"
-                    )
-                )
 
     def _display_artifact(self, artifact):
         """
