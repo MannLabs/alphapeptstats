@@ -90,7 +90,9 @@ def test_general_assistant_functions():
 def test_assistant_functions():
     """Test that the assistant functions in the LLM match the actual functions."""
     # suffix '_' denotes LLM-related variables
-    assistant_functions_dict = get_assistant_functions({}, pd.DataFrame(), {})
+    assistant_functions_dict = get_assistant_functions(
+        metadata=pd.DataFrame(), subgroups_for_each_group={}
+    )
 
     all_dataset_methods = _get_class_methods(DataSet)
 

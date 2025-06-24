@@ -11,7 +11,6 @@ import pandas as pd
 import plotly.io as pio
 import pytz
 import tiktoken
-from IPython.display import HTML, Markdown, display
 from litellm import completion
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
@@ -129,7 +128,7 @@ class MessageKeys(metaclass=ConstantsClass):
     IN_CONTEXT = f"{DO_NOT_PASS_PREFIX}in_context"
     ARTIFACTS = "artifacts"
     PINNED = f"{DO_NOT_PASS_PREFIX}pinned"
-    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"
+    TIMESTAMP = f"{DO_NOT_PASS_PREFIX}timestamp"  # This is a datetime object
     IMAGE_URL = "image_url"
     EXCHANGE_ID = f"{DO_NOT_PASS_PREFIX}exchange_id"
 
@@ -256,8 +255,6 @@ class LLMIntegration:
         Whether to load the tools or not, by default True
     dataset : Any, optional
         The dataset to be used in the conversation, by default None
-    genes_of_interest: optional
-        List of regulated genes
     max_tokens : int
         The maximum number of tokens for the conversation history, by default 100000
     """
@@ -269,14 +266,12 @@ class LLMIntegration:
         system_message: str = None,
         load_tools: bool = True,
         dataset: Optional[DataSet] = None,
-        genes_of_interest: Optional[List[str]] = None,
         max_tokens=100000,
     ):
         self.client_wrapper = client_wrapper
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
-        self._genes_of_interest = genes_of_interest
         self._max_tokens = max_tokens
 
         self._tools = self._get_tools() if load_tools else None
@@ -304,10 +299,9 @@ class LLMIntegration:
         tools = [
             *get_general_assistant_functions(),
         ]
-        if self._metadata is not None and self._genes_of_interest is not None:
+        if self._metadata is not None:
             tools += (
                 *get_assistant_functions(
-                    genes_of_interest=self._genes_of_interest,
                     metadata=self._metadata,
                     subgroups_for_each_group=get_subgroups_for_each_group(
                         self._metadata
@@ -336,9 +330,7 @@ class LLMIntegration:
         """Construct a message and append it to the conversation history."""
         message = {
             MessageKeys.EXCHANGE_ID: self._exchange_count,
-            MessageKeys.TIMESTAMP: datetime.now(tz=pytz.utc).strftime(
-                "%Y-%m-%dT%H:%M:%S"
-            ),
+            MessageKeys.TIMESTAMP: datetime.now(tz=pytz.utc),
             MessageKeys.PINNED: pin_message,
             MessageKeys.ROLE: role,
         }
@@ -793,7 +785,7 @@ class LLMIntegration:
         messages, _, _ = self.get_print_view(show_all=True)
         chatlog = ""
         for message in messages:
-            chatlog += f"[{message[MessageKeys.TIMESTAMP]}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
+            chatlog += f"[{message[MessageKeys.TIMESTAMP].strftime('%Y-%m-%dT%H:%M:%S')}] {message[MessageKeys.ROLE].capitalize()}: {message[MessageKeys.CONTENT]}\n"
             if len(message[MessageKeys.ARTIFACTS]) > 0:
                 chatlog += "-----\n"
             for artifact in message[MessageKeys.ARTIFACTS]:
@@ -853,23 +845,3 @@ class LLMIntegration:
         except ArithmeticError as e:
             error_message = f"Error in chat completion: {str(e)}"
             self._append_message(Roles.SYSTEM, error_message)
-
-    def _display_artifact(self, artifact):
-        """
-        Display an artifact based on its type.
-
-        Parameters
-        ----------
-        artifact : Any
-            The artifact to display
-
-        Returns
-        -------
-        None
-        """
-        if isinstance(artifact, pd.DataFrame):
-            display(artifact)
-        elif str(type(artifact)) == "<class 'plotly.graph_objs._figure.Figure'>":
-            display(HTML(pio.to_html(artifact, full_html=False)))
-        else:
-            display(Markdown(f"```\n{str(artifact)}\n```"))
