@@ -67,6 +67,9 @@ def assert_parameters(method_definition: Callable, llm_function_dict_):
     # are all required parameters marked as 'required'?
     assert set(parameters_without_default).issubset(set(parameters_dict_["required"]))
 
+    # are all required parameters defined
+    assert set(parameters_dict_["required"]).issubset(set(parameters_))
+
 
 def test_general_assistant_functions():
     """Test that the general assistant functions in the LLM match the actual functions."""
