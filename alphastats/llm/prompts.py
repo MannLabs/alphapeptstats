@@ -68,7 +68,7 @@ def _get_protein_data_prompt(
         )
     else:
         uniprot_instructions = (
-            "You have the ability to retrieve curated information from Uniprot about these proteins. "
+            "You will have the ability to retrieve curated information from Uniprot about these proteins after your first reply. "
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
     if enrichment_data is not None:
