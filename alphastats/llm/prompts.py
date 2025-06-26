@@ -123,7 +123,7 @@ LLMInstructions = {
         f"1. Functional Analysis:{newline}"
         f"- Identify relationships between differentially expressed proteins by using your broad biological knowledge including the information from UniProt{newline}"
         f"- Look for protein complexes and pathways operating together{newline}"
-        f"- For each functional group provide a full list of regulated proteins listed in the initial prompt{newline}"
+        f"- For each functional group provide a full list of related regulated proteins listed in the initial prompt{newline}"
         f"2. Ontology Analysis:{newline}"
         f"- Interpret the information from the enrichment analysis if provided, otherwise use your own knowledge on the regulated proteins.{newline}"
         f"- Examine which cellular processes are most affected based on protein changes{newline}"
