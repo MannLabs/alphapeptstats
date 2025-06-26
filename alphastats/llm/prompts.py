@@ -18,11 +18,11 @@ def get_system_message(subgroups: dict) -> str:
 
     return (
         f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.{newline}"
-        f"Analyze the differentially expressed proteins (upregulated and downregulated) from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
-        f"Format your response with:{newline}"
-        f"- Separate bullet points for upregulated proteins: protein role (proteins): interpretation{newline}"
-        f"- Separate bullet points for downregulated proteins: protein role (proteins): interpretation{newline}"
-        f"- A high-level summary of biological implications{newline}{newline}"
+        f"Analyze the differentially expressed proteins (upregulated in different sample groups) from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
+        f"Format your initial response with:{newline}"
+        f"- Separate bullet points for upregulated proteins in one group: protein role (proteins): interpretation{newline}"
+        f"- Separate bullet points for upregulated proteins in other group: protein role (proteins): interpretation{newline}"
+        f"- A high-level summary of biological implications, putting it into the context of biological context of the experiment{newline}{newline}"
         f"The data you have has following groups and respective subgroups: {str(subgroups)}. "
         "Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
         "If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
