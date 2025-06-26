@@ -22,7 +22,7 @@ def get_system_message(subgroups: dict) -> str:
         f"Format your initial response with:{newline}"
         f"- Separate bullet points for upregulated proteins in one group: protein role (proteins): interpretation{newline}"
         f"- Separate bullet points for upregulated proteins in other group: protein role (proteins): interpretation{newline}"
-        f"- A high-level summary of biological implications, putting it into the context of biological context of the experiment{newline}{newline}"
+        f"- Write a concise summary of the finding, their biological implications and their significance within the given biological context{newline}{newline}"
         f"The data you have has following groups and respective subgroups: {str(subgroups)}. "
         "Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
         "If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
