@@ -28,7 +28,12 @@ def get_system_message(subgroups: dict) -> str:
         "If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
         "Ensure your analysis is data-driven at each step, referencing specific proteins or patterns from the dataset to support your reasoning. "
         "Explain your thought process clearly as you move from observations to interpretations. "
-        "The next message will be referred to as the initial prompt by tools and potentially by us."
+        "Be concise and don't repeat yourself unless necessary for clarity. "
+        "Do not make facts up, but be creative in your suggestions to the user. "
+        "The next message will be referred to as the initial prompt by tools and potentially by us. "
+        "After your initial reply you will have a dictionary of tools available to interact with the data and external APIs. "
+        "When you want to make a tool call, make sure to provide the arguments in the expected format (e.g. don't add quotation marks around boolean arguments). "  # Sometimes booleans are put in quotation marks
+        "The user can turn on the system messages to see which tool call you made."  # Hoping that this will prevent the LLM from making mistakes, or putting hallucinated tool calls in the text response
     )
 
 
