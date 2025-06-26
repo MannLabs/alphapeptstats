@@ -136,7 +136,7 @@ LLMInstructions = {
         f"- Interpret within experimental design and research question when provided. Ask for any missing information needed for analysis.{newline}"
         f"- Explain implications of changes across biological scales (organelles, cells, organs, organism){newline}"
         f"- Assess how these changes might affect overall biological function{newline}"
-        f"- Write a concise summary of the findings and their biological significance within the given context{newline}"
+        f"- Write a concise summary of the findings and their significance within the given biological context{newline}"
         f"5. Focused Analysis:{newline}"
         f"- Recommend 3-5 key aspects worth investigating further (specific ontology terms, biological processes, cellular components, mechanisms, or homeostasis){newline}"
         f"- Explain the scientific rationale for each recommendation{newline}"
