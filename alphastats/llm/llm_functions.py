@@ -127,7 +127,7 @@ def get_general_assistant_functions() -> list[dict]:
                         "fields": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {', '.join(ExtractedUniprotFields.get_values())}.",
+                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {', '.join(ExtractedUniprotFields.get_values())}. For example `['{ExtractedUniprotFields.FUNCTIONCOMM}', '{ExtractedUniprotFields.CAUTIONCOMM}']`.",
                         },
                     },
                     "required": ["search_string"],
@@ -145,7 +145,7 @@ def get_general_assistant_functions() -> list[dict]:
                         "difexpressed": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "A list of differentially expressed gene names to search for. Use the exact representations supplied in the (initial) prompt.",
+                            "description": "A list of differentially expressed gene names to search for. Use the exact representations supplied in the (initial) prompt. For example `['PRE1', 'PRE2', 'PRE3']`. If you are not sure which identifiers to use, ask the user.",
                         },
                         "organism_id": {
                             "type": "string",
@@ -158,6 +158,7 @@ def get_general_assistant_functions() -> list[dict]:
                         },
                         "include_background": {
                             "type": "boolean",
+                            "default": True,
                             "description": "Whether to include background genes. This can significantly alter results and should be turned on when the experiment has significantly lower depth than a the full organism annotation.",
                         },
                     },
@@ -205,7 +206,7 @@ def get_assistant_functions(
                             "type": "array",
                             "items": {"type": "string"},
                             "description": f"Specific subgroups within the group to analyze. For each group you need to look up the subgroups in the dict"
-                            f" {subgroups_for_each_group} or present user with them first if you are not sure what to choose",
+                            f" {subgroups_for_each_group} or present user with them first if you are not sure what to choose. For example `['{subgroups_for_each_group[groups[0]][0]}', '{subgroups_for_each_group[groups[0]][1]}']`.",
                         },
                         "method": {
                             "type": "string",
@@ -214,10 +215,12 @@ def get_assistant_functions(
                         },
                         "add_significance": {
                             "type": "boolean",
+                            "default": False,
                             "description": "Whether to add significance markers to the plot. This is only possible if the group has exactly two subgroups and just one feature is selected.",
                         },
                         "log_scale": {
                             "type": "boolean",
+                            "default": False,
                             "description": "Whether to use a logarithmic scale for the plot",
                         },
                     },
@@ -245,6 +248,7 @@ def get_assistant_functions(
                         },
                         "circle": {
                             "type": "boolean",
+                            "default": False,
                             "description": "Flag to draw circles around groups in the scatterplot",
                         },
                     },

@@ -87,6 +87,10 @@ def _get_protein_data_prompt(
             downregulated_features,
         )
     )
+    if any(gene is None for gene in upregulated_genes + downregulated_genes):
+        raise ValueError(
+            "Some of the upregulated or downregulated genes are not found in the feature_to_repr_map. If this is a custom analysis loaded in conjunction with a dataset, the ids don't match. Please revise your data and reupload."
+        )
     return (
         f"From our proteomics experiments, we know the following:{newline}{newline}"
         f"Comma-separated list of proteins that are upregulated (high in '{group1}'): {', '.join(upregulated_genes)}.{newline}{newline}"
