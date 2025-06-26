@@ -278,7 +278,7 @@ def protein_selector(
     selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
         selected_analysis_key
     ]
-    df = get_df_for_protein_selector(
+    df = _get_df_for_protein_selector(
         feature_to_repr_map,
         regulated_features,
         selected_analysis_session_state[state_key],
@@ -334,7 +334,7 @@ def protein_selector(
         st.rerun(scope="fragment")
 
 
-def get_df_for_protein_selector(
+def _get_df_for_protein_selector(
     feature_to_repr_map: dict[str, str], proteins: list[str], selected: list[str]
 ) -> pd.DataFrame:
     """Create a DataFrame for the protein selector.
