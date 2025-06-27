@@ -18,17 +18,24 @@ def get_system_message(subgroups: dict) -> str:
 
     return (
         f"You are a proteomics expert specializing in molecular biology, biochemistry, and systems biology.{newline}"
-        f"Analyze the differentially expressed proteins (upregulated and downregulated) from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
-        f"Format your response with:{newline}"
-        f"- Separate bullet points for upregulated proteins: protein role (proteins): interpretation{newline}"
-        f"- Separate bullet points for downregulated proteins: protein role (proteins): interpretation{newline}"
-        f"- A high-level summary of biological implications{newline}{newline}"
-        f"The data you have has following groups and respective subgroups: {str(subgroups)}. "
+        f"Analyze the differentially expressed proteins from our proteomics experiment comparing two conditions, focusing on protein connections and potential disease roles.{newline}{newline}"
+        f"Format your initial response with:{newline}"
+        f"- Separate bullet points for upregulated proteins in one group: protein role (proteins): interpretation{newline}"
+        f"- Separate bullet points for upregulated proteins in other group: protein role (proteins): interpretation{newline}"
+        f"- Write a concise summary of the finding, their biological implications and their significance within the given biological context{newline}{newline}"
+        f"The data you have has following groups and respective subgroups: {str(subgroups)}.{newline}{newline}"
         "Plots are visualized using a graphical environment capable of rendering images, you don't need to handle that. "
         "If the data coming to you from a function has references to the literature (for example, PubMed), always quote the references in your response. "
         "Ensure your analysis is data-driven at each step, referencing specific proteins or patterns from the dataset to support your reasoning. "
         "Explain your thought process clearly as you move from observations to interpretations. "
-        "The next message will be referred to as the initial prompt by tools and potentially by us."
+        "Be concise and don't repeat yourself unless necessary for clarity. "
+        "Do not make facts up, but be creative in your suggestions to the user. "
+        f"Use professional language and no emojis.{newline}{newline}"  # Try to avoid emojis in Qwen
+        "The next message will be referred to as the initial prompt by tools and potentially by tool instructions and the user. "
+        "After your initial reply you will have a dictionary of tools available to interact with the data and external APIs. "
+        "When you want to make a tool call, make sure to provide the arguments in the expected format and Python syntax (e.g. don't add quotation marks around boolean arguments). "  # Sometimes booleans are put in quotation marks
+        "Also make sure to mark your tool call correctly with matching opening and closing tags. "  # Make sure that tool calls are properly evoked
+        "The user can turn on the system messages to see which tool call you made. "  # Hoping that this will prevent the LLM from making mistakes, or putting hallucinated tool calls in the text response
     )
 
 
@@ -40,7 +47,7 @@ def _get_experimental_design_prompt(
     column = parameter_dict["column"]
     return (
         "We've recently identified several proteins that appear to be differently regulated in cells "
-        f"when comparing {group1} and {group2} in the {column} grouping."
+        f"when comparing {group2} and {group1} in the {column} grouping."
     )
 
 
@@ -63,7 +70,7 @@ def _get_protein_data_prompt(
         )
     else:
         uniprot_instructions = (
-            "You have the ability to retrieve curated information from Uniprot about these proteins. "
+            "You will have the ability to retrieve curated information from Uniprot about these proteins after your first reply. "
             "Please do so for individual proteins if you have little information about a protein or find a protein particularly important in the specific context."
         )
     if enrichment_data is not None:
@@ -93,8 +100,8 @@ def _get_protein_data_prompt(
         )
     return (
         f"From our proteomics experiments, we know the following:{newline}{newline}"
-        f"Comma-separated list of proteins that are upregulated (high in '{group1}'): {', '.join(upregulated_genes)}.{newline}{newline}"
-        f"Comma-separated list of proteins that are downregulated (high in '{group2}'): {', '.join(downregulated_genes)}.{newline}{newline}"
+        f"Comma-separated list of proteins that are upregulated in '{group1}' relative to '{group2}': {', '.join(upregulated_genes)}.{newline}{newline}"
+        f"Comma-separated list of proteins that are downregulated in '{group1}' relative to '{group2}': {', '.join(downregulated_genes)}.{newline}{newline}"
         f"{uniprot_instructions}{enrichment_prompt}"
     )
 
@@ -118,18 +125,20 @@ LLMInstructions = {
         f"1. Functional Analysis:{newline}"
         f"- Identify relationships between differentially expressed proteins by using your broad biological knowledge including the information from UniProt{newline}"
         f"- Look for protein complexes and pathways operating together{newline}"
+        f"- For each functional group provide a full list of related regulated proteins listed in the initial prompt{newline}"
         f"2. Ontology Analysis:{newline}"
         f"- Interpret the information from the enrichment analysis if provided, otherwise use your own knowledge on the regulated proteins.{newline}"
         f"- Examine which cellular processes are most affected based on protein changes{newline}"
         f"- Identify regulatory hubs and cross-talk between ontology terms{newline}"
         f"3. Critical Review:{newline}"
         f"- Review all collected information{newline}"
-        f"- Flag contradictions between different analyses{newline}"
-        f"- Identify repeating patterns across analyses{newline}"
+        f"- Flag contradictions between functional and ontology analyses{newline}"
+        f"- Identify repeating patterns between functional and ontology analysis{newline}"
         f"4. Biological Context:{newline}"
         f"- Interpret within experimental design and research question when provided. Ask for any missing information needed for analysis.{newline}"
         f"- Explain implications of changes across biological scales (organelles, cells, organs, organism){newline}"
         f"- Assess how these changes might affect overall biological function{newline}"
+        f"- Write a concise summary of the findings and their significance within the given biological context{newline}"
         f"5. Focused Analysis:{newline}"
         f"- Recommend 3-5 key aspects worth investigating further (specific ontology terms, biological processes, cellular components, mechanisms, or homeostasis){newline}"
         f"- Explain the scientific rationale for each recommendation{newline}"
