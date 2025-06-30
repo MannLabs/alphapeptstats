@@ -950,13 +950,21 @@ def show_llm_chat(
 
         st.rerun(scope="fragment")
 
-    st.download_button(
-        "Download chat log",
-        llm_integration.get_chat_log_txt(),
-        file_name=f"chat_log_{model_name}.txt",
-        mime="text/plain",
-        key="download_chat_log",
-    )
+    c1, c2, c3 = st.columns((1, 1, 4))
+    with c1:
+        st.download_button(
+            "Download chat log",
+            llm_integration.get_chat_log_txt(),
+            file_name=f"chat_log_{model_name}.txt",
+            mime="text/plain",
+            key="download_chat_log",
+        )
+    with c2:
+        if st.button(
+            "Refresh chat display",
+            help="Refresh the chat display to show the latest messages, in case you think something is missing.",
+        ):
+            st.rerun(scope="fragment")
 
     st.markdown(
         "*icons: :pushpin: pinned message, :x: message no longer in context due to token limitations*"
