@@ -76,6 +76,8 @@ if (
 
 result_component: ResultComponent = selected_analysis[SavedAnalysisKeys.RESULT]
 plot_parameters: Dict = selected_analysis[SavedAnalysisKeys.PARAMETERS]
+# group1 is the right side of the plot and has a positive fold-change if upregulated
+# group2 is the left side of the plot and has a negative fold-change if upregulated
 
 subgroups = get_subgroups_for_each_group(dataset.metadata) if has_dataset else {}
 

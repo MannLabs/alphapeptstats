@@ -105,8 +105,8 @@ def show_button_download_df(
 
 
 class AnalysisParameters(metaclass=ConstantsClass):
-    TWOGROUP_GROUP1 = "group1"
-    TWOGROUP_GROUP2 = "group2"
+    TWOGROUP_GROUP1 = "group1"  # This will be on the right side of the plot and have a positive fold-change if upregulated
+    TWOGROUP_GROUP2 = "group2"  # This will be on the left side of the plot and have a negative fold-change if upregulated
     DEA_TWOGROUPS_METHOD = "method"
     DEA_TWOGROUPS_FDR_METHOD = "fdr_method"
     TWOGROUP_COLUMN = "column"
@@ -126,4 +126,4 @@ class ResultParameters(metaclass=ConstantsClass):
 
 def has_llm_support():
     """Check if the current environment has LLM support."""
-    return False
+    return True
