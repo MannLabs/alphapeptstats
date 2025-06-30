@@ -70,13 +70,13 @@ if uploaded_file is not None:
     with param_col1:
         group1 = st.text_input(
             "Group 1",
-            placeholder="e.g., Control (negative fold change values mean a protein is upregulated in this group)",
+            placeholder="e.g., Treatment (positive fold change values mean a protein is upregulated in this group)",
             key="custom_group1",
         )
     with param_col2:
         group2 = st.text_input(
             "Group 2",
-            placeholder="e.g., Treatment (positive fold change values mean a protein is upregulated in this group)",
+            placeholder="e.g., Control (negative fold change values mean a protein is upregulated in this group)",
             key="custom_group2",
         )
     with param_col3:
