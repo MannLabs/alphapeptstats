@@ -78,6 +78,11 @@ class Model:
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
         },
+        "vertex_ai/gemini-2.0-flash-lite": {
+            ModelProperties.SUPPORTS_BASE_URL: True,
+            ModelProperties.REQUIRES_API_KEY: True,
+            ModelProperties.MULTIMODAL: True,
+        },
         "vertex_ai/gemini-2.0-flash": {
             ModelProperties.SUPPORTS_BASE_URL: True,
             ModelProperties.REQUIRES_API_KEY: True,
