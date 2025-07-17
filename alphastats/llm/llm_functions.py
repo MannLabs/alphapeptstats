@@ -115,7 +115,7 @@ def get_feature_list_by_annotation_search_string(
         use_regex (bool, optional): Whether to use regex for searching. Defaults to False.
 
     Returns:
-        list: A list of features that match the search string and fields."""
+        str: A comma-separated string of feature representations that match the search string and fields."""
     annotation_store = st.session_state[StateKeys.ANNOTATION_STORE]
     if not fields:
         fields = list(ExtractedUniprotFields.get_values())
