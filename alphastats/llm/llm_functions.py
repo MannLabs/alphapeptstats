@@ -135,8 +135,8 @@ def get_feature_list_by_annotation_search_string(
             StateKeys.DATASET
         ].id_holder.feature_to_repr_map
     except KeyError:
-        feature_to_repr_map = st.session_state[
-            StateKeys.SAVED_ANALYSES[st.session_state[StateKeys.SELECTED_ANALYSIS]]
+        feature_to_repr_map = st.session_state[StateKeys.SAVED_ANALYSES][
+            st.session_state[StateKeys.SELECTED_ANALYSIS]
         ][SavedAnalysisKeys.ID_HOLDER].feature_to_repr_map
     return ", ".join(
         sorted(map(lambda feature: feature_to_repr_map.get(feature, feature), features))
