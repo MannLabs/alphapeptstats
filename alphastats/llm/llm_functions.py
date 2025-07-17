@@ -120,7 +120,7 @@ def get_feature_list_by_annotation_search_string(
     if not fields:
         fields = list(ExtractedUniprotFields.get_values())
 
-    features = list()
+    features = []
     for feature, annotation_dict in annotation_store.items():
         formatted_annotation = format_uniprot_annotation(annotation_dict, fields=fields)
         if use_regex:
