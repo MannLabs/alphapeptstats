@@ -231,7 +231,7 @@ def get_general_assistant_functions() -> list[dict]:
                                 ExtractedUniprotFields.GOP,
                                 ExtractedUniprotFields.NAME,
                             ],
-                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {', '.join(ExtractedUniprotFields.get_values())}. For example for mulecular functions use `['{ExtractedUniprotFields.GOF}']`, for gene symbols use `['{ExtractedUniprotFields.GENE}']`, for subcellular location use `['{ExtractedUniprotFields.GOC}', '{ExtractedUniprotFields.SUBCELL}']`. If a more general search is requested, inlcude comment fields as well. Avoid the caution comments unless explictly requested by the user.",
+                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {', '.join(ExtractedUniprotFields.get_values())}. For example for molecular functions use `['{ExtractedUniprotFields.GOF}']`, for gene symbols use `['{ExtractedUniprotFields.GENE}']`, for subcellular location use `['{ExtractedUniprotFields.GOC}', '{ExtractedUniprotFields.SUBCELL}']`. If a more general search is requested, include comment fields as well. Avoid the caution comments unless explicitly requested by the user.",
                         },
                         "use_regex": {
                             "type": "boolean",
