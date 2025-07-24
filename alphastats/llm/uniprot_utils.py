@@ -625,7 +625,7 @@ def bulk_get_annotations_for_features(
     dict
         Mapping *feature* → annotation (dict or "Retrieval failed" string).
     """
-
+    fields = ExtractedUniprotFields.get_values()
     if not features:
         return {}
 
@@ -650,5 +650,5 @@ def bulk_get_annotations_for_features(
             if isinstance(result, dict):
                 annotation = result
                 break
-        annotations[feature] = annotation
+        annotations[feature] = _filter_extracted_annotations(annotation, fields)
     return annotations
