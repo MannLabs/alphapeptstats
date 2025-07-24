@@ -25,7 +25,7 @@ from alphastats.gui.utils.ui_helper import (
     has_llm_support,
     show_button_download_df,
 )
-from alphastats.llm.uniprot_utils import get_annotations_for_feature
+from alphastats.llm.uniprot_utils import bulk_get_annotations_for_features
 from alphastats.plots.plot_utils import PlotlyObject
 
 
@@ -289,20 +289,23 @@ def gather_uniprot_data(features: List[str]) -> None:
     Returns:
         None
     """
+
     features_to_fetch = [
         feature
         for feature in features
         if feature not in st.session_state[StateKeys.ANNOTATION_STORE]
     ]
-    for feature in stqdm(
-        features_to_fetch,
+    if not features_to_fetch:
+        return
+
+    annotations = bulk_get_annotations_for_features(features_to_fetch)
+
+    for feature, annotation in stqdm(
+        annotations.items(),
         desc="Retrieving uniprot data on selected features ...",
         mininterval=1,
     ):
-        # TODO: Add some kind of rate limitation to avoid being locked out by uniprot
-        st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
-            get_annotations_for_feature(feature)
-        )
+        st.session_state[StateKeys.ANNOTATION_STORE][feature] = annotation
 
 
 def get_regulated_features(analysis_object: ResultComponent) -> list:
