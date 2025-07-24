@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from typing import Optional
 
 import pandas as pd
 import streamlit as st
 
 from alphastats.dataset.dataset import DataSet
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_organisms
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
@@ -99,9 +100,53 @@ def get_uniprot_info_for_search_string(
     )
 
 
+def get_feature_list_by_annotation_search_string(
+    search_string: str,
+    fields: Optional | list = None,
+    *,
+    use_regex: bool = False,
+):
+    """Get a list of features based on a search string and fields.
+    This is used to get the features that match the search string and fields from the annotation store.
+
+    Args:
+        search_string (str): The search string to use to find features.
+        fields (Optional | list, optional): The fields to use to filter the features. Defaults to None.
+        use_regex (bool, optional): Whether to use regex for searching. Defaults to False.
+
+    Returns:
+        str: A comma-separated string of feature representations that match the search string and fields."""
+    annotation_store = st.session_state[StateKeys.ANNOTATION_STORE]
+    if not fields:
+        fields = list(ExtractedUniprotFields.get_values())
+
+    features = []
+    for feature, annotation_dict in annotation_store.items():
+        formatted_annotation = format_uniprot_annotation(annotation_dict, fields=fields)
+        if use_regex:
+            if re.search(search_string, formatted_annotation, flags=re.IGNORECASE):
+                features.append(feature)
+        else:
+            if search_string.lower() in formatted_annotation.lower():
+                features.append(feature)
+
+    try:
+        feature_to_repr_map = st.session_state[
+            StateKeys.DATASET
+        ].id_holder.feature_to_repr_map
+    except KeyError:
+        feature_to_repr_map = st.session_state[StateKeys.SAVED_ANALYSES][
+            st.session_state[StateKeys.SELECTED_ANALYSIS]
+        ][SavedAnalysisKeys.ID_HOLDER].feature_to_repr_map
+    return ", ".join(
+        sorted(map(lambda feature: feature_to_repr_map.get(feature, feature), features))
+    )
+
+
 GENERAL_FUNCTION_MAPPING = {
     "get_uniprot_info_for_search_string": get_uniprot_info_for_search_string,
     "get_enrichment_data": get_enrichment_data,
+    "get_feature_list_by_annotation_search_string": get_feature_list_by_annotation_search_string,
 }
 
 
@@ -163,6 +208,38 @@ def get_general_assistant_functions() -> list[dict]:
                         },
                     },
                     "required": ["difexpressed", "organism_id", "tool"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": get_feature_list_by_annotation_search_string.__name__,
+                "description": "Get a list of feature representations matching a search string from based on the annotation store filled from UniProt. Use this for example when asked for all proteins sharing a specific characteristic. Make sure to represent all of the matching features in your interpretation.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "search_string": {
+                            "type": "string",
+                            "description": "The search string to use to find features. This can for example be a molecular function (for example `kinase`), part of a gene name (e.g. `PSM`), or a subcellular location (e.g. `mitochondrion`). If you are not sure which search string to use, ask the user. If the search string is too restrictive as is, you can use a regular expression. For example instead of `immune` you can use `immun[eo]`.",
+                        },
+                        "fields": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "default": [
+                                ExtractedUniprotFields.GOF,
+                                ExtractedUniprotFields.GOP,
+                                ExtractedUniprotFields.NAME,
+                            ],
+                            "description": f"A list of UniProt fields to include in the output. If empty, all fields are included. Available fields are {', '.join(ExtractedUniprotFields.get_values())}. For example for molecular functions use `['{ExtractedUniprotFields.GOF}']`, for gene symbols use `['{ExtractedUniprotFields.GENE}']`, for subcellular location use `['{ExtractedUniprotFields.GOC}', '{ExtractedUniprotFields.SUBCELL}']`. If a more general search is requested, include comment fields as well. Avoid the caution comments unless explicitly requested by the user.",
+                        },
+                        "use_regex": {
+                            "type": "boolean",
+                            "default": False,
+                            "description": "Whether to use regex for searching.",
+                        },
+                    },
+                    "required": ["search_string"],
                 },
             },
         },
