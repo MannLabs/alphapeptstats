@@ -58,7 +58,7 @@ This is indicated by a dialog telling you `“alphastats. ... .pkg” Not Opened
 
 ### Pip Installation
 
-AlphaStats can be installed in an existing Python >=3.9 environment with a single `bash` command.
+AlphaPeptStats can be installed in an existing Python >=3.9 environment with a single `bash` command.
 
 ```bash
 pip install alphastats
@@ -74,7 +74,7 @@ If you get an `AxiosError: Request failed with status code 403'` when uploading 
 If you receive an error like `library 'hdf5' not found`, your computer is missing the HDF5 library. Install it via your favorite package manager or use `conda create --name alphastats python=3.9 hdf5`.
 Alternatively, use ```conda install -c anaconda pytables```.
 
-AlphaStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
+AlphaPeptStats can be imported as a Python package into any Python script or notebook with the command `import alphastats`.
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
 
@@ -121,7 +121,7 @@ conda install -c anaconda pytables
 ---
 ## License
 
-AlphaStats was developed by the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/) and is
+AlphaPeptStats was developed by the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/) and is
 now maintained by the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann). It is
 freely available with an [Apache License](LICENSE.txt). External Python packages have their own
 licenses, which can be consulted on their respective websites.
