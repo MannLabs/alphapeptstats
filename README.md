@@ -12,31 +12,29 @@ and the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann).
 Check out [alphapept.org](https://alphapept.org) for other packages of AlphaPept ecosystem.
 
 <div align = center>
-
-
 <img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="771.4" height="389.2">
-
-
 </div>
 
+
+---
+## GUI Preview
 ![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)
 
 => [Run the app right now in your browser](https://mannlabs-alphapeptstats-alphastatsguialphapeptstats-qyzgwd.streamlit.app/)
 
 
-
 ---
 ## Installation
 
-AlphaPeptStats can be used as
- * python library (pip-installation), or
- * Graphical User Interface (either pip-installation or one-click installer), or
+AlphaPeptStats can be used
+ * via a Graphical User Interface,
+ * as a python library, or
  * as a Docker container.
 
 
 ### One Click Installer
 
-One click Installer for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases).
+One-click installers for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases).
 
 #### Windows
 Download the latest `alphastats-X.Y.Z-windows-amd64.exe` build and double click it to install. If you receive a warning during installation click *Run anyway*.
