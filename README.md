@@ -6,7 +6,18 @@
 [![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
 
-An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
+An open-source Python package for mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/)
+and the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann).
+
+Check out [alphapept.org](https://alphapept.org) for other packages of AlphaPept ecosystem.
+
+<div align = center>
+
+
+<img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="771.4" height="389.2">
+
+
+</div>
 
 ![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)
 
@@ -113,7 +124,7 @@ conda install -c anaconda pytables
 ## License
 
 AlphaStats was developed by the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/) and is
-now maintenained by the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann). It is
+now maintained by the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann). It is
 freely available with an [Apache License](LICENSE.txt). External Python packages have their own
 licenses, which can be consulted on their respective websites.
 
