@@ -28,10 +28,10 @@ def tukey_test(
         * ``'se'``: Standard error
         * ``'T'``: T-values
         * ``'p-tukey'``: Tukey-HSD corrected p-values
-        * ``'hedges'``: Hedges effect size (or any effect size defined in
-        ``effsize``)
+        * ``'hedges'``: Hedges effect size (or any effect size defined in ``effsize``)
         * ``'comparison'``: combination of measurment
         * ``'Protein ID'``: ProteinID/ProteinGroup
+
     """
     try:
         tukey_df = pingouin.pairwise_tukey(data=df, dv=protein_id, between=group)

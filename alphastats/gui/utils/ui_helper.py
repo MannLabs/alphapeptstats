@@ -126,4 +126,4 @@ class ResultParameters(metaclass=ConstantsClass):
 
 def has_llm_support():
     """Check if the current environment has LLM support."""
-    return True
+    return False
