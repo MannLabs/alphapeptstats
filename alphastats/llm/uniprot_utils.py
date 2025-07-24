@@ -1,9 +1,20 @@
+import logging
 import re
+import time
 from typing import Dict, List, Union
 
 import requests
 
 from alphastats.dataset.keys import ConstantsClass
+
+BASE_URL = "https://rest.uniprot.org/idmapping/"
+ID_MAPPING_RUN_URL = BASE_URL + "run"
+ID_MAPPING_STATUS_URL = BASE_URL + "status/"
+ID_MAPPING_RESULTS_URL = BASE_URL + "uniprotkb/results/"
+DEFAULT_TIMEOUT_S = 300
+POLL_INTERVAL_S = 3
+
+_logger = logging.getLogger(__name__)
 
 
 class ExtractedUniprotFields(metaclass=ConstantsClass):
@@ -209,22 +220,122 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
     return extracted
 
 
-def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
-    """
-    Retrieve UniProt data for a list of protein IDs.
-    Args:
-        ids (list): A list of protein IDs (strings) to retrieve data for.
-    Returns:
-        List[Union[str, dict]]: A list containing the retrieved data for each protein ID.
-            - If retrieval is successful, the result is a dictionary containing the UniProt data.
-            - If retrieval fails, the result is the string "Retrieval failed".
+def _fetch_uniprot_mapping_results(ids: List[str]) -> Dict[str, dict]:
+    """Submit *ids* to the UniProt ID mapping service and return a mapping.
+
+    The returned dict maps **every** recognised accession – both the original
+    *from* accession as supplied by the caller *and* the canonical
+    ``primaryAccession`` returned by UniProt – to the full UniProtKB record
+    (``dict``).  This guarantees that look-ups via deprecated, secondary or
+    isoform accessions resolve correctly and eliminates the accidental loss of
+    entries when multiple inputs collapse onto the same canonical record.
     """
 
-    results = [_request_uniprot_data(protein_id=id) for id in ids]
-    results = [
-        "Retrieval failed" if len(idresult) == 0 else idresult for idresult in results
-    ]
-    return results
+    try:
+        resp = requests.post(
+            ID_MAPPING_RUN_URL,
+            data={
+                "ids": ",".join(ids),
+                "from": "UniProtKB_AC-ID",
+                "to": "UniProtKB",
+            },
+        )
+        resp.raise_for_status()
+        job_id = resp.json().get("jobId")
+        if not job_id:
+            _logger.warning("UniProt returned no job ID")
+            return {}
+
+        start = time.time()
+        while True:
+            status_resp = requests.get(
+                f"{ID_MAPPING_STATUS_URL}{job_id}", allow_redirects=False
+            )
+            if status_resp.status_code == 303 or "Location" in status_resp.headers:
+                break
+            if time.time() - start > DEFAULT_TIMEOUT_S:
+                _logger.warning("UniProt mapping job timed out")
+                return {}
+            time.sleep(POLL_INTERVAL_S)
+
+        results_resp = requests.get(
+            f"{ID_MAPPING_RESULTS_URL}{job_id}", params={"size": 500}
+        )
+        results_resp.raise_for_status()
+
+        data = results_resp.json()
+        all_results = data.get("results", [])
+
+        while data.get("next"):
+            results_resp = requests.get(data["next"])
+            results_resp.raise_for_status()
+            data = results_resp.json()
+            all_results.extend(data.get("results", []))
+
+        mapping: Dict[str, dict] = {}
+        for item in all_results:
+            to_entry = item.get("to")
+            if not isinstance(to_entry, dict):
+                continue
+
+            from_acc = item.get("from")
+            if from_acc:
+                mapping[from_acc] = to_entry
+
+            primary_acc = to_entry.get("primaryAccession")
+            if primary_acc:
+                mapping[primary_acc] = to_entry
+
+        return mapping
+
+    except Exception as exc:
+        _logger.warning("UniProt mapping failed: %s", exc)
+        return {}
+
+
+def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
+    """Retrieve UniProtKB records for *ids* in bulk.
+
+    The helper is *lenient* regarding the exact input format:
+    • Each element in *ids* may be a **single accession** (e.g. ``"P60709"``)
+      *or* a **semicolon-separated list** of accessions (matching the format
+      used in the dataset feature column, e.g. ``"P10643;A8K2T4"``).
+    • Isoform suffixes (``"-1"``) are stripped because the mapping API only
+      accepts canonical base accessions.
+
+    The function performs *one* mapping call for the union of all input
+    accessions and then, for every original element in *ids*, returns the first
+    successfully mapped record (dict).  Unresolved entries yield the sentinel
+    string ``"Retrieval failed"`` so callers can distinguish them.
+    """
+
+    if not ids:
+        return []
+
+    all_base_ids: list[str] = []
+    for identifier in ids:
+        for token in identifier.split(";"):
+            base = token.split("-")[0]
+            if base and base not in all_base_ids:
+                all_base_ids.append(base)
+
+    mapping_dict = _fetch_uniprot_mapping_results(all_base_ids)
+
+    if not mapping_dict:
+        return ["Retrieval failed"] * len(ids)
+
+    resolved: List[Union[str, dict]] = []
+    for identifier in ids:
+        annotation: Union[str, dict] = "Retrieval failed"
+        for token in identifier.split(";"):
+            base = token.split("-")[0]
+            result = mapping_dict.get(base)
+            if isinstance(result, dict):
+                annotation = result
+                break
+        resolved.append(annotation)
+
+    return resolved
 
 
 def _select_uniprot_result_from_feature(
@@ -462,6 +573,9 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
     if fields is None:
         fields = list(information.keys())
 
+    if isinstance(information, str):
+        return information
+
     # get requested fields
     texts = {
         # TODO .get() fails if information == "Retrieval failed"
@@ -489,3 +603,52 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
         )
 
     return assembled_text
+
+
+def bulk_get_annotations_for_features(
+    features: List[str],
+) -> Dict[str, Union[Dict, str]]:  # noqa: D401
+    """Retrieve annotations for many features with a single UniProt mapping call.
+
+    This minimises network traffic by batching all base accessions across *features*
+    into one mapping job via :pyfunc:`_request_uniprot_data_from_ids` and then
+    selecting the best-annotated entry for each feature using the existing
+    selection helpers.
+
+    Parameters
+    ----------
+    features : list[str]
+        Semicolon-separated UniProt accession strings as used in the dataset.
+
+    Returns
+    -------
+    dict
+        Mapping *feature* → annotation (dict or "Retrieval failed" string).
+    """
+
+    if not features:
+        return {}
+
+    feature_to_baseids = {
+        feature: [identifier.split("-")[0] for identifier in feature.split(";")]
+        for feature in features
+    }
+
+    all_ids: List[str] = list(
+        dict.fromkeys(bid for baseids in feature_to_baseids.values() for bid in baseids)
+    )
+
+    all_results = _request_uniprot_data_from_ids(all_ids)
+    id_to_result = dict(zip(all_ids, all_results))
+
+    annotations: Dict[str, Union[Dict, str]] = {}
+
+    for feature, baseids in feature_to_baseids.items():
+        annotation: Union[Dict, str] = "Retrieval failed"
+        for bid in baseids:
+            result = id_to_result.get(bid, "Retrieval failed")
+            if isinstance(result, dict):
+                annotation = result
+                break
+        annotations[feature] = annotation
+    return annotations
