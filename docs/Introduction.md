@@ -1,4 +1,4 @@
-## Introduction
+# Introduction
 
 <p align="center">
   <img src="https://github.com/MannLabs/alphapeptstats/blob/main/alphastats/gui/alphapeptstats_logo.png?raw=true" />

@@ -1,6 +1,12 @@
 File Loader
 ============
 
+BaseLoader
+~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: alphastats.loader.base_loader
+    :members:
+    :undoc-members:
+
 AlphaPeptLoader
 ~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: alphastats.loader.alphapept_loader
@@ -19,6 +25,11 @@ FragPipeLoader
     :members:
     :undoc-members:
 
+GenericLoader
+~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: alphastats.loader.generic_loader
+    :members:
+    :undoc-members:
 
 MaxQuantLoader
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -26,15 +37,14 @@ MaxQuantLoader
     :members:
     :undoc-members:
 
+mzTabLoader
+~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: alphastats.loader.mztab_loader
+    :members:
+    :undoc-members:
 
 SpectronautLoader
 ~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: alphastats.loader.spectronaut_loader
-    :members:
-    :undoc-members:
-
-mzTabLoader
-~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: alphastats.loader.mztab_loader
     :members:
     :undoc-members:
