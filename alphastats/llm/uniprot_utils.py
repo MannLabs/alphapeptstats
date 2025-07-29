@@ -535,7 +535,7 @@ def _format_uniprot_field(
     return f"{field} of this protein is {str(content)}."
 
 
-def get_annotations_for_feature(
+def __get_annotations_for_feature(
     feature: str,
 ) -> Union[Dict, str]:
     """
@@ -605,7 +605,7 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
     return assembled_text
 
 
-def bulk_get_annotations_for_features(
+def get_annotations_for_feature(
     features: List[str],
 ) -> Dict[str, Union[Dict, str]]:  # noqa: D401
     """Retrieve annotations for many features with a single UniProt mapping call.

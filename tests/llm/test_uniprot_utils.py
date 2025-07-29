@@ -373,9 +373,10 @@ class TestSelectID(unittest.TestCase):
 
 
 class TestGetAnnotationsForFeature(unittest.TestCase):
-    @patch("alphastats.llm.uniprot_utils._select_uniprot_result_from_feature")
-    def test_get_annotations_for_feature(self, mock_select_result):
-        # Set up the mock to return example data
+    @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
+    def test_get_annotations_for_feature(self, mock_request):
+        """Ensure batched get_annotations_for_feature returns mapping dict."""
+
         example_result = {
             "entryType": "UniProtKB reviewed (Swiss-Prot)",
             "primaryAccession": "P12345",
@@ -394,7 +395,8 @@ class TestGetAnnotationsForFeature(unittest.TestCase):
                 },
             ],
         }
-        mock_select_result.return_value = example_result
+
+        mock_request.return_value = [example_result]
 
         expected_annotations = {
             "entryType": "UniProtKB reviewed (Swiss-Prot)",
@@ -421,12 +423,10 @@ class TestGetAnnotationsForFeature(unittest.TestCase):
             "Reactome": [],
         }
 
-        result = get_annotations_for_feature("P12345")
+        result = get_annotations_for_feature(["P12345"])
 
-        # Verify that the result matches the expected annotations
-        self.assertEqual(result, expected_annotations)
-        # Verify that _select_uniprot_result_from_feature was called with the correct parameters
-        mock_select_result.assert_called_once_with("P12345")
+        self.assertEqual(result, {"P12345": expected_annotations})
+        mock_request.assert_called_once_with(["P12345"])
 
 
 class TestFormatUniProtAnnotation(unittest.TestCase):

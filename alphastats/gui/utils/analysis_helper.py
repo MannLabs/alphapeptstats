@@ -25,7 +25,7 @@ from alphastats.gui.utils.ui_helper import (
     has_llm_support,
     show_button_download_df,
 )
-from alphastats.llm.uniprot_utils import bulk_get_annotations_for_features
+from alphastats.llm.uniprot_utils import get_annotations_for_feature
 from alphastats.plots.plot_utils import PlotlyObject
 
 
@@ -298,8 +298,10 @@ def gather_uniprot_data(features: List[str]) -> None:
     if not features_to_fetch:
         return
 
-    annotations = bulk_get_annotations_for_features(features_to_fetch)
-
+    annotations = get_annotations_for_feature(features_to_fetch)
+    if isinstance(annotations, str):
+        st.session_state[StateKeys.ANNOTATION_STORE][features_to_fetch[0]] = annotations
+        return
     for feature, annotation in stqdm(
         annotations.items(),
         desc="Retrieving uniprot data on selected features ...",
