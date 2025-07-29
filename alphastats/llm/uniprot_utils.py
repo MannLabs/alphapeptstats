@@ -13,6 +13,7 @@ ID_MAPPING_STATUS_URL = BASE_URL + "status/"
 ID_MAPPING_RESULTS_URL = BASE_URL + "uniprotkb/results/"
 DEFAULT_TIMEOUT_S = 300
 POLL_INTERVAL_S = 3
+RETRIEVAL_FAILED_MESSAGE = "Retrieval failed"
 
 _logger = logging.getLogger(__name__)
 
@@ -223,12 +224,20 @@ def _extract_annotations_from_uniprot_data(data: Dict) -> Dict:
 def _fetch_uniprot_mapping_results(ids: List[str]) -> Dict[str, dict]:
     """Submit *ids* to the UniProt ID mapping service and return a mapping.
 
-    The returned dict maps **every** recognised accession – both the original
+    The returned dict maps **every** recognised accession - both the original
     *from* accession as supplied by the caller *and* the canonical
-    ``primaryAccession`` returned by UniProt – to the full UniProtKB record
+    ``primaryAccession`` returned by UniProt - to the full UniProtKB record
     (``dict``).  This guarantees that look-ups via deprecated, secondary or
     isoform accessions resolve correctly and eliminates the accidental loss of
     entries when multiple inputs collapse onto the same canonical record.
+
+    Retrieve UniProt data for a list of protein IDs.
+    Args:
+        ids (list): A list of protein IDs (strings) to retrieve data for.
+    Returns:
+        Dict[str, dict]: A mapping of protein IDs to their corresponding UniProt data.
+            - If retrieval is successful, the result is a dictionary containing the UniProt data.
+            - If retrieval fails, the result is an empty dictionary.
     """
 
     try:
@@ -252,6 +261,7 @@ def _fetch_uniprot_mapping_results(ids: List[str]) -> Dict[str, dict]:
                 f"{ID_MAPPING_STATUS_URL}{job_id}", allow_redirects=False
             )
             if status_resp.status_code == 303 or "Location" in status_resp.headers:
+                # Results are ready
                 break
             if time.time() - start > DEFAULT_TIMEOUT_S:
                 _logger.warning("UniProt mapping job timed out")
@@ -306,7 +316,7 @@ def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
     The function performs *one* mapping call for the union of all input
     accessions and then, for every original element in *ids*, returns the first
     successfully mapped record (dict).  Unresolved entries yield the sentinel
-    string ``"Retrieval failed"`` so callers can distinguish them.
+    string RETRIEVAL_FAILED_MESSAGE so callers can distinguish them.
     """
 
     if not ids:
@@ -322,11 +332,11 @@ def _request_uniprot_data_from_ids(ids: list) -> List[Union[str, dict]]:
     mapping_dict = _fetch_uniprot_mapping_results(all_base_ids)
 
     if not mapping_dict:
-        return ["Retrieval failed"] * len(ids)
+        return [RETRIEVAL_FAILED_MESSAGE] * len(ids)
 
     resolved: List[Union[str, dict]] = []
     for identifier in ids:
-        annotation: Union[str, dict] = "Retrieval failed"
+        annotation: Union[str, dict] = RETRIEVAL_FAILED_MESSAGE
         for token in identifier.split(";"):
             base = token.split("-")[0]
             result = mapping_dict.get(base)
@@ -578,9 +588,7 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
 
     # get requested fields
     texts = {
-        # TODO .get() fails if information == "Retrieval failed"
-        field: _format_uniprot_field(field, information.get(field))
-        for field in fields
+        field: _format_uniprot_field(field, information.get(field)) for field in fields
     }
     # remove empty fields
     texts = {field: text for field, text in texts.items() if text is not None}
@@ -605,7 +613,7 @@ def format_uniprot_annotation(information: dict, fields: list = None) -> str:
     return assembled_text
 
 
-def get_annotations_for_feature(
+def get_annotations_for_features(
     features: List[str],
 ) -> Dict[str, Union[Dict, str]]:  # noqa: D401
     """Retrieve annotations for many features with a single UniProt mapping call.
@@ -623,7 +631,7 @@ def get_annotations_for_feature(
     Returns
     -------
     dict
-        Mapping *feature* → annotation (dict or "Retrieval failed" string).
+        Mapping *feature* → annotation (dict or RETRIEVAL_FAILED_MESSAGE string).
     """
     fields = ExtractedUniprotFields.get_values()
     if not features:
@@ -635,7 +643,9 @@ def get_annotations_for_feature(
     }
 
     all_ids: List[str] = list(
-        dict.fromkeys(bid for baseids in feature_to_baseids.values() for bid in baseids)
+        dict.fromkeys(
+            base_id for baseids in feature_to_baseids.values() for base_id in baseids
+        )
     )
 
     all_results = _request_uniprot_data_from_ids(all_ids)
@@ -644,9 +654,9 @@ def get_annotations_for_feature(
     annotations: Dict[str, Union[Dict, str]] = {}
 
     for feature, baseids in feature_to_baseids.items():
-        annotation: Union[Dict, str] = "Retrieval failed"
-        for bid in baseids:
-            result = id_to_result.get(bid, "Retrieval failed")
+        annotation: Union[Dict, str] = RETRIEVAL_FAILED_MESSAGE
+        for base_id in baseids:
+            result = id_to_result.get(base_id, RETRIEVAL_FAILED_MESSAGE)
             if isinstance(result, dict):
                 annotation = result
                 break

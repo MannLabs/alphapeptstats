@@ -7,7 +7,7 @@ from alphastats.llm.uniprot_utils import (
     _request_uniprot_data,
     _select_uniprot_result_from_feature,
     format_uniprot_annotation,
-    get_annotations_for_feature,
+    get_annotations_for_features,
 )
 
 logger = logging.getLogger(__name__)
@@ -375,7 +375,7 @@ class TestSelectID(unittest.TestCase):
 class TestGetAnnotationsForFeature(unittest.TestCase):
     @patch("alphastats.llm.uniprot_utils._request_uniprot_data_from_ids")
     def test_get_annotations_for_feature(self, mock_request):
-        """Ensure batched get_annotations_for_feature returns mapping dict."""
+        """Ensure batched get_annotations_for_features returns mapping dict."""
 
         example_result = {
             "entryType": "UniProtKB reviewed (Swiss-Prot)",
@@ -423,7 +423,7 @@ class TestGetAnnotationsForFeature(unittest.TestCase):
             "Reactome": [],
         }
 
-        result = get_annotations_for_feature(["P12345"])
+        result = get_annotations_for_features(["P12345"])
 
         self.assertEqual(result, {"P12345": expected_annotations})
         mock_request.assert_called_once_with(["P12345"])
