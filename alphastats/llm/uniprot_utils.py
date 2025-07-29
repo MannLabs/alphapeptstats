@@ -277,10 +277,14 @@ def _fetch_uniprot_mapping_results(ids: List[str]) -> Dict[str, dict]:
         all_results = data.get("results", [])
 
         while data.get("next"):
-            results_resp = requests.get(data["next"])
-            results_resp.raise_for_status()
-            data = results_resp.json()
-            all_results.extend(data.get("results", []))
+            try:
+                results_resp = requests.get(data["next"])
+                results_resp.raise_for_status()
+                data = results_resp.json()
+                all_results.extend(data.get("results", []))
+            except Exception as exc:
+                _logger.warning("Failed to fetch next page of results: %s", exc)
+                break
 
         mapping: Dict[str, dict] = {}
         for item in all_results:
@@ -654,11 +658,26 @@ def get_annotations_for_features(
     annotations: Dict[str, Union[Dict, str]] = {}
 
     for feature, baseids in feature_to_baseids.items():
-        annotation: Union[Dict, str] = RETRIEVAL_FAILED_MESSAGE
-        for base_id in baseids:
-            result = id_to_result.get(base_id, RETRIEVAL_FAILED_MESSAGE)
-            if isinstance(result, dict):
-                annotation = result
-                break
+        results_for_feature: List[dict] = [
+            res
+            for base_id in baseids
+            if isinstance((res := id_to_result.get(base_id)), dict)
+        ]
+
+        if not results_for_feature:
+            annotation: Union[Dict, str] = RETRIEVAL_FAILED_MESSAGE
+        elif len(results_for_feature) == 1:
+            annotation = results_for_feature[0]
+        else:
+            valid_results = _select_valid_unprot_results(results_for_feature)
+            if len(valid_results) == 1:
+                annotation = valid_results[0]
+            else:
+                annotation = (
+                    _select_best_annotated_uniprot_result(valid_results)
+                    if valid_results
+                    else RETRIEVAL_FAILED_MESSAGE
+                )
+
         annotations[feature] = _filter_extracted_annotations(annotation, fields)
     return annotations

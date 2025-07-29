@@ -294,7 +294,7 @@ def gather_uniprot_data(features: List[str]) -> None:
     if not features_to_fetch:
         return
 
-    with st.spinner("Retrieving UniProt data on selected features ...", show_time=True):
+    with st.spinner("Retrieving UniProt data on selected features ..."):
         annotations = get_annotations_for_features(features_to_fetch)
     if isinstance(annotations, str):
         st.session_state[StateKeys.ANNOTATION_STORE][features_to_fetch[0]] = annotations
