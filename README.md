@@ -6,61 +6,55 @@
 [![Documentation Status](https://readthedocs.org/projects/alphapeptstats/badge/?version=latest)](https://alphapeptstats.readthedocs.io/en/latest/?badge=latest)
 
 
+An open-source Python package for mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/)
+and the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann).
+
+Check out [alphapept.org](https://alphapept.org) for other packages of AlphaPept ecosystem.
+
 <div align = center>
 <img src="https://github.com/MannLabs/alphapeptstats/blob/main/misc/alphastats_workflow.png?raw=true" width="771.4" height="389.2">
 </div>
 
 
-<div align = center>
-<br>
-<br>
-
-[<kbd> <br> Documentation <br> </kbd>][link]
-
-</div>
-
-<br>
-<br>
-
-[link]:https://alphapeptstats.readthedocs.io/en/main/
-
-<div align = center>
-<br>
-<br>
-
-[<kbd> <br> Streamlit WebApp <br> </kbd>][link_streamlit]
-
-</div>
-
-<br>
-<br>
-
-[link_streamlit]:https://mannlabs-alphapeptstats-alphastatsguialphapeptstats-qyzgwd.streamlit.app/
-
-An open-source Python package for downstream mass spectrometry downstream data analysis from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/).
-
-
-* [**Citation**](#citation)
-* [**Installation**](#installation)
-* [**Troubleshooting**](#troubleshooting)
-* [**License**](#license)
-* [**How to contribute**](#how-to-contribute)
-* [**Changelog**](#changelog)
-
 ---
-## Citation
-Publication: [AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1093/bioinformatics/btad461)
-> **Citation:** <br>
-> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics
-> https://doi.org/10.1093/bioinformatics/btad461
+## GUI Preview
+![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)
+
+=> [Run the app right now in your browser](https://mannlabs-alphapeptstats-alphastatsguialphapeptstats-qyzgwd.streamlit.app/)
+
 
 ---
 ## Installation
 
-AlphaPeptStats can be used as
- * python library (pip-installation), or
- * Graphical User Interface (either pip-installation or one-click installer).
+AlphaPeptStats can be used
+ * via a Graphical User Interface,
+ * as a python library, or
+ * as a Docker container.
 
+
+### One Click Installer
+
+One-click installers for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases).
+
+#### Windows
+Download the latest `alphastats-X.Y.Z-windows-amd64.exe` build and double click it to install. If you receive a warning during installation click *Run anyway*.
+Important note: always install AlphaPeptStats into a new folder, as the installer will not properly overwrite existing installations.
+
+#### Linux
+Download the latest `alphastats-X.Y.Z-linux-x64.deb` build and install it via `dpkg -i alphastats-X.Y.Z-linux-x64.deb`.
+
+#### MacOS
+Download the latest build suitable for your chip architecture
+(can be looked up by clicking on the Apple Symbol > *About this Mac* > *Chip* ("M1", "M2", "M3" -> `arm64`, "Intel" -> `x64`),
+`alphastats-X.Y.Z-macos-darwin-arm64.pkg` or `alphastats-X.Y.Z-macos-darwin-x64.pkg`. Open the parent folder of the downloaded file in Finder,
+right-click and select *open*. If you receive a warning during installation click *Open*.
+
+In newer MacOS versions, additional steps are required to enable installation of unverified software.
+This is indicated by a dialog telling you `“alphastats. ... .pkg” Not Opened`.
+1. Close this dialog by clicking `Done`.
+2. Choose `Apple menu` > `System Settings`, then `Privacy & Security` in the sidebar. (You may need to scroll down.)
+3. Go to `Security`, locate the line "alphadia.pkg was blocked to protect your Mac" then click `Open Anyway`.
+4. In the dialog windows, click `Open Anyway`.
 
 ### Pip Installation
 
@@ -84,33 +78,7 @@ AlphaStats can be imported as a Python package into any Python script or noteboo
 A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the API is also present in the [nbs folder](nbs).
 
 
-
-### One Click Installer
-
-One click Installer for MacOS, Windows and Linux can be found [here](https://github.com/MannLabs/alphapeptstats/releases).
-
-#### Windows
-Download the latest `alphastats-X.Y.Z-windows-amd64.exe` build and double click it to install. If you receive a warning during installation click *Run anyway*.
-Important note: always install AlphaPeptStats into a new folder, as the installer will not properly overwrite existing installations.
-
-#### Linux
-Download the latest `alphastats-X.Y.Z-linux-x64.deb` build and install it via `dpkg -i alphastats-X.Y.Z-linux-x64.deb`.
-
-#### MacOS
-Download the latest build suitable for your chip architecture
-(can be looked up by clicking on the Apple Symbol > *About this Mac* > *Chip* ("M1", "M2", "M3" -> `arm64`, "Intel" -> `x64`),
-`alphastats-X.Y.Z-macos-darwin-arm64.pkg` or `alphastats-X.Y.Z-macos-darwin-x64.pkg`. Open the parent folder of the downloaded file in Finder,
-right-click and select *open*. If you receive a warning during installation click *Open*.
-
-In newer MacOS versions, additional steps are required to enable installation of unverified software.
-This is indicated by a dialog telling you `“alphastats. ... .pkg” Not Opened`.
-1. Close this dialog by clicking `Done`.
-2. Choose `Apple menu` > `System Settings`, then `Privacy & Security` in the sidebar. (You may need to scroll down.)
-3. Go to `Security`, locate the line "alphadia.pkg was blocked to protect your Mac" then click `Open Anyway`.
-4. In the dialog windows, click `Open Anyway`.
-
-
-## Docker version
+### Docker version
 The containerized version can be used to run alphapeptstats without any installation (apart from Docker)
 
 ### 1. Setting up Docker
@@ -125,9 +93,9 @@ docker run -p $PORT:8501 -v $SESSIONS_PATH:/app/sessions mannlabs/alphastats:lat
 After initial download of the container, alphapeptstats will start running on [http://localhost:$PORT](http://localhost:8501).
 Note: this will create a directory `$SESSIONS_PATH` where sessions will be stored.
 
----
-## GUI
-![](https://github.com/MannLabs/alphapeptstats/blob/main/misc/volcano.gif)
+## API Documentation
+AlphaPeptStats provides an extensive API [documentation](https://alphapeptstats.readthedocs.io/en/main/).
+
 
 ---
 ## Troubleshooting
@@ -136,10 +104,27 @@ In case of issues, check out the following:
 
 * [Issues](https://github.com/MannLabs/alphapeptstats/issues): Try a few different search terms to find out if a similar problem has been encountered before
 
+### Common problems
+
+#### How to resolve " error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools" " ?
+Please, find a description on how to update required tools [here](https://github.com/MannLabs/alphapeptstats/issues/158).
+
+#### How to resolve "ERROR: Could not find a local HDF5 installation" on Mac Silicon (M1/M2/M3)?
+
+Before installing AlphaPeptStats you might need to install pytables first:
+
+````
+conda install -c anaconda pytables
+````
+
+
 ---
 ## License
 
-AlphaStats was developed by the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/) and is freely available with an [Apache License](LICENSE.txt). External Python packages (available in the [requirements](requirements) folder) have their own licenses, which can be consulted on their respective websites.
+AlphaStats was developed by the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/research/proteomics/mann/) and is
+now maintained by the [Mann Group at the MPI Biochemistry](https://www.biochem.mpg.de/mann). It is
+freely available with an [Apache License](LICENSE.txt). External Python packages have their own
+licenses, which can be consulted on their respective websites.
 
 ---
 ## How to contribute
@@ -185,19 +170,13 @@ This is because you added some code that was identified as a potential secret.
 ---
 ## Changelog
 
-See the [HISTORY.md](HISTORY.md) for a full overview of the changes made in each version.
+See the [GitHub Release Notes](https://github.com/MannLabs/alphapeptstats/releases) for changes from version 0.6.8 on,
+[HISTORY.md](HISTORY.md) for older versions.
 
 
 ---
-## FAQ
-
-### How can I resolve the Microsoft visual error message when installing: error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools"?
-Please, find a description on how to update required tools [here](https://github.com/MannLabs/alphapeptstats/issues/158).
-
-## How to resolve ERROR:: Could not find a local HDF5 installation. on Mac M1?
-
-Before installing AlphaPeptStats you might need to install pytables first:
-
-````
-conda install -c anaconda pytables
-````
+## Citation
+Publication: [AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics](https://doi.org/10.1093/bioinformatics/btad461)
+> **Citation:** <br>
+> Krismer, E., Bludau, I.,  Strauss M. & Mann M. (2023). AlphaPeptStats: an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics. Bioinformatics
+> https://doi.org/10.1093/bioinformatics/btad461

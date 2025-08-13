@@ -7,7 +7,9 @@ from alphastats.dataset.keys import ConstantsClass
 
 
 class ExtractedUniprotFields(metaclass=ConstantsClass):
-    """These are the dictionary keys for the extracted uniprot fields, as created by _extract_annotations_from_uniprot_data. The order also determines the order in which the fields are displayed in the interface and largely also the formatted output."""
+    """Dictionary keys for the extracted uniprot fields, as created by _extract_annotations_from_uniprot_data.
+
+    The order also determines the order in which the fields are displayed in the interface and largely also the formatted output."""
 
     DB = "entryType"
     ID = "primaryAccession"
@@ -447,10 +449,12 @@ def get_uniprot_state_key(selected_analysis_key: str) -> str:
 def format_uniprot_annotation(information: dict, fields: list = None) -> str:
     """
     Formats UniProt annotation information into a readable string.
+
     Args:
         information (dict): A dictionary containing UniProt annotation data.
         fields (list, optional): A list of fields to include in the formatted output.
                                  If None, all fields in the information dictionary are included.
+
     Returns:
         str: A formatted string containing the requested UniProt annotation information.
     """

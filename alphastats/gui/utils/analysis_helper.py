@@ -39,7 +39,6 @@ def display_analysis_result_with_buttons(
     editable_annotation: bool = True,
 ) -> None:
     """A fragment to display a statistical analysis and download options."""
-
     if analysis_method in PlottingOptions.get_values():
         display_function = display_figure
         download_function = _show_buttons_download_figure
@@ -307,13 +306,15 @@ def gather_uniprot_data(features: List[str]) -> None:
 
 
 def get_regulated_features(analysis_object: ResultComponent) -> list:
-    """
-    Retrieve regulated features from the analysis object.
+    """Retrieve regulated features from the analysis object.
+
     This function extracts features that are labeled (i.e., have a non-empty label)
     from the analysis results. It is specifically designed to work with volcano plots.
+
     Args:
         analysis_object (PlotlyObject): An object containing analysis results,
                                         including feature indices and labels.
+
     Returns:
         list: A list of regulated features that have non-empty labels.
     """
