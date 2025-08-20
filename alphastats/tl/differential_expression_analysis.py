@@ -13,6 +13,9 @@ import scipy
 from statsmodels.stats.multitest import multipletests
 
 from alphastats.dataset.keys import Cols, ConstantsClass
+from alphastats.statistics.differential_expression_analysis import (
+    DifferentialExpressionAnalysisLegacy,
+)
 from alphastats.statistics.statistic_utils import calculate_foldchange
 
 
@@ -487,3 +490,120 @@ class DifferentialExpressionAnalysisTTest(DifferentialExpressionAnalysisTwoGroup
             index=result[DeaColumns.PVALUE].dropna().index,
         )
         return result.merge(qvalues, left_index=True, right_index=True, how="left")
+
+
+class DifferentialExpressionAnalysisWaldTest(DifferentialExpressionAnalysisTwoGroups):
+    """Implementation of the Wald test differential expression analysis."""
+
+    @_validate_perform
+    def perform(
+        self,
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str | None = None,
+        metadata: pd.DataFrame | None = None,
+    ) -> pd.DataFrame:
+        """Runs the Wald test analysis and returns the result.
+
+        Wrapper to statistical method with actual method parameters and implementation.
+
+        Returns
+        -------
+        pd.DataFrame: The result of the analysis.
+
+        """
+        return self._run_statistical_test(
+            mat=self.mat,
+            group1=group1,
+            group2=group2,
+            grouping_column=grouping_column,
+            metadata=metadata,
+        )
+
+    @staticmethod
+    def _run_statistical_test(
+        mat: pd.DataFrame,
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str,
+        *,
+        metadata: pd.DataFrame,
+    ) -> pd.DataFrame:
+        """Runs the Wald test analysis and returns the result."""
+        import diffxpy.api as de
+
+        adata = DifferentialExpressionAnalysisLegacy.prepare_anndata(
+            mat, metadata, grouping_column, group1, group2
+        )
+        formula_loc = "~ 1 +" + grouping_column
+
+        test = de.test.wald(
+            data=adata, formula_loc=formula_loc, factor_loc_totest=grouping_column
+        )
+
+        return test.summary().rename(columns={"gene": Cols.INDEX})
+
+
+class DifferentialExpressionAnalysisWelchsTTest(
+    DifferentialExpressionAnalysisTwoGroups
+):
+    """Implementation of the Welch's t-test differential expression analysis."""
+
+    @_validate_perform
+    def perform(
+        self,
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str | None = None,
+        metadata: pd.DataFrame | None = None,
+    ) -> pd.DataFrame:
+        """Runs the Welch's t-test analysis and returns the result.
+
+        Wrapper to statistical method with actual method parameters and implementation.
+
+        Returns
+        -------
+        pd.DataFrame: The result of the analysis.
+
+        """
+        return self._run_statistical_test(
+            mat=self.mat,
+            group1=group1,
+            group2=group2,
+            grouping_column=grouping_column,
+            metadata=metadata,
+            is_log2_transformed=self.is_log2_transformed,
+        )
+
+    @staticmethod
+    def _run_statistical_test(  # noqa:PLR0913
+        mat: pd.DataFrame,
+        group1: list | str,
+        group2: list | str,
+        grouping_column: str,
+        metadata: pd.DataFrame,
+        *,
+        is_log2_transformed: bool,
+    ) -> pd.DataFrame:
+        """Runs the Welch's t-test analysis and returns the result."""
+        import diffxpy.api as de
+
+        adata = DifferentialExpressionAnalysisLegacy.prepare_anndata(
+            mat, metadata, grouping_column, group1, group2
+        )
+
+        test = de.test.t_test(
+            data=adata, grouping=grouping_column, is_logged=is_log2_transformed
+        )
+        df = test.summary().rename(
+            columns={
+                "gene": Cols.INDEX,
+                "pval": DeaColumns.PVALUE,
+                "qval": DeaColumns.QVALUE,
+                "log2fc": DeaColumns.LOG2FC,
+            }
+        )
+        df.set_index(Cols.INDEX, inplace=True)
+        df.index.name = None
+
+        return df

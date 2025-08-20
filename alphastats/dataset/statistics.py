@@ -7,7 +7,7 @@ from alphastats.dataset.keys import Cols
 from alphastats.dataset.utils import ignore_warning
 from alphastats.statistics.anova import Anova
 from alphastats.statistics.differential_expression_analysis import (
-    DifferentialExpressionAnalysis,
+    DifferentialExpressionAnalysisLegacy,
 )
 from alphastats.statistics.multicova_analysis import MultiCovaAnalysis
 
@@ -56,7 +56,7 @@ class Statistics:
             * ``'coef_sd'``: the standard deviation of the coefficient in liker-space
             * ``'ll'``: the log-likelihood of the estimation
         """
-        df = DifferentialExpressionAnalysis(
+        df = DifferentialExpressionAnalysisLegacy(
             mat=self.mat,
             metadata=self.metadata,
             preprocessing_info=self.preprocessing_info,

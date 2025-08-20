@@ -13,7 +13,7 @@ from alphastats.dataset.utils import ignore_warning
 from alphastats.multicova import multicova
 from alphastats.plots.plot_utils import PlotlyObject, PlotUtils
 from alphastats.statistics.differential_expression_analysis import (
-    DifferentialExpressionAnalysis,
+    DifferentialExpressionAnalysisLegacy,
 )
 from alphastats.statistics.statistic_utils import (
     add_metadata_column,
@@ -133,7 +133,7 @@ class VolcanoPlot(PlotUtils):
         elif self.method == "sam":
             # TODO this is a bit of a hack, but currently diff_expression_analysis() returns only the df, not the tlim_ttest
             #  To remedy, make it return (df, {}), the latter being a dictionary containing optional additional data.
-            res, tlim_ttest = DifferentialExpressionAnalysis(
+            res, tlim_ttest = DifferentialExpressionAnalysisLegacy(
                 mat=self.mat,
                 metadata=self.metadata,
                 preprocessing_info=self.preprocessing_info,

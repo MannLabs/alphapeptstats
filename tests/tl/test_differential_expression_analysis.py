@@ -3,6 +3,10 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 import pytest
+from tl.differential_expression_analysis import (
+    DifferentialExpressionAnalysisWaldTest,
+    DifferentialExpressionAnalysisWelchsTTest,
+)
 
 from alphastats.dataset.keys import Cols, ConstantsClass
 from alphastats.tl.differential_expression_analysis import (
@@ -375,3 +379,77 @@ def test_dea_ttest_validation_wrong_fdr_method():
                 DeaParameters.FDR_METHOD: "unknown",
             },
         )
+
+
+def test_dea_waldtest_perform():
+    """Test that log2 transformation is applied."""
+    expected_result = pd.DataFrame(
+        [
+            # TODO: these expected values are not correct, they are just placeholders
+            [0.01570651089572518, -1.7237294884856105, 0.047119532687175544],
+            [0.1556022268654943, -1.1111962106682238, 0.23340334029824145],
+            [0.29794294575639113, -0.5, 0.29794294575639113],
+        ],
+        columns=[DeaColumns.PVALUE, DeaColumns.LOG2FC, DeaColumns.QVALUE],
+        index=["gene1", "gene2", "gene3"],
+    )
+
+    input = valid_data_input_two_groups.fillna(0)
+
+    # TODO: raises "ValueError: assignment destination is read-only"
+    dea = DifferentialExpressionAnalysisWaldTest(input, is_log2_transformed=False)
+
+    result = dea.perform(
+        **valid_parameter_input_two_groups,
+    )
+    pd.testing.assert_frame_equal(result, expected_result)
+
+
+def test_dea_welchsttest_perform():
+    """Test that log2 transformation is applied."""
+    expected_result = pd.DataFrame(
+        [
+            [
+                0.08854157169946933,
+                0.24171437787624506,
+                -1.736965594166206,
+                2.275,
+                False,
+                False,
+            ],
+            [
+                0.18936686218149532,
+                0.24171437787624506,
+                -1.137503523749935,
+                4.0,
+                False,
+                False,
+            ],
+            [
+                0.24171437787624506,
+                0.24171437787624506,
+                -0.514573172829758,
+                4.25,
+                False,
+                False,
+            ],
+        ],
+        columns=[
+            DeaColumns.PVALUE,
+            DeaColumns.QVALUE,
+            DeaColumns.LOG2FC,
+            "mean",
+            "zero_mean",
+            "zero_variance",
+        ],
+        index=["gene1", "gene2", "gene3"],
+    )
+
+    input = valid_data_input_two_groups.fillna(0)
+
+    dea = DifferentialExpressionAnalysisWelchsTTest(input, is_log2_transformed=False)
+
+    result = dea.perform(
+        **valid_parameter_input_two_groups,
+    )
+    pd.testing.assert_frame_equal(result, expected_result, check_like=True)

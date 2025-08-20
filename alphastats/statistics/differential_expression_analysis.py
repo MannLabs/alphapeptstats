@@ -13,7 +13,7 @@ from alphastats.statistics.statistic_utils import (
 )
 
 
-class DifferentialExpressionAnalysis:
+class DifferentialExpressionAnalysisLegacy:
     def __init__(
         self,
         mat: pd.DataFrame,
@@ -47,30 +47,31 @@ class DifferentialExpressionAnalysis:
                 "Column containing group1 and group2 needs to be specified"
             )
 
-    def _prepare_anndata(self):
+    # TODO move to new DEA class
+    @staticmethod
+    def prepare_anndata(
+        mat: pd.DataFrame, metadata: pd.DataFrame, column: str, group1: str, group2: str
+    ):
         import anndata
 
-        group_samples = self.metadata[
-            (self.metadata[self.column] == self.group1)
-            | (self.metadata[self.column] == self.group2)
+        group_samples = metadata[
+            (metadata[column] == group1) | (metadata[column] == group2)
         ][Cols.SAMPLE].tolist()
 
         # reduce matrix
-        reduced_matrix = self.mat.loc[group_samples]
+        reduced_matrix = mat.loc[group_samples]
         reduced_matrix = reduced_matrix.loc[:, (reduced_matrix != 0).any(axis=0)]
         # sort metadata according to matrix values
         list_to_sort = reduced_matrix.index.to_list()
         # reduce metadata
         obs_metadata = (
-            self.metadata[self.metadata[Cols.SAMPLE].isin(group_samples)]
+            metadata[metadata[Cols.SAMPLE].isin(group_samples)]
             .set_index(Cols.SAMPLE)
             .loc[list_to_sort]
         )
 
         # change comparison group to 0/1
-        obs_metadata[self.column] = np.where(
-            obs_metadata[self.column] == self.group1, 1, 0
-        )
+        obs_metadata[column] = np.where(obs_metadata[column] == group1, 1, 0)
 
         # create a annotated dataset
         anndata_data = anndata.AnnData(
@@ -127,7 +128,9 @@ class DifferentialExpressionAnalysis:
     def _wald(self) -> pd.DataFrame:
         import diffxpy.api as de
 
-        d = self._prepare_anndata()
+        d = self.prepare_anndata(
+            self.mat, self.metadata, self.column, self.group1, self.group2
+        )
         formula_loc = "~ 1 +" + self.column
 
         test = de.test.wald(
@@ -139,7 +142,9 @@ class DifferentialExpressionAnalysis:
     def _welch_ttest(self) -> pd.DataFrame:
         import diffxpy.api as de
 
-        d = self._prepare_anndata()
+        d = self.prepare_anndata(
+            self.mat, self.metadata, self.column, self.group1, self.group2
+        )
 
         # TODO: pass log flag correctly
         test = de.test.t_test(data=d, grouping=self.column)
