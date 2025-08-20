@@ -79,7 +79,7 @@ A brief [Jupyter notebook tutorial](nbs/getting_started.ipynb) on how to use the
 
 
 ### Docker version
-The containerized version can be used to run alphapeptstats without any installation (apart from Docker)
+The containerized version can be used to run AlphaPeptStats without any installation (apart from Docker)
 
 ### 1. Setting up Docker
 Install the latest version of docker (https://docs.docker.com/engine/install/).
