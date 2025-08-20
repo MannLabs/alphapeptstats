@@ -15,7 +15,7 @@ class FragPipeLoader(BaseLoader):
     def __init__(
         self,
         file: Union[str, pd.DataFrame],
-        intensity_column: str = "[sample] MaxLFQ Intensity ",
+        intensity_column: str = "[sample] MaxLFQ Intensity",
         index_column: str = "Protein",
         gene_names_column: str = "Gene Names",
         confidence_column: str = "Protein Probability",
