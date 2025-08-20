@@ -505,6 +505,9 @@ class AnovaAnalysis(AbstractGroupCompareAnalysis):
         )
         return anova_analysis, None
 
+    def _pre_analysis_check(self):
+        """No checks for ANOVA."""
+
 
 class AncovaAnalysis(AnalysisComponent):
     """Widget for Ancova analysis."""
