@@ -28,7 +28,9 @@ class AlphaPeptLoader(BaseLoader):
             sep (str, optional): file separation of file. Defaults to ",".
         """
 
-        if file.endswith(".hdf"):
+        if isinstance(file, pd.DataFrame):
+            self.rawinput = file
+        elif file.endswith(".hdf"):
             self._load_hdf_protein_table(file=file)
         else:
             self.rawinput = pd.read_csv(file, sep=sep)
