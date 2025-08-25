@@ -22,7 +22,7 @@ class AlphaPeptLoader(BaseLoader):
         """Loads Alphapept output: results_proteins.csv. Will add contamination column for further analysis.
 
         Args:
-            file (str): AlphaPept output, either results_proteins.csv file or the hdf_file with the protein_table given
+            file (str): AlphaPept output, either a pd.Dataframe, a results_proteins.csv file or a hdf_file with the protein_table given
             intensity_column (str, optional): columns where the intensity of the proteins are given. Defaults to "[sample]_LFQ".
             index_column (str, optional): column indicating the protein groups. Defaults to "Unnamed: 0".
             sep (str, optional): file separation of file. Defaults to ",".
