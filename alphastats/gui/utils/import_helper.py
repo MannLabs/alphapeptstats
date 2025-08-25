@@ -1,5 +1,6 @@
 import io
 import os
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -59,6 +60,15 @@ def _read_file_to_df(file: UploadedFile, decimal: str = ".") -> Optional[pd.Data
 
     elif extension == ".csv":
         return pd.read_csv(file, decimal=decimal)
+
+    elif extension == ".hdf":
+        # hack to circumvent incompatibility of upload widget with read_hdf()
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp_file_path = os.path.join(tempdir, "output.hdf")
+            with open(temp_file_path, "wb") as f:
+                f.write(file.getvalue())
+            # this assumes it's an AlphaPept file
+            return pd.read_hdf(temp_file_path, "protein_table")
 
     raise ValueError(
         f"Unknown file type '{extension}'. \nSupported types: .xslx, .tsv, .csv or .txt file"
