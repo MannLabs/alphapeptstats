@@ -26,7 +26,6 @@ from alphastats.tl.differential_expression_analysis import (
 class PlottingOptions(metaclass=ConstantsClass):
     """Keys for the plotting options, the order determines order in UI."""
 
-    VOLCANO_PLOT = "Volcano Plot"
     PCA_PLOT = "PCA Plot"
     UMAP_PLOT = "UMAP Plot"
     TSNE_PLOT = "t-SNE Plot"
@@ -39,7 +38,6 @@ class PlottingOptions(metaclass=ConstantsClass):
 class StatisticOptions(metaclass=ConstantsClass):
     """Keys for the statistical options, the order determines order in UI."""
 
-    DIFFERENTIAL_EXPRESSION = "Differential Expression Analysis"
     TUKEY_TEST = "Tukey-Test"
     ANOVA = "ANOVA"
     ANCOVA = "ANCOVA"
@@ -504,6 +502,9 @@ class AnovaAnalysis(AbstractGroupCompareAnalysis):
             tukey=self._parameters["tukey"],
         )
         return anova_analysis, None
+
+    def _pre_analysis_check(self):
+        """No checks for ANOVA."""
 
 
 class AncovaAnalysis(AnalysisComponent):
