@@ -1,7 +1,7 @@
 # Data import
 
 
-Currently, AlphaStats allows the analysis of five quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe, MaxQuant and Spectronaut. As the output of these software differs significantly data needs to be loaded in customized loaders.
+Currently, AlphaPeptStats allows the analysis of five quantitative proteomics software packages: AlphaPept, DIA-NN, FragPipe, MaxQuant and Spectronaut. As the output of these software differs significantly data needs to be loaded in customized loaders.
 
 Imported proteomics data and metadata can be combined in a DataSet, which will be used for the downstream analysis.
 
@@ -27,18 +27,18 @@ As we are dealing with wide data, a column represents the intensity for one samp
 
 Upon data import, the proteomics data gets processed in an internal format.
 
-### Additional modifications by AlphaStats
+### Additional modifications by AlphaPeptStats
 
-When importing the data, AlphaStats will identify potential contaminations based on a contaminant library, created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full). This information will be added as an extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.
+When importing the data, AlphaPeptStats will identify potential contaminations based on a contaminant library, created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full). This information will be added as an extra column to the imported data and can either be ignored or used for filtering in the preprocessing step.
 
 
 ### AlphaPept
 [Alphapept](https://github.com/MannLabs/alphapept) output can either be imported as `results_proteins.csv` or `results.hdf`.
 
 **Intensity types**
-AlphaPept either described the raw intensity or the free quantification (LFQ) intensity. By default AlphaStats uses the LFQ-Intensity for the downstream analysis.
+AlphaPept either described the raw intensity or the free quantification (LFQ) intensity. By default AlphaPeptStats uses the LFQ-Intensity for the downstream analysis.
 
-Further, AlphaStats will identify "Reverse" - Proteins.
+Further, AlphaPeptStats will identify "Reverse" - Proteins.
 
 Find more details about the file format [here](https://mannlabs.github.io/alphapept/file_formats.html).
 
