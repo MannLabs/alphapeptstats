@@ -12,12 +12,13 @@ import pandas as pd
 import pytest
 
 from alphastats.dataset.dataset import DataSet
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_annotation_from_store_by_feature_list,
     get_annotation_from_uniprot_by_feature_list,
     get_assistant_functions,
+    get_feature_list_by_annotation_search_string,
     get_general_assistant_functions,
     get_uniprot_info_for_search_string,
 )
@@ -240,3 +241,70 @@ def test_get_uniprot_info_for_search_string(
     assert call_arg[0] in mock_session_state[StateKeys.ANNOTATION_STORE]
     assert result == expected_result
     dataset.id_holder.get_feature_ids_from_search_string.assert_called_with(llm_input)
+
+
+@patch("alphastats.llm.llm_functions.format_uniprot_annotation")
+@patch("streamlit.session_state", new_callable=dict)
+def test_get_feature_list_by_annotation_search_string(
+    mock_session_state, mock_format_uniprot_annotation
+):
+    """Test that the function retrieves the correct list of features based on the search string and fields."""
+
+    # Mock session state
+    mock_session_state[StateKeys.ANNOTATION_STORE] = {
+        "feature1": {"field1": "value1", "field2": "value2"},
+        "feature2": {"field1": "value3", "field2": "value4"},
+        "feature3": {"field1": "value5", "field2": "value6"},
+    }
+    mock_session_state[StateKeys.DATASET] = MagicMock()
+    mock_session_state[StateKeys.DATASET].id_holder.feature_to_repr_map = {
+        "feature1": "repr1",
+        "feature2": "repr2",
+        "feature3": "repr3",
+    }
+
+    # Mock format_uniprot_annotation
+    mock_format_uniprot_annotation.side_effect = lambda annotation, fields: "; ".join(
+        f"{key}: {annotation[key]}" for key in fields if key in annotation
+    )
+
+    # Test case 1: Search without regex
+    search_string = "value1"
+    fields = ["field1"]
+    result = get_feature_list_by_annotation_search_string(search_string, fields)
+    assert result == "repr1"
+
+    # Test case 2: Search with regex
+    search_string = "value[3-4]"
+    fields = ["field2"]
+    result = get_feature_list_by_annotation_search_string(
+        search_string, fields, use_regex=True
+    )
+    assert result == "repr2"
+
+    # Test case 3: Search with no matching features
+    search_string = "nonexistent"
+    fields = ["field1"]
+    result = get_feature_list_by_annotation_search_string(search_string, fields)
+    assert result == ""
+
+    # Test case 4: Search with default fields
+    mock_format_uniprot_annotation.side_effect = lambda annotation, fields: "; ".join(
+        annotation.values()
+    )
+    search_string = "value5"
+    result = get_feature_list_by_annotation_search_string(search_string)
+    assert result == "repr3"
+
+    # Test case 5: KeyError handling
+    del mock_session_state[StateKeys.DATASET]
+    mock_session_state[StateKeys.SAVED_ANALYSES] = {
+        "analysis1": {SavedAnalysisKeys.ID_HOLDER: MagicMock()}
+    }
+    mock_session_state[StateKeys.SELECTED_ANALYSIS] = "analysis1"
+    mock_session_state[StateKeys.SAVED_ANALYSES]["analysis1"][
+        SavedAnalysisKeys.ID_HOLDER
+    ].feature_to_repr_map = {"feature1": "repr1"}
+    search_string = "value1"
+    result = get_feature_list_by_annotation_search_string(search_string, fields)
+    assert result == "repr1"
