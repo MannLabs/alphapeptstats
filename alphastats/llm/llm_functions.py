@@ -13,7 +13,7 @@ from alphastats.llm.enrichment_analysis import get_enrichment_data, gprofiler_or
 from alphastats.llm.uniprot_utils import (
     ExtractedUniprotFields,
     format_uniprot_annotation,
-    get_annotations_for_feature,
+    get_annotations_for_features,
 )
 
 
@@ -61,7 +61,7 @@ def get_annotation_from_uniprot_by_feature_list(
             feature = features[0]
         else:
             feature = features[baseid_sets.index(max(baseid_sets, key=len))]
-    annotation = get_annotations_for_feature(feature)
+    annotation = get_annotations_for_features(feature)
     return annotation, feature
 
 

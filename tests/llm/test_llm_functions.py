@@ -149,7 +149,7 @@ testdata_test_get_annotation_from_uniprot_by_feature_list = [
     "features, call_arg, return_value",
     testdata_test_get_annotation_from_uniprot_by_feature_list,
 )
-@patch("alphastats.llm.llm_functions.get_annotations_for_feature")
+@patch("alphastats.llm.llm_functions.get_annotations_for_features")
 def test_get_annotation_from_uniprot_by_feature_list(
     mock_uniprot_annotation, features, call_arg, return_value
 ):
@@ -162,7 +162,7 @@ def test_get_annotation_from_uniprot_by_feature_list(
     assert result == (return_value, call_arg)
 
 
-@patch("alphastats.llm.llm_functions.get_annotations_for_feature")
+@patch("alphastats.llm.llm_functions.get_annotations_for_features")
 def test_get_annotation_from_uniprot_by_feature_list_error(mock_uniprot_annotation):
     with pytest.raises(ValueError, match="No features provided"):
         get_annotation_from_uniprot_by_feature_list([])
