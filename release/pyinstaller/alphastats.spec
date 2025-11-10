@@ -26,7 +26,7 @@ datas, binaries, hidden_imports = PyInstaller.utils.hooks.collect_all(
 )
 
 # add extra packages that don't have pyinstaller hooks
-extra_pkgs = ["openai", "streamlit", "st_cytoscape"] # other alphaX packages would be added here
+extra_pkgs = ["openai", "streamlit", "st_cytoscape", "litellm", "tiktoken", "tiktoken_ext"] # other alphaX packages would be added here
 for pkg in extra_pkgs:
 	_datas, _binaries, _hidden_imports = PyInstaller.utils.hooks.collect_all(
 		pkg,
@@ -41,6 +41,8 @@ hidden_imports = [h for h in hidden_imports if "__pycache__" not in h]
 # hidden_imports = sorted(
 # 		[h for h in hidden_imports if "tests" not in h.split(".")]
 # 	)
+# explicitly add tiktoken_ext modules since they're discovered dynamically
+hidden_imports.extend(['tiktoken_ext.openai_public'])
 datas = [d for d in datas if ("__pycache__" not in d[0]) and (d[1] not in [".", "Resources", "scripts"])]
 
 a = Analysis(
