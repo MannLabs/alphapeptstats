@@ -18,7 +18,6 @@ from alphastats.gui.utils.llm_helper import (
     get_selected_regulated_features,
     init_llm_chat_state,
     on_select_new_analysis_fill_state,
-    protein_selector,
     show_llm_chat,
 )
 from alphastats.gui.utils.state_keys import LLMKeys, SavedAnalysisKeys, StateKeys
@@ -108,12 +107,12 @@ selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
 ##################################### Analysis Input #####################################
 
 st.markdown("#### Analysis Input to LLM")
-c1, c2, c3 = st.columns((1, 1, 1))
+c1, _c2, _c3 = st.columns((1, 1, 1))
 
 ##################################### Volcano plot #####################################
 
 if result_component.plot:
-    with c3:
+    with c1:
         st.markdown("##### Volcano plot")
         display_figure(result_component.plot)
 
@@ -146,32 +145,6 @@ init_llm_chat_state(
     feature_to_repr_map,
 )
 
-
-##################################### Proteins of interest #####################################
-
-with c1:
-    st.markdown(
-        "##### Select proteins of interest",
-        help="Select which features shall be used in the LLM interpretation.",
-    )
-
-    protein_selector(
-        feature_to_repr_map,
-        upregulated_features,
-        "Upregulated Proteins",
-        selected_analysis_key,
-        state_key=LLMKeys.SELECTED_FEATURES_UP,
-    )
-
-with c2:
-    st.markdown("##### ")
-    protein_selector(
-        feature_to_repr_map,
-        downregulated_features,
-        "Downregulated Proteins",
-        selected_analysis_key,
-        state_key=LLMKeys.SELECTED_FEATURES_DOWN,
-    )
 
 selected_features, regulated_features_dict = get_selected_regulated_features(
     selected_llm_chat
