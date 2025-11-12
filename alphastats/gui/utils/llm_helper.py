@@ -176,10 +176,8 @@ def init_llm_chat_state(
             DefaultStates.SELECTED_UNIPROT_FIELDS.copy()
         )
 
-    if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_UP) is None:
-        selected_llm_chat[LLMKeys.SELECTED_FEATURES_UP] = upregulated_features
-    if selected_llm_chat.get(LLMKeys.SELECTED_FEATURES_DOWN) is None:
-        selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
+    selected_llm_chat[LLMKeys.SELECTED_FEATURES_UP] = upregulated_features
+    selected_llm_chat[LLMKeys.SELECTED_FEATURES_DOWN] = downregulated_features
     if selected_llm_chat.get(LLMKeys.ENRICHMENT_ANALYSIS) is None:
         selected_llm_chat[LLMKeys.ENRICHMENT_ANALYSIS] = {
             EnrichmentAnalysisKeys.PARAMETERS: {},
@@ -252,93 +250,6 @@ def initialize_initial_prompt_modules(
     initial_instruction = _get_initial_instruction(LLMInstructionKeys.SIMPLE)
 
     return experimental_design_prompt, protein_data_prompt, initial_instruction
-
-
-@st.fragment
-def protein_selector(
-    feature_to_repr_map: dict[str, str],
-    regulated_features: list[str],
-    title: str,
-    selected_analysis_key: str,
-    state_key: str,
-) -> None:
-    """Creates a data editor for protein selection and returns the selected proteins.
-
-    Args:
-        feature_to_repr_map: Mapping from features to their representation (e.g. gene names)
-        regulated_features: List of regulated features to display in the table
-        title: Title to display above the editor
-        selected_analysis_key: Key to access the selected analysis in the session state
-        state_key: Key to access the selected proteins in the selected analysis
-
-    Returns:
-        None
-    """
-    st.write(title)
-    selected_analysis_session_state = st.session_state[StateKeys.LLM_CHATS][
-        selected_analysis_key
-    ]
-    df = _get_df_for_protein_selector(
-        feature_to_repr_map,
-        regulated_features,
-        selected_analysis_session_state[state_key],
-    )
-    if len(df) == 0:
-        st.markdown("No significant proteins.")
-        return
-    c1, c2 = st.columns([1, 1])
-
-    if c1.button("Select all", help=f"Select all {title} for analysis"):
-        selected_analysis_session_state[state_key] = df["Protein"].tolist()
-        st.rerun(scope="fragment")
-    if c2.button("Select none", help=f"Select no {title} for analysis"):
-        selected_analysis_session_state[state_key] = []
-        st.rerun(scope="fragment")
-
-    edited_df = st.data_editor(
-        df,
-        column_config={
-            "Selected": st.column_config.CheckboxColumn(
-                "Include?",
-                help="Check to include this feature in analysis",
-                default=True,
-            ),
-            "Gene": st.column_config.TextColumn(
-                "Gene",
-                help="The gene name to be included in the analysis",
-            ),
-        },
-        disabled=["Gene", "Protein"],
-        hide_index=True,
-        # explicitly setting key: otherwise it's calculated from the data which causes problems if two analysis are exactly mirrored
-        key=f"{state_key}_data_editor",
-    )
-    # Extract the selected features
-    new_list = edited_df.loc[edited_df["Selected"], "Protein"].tolist()
-    if new_list != selected_analysis_session_state[state_key]:
-        selected_analysis_session_state[state_key] = new_list
-        st.rerun(scope="fragment")
-
-
-def _get_df_for_protein_selector(
-    feature_to_repr_map: dict[str, str], proteins: list[str], selected: list[str]
-) -> pd.DataFrame:
-    """Create a DataFrame for the protein selector.
-
-    Args:
-        feature_to_repr_map (dict[str, str]): A mapping from features to their representation (e.g. gene names).
-        proteins (List[str]): A list of proteins.
-
-    Returns:
-        pd.DataFrame: A DataFrame with 'Gene', 'Selected', 'Protein' columns.
-    """
-    return pd.DataFrame(
-        {
-            "Gene": [feature_to_repr_map[protein] for protein in proteins],
-            "Selected": [protein in selected for protein in proteins],
-            "Protein": proteins,
-        }
-    )
 
 
 def get_display_proteins_html(
