@@ -114,19 +114,6 @@ def init_llm_chat_state(
         selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
         selected_llm_chat[LLMKeys.PROMPT_INSTRUCTIONS] = initial_instructions
 
-    # Populate MODEL_NAME, BASE_URL, and MAX_TOKENS from configuration if available
-    if not selected_llm_chat[LLMKeys.IS_INITIALIZED]:
-        config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
-        if config_id:
-            # Lazy import to avoid circular dependency
-            from alphastats.gui.utils.llm_config_helper import get_config_by_id
-
-            config = get_config_by_id(config_id)
-            if config:
-                selected_llm_chat[LLMKeys.MODEL_NAME] = config["model_name"]
-                selected_llm_chat[LLMKeys.BASE_URL] = config.get("base_url", "")
-                selected_llm_chat[LLMKeys.MAX_TOKENS] = config["max_tokens"]
-
     on_select_new_analysis_fill_state()
 
 
