@@ -29,7 +29,6 @@ from alphastats.llm.llm_integration import (
     LLMClientWrapper,
     LLMIntegration,
     MessageKeys,
-    Model,
     Roles,
 )
 from alphastats.llm.prompts import (
@@ -64,97 +63,6 @@ class EnrichmentAnalysisKeys(metaclass=ConstantsClass):
     TOOL = "tool"
     INCLUDE_BACKGROUND = "include_background"
     RESULT = "result"
-
-
-@st.fragment
-def llm_config() -> None:
-    """Show the configuration options for the LLM interpretation.
-
-    DEPRECATED: This function is deprecated and replaced by the LLM Configuration page
-    (09_LLM_Configuration.py). Use the configuration management system via StateKeys.LLM_CONFIGURATIONS
-    instead of direct global state management.
-    """
-
-    current_model_name = (
-        st.session_state.get(StateKeys.MODEL_NAME, None)
-        if st.session_state.get(StateKeys.MODEL_NAME, None)
-        in Model.get_available_models()
-        else None  # On loading a session with a model that is no longer available, we set it to None.
-    )
-    current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
-
-    c1, _ = st.columns((1, 2))
-    with c1:
-        new_model_name = st.selectbox(
-            "Select LLM",
-            models := Model.get_available_models(),
-            index=models.index(current_model_name)
-            if current_model_name is not None
-            else 0,
-        )
-        if new_model_name != current_model_name:
-            st.session_state[StateKeys.MODEL_NAME] = new_model_name
-            on_change_save_state()
-
-        requires_api_key = Model(new_model_name).requires_api_key()
-        supports_base_url = Model(new_model_name).supports_base_url()
-        is_vertex_model = new_model_name.startswith("vertex")
-
-        api_key = st.text_input(
-            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear."
-            if not is_vertex_model
-            else "Vertex project id (need to set up gauth default login first)",
-            type="password",
-        )
-        set_api_key(api_key)
-
-        new_base_url = (
-            st.text_input(
-                "API base url. Enter a space to clear."
-                if not is_vertex_model
-                else "Vertex location",
-                value=current_base_url,
-                help="Optional base URL for the LLM API, or location in case of Vertex AI. E.g. if you are using Ollama, this is usually http://localhost:11434.",
-            )
-            if supports_base_url
-            else None
-        )
-        new_base_url = (
-            new_base_url.strip()
-            if new_base_url and new_base_url.strip() != ""
-            else None
-        )
-
-        if new_base_url != current_base_url:
-            st.session_state[StateKeys.BASE_URL] = new_base_url
-            on_change_save_state()
-        if supports_base_url:
-            st.info(f"Expecting LLM API at '{new_base_url}'.")
-
-        test_connection = st.button("Test connection")
-        if test_connection:
-            with st.spinner(f"Testing connection to {new_model_name}.."):
-                error = llm_connection_test(
-                    model_name=new_model_name,
-                    api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                    base_url=new_base_url,
-                )
-                if error is None:
-                    st.success(f"Connection to {new_model_name} successful!")
-                else:
-                    st.error(f"Connection to {new_model_name} failed: {str(error)}")
-
-        tokens = st.number_input(
-            "Maximal number of tokens",
-            step=1000,
-            value=st.session_state[StateKeys.MAX_TOKENS],
-        )
-        if tokens != st.session_state[StateKeys.MAX_TOKENS]:
-            st.session_state[StateKeys.MAX_TOKENS] = tokens
-            on_change_save_state()
-
-        if current_model_name != new_model_name or new_base_url != current_base_url:
-            st.rerun(scope="app")
 
 
 def format_analysis_key(key: str) -> str:
