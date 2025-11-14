@@ -43,7 +43,7 @@ def test_get_regulated_features_all():
 
 
 @patch("streamlit.session_state", new_callable=dict)
-@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_feature")
+@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_features")
 def test_gather_uniprot_data_empty(mock_get_info, mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {}
     features = []
@@ -53,33 +53,35 @@ def test_gather_uniprot_data_empty(mock_get_info, mock_session_state):
 
 
 @patch("streamlit.session_state", new_callable=dict)
-@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_feature")
+@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_features")
 def test_gather_uniprot_data_lookupall(mock_get_info, mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {}
     features = ["feature1", "feature2"]
 
-    mock_get_info.side_effect = ["info1", "info2"]
+    mock_get_info.return_value = {"feature1": "info1", "feature2": "info2"}
 
     gather_uniprot_data(features)
     assert mock_session_state[StateKeys.ANNOTATION_STORE] == {
         "feature1": "info1",
         "feature2": "info2",
     }
-    mock_get_info.assert_any_call("feature1")
-    mock_get_info.assert_any_call("feature2")
+
+    mock_get_info.assert_called_once_with(["feature1", "feature2"])
 
 
 @patch("streamlit.session_state", new_callable=dict)
-@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_feature")
+@patch("alphastats.gui.utils.analysis_helper.get_annotations_for_features")
 def test_gather_uniprot_data_lookupsome(mock_get_info, mock_session_state):
     mock_session_state[StateKeys.ANNOTATION_STORE] = {"feature1": "existing_info"}
     features = ["feature1", "feature2"]
 
-    mock_get_info.side_effect = ["info2"]
+    mock_get_info.return_value = {"feature2": "info2"}
 
     gather_uniprot_data(features)
+
     assert mock_session_state[StateKeys.ANNOTATION_STORE] == {
         "feature1": "existing_info",
         "feature2": "info2",
     }
-    mock_get_info.assert_called_once_with("feature2")
+
+    mock_get_info.assert_called_once_with(["feature2"])

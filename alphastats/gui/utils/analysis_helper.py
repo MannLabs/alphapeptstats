@@ -6,7 +6,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import pandas as pd
 import streamlit as st
 from plotly.graph_objects import Figure
-from stqdm import stqdm
 
 from alphastats.dataset.id_holder import IdHolder
 from alphastats.dataset.keys import Cols, Regulation
@@ -21,11 +20,8 @@ from alphastats.gui.utils.analysis import (
 )
 from alphastats.gui.utils.llm_helper import LLM_ENABLED_ANALYSIS
 from alphastats.gui.utils.state_keys import SavedAnalysisKeys, StateKeys
-from alphastats.gui.utils.ui_helper import (
-    has_llm_support,
-    show_button_download_df,
-)
-from alphastats.llm.uniprot_utils import get_annotations_for_feature
+from alphastats.gui.utils.ui_helper import has_llm_support, show_button_download_df
+from alphastats.llm.uniprot_utils import get_annotations_for_features
 from alphastats.plots.plot_utils import PlotlyObject
 
 
@@ -289,20 +285,22 @@ def gather_uniprot_data(features: List[str]) -> None:
     Returns:
         None
     """
+
     features_to_fetch = [
         feature
         for feature in features
         if feature not in st.session_state[StateKeys.ANNOTATION_STORE]
     ]
-    for feature in stqdm(
-        features_to_fetch,
-        desc="Retrieving uniprot data on selected features ...",
-        mininterval=1,
-    ):
-        # TODO: Add some kind of rate limitation to avoid being locked out by uniprot
-        st.session_state[StateKeys.ANNOTATION_STORE][feature] = (
-            get_annotations_for_feature(feature)
-        )
+    if not features_to_fetch:
+        return
+
+    with st.spinner("Retrieving UniProt data on selected features ..."):
+        annotations = get_annotations_for_features(features_to_fetch)
+    if isinstance(annotations, str):
+        st.session_state[StateKeys.ANNOTATION_STORE][features_to_fetch[0]] = annotations
+        return
+    for feature, annotation in annotations.items():
+        st.session_state[StateKeys.ANNOTATION_STORE][feature] = annotation
 
 
 def get_regulated_features(analysis_object: ResultComponent) -> list:
