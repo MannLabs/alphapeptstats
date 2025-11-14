@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AlphaStats is an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics data. It supports multiple proteomics software outputs (MaxQuant, DIANN, FragPipe, Spectronaut, etc.) and provides both a Python API and a Streamlit-based GUI.
+AlphaPeptStats is an open-source Python package for automated and scalable statistical analysis of mass spectrometry-based proteomics data. It supports multiple proteomics software outputs (MaxQuant, DIANN, FragPipe, Spectronaut, etc.) and provides both a Python API and a Streamlit-based GUI.
 
 ## Development Commands
 

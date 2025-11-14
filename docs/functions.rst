@@ -11,9 +11,9 @@ Preprocessing
 Figures
 ----------
 
-To generate interactive plots, AlphaStats uses the graphing library `Plotly <https://plotly.com/python/>`_
+To generate interactive plots, AlphaPeptStats uses the graphing library `Plotly <https://plotly.com/python/>`_
 and all plotting methods will return a plotly object.
-The plotly graphs returned by AlphaStats can be customized.
+The plotly graphs returned by AlphaPeptStats can be customized.
 A description on how do customize your plots can be found `here <https://maegul.gitbooks.io/resguides-plotly/content/content/plotting_locally_and_offline/python/methods_for_updating_the_figure_or_graph_objects.html>`_
 
 

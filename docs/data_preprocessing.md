@@ -1,7 +1,7 @@
 # Data preprocessing
 
 Preprocessing of the data is substantial for the results of the downstream analysis.
-Data preprocessing available in AlphaStats covers: the removal of contaminants, normalization, imputation and subsetting and removal of samples.
+Data preprocessing available in AlphaPeptStats covers: the removal of contaminants, normalization, imputation and subsetting and removal of samples.
 
 ```python
 DataSet.preprocess(
@@ -19,14 +19,14 @@ DataSet.preprocess(
 
 Various proteomics software annotates contaminants differently or not at all. MaxQuant describes contaminations or ProteinGroups that should be removed in `Only identified by site`, `Reverse`, `Potential contaminant`. Likewise MaxQuant, AlphaPept flags spurious proteins as `Reverse`.
 
-In addition, AlphaStats identifies contaminations based on the contamination library created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full).
+In addition, AlphaPeptStats identifies contaminations based on the contamination library created by [Frankenfield et al. 2022](https://www.biorxiv.org/content/10.1101/2022.04.27.489766v2.full).
 
 
 ## Normalization
 
-Depending on the software and the settings, data could already have been normalized before loading into AlphaStats.
+Depending on the software and the settings, data could already have been normalized before loading into AlphaPeptStats.
 
-AlphaStats has the following Normalization methods implemented:
+AlphaPeptStats has the following Normalization methods implemented:
 
  - **Z-Score Normalization (Standardization)**: Centers the protein intensity of each sample, meaning scaling the variance to 1.
 
@@ -39,14 +39,14 @@ AlphaStats has the following Normalization methods implemented:
 > **Note**
 > It has been shown that normalizing the data first and then imputing the data performs better, than the other way around
 ([Karpievitch et al. 2012](https://doi.org/10.1186/1471-2105-13-S16-S5)). This preprocessing order is also acquired in
-AlphaStats (unless preprocessing is done in several steps).
+AlphaPeptStats (unless preprocessing is done in several steps).
 
 
 ## Imputation
 
 Especially, missing values are challenging when it comes to analyzing proteomic mass spectrometry data. Missing values can either be missing completely at random (MCAR), due to technical limitations or missing not at random (MNAR) meaning that the abundance is below the detection limit of the platform or completely absent.
 
-To deal with missing values, AlphaStats has the following methods implemented:
+To deal with missing values, AlphaPeptStats has the following methods implemented:
 
 - **k-nearest neighbors (kNN)**: Missing values are imputed using the mean protein intensity of k-nearest neighbors
 
