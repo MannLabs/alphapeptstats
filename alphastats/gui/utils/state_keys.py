@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import NamedTuple
 
 from alphastats.dataset.keys import ConstantsClass
@@ -34,9 +33,6 @@ class StateKeys(metaclass=ConstantsClass):
     # Mirrored by LLMKeys where they are stored in a chat specific manner
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
-    MODEL_NAME = "model_name"
-    BASE_URL = "base_url"
-    MAX_TOKENS = "max_tokens"
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
@@ -52,14 +48,10 @@ class LLMKeys(metaclass=ConstantsClass):
     RECENT_CHAT_WARNINGS = "recent_chat_warnings"
     ENRICHMENT_ANALYSIS = "enrichment_analysis"
 
-    IS_INITIALIZED = "is_initialized"
     LLM_CONFIGURATION_ID = "llm_configuration_id"
     # Mirrored by StateKeys for handling reactivity and making it available to functions reading from the session state
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
-    MODEL_NAME = "model_name"
-    BASE_URL = "base_url"
-    MAX_TOKENS = "max_tokens"
     PROMPT_EXPERIMENTAL_DESIGN = "prompt_experimental_design"
     PROMPT_PROTEIN_DATA = "prompt_protein_data"
     PROMPT_INSTRUCTIONS = "prompt_instructions"
@@ -97,17 +89,6 @@ WIDGET_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
     SyncedLLMKey(StateKeys.PROMPT_PROTEIN_DATA, LLMKeys.PROMPT_PROTEIN_DATA, None),
     SyncedLLMKey(StateKeys.PROMPT_INSTRUCTIONS, LLMKeys.PROMPT_INSTRUCTIONS, None),
     SyncedLLMKey(StateKeys.ENRICHMENT_COLUMNS, LLMKeys.ENRICHMENT_COLUMNS, None),
-]
-
-# These keys are synced between the StateKeys and LLMKeys classes, but only if the LLM is already initialized with a specific model.
-MODEL_SYNCED_LLM_KEYS: list[SyncedLLMKey] = [
-    SyncedLLMKey(StateKeys.MODEL_NAME, LLMKeys.MODEL_NAME, None),
-    SyncedLLMKey(
-        StateKeys.BASE_URL,
-        LLMKeys.BASE_URL,
-        os.getenv("OLLAMA_BASE_URL"),
-    ),
-    SyncedLLMKey(StateKeys.MAX_TOKENS, LLMKeys.MAX_TOKENS, 10000),
 ]
 
 

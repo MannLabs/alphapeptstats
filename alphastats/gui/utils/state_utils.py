@@ -1,13 +1,11 @@
 """Functions to initialize and empty the session state."""
 
-import os
 import uuid
 from copy import deepcopy
 
 import streamlit as st
 
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
-from alphastats.llm.llm_integration import Model
 
 
 def empty_session_state() -> None:
@@ -24,12 +22,6 @@ INIT_STATES = {
     StateKeys.LLM_CHATS: {},
     StateKeys.LLM_CONFIGURATIONS: [],
     StateKeys.ANNOTATION_STORE: {},
-    StateKeys.MAX_TOKENS: 10000,
-    StateKeys.BASE_URL: os.getenv("OLLAMA_BASE_URL"),
-    StateKeys.MODEL_NAME: (
-        next(iter(Model.get_available_models()))
-    ),  # TDOO: change to None: this is just for convenience now
-    StateKeys.OPENAI_API_KEY: "",  # pragma: allowlist secret
     StateKeys.SELECTED_ANALYSIS: None,
     StateKeys.PROMPT_EXPERIMENTAL_DESIGN: None,
     StateKeys.PROMPT_PROTEIN_DATA: None,

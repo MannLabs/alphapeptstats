@@ -12,7 +12,7 @@ from cloudpickle import cloudpickle
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats import __version__
-from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
+from alphastats.gui.utils.state_keys import StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
 
 
@@ -135,44 +135,45 @@ class SessionManager:
                 self.warnings.append(msg)
 
             # clean and init first to have a defined state
-            model_name_current_session = session_state[StateKeys.MODEL_NAME]
-            base_url_current_session = session_state[StateKeys.BASE_URL]
+            # model_name_current_session = session_state[StateKeys.MODEL_NAME]
+            # base_url_current_session = session_state[StateKeys.BASE_URL]
 
             empty_session_state()
             init_session_state()
             self._clean_copy(loaded_state_data, session_state)
 
-            self._warn_on_model_change(
-                model_name_current_session,
-                base_url_current_session,
-                session_state,
-            )
+            # TODO: reimplement
+            # self._warn_on_model_change(
+            #     model_name_current_session,
+            #     base_url_current_session,
+            #     session_state,
+            # )
 
             return str(file_path)
 
         raise ValueError(f"File {file_name} not found in {self._save_folder_path}.")
 
-    def _warn_on_model_change(
-        self,
-        model_name: str,
-        base_url: str,
-        session_state: SessionStateProxy,
-    ) -> None:
-        """Warn if model changed on session load.
-
-        TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
-        TODO: check if this is still needed, as we use llmlite now
-        """
-        chats = session_state.get(StateKeys.LLM_CHATS, {}).values()
-        if not any(chat.get(LLMKeys.LLM_INTEGRATION) for chat in chats):
-            return
-
-        if model_name != session_state[StateKeys.MODEL_NAME]:
-            msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name}"
-            logging.warning(msg)
-            self.warnings.append(msg)
-
-        if base_url != session_state[StateKeys.BASE_URL]:
-            msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url}"
-            self.warnings.append(msg)
-            logging.warning(msg)
+    # def _warn_on_model_change(
+    #     self,
+    #     model_name: str,
+    #     base_url: str,
+    #     session_state: SessionStateProxy,
+    # ) -> None:
+    #     """Warn if model changed on session load.
+    #
+    #     TODO: This is a temporary solution, needs to be revisited once we have a proper LLM config page.
+    #     TODO: check if this is still needed, as we use llmlite now
+    #     """
+    #     chats = session_state.get(StateKeys.LLM_CHATS, {}).values()
+    #     if not any(chat.get(LLMKeys.LLM_INTEGRATION) for chat in chats):
+    #         return
+    #
+    #     if model_name != session_state[StateKeys.MODEL_NAME]:
+    #         msg = f"Saved LLM client used a different model: before {session_state[StateKeys.MODEL_NAME]}, now {model_name}"
+    #         logging.warning(msg)
+    #         self.warnings.append(msg)
+    #
+    #     if base_url != session_state[StateKeys.BASE_URL]:
+    #         msg = f"Saved LLM client used a different base_url: before {session_state[StateKeys.BASE_URL]}, now {base_url}"
+    #         self.warnings.append(msg)
+    #         logging.warning(msg)

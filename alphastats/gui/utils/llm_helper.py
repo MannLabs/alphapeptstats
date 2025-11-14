@@ -11,7 +11,6 @@ from alphastats.dataset.keys import ConstantsClass
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import CUSTOM_ANALYSIS, NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
-    MODEL_SYNCED_LLM_KEYS,
     WIDGET_SYNCED_LLM_KEYS,
     DefaultStates,
     KeySyncNames,
@@ -98,9 +97,6 @@ def init_llm_chat_state(
         }
     if selected_llm_chat.get(LLMKeys.ENRICHMENT_COLUMNS) is None:
         selected_llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = []
-
-    if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
-        selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
 
     if selected_llm_chat.get(LLMKeys.PROMPT_EXPERIMENTAL_DESIGN) is None:
         experimental_design_prompt, protein_data_prompt, initial_instructions = (
@@ -408,15 +404,6 @@ def on_select_new_analysis_fill_state() -> None:
             getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
-    if selected_chat.get(LLMKeys.IS_INITIALIZED):
-        for synced_key in MODEL_SYNCED_LLM_KEYS:
-            st.session_state[getattr(synced_key, KeySyncNames.STATE)] = (
-                selected_chat.get(
-                    getattr(synced_key, KeySyncNames.LLM),
-                    getattr(synced_key, KeySyncNames.GET_DEFAULT),
-                )
-            )
-
     st.toast("State filled from saved analysis.", icon="🔍")
 
 
@@ -437,13 +424,6 @@ def on_change_save_state() -> None:
             getattr(synced_key, KeySyncNames.STATE),
             getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
-
-    if not selected_chat.get(LLMKeys.IS_INITIALIZED):
-        for synced_key in MODEL_SYNCED_LLM_KEYS:
-            selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
-                getattr(synced_key, KeySyncNames.STATE),
-                getattr(synced_key, KeySyncNames.GET_DEFAULT),
-            )
 
 
 def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
