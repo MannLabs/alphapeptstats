@@ -109,60 +109,74 @@ if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
 
 selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
 
-##################################### Select LLM Configuration #####################################
-
-st.markdown("#### Select LLM Configuration")
-
-available_configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
-
-if not available_configurations:
-    st.warning(
-        "No LLM configurations found. Please configure at least one model first."
-    )
-    st.page_link(
-        "pages_/09_LLM_Configuration.py",
-        label="➔ Go to LLM Configuration page...",
-    )
-    st.stop()
-
 is_llm_integration_initialized = (
     selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
 )
 
-# Create selectbox with configurations
-config_options = {config["id"]: config for config in available_configurations}
-config_ids = list(config_options.keys())
+##################################### Select LLM Configuration #####################################
 
-# Get current selection or default to first config
-current_config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
-if current_config_id and current_config_id in config_ids:
-    default_index = config_ids.index(current_config_id)
+st.markdown("#### Select LLM Configuration")
+if is_llm_integration_initialized:
+    st.info(
+        "LLM integration is already initialized for this analysis. "
+        "To change the configuration, please reset the LLM interpretation first."
+    )
 else:
-    default_index = 0 if config_ids else None
+    available_configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
 
-selected_config_id = st.selectbox(
-    "Select configuration to use for this analysis",
-    options=config_ids,
-    format_func=lambda config_id: format_config_for_display(config_options[config_id]),
-    index=default_index,
-    disabled=is_llm_integration_initialized,
-    key=f"config_selector_{selected_analysis_key}",
-    help="Configuration is locked once LLM interpretation is initialized. Reset to change configuration.",
-)
+    if not available_configurations:
+        st.warning(
+            "No LLM configurations found. Please configure at least one model first."
+        )
+        st.page_link(
+            "pages_/09_LLM_Configuration.py",
+            label="➔ Go to LLM Configuration page...",
+        )
+        st.stop()
 
-# Store selection in chat state
-if selected_config_id:
-    selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID] = selected_config_id
-    selected_config = config_options[selected_config_id]
+    # Create selectbox with configurations
+    config_options = {config["id"]: config for config in available_configurations}
+    config_ids = list(config_options.keys())
 
-    st.markdown(f"**Model:** {selected_config['model_name']}")
-    st.markdown(f"**Max Tokens:** {selected_config['max_tokens']:,}")
-    test_status = selected_config.get("test_status", "not_tested")
-    icon = get_test_status_icon(test_status)
-    st.markdown(f"**Test Status:** {icon} {test_status}")
+    # Get current selection or default to first config
+    current_config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
+    if current_config_id and current_config_id in config_ids:
+        default_index = config_ids.index(current_config_id)
+    else:
+        default_index = 0 if config_ids else None
 
-    if selected_config.get("base_url"):
-        st.markdown(f"**Base URL:** {selected_config['base_url']}")
+    selected_config_id = st.selectbox(
+        "Select configuration to use for this analysis",
+        options=config_ids,
+        format_func=lambda config_id: format_config_for_display(
+            config_options[config_id]
+        ),
+        index=default_index,
+        disabled=is_llm_integration_initialized,
+        key=f"config_selector_{selected_analysis_key}",
+        help="Configuration is locked once LLM interpretation is initialized. Reset to change configuration.",
+    )
+
+    # Store selection in chat state
+    if selected_config_id:
+        selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID] = selected_config_id
+        selected_config = config_options[selected_config_id]
+
+        test_status = selected_config.get("test_status", "not_tested")
+        icon = get_test_status_icon(test_status)
+
+        opt = (
+            f"\n**Base URL:** {selected_config['base_url']}"
+            if selected_config.get("base_url")
+            else ""
+        )
+
+        st.info(
+            f"**Model:** {selected_config['model_name']}\n"
+            + f"**Max Tokens:** {selected_config['max_tokens']:,}\n"
+            + f"**Test Status:** {icon} {test_status}"
+            + opt
+        )
 
 ##################################### Analysis Input #####################################
 
@@ -278,14 +292,25 @@ with st.expander("Initial prompt", expanded=True):
 display_config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
 if display_config_id:
     display_config = get_config_by_id(display_config_id)
+    if not is_llm_integration_initialized:
+        st.info("You may change the model in the dropdown on the top of the page.")
     if display_config:
         st.markdown(f"#### LLM Interpretation with {display_config['model_name']}")
 
-        st.info(f"**Model:** {display_config['model_name']}")
-        st.info(f"**Max Tokens:** {display_config['max_tokens']:,}")
         test_status = display_config.get("test_status", "not_tested")
         icon = get_test_status_icon(test_status)
-        st.info(f"**Test Status:** {icon}")
+        opt = (
+            f"\n**Base URL:** {display_config['base_url']}"
+            if display_config.get("base_url")
+            else ""
+        )
+        st.info(
+            f"**Model:** {display_config['model_name']}\n"
+            + f"**Max Tokens:** {display_config['max_tokens']:,}\n"
+            + f"**Test Status:** {icon} {test_status}"
+            + opt
+        )
+
     else:
         st.warning(
             "Configuration no longer exists. Please select a new configuration and reset."
@@ -331,6 +356,7 @@ llm_reset = c2.button(
 
 if llm_reset:
     del selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID]
+    del selected_llm_chat[LLMKeys.LLMKeys.LLM_INTEGRATION]
     st.rerun()
 
 

@@ -7,11 +7,14 @@ import streamlit as st
 
 from alphastats.gui.utils.state_keys import DefaultStates, StateKeys
 
+keys_to_preserve = [StateKeys.LLM_CONFIGURATIONS]
+
 
 def empty_session_state() -> None:
     """Remove all variables to avoid conflicts."""
     for key in st.session_state:
-        del st.session_state[key]
+        if key not in keys_to_preserve:
+            del st.session_state[key]
     st.empty()
 
 
