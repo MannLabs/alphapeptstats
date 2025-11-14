@@ -22,6 +22,7 @@ INIT_STATES = {
     StateKeys.WORKFLOW: DefaultStates.WORKFLOW.copy(),
     StateKeys.SAVED_ANALYSES: {},
     StateKeys.LLM_CHATS: {},
+    StateKeys.LLM_CONFIGURATIONS: [],
     StateKeys.ANNOTATION_STORE: {},
     StateKeys.MAX_TOKENS: 10000,
     StateKeys.BASE_URL: os.getenv("OLLAMA_BASE_URL"),

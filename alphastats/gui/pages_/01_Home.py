@@ -2,13 +2,11 @@ import os
 
 import streamlit as st
 
-from alphastats.gui.utils.llm_helper import llm_config
 from alphastats.gui.utils.session_manager import STATE_SAVE_FOLDER_PATH, SessionManager
 from alphastats.gui.utils.state_utils import (
     init_session_state,
 )
 from alphastats.gui.utils.ui_helper import (
-    has_llm_support,
     img_to_bytes,
     sidebar_info,
 )
@@ -48,11 +46,6 @@ from the [Mann Group at the University of Copenhagen](https://www.cpr.ku.dk/rese
 """
 )
 
-
-if has_llm_support():
-    st.markdown("### Configure LLM")
-    llm_config()
-
 st.markdown("""### Load previous session""")
 saved_sessions = SessionManager.get_saved_sessions(STATE_SAVE_FOLDER_PATH)
 
@@ -67,10 +60,6 @@ else:
         label=f"Select a session to load (from {STATE_SAVE_FOLDER_PATH})",
     )
 
-    if has_llm_support():
-        c1.info(
-            "Note that all LLM chats will be initialized with the one model configured above."
-        )
     if st.button(
         "Load",
         help="Load the selected session. Note that this will overwrite the current session.",

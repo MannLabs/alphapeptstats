@@ -26,6 +26,7 @@ class StateKeys(metaclass=ConstantsClass):
     )
 
     LLM_CHATS = "llm_chats"
+    LLM_CONFIGURATIONS = "llm_configurations"
 
     ANNOTATION_STORE = "annotation_store"
     SELECTED_ANALYSIS = "selected_analysis"
@@ -52,6 +53,7 @@ class LLMKeys(metaclass=ConstantsClass):
     ENRICHMENT_ANALYSIS = "enrichment_analysis"
 
     IS_INITIALIZED = "is_initialized"
+    LLM_CONFIGURATION_ID = "llm_configuration_id"
     # Mirrored by StateKeys for handling reactivity and making it available to functions reading from the session state
     SELECTED_UNIPROT_FIELDS = "selected_uniprot_fields"
     INCLUDE_UNIPROT_INTO_INITIAL_PROMPT = "include_uniprot"
