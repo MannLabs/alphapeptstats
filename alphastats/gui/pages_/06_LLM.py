@@ -155,15 +155,11 @@ if selected_config_id:
     selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID] = selected_config_id
     selected_config = config_options[selected_config_id]
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"**Model:** {selected_config['model_name']}")
-    with col2:
-        st.markdown(f"**Max Tokens:** {selected_config['max_tokens']:,}")
-    with col3:
-        test_status = selected_config.get("test_status", "not_tested")
-        icon = get_test_status_icon(test_status)
-        st.markdown(f"**Test Status:** {icon} {test_status}")
+    st.markdown(f"**Model:** {selected_config['model_name']}")
+    st.markdown(f"**Max Tokens:** {selected_config['max_tokens']:,}")
+    test_status = selected_config.get("test_status", "not_tested")
+    icon = get_test_status_icon(test_status)
+    st.markdown(f"**Test Status:** {icon} {test_status}")
 
     if selected_config.get("base_url"):
         st.markdown(f"**Base URL:** {selected_config['base_url']}")
@@ -285,15 +281,11 @@ if display_config_id:
     if display_config:
         st.markdown(f"#### LLM Interpretation with {display_config['model_name']}")
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.info(f"**Model:** {display_config['model_name']}")
-        with col2:
-            st.info(f"**Max Tokens:** {display_config['max_tokens']:,}")
-        with col3:
-            test_status = display_config.get("test_status", "not_tested")
-            icon = get_test_status_icon(test_status)
-            st.info(f"**Test Status:** {icon}")
+        st.info(f"**Model:** {display_config['model_name']}")
+        st.info(f"**Max Tokens:** {display_config['max_tokens']:,}")
+        test_status = display_config.get("test_status", "not_tested")
+        icon = get_test_status_icon(test_status)
+        st.info(f"**Test Status:** {icon}")
     else:
         st.warning(
             "Configuration no longer exists. Please select a new configuration and reset."

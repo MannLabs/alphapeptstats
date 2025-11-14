@@ -188,52 +188,51 @@ def display_model_configurations() -> None:
         return
 
     for config in configurations:
-        with st.expander(f"🤖 {config['model_name']}", expanded=False):
-            col1, col2 = st.columns([3, 1])
+        col1, col2 = st.columns([3, 1])
 
-            with col1:
-                st.markdown(f"**Model:** {config['model_name']}")
+        with col1:
+            st.markdown(f"**Model:** {config['model_name']}")
 
-                st.markdown(f"**API Key:** {_mask_api_key(config.get('api_key'))}")
+            st.markdown(f"**API Key:** {_mask_api_key(config.get('api_key'))}")
 
-                st.markdown(f"**Base URL:** {config.get('base_url')}")
+            st.markdown(f"**Base URL:** {config.get('base_url')}")
 
-                st.markdown(f"**Max Tokens:** {config.get('max_tokens'):,}")
+            st.markdown(f"**Max Tokens:** {config.get('max_tokens'):,}")
 
-                test_status = config.get("test_status", "not_tested")
-                if test_status == "success":
-                    st.success("✅ Connection test passed")
-                elif test_status == "failed":
-                    st.error("❌ Connection test failed")
-                    if config.get("test_error"):
-                        st.caption(f"Error: {config['test_error']}")
+            test_status = config.get("test_status", "not_tested")
+            if test_status == "success":
+                st.success("✅ Connection test passed")
+            elif test_status == "failed":
+                st.error("❌ Connection test failed")
+                if config.get("test_error"):
+                    st.caption(f"Error: {config['test_error']}")
 
-            with col2:
-                if st.button("🔌 Test", key=f"test_{config['id']}"):
-                    with st.spinner("Testing connection..."):
-                        error = llm_connection_test(
-                            model_name=config["model_name"],
-                            base_url=config.get("base_url") or None,
-                            api_key=config.get("api_key") or None,
-                        )
-                        if error:
-                            config["test_status"] = "failed"
-                            config["test_error"] = error
-                            st.error(f"❌ Connection failed: {error}")
-                        else:
-                            config["test_status"] = "success"
-                            config["test_error"] = None
-                            st.success("✅ Connection successful")
-                        st.rerun()
-
-                # Check if configuration is in use before allowing deletion
-                in_use, analyses_using = is_configuration_in_use(config["id"])
-
-                if in_use:
-                    st.warning(
-                        f"⚠️ Configuration is in use by {len(analyses_using)} analyses, which will break after removal of the model."
+        with col2:
+            if st.button("🔌 Test", key=f"test_{config['id']}"):
+                with st.spinner("Testing connection..."):
+                    error = llm_connection_test(
+                        model_name=config["model_name"],
+                        base_url=config.get("base_url") or None,
+                        api_key=config.get("api_key") or None,
                     )
-                if st.button("🗑️ Remove", key=f"remove_{config['id']}"):
-                    st.session_state[StateKeys.LLM_CONFIGURATIONS].remove(config)
-                    st.success(f"✅ Removed configuration for {config['model_name']}")
+                    if error:
+                        config["test_status"] = "failed"
+                        config["test_error"] = error
+                        st.error(f"❌ Connection failed: {error}")
+                    else:
+                        config["test_status"] = "success"
+                        config["test_error"] = None
+                        st.success("✅ Connection successful")
                     st.rerun()
+
+            # Check if configuration is in use before allowing deletion
+            in_use, analyses_using = is_configuration_in_use(config["id"])
+
+            if in_use:
+                st.warning(
+                    f"⚠️ Configuration is in use by {len(analyses_using)} analyses, which will break after removal of the model."
+                )
+            if st.button("🗑️ Remove", key=f"remove_{config['id']}"):
+                st.session_state[StateKeys.LLM_CONFIGURATIONS].remove(config)
+                st.success(f"✅ Removed configuration for {config['model_name']}")
+                st.rerun()
