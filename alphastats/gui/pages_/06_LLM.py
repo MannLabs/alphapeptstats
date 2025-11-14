@@ -9,6 +9,11 @@ from alphastats.gui.utils.analysis_helper import (
     display_figure,
     gather_uniprot_data,
 )
+from alphastats.gui.utils.llm_config_helper import (
+    format_config_for_display,
+    get_config_by_id,
+    get_test_status_icon,
+)
 from alphastats.gui.utils.llm_helper import (
     LLM_ENABLED_ANALYSIS,
     configure_initial_prompt,
@@ -104,6 +109,65 @@ if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
 
 selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
 
+##################################### Select LLM Configuration #####################################
+
+st.markdown("#### Select LLM Configuration")
+
+available_configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
+
+if not available_configurations:
+    st.warning(
+        "No LLM configurations found. Please configure at least one model first."
+    )
+    st.page_link(
+        "pages_/09_LLM_Configuration.py",
+        label="➔ Go to LLM Configuration page...",
+    )
+    st.stop()
+
+is_llm_integration_initialized = (
+    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
+)
+
+# Create selectbox with configurations
+config_options = {config["id"]: config for config in available_configurations}
+config_ids = list(config_options.keys())
+
+# Get current selection or default to first config
+current_config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
+if current_config_id and current_config_id in config_ids:
+    default_index = config_ids.index(current_config_id)
+else:
+    default_index = 0 if config_ids else None
+
+selected_config_id = st.selectbox(
+    "Select configuration to use for this analysis",
+    options=config_ids,
+    format_func=lambda config_id: format_config_for_display(config_options[config_id]),
+    index=default_index,
+    disabled=is_llm_integration_initialized,
+    key=f"config_selector_{selected_analysis_key}",
+    help="Configuration is locked once LLM interpretation is initialized. Reset to change configuration.",
+)
+
+# Store selection in chat state
+if selected_config_id:
+    selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID] = selected_config_id
+    selected_config = config_options[selected_config_id]
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"**Model:** {selected_config['model_name']}")
+    with col2:
+        st.markdown(f"**Max Tokens:** {selected_config['max_tokens']:,}")
+    with col3:
+        test_status = selected_config.get("test_status", "not_tested")
+        icon = get_test_status_icon(test_status)
+        st.markdown(f"**Test Status:** {icon} {test_status}")
+
+    if selected_config.get("base_url"):
+        st.markdown(f"**Base URL:** {selected_config['base_url']}")
+
 ##################################### Analysis Input #####################################
 
 st.markdown("#### Analysis Input to LLM")
@@ -165,15 +229,15 @@ st.markdown(
 if st.button("Fetch UniProt data for selected proteins"):
     gather_uniprot_data(selected_features)
 
-is_llm_integration_initialized = (
-    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
-)
 
+# Get model name from configuration for display_uniprot
+uniprot_config = get_config_by_id(selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID))
+uniprot_model_name = uniprot_config["model_name"] if uniprot_config else "unknown"
 
 display_uniprot(
     regulated_features_dict,
     feature_to_repr_map,
-    model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
+    model_name=uniprot_model_name,
     selected_analysis_key=selected_analysis_key,
     disabled=is_llm_integration_initialized,
 )
@@ -214,19 +278,53 @@ with st.expander("Initial prompt", expanded=True):
 
 ##################################### LLM interpretation #####################################
 
-st.markdown(f"#### LLM Interpretation with {selected_llm_chat[LLMKeys.MODEL_NAME]}")
+# Retrieve configuration for display
+display_config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
+if display_config_id:
+    display_config = get_config_by_id(display_config_id)
+    if display_config:
+        st.markdown(f"#### LLM Interpretation with {display_config['model_name']}")
 
-st.info(
-    f"Model: {selected_llm_chat[LLMKeys.MODEL_NAME]} Max tokens: {selected_llm_chat[LLMKeys.MAX_TOKENS]}"
-)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.info(f"**Model:** {display_config['model_name']}")
+        with col2:
+            st.info(f"**Max Tokens:** {display_config['max_tokens']:,}")
+        with col3:
+            test_status = display_config.get("test_status", "not_tested")
+            icon = get_test_status_icon(test_status)
+            st.info(f"**Test Status:** {icon}")
+    else:
+        st.warning(
+            "Configuration no longer exists. Please select a new configuration and reset."
+        )
+else:
+    st.markdown("#### LLM Interpretation")
+    st.warning("No configuration selected")
 
-model_name = selected_llm_chat[LLMKeys.MODEL_NAME]
-if Model(model_name).requires_api_key() and not st.session_state.get(
-    StateKeys.OPENAI_API_KEY
-):
+# Validate configuration is selected
+config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
+if not config_id:
+    st.error("Please select a configuration first")
+    st.stop()
+
+# Retrieve configuration
+selected_config = get_config_by_id(config_id)
+if selected_config is None:
+    st.error(
+        "Selected configuration no longer exists. Please select a different configuration."
+    )
+    st.stop()
+
+# Validate API key if required
+model_name = selected_config["model_name"]
+if Model(model_name).requires_api_key() and not selected_config.get("api_key"):
+    st.error(
+        f"API key is required for {model_name}. Please update the configuration on the LLM Configuration page."
+    )
     st.page_link(
-        "pages_/01_Home.py",
-        label=f"❗ Please configure an API key to use the {model_name} model on the ➔ Home page",
+        "pages_/09_LLM_Configuration.py",
+        label="➔ Go to LLM Configuration page...",
     )
     st.stop()
 
@@ -252,21 +350,22 @@ if not is_llm_integration_initialized:
         st.stop()
 
     try:
+        # Use configuration values for initialization
         client_wrapper = LLMClientWrapper(
-            model_name=selected_llm_chat[LLMKeys.MODEL_NAME],
-            api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-            base_url=st.session_state[StateKeys.BASE_URL],
+            model_name=selected_config["model_name"],
+            api_key=selected_config.get("api_key") or None,
+            base_url=selected_config.get("base_url") or None,
         )
 
         llm_integration = LLMIntegration(
             client_wrapper=client_wrapper,
             system_message=system_message,
             dataset=dataset,
-            max_tokens=selected_llm_chat[StateKeys.MAX_TOKENS],
+            max_tokens=selected_config["max_tokens"],
         )
 
         st.toast(
-            f"{selected_llm_chat[LLMKeys.MODEL_NAME]} integration initialized successfully!",
+            f"{selected_config['model_name']} integration initialized successfully!",
             icon="✅",
         )
 
@@ -281,8 +380,16 @@ if not is_llm_integration_initialized:
 
         st.rerun(scope="app")
     except AuthenticationError:
-        st.warning(
-            "Incorrect API key provided. Please enter a valid API key, it should look like this: sk-XXXXX"
+        st.error(
+            f"❌ Authentication failed for {selected_config['model_name']}. "
+            "The API key in the configuration is incorrect or invalid."
+        )
+        st.info(
+            "Please update the API key in the configuration. It should look like: sk-XXXXX"
+        )
+        st.page_link(
+            "pages_/09_LLM_Configuration.py",
+            label="➔ Go to LLM Configuration page to update...",
         )
         st.stop()
 

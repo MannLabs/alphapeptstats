@@ -68,7 +68,12 @@ class EnrichmentAnalysisKeys(metaclass=ConstantsClass):
 
 @st.fragment
 def llm_config() -> None:
-    """Show the configuration options for the LLM interpretation."""
+    """Show the configuration options for the LLM interpretation.
+
+    DEPRECATED: This function is deprecated and replaced by the LLM Configuration page
+    (09_LLM_Configuration.py). Use the configuration management system via StateKeys.LLM_CONFIGURATIONS
+    instead of direct global state management.
+    """
 
     current_model_name = (
         st.session_state.get(StateKeys.MODEL_NAME, None)
@@ -201,11 +206,18 @@ def init_llm_chat_state(
         selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
         selected_llm_chat[LLMKeys.PROMPT_INSTRUCTIONS] = initial_instructions
 
-    # TODO model name is determined when loading LLM page -> need better model selection.
+    # Populate MODEL_NAME, BASE_URL, and MAX_TOKENS from configuration if available
     if not selected_llm_chat[LLMKeys.IS_INITIALIZED]:
-        selected_llm_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
-        selected_llm_chat[LLMKeys.BASE_URL] = st.session_state[StateKeys.BASE_URL]
-        selected_llm_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
+        config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
+        if config_id:
+            # Lazy import to avoid circular dependency
+            from alphastats.gui.utils.llm_config_helper import get_config_by_id
+
+            config = get_config_by_id(config_id)
+            if config:
+                selected_llm_chat[LLMKeys.MODEL_NAME] = config["model_name"]
+                selected_llm_chat[LLMKeys.BASE_URL] = config.get("base_url", "")
+                selected_llm_chat[LLMKeys.MAX_TOKENS] = config["max_tokens"]
 
     on_select_new_analysis_fill_state()
 

@@ -29,6 +29,70 @@ def _mask_api_key(api_key: str | None) -> str:
     return f"{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
 
 
+def get_test_status_icon(test_status: str) -> str:
+    """Get icon for configuration test status.
+
+    Args:
+        test_status: The test status ("success", "failed", "not_tested")
+
+    Returns:
+        Icon string for the status
+
+    """
+    status_icons = {
+        "success": "✅",
+        "failed": "❌",
+        "not_tested": "⚠️",
+    }
+    return status_icons.get(test_status, "❓")
+
+
+def format_config_for_display(config: dict) -> str:
+    """Format configuration for display in selectbox.
+
+    Args:
+        config: Configuration dictionary
+
+    Returns:
+        Formatted string with model name and status icon
+
+    """
+    icon = get_test_status_icon(config.get("test_status", "not_tested"))
+    return f"{config['model_name']} {icon}"
+
+
+def get_config_by_id(config_id: str) -> dict | None:
+    """Retrieve configuration by ID.
+
+    Args:
+        config_id: Configuration UUID
+
+    Returns:
+        Configuration dictionary or None if not found
+
+    """
+    configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
+    return next((c for c in configurations if c["id"] == config_id), None)
+
+
+def is_configuration_in_use(config_id: str) -> tuple[bool, list[str]]:
+    """Check if configuration is used by any LLM chat.
+
+    Args:
+        config_id: Configuration UUID
+
+    Returns:
+        Tuple of (is_in_use, list_of_analysis_keys)
+
+    """
+    llm_chats = st.session_state.get(StateKeys.LLM_CHATS, {})
+    analyses_using_config = []
+    for analysis_key, chat_state in llm_chats.items():
+        if chat_state.get(LLMKeys.LLM_CONFIGURATION_ID) == config_id:
+            analyses_using_config.append(analysis_key)
+    return len(analyses_using_config) > 0, analyses_using_config
+
+
 @st.fragment
 def add_model_config() -> None:
     """Display form to add a new model configuration."""
@@ -116,7 +180,7 @@ def add_model_config() -> None:
 
 
 @st.fragment
-def display_model_configurations() -> None:  # noqa: C901 too complex
+def display_model_configurations() -> None:
     """Display list of configured models with options to remove and test."""
     configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
     st.write(configurations)
@@ -162,22 +226,14 @@ def display_model_configurations() -> None:  # noqa: C901 too complex
                             st.success("✅ Connection successful")
                         st.rerun()
 
+                # Check if configuration is in use before allowing deletion
+                in_use, analyses_using = is_configuration_in_use(config["id"])
+
+                if in_use:
+                    st.warning(
+                        f"⚠️ Configuration is in use by {len(analyses_using)} analyses, which will break after removal of the model."
+                    )
                 if st.button("🗑️ Remove", key=f"remove_{config['id']}"):
                     st.session_state[StateKeys.LLM_CONFIGURATIONS].remove(config)
-
-                    # Check if this config is used in any analysis
-                    used_in_analyses = []
-                    for analysis_key, chat in st.session_state[
-                        StateKeys.LLM_CHATS
-                    ].items():
-                        if chat.get(LLMKeys.LLM_CONFIGURATION_ID) == config["id"]:
-                            used_in_analyses.append(analysis_key)
-
-                    if used_in_analyses:
-                        st.warning(
-                            f"⚠️ This configuration was used in {len(used_in_analyses)} analysis/analyses. "
-                            "Those analyses will need to be reconfigured."
-                        )
-
-                    st.success(f"Removed configuration for {config['model_name']}")
+                    st.success(f"✅ Removed configuration for {config['model_name']}")
                     st.rerun()
