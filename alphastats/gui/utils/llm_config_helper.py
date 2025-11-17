@@ -58,9 +58,10 @@ def format_model_config_for_display(config: dict) -> str:
         Formatted string with model name and status icon
 
     """
-    icon = get_test_status_icon(config.get(ModelKeys.TEST_STATUS, "not_tested"))
+    test_status = config.get(ModelKeys.TEST_STATUS, "not_tested")
+    icon = get_test_status_icon(test_status)
 
-    return f"{config[ModelKeys.MODEL_NAME]} [max_tokens={config[ModelKeys.MAX_TOKENS]} base_url={config.get(ModelKeys.BASE_URL)} {icon}]"
+    return f"{config[ModelKeys.MODEL_NAME]} [max_tokens={config[ModelKeys.MAX_TOKENS]} base_url={config.get(ModelKeys.BASE_URL)} test status: {icon} {test_status}]"
 
 
 def get_model_config_by_id(config_id: str) -> dict | None:
