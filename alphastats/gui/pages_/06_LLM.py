@@ -37,7 +37,7 @@ from alphastats.gui.utils.state_utils import (
 from alphastats.gui.utils.ui_helper import (
     sidebar_info,
 )
-from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration, Model
+from alphastats.llm.llm_integration import LLMClientWrapper, LLMIntegration
 from alphastats.llm.llm_utils import get_subgroups_for_each_group
 from alphastats.llm.prompts import get_system_message
 
@@ -310,31 +310,6 @@ else:
     st.markdown("#### LLM Interpretation")
     st.warning("No configuration selected")
 
-# Validate configuration is selected
-config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
-if not config_id:
-    st.error("Please select a configuration first")
-    st.stop()
-
-# Retrieve configuration
-selected_config = get_model_config_by_id(config_id)
-if selected_config is None:
-    st.error(
-        "Selected configuration no longer exists. Please select a different configuration."
-    )
-    st.stop()
-
-# Validate API key if required
-model_name = selected_config[ModelKeys.MODEL_NAME]
-if Model(model_name).requires_api_key() and not selected_config.get(ModelKeys.API_KEY):
-    st.error(
-        f"API key is required for {model_name}. Please update the configuration on the LLM Configuration page."
-    )
-    st.page_link(
-        "pages_/09_LLM_Configuration.py",
-        label="➔ Go to LLM Configuration page...",
-    )
-    st.stop()
 
 c1, c2, c3, _ = st.columns((0.2, 0.2, 0.2, 0.6))
 llm_submitted = c1.button(
@@ -350,6 +325,8 @@ if llm_reset:
     del selected_llm_chat[LLMKeys.LLM_INTEGRATION]
     st.rerun()
 
+config_id = selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
+model_config = get_model_config_by_id(config_id)
 
 if not is_llm_integration_initialized:
     if not llm_submitted:
@@ -358,20 +335,20 @@ if not is_llm_integration_initialized:
     try:
         # Use configuration values for initialization
         client_wrapper = LLMClientWrapper(
-            model_name=selected_config[ModelKeys.MODEL_NAME],
-            api_key=selected_config.get(ModelKeys.API_KEY) or None,
-            base_url=selected_config.get(ModelKeys.BASE_URL) or None,
+            model_name=model_config[ModelKeys.MODEL_NAME],
+            api_key=model_config.get(ModelKeys.API_KEY) or None,
+            base_url=model_config.get(ModelKeys.BASE_URL) or None,
         )
 
         llm_integration = LLMIntegration(
             client_wrapper=client_wrapper,
             system_message=system_message,
             dataset=dataset,
-            max_tokens=selected_config[ModelKeys.MAX_TOKENS],
+            max_tokens=model_config[ModelKeys.MAX_TOKENS],
         )
 
         st.toast(
-            f"{selected_config[ModelKeys.MODEL_NAME]} integration initialized successfully!",
+            f"{model_config[ModelKeys.MODEL_NAME]} integration initialized successfully!",
             icon="✅",
         )
 
@@ -386,7 +363,7 @@ if not is_llm_integration_initialized:
         st.rerun(scope="app")
     except AuthenticationError:
         st.error(
-            f"❌ Authentication failed for {selected_config[ModelKeys.MODEL_NAME]}. "
+            f"❌ Authentication failed for {model_config[ModelKeys.MODEL_NAME]}. "
             "The API key in the configuration is incorrect or invalid."
         )
         st.info(
