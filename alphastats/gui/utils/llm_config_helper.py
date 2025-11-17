@@ -25,7 +25,9 @@ def _mask_api_key(api_key: str | None) -> str:
         Masked API key string
 
     """
-    if not api_key or len(api_key) < 6:  # noqa: PLR2004
+    if not api_key:
+        return ""
+    if len(api_key) < 6:  # noqa: PLR2004
         return "*" * len(api_key)
     return f"{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
 
@@ -75,7 +77,7 @@ def get_model_config_by_id(config_id: str) -> dict | None:
 
     """
     configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
-    return next((c for c in configurations if c["id"] == config_id), None)
+    return next((c for c in configurations if c[ModelKeys.ID] == config_id), None)
 
 
 def is_model_config_in_use(config_id: str) -> tuple[bool, list[str]]:
@@ -111,7 +113,7 @@ def add_model_config() -> None:
             accept_new_options=True,
         )
         st.info(
-            "You can add custom models by typing their identifier (needs to be supported by LiteLLM) into the selection box and press 'Add:'."
+            "You can add custom models by typing their identifier (needs to be supported by LiteLLM) into the selection box and press 'Add:'. "
             "Note: only the ones in the dropdown are officially supported and tested."
         )
 
@@ -242,5 +244,7 @@ def display_model_configurations() -> None:
                 )
             if st.button("🗑️ Remove", key=f"remove_{config[ModelKeys.ID]}"):
                 st.session_state[StateKeys.LLM_CONFIGURATIONS].remove(config)
-                st.success(f"✅ Removed configuration for {config['model_name']}")
+                st.success(
+                    f"✅ Removed configuration for {config[ModelKeys.MODEL_NAME]}"
+                )
                 st.rerun()
