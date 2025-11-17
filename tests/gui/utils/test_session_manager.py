@@ -103,9 +103,7 @@ def test_save_and_load(
     file_path = session_manager.save(mock_session_state)
 
     llm_state = {
-        StateKeys.MODEL_NAME: "some_model_name",
-        StateKeys.OPENAI_API_KEY: "some_key",  # pragma: allowlist secret
-        StateKeys.BASE_URL: "some_url",
+        StateKeys.LLM_CONFIGURATIONS: "some_configuration",  # pragma: allowlist secret
         "some_key_that_will_get_overwritten": "some_value",
     }
 

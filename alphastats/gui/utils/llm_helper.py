@@ -186,46 +186,6 @@ def get_display_proteins_html(
     return f"<ul>{protein_ids_html}</ul>"
 
 
-def set_api_key(api_key: str = None) -> None:
-    """Put the API key in the session state.
-
-    If provided, use the `api_key`.
-    If the provided key is all blank, set to None
-
-    Args:
-        api_key (str, optional): The API key. Defaults to None.
-    """
-    if not api_key:
-        api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
-
-    api_key = api_key.strip() if api_key and api_key.strip() != "" else None
-
-    api_key_display = (
-        f"{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
-        if api_key is not None
-        else None
-    )
-    st.info(f"API key set: '{api_key_display}'")
-    # TODO reactivate secrets.toml support when re-thinking model config
-    # else:
-    #     try:
-    #         if Path("./.streamlit/secrets.toml").exists():
-    #             api_key = st.secrets["api_key"]
-    #             st.toast("API key loaded from secrets.toml.", icon="✅")
-    #         else:
-    #             st.info(
-    #                 "Please enter an LLM API key or provide it in a secrets.toml file in the "
-    #                 "alphastats/gui/.streamlit directory like "
-    #                 "`api_key = <key>`"
-    #             )
-    #     except KeyError:
-    #         st.error("API key not found in secrets.toml .")
-    #     except Exception as e:
-    #         st.error(f"Error loading API key: {e}.")
-
-    st.session_state[StateKeys.OPENAI_API_KEY] = api_key
-
-
 def llm_connection_test(
     model_name: str,
     base_url: str | None = None,

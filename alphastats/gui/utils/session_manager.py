@@ -63,7 +63,7 @@ class SessionManager:
         Also, the LLM client is removed from the session state to avoid pickling issues.
         """
         keys_to_save = StateKeys.get_values()
-        keys_to_save.remove(StateKeys.OPENAI_API_KEY)  # do not store key on disk
+        keys_to_save.remove(StateKeys.LLM_CONFIGURATIONS)  # do not store key on disk
 
         target.update(
             {key: value for key, value in source.items() if key in keys_to_save}
