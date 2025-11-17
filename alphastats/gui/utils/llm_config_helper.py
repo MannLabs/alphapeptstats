@@ -105,7 +105,12 @@ def add_model_config() -> None:
         model_name = st.selectbox(
             "Select Model",
             options=Model.get_available_models(),
-            help="Choose the LLM model to configure",
+            help="Choose the LLM model to configure. You may add custom models.",
+            accept_new_options=True,
+        )
+        st.info(
+            "You can add custom models by typing their identifier (needs to be supported by LiteLLM) into the selection box and press 'Add:'."
+            "Note: only the ones in the dropdown are officially supported and tested."
         )
 
         model = Model(model_name)
@@ -184,7 +189,7 @@ def add_model_config() -> None:
 def display_model_configurations() -> None:
     """Display list of configured models with options to remove and test."""
     configurations = st.session_state.get(StateKeys.LLM_CONFIGURATIONS, [])
-    st.write(configurations)
+
     if not configurations:
         return
 
@@ -192,13 +197,13 @@ def display_model_configurations() -> None:
         col1, col2 = st.columns([3, 1])
 
         with col1:
-            st.markdown(f"**Model:** {config['model_name']}")
+            st.markdown(f"**Model: {config['model_name']}**")
 
-            st.markdown(f"**API Key:** {_mask_api_key(config.get('api_key'))}")
+            st.markdown(f"API Key: {_mask_api_key(config.get('api_key'))}")
 
-            st.markdown(f"**Base URL:** {config.get('base_url')}")
+            st.markdown(f"Base URL: {config.get('base_url')}")
 
-            st.markdown(f"**Max Tokens:** {config.get('max_tokens'):,}")
+            st.markdown(f"Max Tokens: {config.get('max_tokens'):,}")
 
             test_status = config.get("test_status", "not_tested")
             if test_status == "success":
