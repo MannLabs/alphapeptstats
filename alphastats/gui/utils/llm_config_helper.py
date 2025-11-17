@@ -7,6 +7,7 @@ import streamlit as st
 from alphastats.gui.utils.llm_helper import OLLAMA_BASE_URL, llm_connection_test
 from alphastats.gui.utils.state_keys import (
     LLMKeys,
+    ModelKeys,
     StateKeys,
 )
 from alphastats.llm.llm_integration import (
@@ -47,7 +48,7 @@ def get_test_status_icon(test_status: str) -> str:
     return status_icons.get(test_status, "❓")
 
 
-def format_config_for_display(config: dict) -> str:
+def format_model_config_for_display(config: dict) -> str:
     """Format configuration for display in selectbox.
 
     Args:
@@ -57,12 +58,12 @@ def format_config_for_display(config: dict) -> str:
         Formatted string with model name and status icon
 
     """
-    icon = get_test_status_icon(config.get("test_status", "not_tested"))
+    icon = get_test_status_icon(config.get(ModelKeys.TEST_STATUS, "not_tested"))
 
-    return f"{config['model_name']} [max_tokens={config['max_tokens'] } base_url={config.get('base_url')}  {icon}]"
+    return f"{config['model_name']} [max_tokens={config['max_tokens']} base_url={config.get('base_url')} {icon}]"
 
 
-def get_config_by_id(config_id: str) -> dict | None:
+def get_model_config_by_id(config_id: str) -> dict | None:
     """Retrieve configuration by ID.
 
     Args:
@@ -76,7 +77,7 @@ def get_config_by_id(config_id: str) -> dict | None:
     return next((c for c in configurations if c["id"] == config_id), None)
 
 
-def is_configuration_in_use(config_id: str) -> tuple[bool, list[str]]:
+def is_model_config_in_use(config_id: str) -> tuple[bool, list[str]]:
     """Check if configuration is used by any LLM chat.
 
     Args:
@@ -171,12 +172,12 @@ def add_model_config() -> None:
                 return
 
             config = {
-                "id": str(uuid.uuid4()),
-                "model_name": model_name,
-                "api_key": api_key.strip(),
-                "base_url": base_url.strip(),
-                "max_tokens": max_tokens,
-                "test_status": "not_tested",
+                ModelKeys.ID: str(uuid.uuid4()),
+                ModelKeys.MODEL_NAME: model_name,
+                ModelKeys.API_KEY: api_key.strip(),
+                ModelKeys.BASE_URL: base_url.strip(),
+                ModelKeys.MAX_TOKENS: max_tokens,
+                ModelKeys.TEST_STATUS: "not_tested",
                 "last_tested": None,
             }
 
@@ -197,15 +198,15 @@ def display_model_configurations() -> None:
         col1, col2 = st.columns([3, 1])
 
         with col1:
-            st.markdown(f"**Model: {config['model_name']}**")
+            st.markdown(f"**Model: {config[ModelKeys.MODEL_NAME]}**")
 
-            st.markdown(f"API Key: {_mask_api_key(config.get('api_key'))}")
+            st.markdown(f"API Key: {_mask_api_key(config.get(ModelKeys.API_KEY))}")
 
-            st.markdown(f"Base URL: {config.get('base_url')}")
+            st.markdown(f"Base URL: {config.get(ModelKeys.BASE_URL)}")
 
-            st.markdown(f"Max Tokens: {config.get('max_tokens'):,}")
+            st.markdown(f"Max Tokens: {config.get(ModelKeys.MAX_TOKENS):,}")
 
-            test_status = config.get("test_status", "not_tested")
+            test_status = config.get(ModelKeys.TEST_STATUS, "not_tested")
             if test_status == "success":
                 st.success("✅ Connection test passed")
             elif test_status == "failed":
@@ -217,22 +218,22 @@ def display_model_configurations() -> None:
             if st.button("🔌 Test", key=f"test_{config['id']}"):
                 with st.spinner("Testing connection..."):
                     error = llm_connection_test(
-                        model_name=config["model_name"],
-                        base_url=config.get("base_url") or None,
-                        api_key=config.get("api_key") or None,
+                        model_name=config[ModelKeys.MODEL_NAME],
+                        base_url=config.get(ModelKeys.BASE_URL) or None,
+                        api_key=config.get(ModelKeys.API_KEY) or None,
                     )
                     if error:
-                        config["test_status"] = "failed"
+                        config[ModelKeys.TEST_STATUS] = "failed"
                         config["test_error"] = error
                         st.error(f"❌ Connection failed: {error}")
                     else:
-                        config["test_status"] = "success"
+                        config[ModelKeys.TEST_STATUS] = "success"
                         config["test_error"] = None
                         st.success("✅ Connection successful")
                     st.rerun()
 
             # Check if configuration is in use before allowing deletion
-            in_use, analyses_using = is_configuration_in_use(config["id"])
+            in_use, analyses_using = is_model_config_in_use(config["id"])
 
             if in_use:
                 st.warning(

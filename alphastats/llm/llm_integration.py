@@ -11,6 +11,7 @@ import pandas as pd
 import plotly.io as pio
 import pytz
 import tiktoken
+from gui.utils.state_keys import ModelKeys
 from litellm import completion
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
@@ -206,8 +207,8 @@ class LLMClientWrapper:
             model_config["vertex_location"] = base_url
 
         else:
-            model_config["api_key"] = api_key if api_key else None
-            model_config["base_url"] = base_url if base_url else None
+            model_config[ModelKeys.API_KEY] = api_key if api_key else None
+            model_config[ModelKeys.BASE_URL] = base_url if base_url else None
 
         return model_config
 

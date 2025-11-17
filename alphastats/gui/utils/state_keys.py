@@ -35,6 +35,17 @@ class StateKeys(metaclass=ConstantsClass):
     ENRICHMENT_COLUMNS = "enrichment_columns"
 
 
+class ModelKeys(metaclass=ConstantsClass):
+    """Keys for accessing model configuration dictionaries."""
+
+    ID = "id"
+    MODEL_NAME = "model_name"
+    MAX_TOKENS = "max_tokens"
+    BASE_URL = "base_url"
+    API_KEY = "api_key"  # pragma: allowlist secret
+    TEST_STATUS = "test_status"
+
+
 class LLMKeys(metaclass=ConstantsClass):
     """Keys for accessing the session state for LLM."""
 
