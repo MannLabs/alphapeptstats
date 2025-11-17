@@ -60,7 +60,7 @@ def format_model_config_for_display(config: dict) -> str:
     """
     icon = get_test_status_icon(config.get(ModelKeys.TEST_STATUS, "not_tested"))
 
-    return f"{config['model_name']} [max_tokens={config['max_tokens']} base_url={config.get('base_url')} {icon}]"
+    return f"{config[ModelKeys.MODEL_NAME]} [max_tokens={config[ModelKeys.MAX_TOKENS]} base_url={config.get(ModelKeys.BASE_URL)} {icon}]"
 
 
 def get_model_config_by_id(config_id: str) -> dict | None:
@@ -215,7 +215,7 @@ def display_model_configurations() -> None:
                     st.caption(f"Error: {config['test_error']}")
 
         with col2:
-            if st.button("🔌 Test", key=f"test_{config['id']}"):
+            if st.button("🔌 Test", key=f"test_{config[ModelKeys.ID]}"):
                 with st.spinner("Testing connection..."):
                     error = llm_connection_test(
                         model_name=config[ModelKeys.MODEL_NAME],
@@ -233,13 +233,13 @@ def display_model_configurations() -> None:
                     st.rerun()
 
             # Check if configuration is in use before allowing deletion
-            in_use, analyses_using = is_model_config_in_use(config["id"])
+            in_use, analyses_using = is_model_config_in_use(config[ModelKeys.ID])
 
             if in_use:
                 st.warning(
                     f"⚠️ Configuration is in use by {len(analyses_using)} analyses, which will break after removal of the model."
                 )
-            if st.button("🗑️ Remove", key=f"remove_{config['id']}"):
+            if st.button("🗑️ Remove", key=f"remove_{config[ModelKeys.ID]}"):
                 st.session_state[StateKeys.LLM_CONFIGURATIONS].remove(config)
                 st.success(f"✅ Removed configuration for {config['model_name']}")
                 st.rerun()

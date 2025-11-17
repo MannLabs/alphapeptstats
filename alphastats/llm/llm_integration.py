@@ -11,12 +11,12 @@ import pandas as pd
 import plotly.io as pio
 import pytz
 import tiktoken
-from gui.utils.state_keys import ModelKeys
 from litellm import completion
 from openai.types.chat import ChatCompletion, ChatCompletionMessageToolCall
 
 from alphastats.dataset.dataset import DataSet
 from alphastats.dataset.keys import ConstantsClass
+from alphastats.gui.utils.state_keys import ModelKeys
 from alphastats.llm.llm_functions import (
     GENERAL_FUNCTION_MAPPING,
     get_assistant_functions,

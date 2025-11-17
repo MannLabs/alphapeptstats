@@ -140,7 +140,9 @@ else:
         st.stop()
 
     # Create selectbox with configurations
-    config_options = {config["id"]: config for config in available_configurations}
+    config_options = {
+        config[ModelKeys.ID]: config for config in available_configurations
+    }
     config_ids = list(config_options.keys())
 
     # Get current selection or default to first config
@@ -234,7 +236,7 @@ display_uniprot(
     feature_to_repr_map,
     model_name=get_model_config_by_id(
         selected_llm_chat.get(LLMKeys.LLM_CONFIGURATION_ID)
-    )[LLMKeys.MODEL_NAME],
+    )[ModelKeys.MODEL_NAME],
     selected_analysis_key=selected_analysis_key,
     disabled=is_llm_integration_initialized,
 )
@@ -282,7 +284,9 @@ if display_config_id:
     if not is_llm_integration_initialized:
         st.info("You may change the model in the dropdown on the top of the page.")
     if display_config:
-        st.markdown(f"#### LLM Interpretation with {display_config['model_name']}")
+        st.markdown(
+            f"#### LLM Interpretation with {display_config[ModelKeys.MODEL_NAME]}"
+        )
 
         test_status = display_config.get(ModelKeys.TEST_STATUS, "not_tested")
         icon = get_test_status_icon(test_status)
@@ -367,7 +371,7 @@ if not is_llm_integration_initialized:
         )
 
         st.toast(
-            f"{selected_config['model_name']} integration initialized successfully!",
+            f"{selected_config[ModelKeys.MODEL_NAME]} integration initialized successfully!",
             icon="✅",
         )
 
@@ -382,7 +386,7 @@ if not is_llm_integration_initialized:
         st.rerun(scope="app")
     except AuthenticationError:
         st.error(
-            f"❌ Authentication failed for {selected_config['model_name']}. "
+            f"❌ Authentication failed for {selected_config[ModelKeys.MODEL_NAME]}. "
             "The API key in the configuration is incorrect or invalid."
         )
         st.info(
