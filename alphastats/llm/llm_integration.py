@@ -46,6 +46,9 @@ class Model:
         MULTIMODAL = "multimodal"
 
     MODELS = {
+        "anthropic/claude-sonnet-4-5-20250929": {
+            ModelProperties.REQUIRES_API_KEY: True,
+        },
         "openai/gpt-4o": {
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
@@ -53,9 +56,6 @@ class Model:
         "openai/o3": {
             ModelProperties.REQUIRES_API_KEY: True,
             ModelProperties.MULTIMODAL: True,
-        },
-        "anthropic/claude-sonnet-4-20250514": {
-            ModelProperties.REQUIRES_API_KEY: True,
         },
         "ollama/llama3.1:8b": {
             ModelProperties.SUPPORTS_BASE_URL: True,
@@ -92,12 +92,7 @@ class Model:
 
     def __init__(self, model_name: str):
         """Initialize the Models class."""
-        if model_name not in self.MODELS:
-            raise ValueError(
-                f"Invalid model name: {model_name}. Available models: {self.get_available_models()}"
-            )
-
-        self._model_properties = self.MODELS[model_name]
+        self._model_properties = self.MODELS.get(model_name, {})
 
     def requires_api_key(self) -> bool:
         """Check if the model requires API key authentication."""

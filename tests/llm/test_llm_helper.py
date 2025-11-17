@@ -1,4 +1,3 @@
-from unittest import skip
 from unittest.mock import patch
 
 import pytest
@@ -6,9 +5,7 @@ import pytest
 from alphastats.gui.utils.llm_helper import (
     get_display_proteins_html,
     llm_connection_test,
-    set_api_key,
 )
-from alphastats.gui.utils.state_keys import StateKeys
 
 
 @pytest.fixture
@@ -84,63 +81,6 @@ def test_display_proteins_empty_list(mock_streamlit):
             [], is_upregulated=True, annotation_store={}, feature_to_repr_map={}
         )
         == "<ul></ul>"
-    )
-
-
-@pytest.mark.parametrize(
-    "api_key,expected_message",
-    [
-        ("abc123xyz", "API key set: 'abc***xyz'"),
-        # (
-        #     None,
-        #     "Please enter an LLM API key or provide it in a secrets.toml file in the alphastats/gui/.streamlit directory like `api_key = <key>`",
-        # ),
-    ],
-)
-def test_set_api_key_direct(mock_streamlit, api_key, expected_message):
-    """Test setting API key directly."""
-    set_api_key(api_key)
-
-    if api_key:
-        mock_streamlit["info"].assert_called_once_with(expected_message)
-        assert mock_streamlit["session_state"][StateKeys.OPENAI_API_KEY] == api_key
-    else:
-        mock_streamlit["info"].assert_called_with(expected_message)
-
-
-@patch("streamlit.secrets")
-@patch("pathlib.Path.exists")
-@skip("functionality was commented out")
-def test_set_api_key_from_secrets(mock_exists, mock_st_secrets, mock_streamlit):
-    """Test loading API key from secrets.toml."""
-    mock_exists.return_value = True
-
-    mock_st_secrets.__getitem__.return_value = (
-        "test_secret_key"  # pragma: allowlist secret
-    )
-
-    set_api_key()
-
-    mock_streamlit["toast"].assert_called_with(
-        "API key loaded from secrets.toml.", icon="✅"
-    )
-    assert (
-        mock_streamlit["session_state"][StateKeys.OPENAI_API_KEY]
-        == "test_secret_key"  # pragma: allowlist secret
-    )
-
-
-@patch("pathlib.Path.exists")
-@skip("functionality was commented out")
-def test_set_api_key_missing_secrets(mock_exists, mock_streamlit):
-    """Test handling missing secrets.toml."""
-    mock_exists.return_value = False
-
-    set_api_key()
-
-    mock_streamlit["info"].assert_called_with(
-        "Please enter an LLM API key or provide it in a secrets.toml file in the "
-        "alphastats/gui/.streamlit directory like `api_key = <key>`"
     )
 
 

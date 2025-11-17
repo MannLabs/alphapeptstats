@@ -11,7 +11,6 @@ from alphastats.dataset.keys import ConstantsClass
 from alphastats.dataset.plotting import plotly_object
 from alphastats.gui.utils.analysis import CUSTOM_ANALYSIS, NewAnalysisOptions
 from alphastats.gui.utils.state_keys import (
-    MODEL_SYNCED_LLM_KEYS,
     WIDGET_SYNCED_LLM_KEYS,
     DefaultStates,
     KeySyncNames,
@@ -29,7 +28,6 @@ from alphastats.llm.llm_integration import (
     LLMClientWrapper,
     LLMIntegration,
     MessageKeys,
-    Model,
     Roles,
 )
 from alphastats.llm.prompts import (
@@ -66,92 +64,6 @@ class EnrichmentAnalysisKeys(metaclass=ConstantsClass):
     RESULT = "result"
 
 
-@st.fragment
-def llm_config() -> None:
-    """Show the configuration options for the LLM interpretation."""
-
-    current_model_name = (
-        st.session_state.get(StateKeys.MODEL_NAME, None)
-        if st.session_state.get(StateKeys.MODEL_NAME, None)
-        in Model.get_available_models()
-        else None  # On loading a session with a model that is no longer available, we set it to None.
-    )
-    current_base_url = st.session_state.get(StateKeys.BASE_URL, None)
-
-    c1, _ = st.columns((1, 2))
-    with c1:
-        new_model_name = st.selectbox(
-            "Select LLM",
-            models := Model.get_available_models(),
-            index=models.index(current_model_name)
-            if current_model_name is not None
-            else 0,
-        )
-        if new_model_name != current_model_name:
-            st.session_state[StateKeys.MODEL_NAME] = new_model_name
-            on_change_save_state()
-
-        requires_api_key = Model(new_model_name).requires_api_key()
-        supports_base_url = Model(new_model_name).supports_base_url()
-        is_vertex_model = new_model_name.startswith("vertex")
-
-        api_key = st.text_input(
-            f"Enter API Key and press Enter {'' if requires_api_key else '(optional)'}. Enter a space to clear."
-            if not is_vertex_model
-            else "Vertex project id (need to set up gauth default login first)",
-            type="password",
-        )
-        set_api_key(api_key)
-
-        new_base_url = (
-            st.text_input(
-                "API base url. Enter a space to clear."
-                if not is_vertex_model
-                else "Vertex location",
-                value=current_base_url,
-                help="Optional base URL for the LLM API, or location in case of Vertex AI. E.g. if you are using Ollama, this is usually http://localhost:11434.",
-            )
-            if supports_base_url
-            else None
-        )
-        new_base_url = (
-            new_base_url.strip()
-            if new_base_url and new_base_url.strip() != ""
-            else None
-        )
-
-        if new_base_url != current_base_url:
-            st.session_state[StateKeys.BASE_URL] = new_base_url
-            on_change_save_state()
-        if supports_base_url:
-            st.info(f"Expecting LLM API at '{new_base_url}'.")
-
-        test_connection = st.button("Test connection")
-        if test_connection:
-            with st.spinner(f"Testing connection to {new_model_name}.."):
-                error = llm_connection_test(
-                    model_name=new_model_name,
-                    api_key=st.session_state[StateKeys.OPENAI_API_KEY],
-                    base_url=new_base_url,
-                )
-                if error is None:
-                    st.success(f"Connection to {new_model_name} successful!")
-                else:
-                    st.error(f"Connection to {new_model_name} failed: {str(error)}")
-
-        tokens = st.number_input(
-            "Maximal number of tokens",
-            step=1000,
-            value=st.session_state[StateKeys.MAX_TOKENS],
-        )
-        if tokens != st.session_state[StateKeys.MAX_TOKENS]:
-            st.session_state[StateKeys.MAX_TOKENS] = tokens
-            on_change_save_state()
-
-        if current_model_name != new_model_name or new_base_url != current_base_url:
-            st.rerun(scope="app")
-
-
 def format_analysis_key(key: str) -> str:
     """Pretty print an analysis referenced by `key`."""
     if key not in st.session_state[StateKeys.SAVED_ANALYSES]:
@@ -186,9 +98,6 @@ def init_llm_chat_state(
     if selected_llm_chat.get(LLMKeys.ENRICHMENT_COLUMNS) is None:
         selected_llm_chat[LLMKeys.ENRICHMENT_COLUMNS] = []
 
-    if selected_llm_chat.get(LLMKeys.IS_INITIALIZED) is None:
-        selected_llm_chat[LLMKeys.IS_INITIALIZED] = False
-
     if selected_llm_chat.get(LLMKeys.PROMPT_EXPERIMENTAL_DESIGN) is None:
         experimental_design_prompt, protein_data_prompt, initial_instructions = (
             initialize_initial_prompt_modules(
@@ -200,12 +109,6 @@ def init_llm_chat_state(
         )
         selected_llm_chat[LLMKeys.PROMPT_PROTEIN_DATA] = protein_data_prompt
         selected_llm_chat[LLMKeys.PROMPT_INSTRUCTIONS] = initial_instructions
-
-    # TODO model name is determined when loading LLM page -> need better model selection.
-    if not selected_llm_chat[LLMKeys.IS_INITIALIZED]:
-        selected_llm_chat[LLMKeys.MODEL_NAME] = st.session_state[StateKeys.MODEL_NAME]
-        selected_llm_chat[LLMKeys.BASE_URL] = st.session_state[StateKeys.BASE_URL]
-        selected_llm_chat[LLMKeys.MAX_TOKENS] = st.session_state[StateKeys.MAX_TOKENS]
 
     on_select_new_analysis_fill_state()
 
@@ -281,46 +184,6 @@ def get_display_proteins_html(
     )
 
     return f"<ul>{protein_ids_html}</ul>"
-
-
-def set_api_key(api_key: str = None) -> None:
-    """Put the API key in the session state.
-
-    If provided, use the `api_key`.
-    If the provided key is all blank, set to None
-
-    Args:
-        api_key (str, optional): The API key. Defaults to None.
-    """
-    if not api_key:
-        api_key = st.session_state.get(StateKeys.OPENAI_API_KEY, None)
-
-    api_key = api_key.strip() if api_key and api_key.strip() != "" else None
-
-    api_key_display = (
-        f"{api_key[:3]}{(len(api_key)-6)*'*'}{api_key[-3:]}"
-        if api_key is not None
-        else None
-    )
-    st.info(f"API key set: '{api_key_display}'")
-    # TODO reactivate secrets.toml support when re-thinking model config
-    # else:
-    #     try:
-    #         if Path("./.streamlit/secrets.toml").exists():
-    #             api_key = st.secrets["api_key"]
-    #             st.toast("API key loaded from secrets.toml.", icon="✅")
-    #         else:
-    #             st.info(
-    #                 "Please enter an LLM API key or provide it in a secrets.toml file in the "
-    #                 "alphastats/gui/.streamlit directory like "
-    #                 "`api_key = <key>`"
-    #             )
-    #     except KeyError:
-    #         st.error("API key not found in secrets.toml .")
-    #     except Exception as e:
-    #         st.error(f"Error loading API key: {e}.")
-
-    st.session_state[StateKeys.OPENAI_API_KEY] = api_key
 
 
 def llm_connection_test(
@@ -501,15 +364,6 @@ def on_select_new_analysis_fill_state() -> None:
             getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
 
-    if selected_chat.get(LLMKeys.IS_INITIALIZED):
-        for synced_key in MODEL_SYNCED_LLM_KEYS:
-            st.session_state[getattr(synced_key, KeySyncNames.STATE)] = (
-                selected_chat.get(
-                    getattr(synced_key, KeySyncNames.LLM),
-                    getattr(synced_key, KeySyncNames.GET_DEFAULT),
-                )
-            )
-
     st.toast("State filled from saved analysis.", icon="🔍")
 
 
@@ -530,13 +384,6 @@ def on_change_save_state() -> None:
             getattr(synced_key, KeySyncNames.STATE),
             getattr(synced_key, KeySyncNames.GET_DEFAULT),
         )
-
-    if not selected_chat.get(LLMKeys.IS_INITIALIZED):
-        for synced_key in MODEL_SYNCED_LLM_KEYS:
-            selected_chat[getattr(synced_key, KeySyncNames.LLM)] = st.session_state.get(
-                getattr(synced_key, KeySyncNames.STATE),
-                getattr(synced_key, KeySyncNames.GET_DEFAULT),
-            )
 
 
 def get_selected_regulated_features(llm_chat: dict) -> tuple[list, dict]:
