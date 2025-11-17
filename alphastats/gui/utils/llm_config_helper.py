@@ -58,7 +58,8 @@ def format_config_for_display(config: dict) -> str:
 
     """
     icon = get_test_status_icon(config.get("test_status", "not_tested"))
-    return f"{config['model_name']} {icon}"
+
+    return f"{config['model_name']} [max_tokens={config['max_tokens'] } base_url={config.get('base_url')}  {icon}]"
 
 
 def get_config_by_id(config_id: str) -> dict | None:

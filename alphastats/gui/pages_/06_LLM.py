@@ -146,7 +146,7 @@ else:
         default_index = 0 if config_ids else None
 
     selected_config_id = st.selectbox(
-        "Select configuration to use for this analysis",
+        "Select configuration to use for this analysis. Note: model will be locked once conversation is started.",
         options=config_ids,
         format_func=lambda config_id: format_config_for_display(
             config_options[config_id]
@@ -160,23 +160,7 @@ else:
     # Store selection in chat state
     if selected_config_id:
         selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID] = selected_config_id
-        selected_config = config_options[selected_config_id]
 
-        test_status = selected_config.get("test_status", "not_tested")
-        icon = get_test_status_icon(test_status)
-
-        opt = (
-            f"\n**Base URL:** {selected_config['base_url']}"
-            if selected_config.get("base_url")
-            else ""
-        )
-
-        st.info(
-            f"**Model:** {selected_config['model_name']}\n"
-            + f"**Max Tokens:** {selected_config['max_tokens']:,}\n"
-            + f"**Test Status:** {icon} {test_status}"
-            + opt
-        )
 
 ##################################### Analysis Input #####################################
 
