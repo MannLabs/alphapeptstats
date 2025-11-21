@@ -890,7 +890,7 @@ class LLMIntegration:
         return {"overall": overall, "latest": latest}
 
     def set_client_wrapper(self, client_wrapper: LLMClientWrapper) -> None:
-        """Get the model name used in the integration."""
+        """Set the client wrapper and store the associated model name."""
         self.client_wrapper = client_wrapper
         # model is stored explicitly as client_wrapper might be unset later
         self.model_name = client_wrapper.model_name
