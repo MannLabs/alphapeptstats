@@ -114,14 +114,14 @@ if st.session_state[StateKeys.LLM_CHATS].get(selected_analysis_key) is None:
 
 selected_llm_chat = st.session_state[StateKeys.LLM_CHATS][selected_analysis_key]
 
-is_llm_integration_initialized = (
-    selected_llm_chat.get(LLMKeys.LLM_INTEGRATION) is not None
-)
-
 ##################################### Select LLM Configuration #####################################
 
+
+selected_llm_integration = selected_llm_chat.get(LLMKeys.LLM_INTEGRATION)
+is_llm_integration_initialized = selected_llm_integration is not None
+
 st.markdown("#### Select LLM Configuration")
-if is_llm_integration_initialized:
+if is_llm_integration_initialized and selected_llm_integration.has_client_wrapper:
     st.info(
         "LLM integration is already initialized for this analysis. "
         "To change the configuration, please reset the LLM interpretation first."
@@ -159,7 +159,6 @@ else:
             config_options[config_id]
         ),
         index=default_index,
-        disabled=is_llm_integration_initialized,
         key=f"config_selector_{selected_analysis_key}",
         help="Configuration is locked once LLM interpretation is initialized. Reset to change configuration.",
     )
@@ -168,6 +167,23 @@ else:
     if selected_config_id:
         selected_llm_chat[LLMKeys.LLM_CONFIGURATION_ID] = selected_config_id
 
+    if not selected_llm_integration.has_client_wrapper():
+        st.warning(
+            "LLM integration is only partially initialized, as the current session was loaded from the store. "
+            "Select a configuration and click 'Complete initialization' to associate the selected model with the current chat. "
+            f"Note: the model associated with this session before was **{selected_llm_chat.get(LLMKeys.LLM_INTEGRATION).model_name}**"
+        )
+        if st.button("Complete initialization"):
+            model_config = get_model_config_by_id(selected_config_id)
+            client_wrapper = LLMClientWrapper(
+                model_name=model_config[ModelKeys.MODEL_NAME],
+                api_key=model_config.get(ModelKeys.API_KEY) or None,
+                base_url=model_config.get(ModelKeys.BASE_URL) or None,
+            )
+            selected_llm_chat.get(
+                LLMKeys.LLM_INTEGRATION
+            ).set_client_wrapper(client_wrapper)
+            st.rerun()
 
 ##################################### Analysis Input #####################################
 

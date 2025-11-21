@@ -12,7 +12,7 @@ from cloudpickle import cloudpickle
 from streamlit.runtime.state import SessionStateProxy  # noqa: TC002
 
 from alphastats import __version__
-from alphastats.gui.utils.state_keys import StateKeys
+from alphastats.gui.utils.state_keys import LLMKeys, StateKeys
 from alphastats.gui.utils.state_utils import empty_session_state, init_session_state
 
 
@@ -64,6 +64,9 @@ class SessionManager:
         """
         keys_to_save = StateKeys.get_values()
         keys_to_save.remove(StateKeys.LLM_CONFIGURATIONS)  # do not store key on disk
+
+        for llm_chat in source.get(StateKeys.LLM_CHATS, {}).values():
+            llm_chat[LLMKeys.LLM_INTEGRATION].unset_client_wrapper()
 
         target.update(
             {key: value for key, value in source.items() if key in keys_to_save}
