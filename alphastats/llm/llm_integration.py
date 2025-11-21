@@ -898,3 +898,7 @@ class LLMIntegration:
     def unset_client_wrapper(self) -> None:
         """Unset the client wrapper."""
         self.client_wrapper = None
+
+    def has_client_wrapper(self) -> bool:
+        """Return if the client wrapper is set."""
+        return self.client_wrapper is not None
