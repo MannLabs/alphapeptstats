@@ -282,7 +282,9 @@ class LLMIntegration:
         dataset: Optional[DataSet] = None,
         max_tokens=100000,
     ):
-        self.client_wrapper = client_wrapper
+        self.client_wrapper: LLMClientWrapper | None = None
+        self.model_name: str = "n/a"
+        self.set_client_wrapper(client_wrapper)
 
         self._dataset = dataset
         self._metadata = None if dataset is None else dataset.metadata
@@ -462,7 +464,7 @@ class LLMIntegration:
             exchange_id = message[MessageKeys.EXCHANGE_ID]
 
             message_token_count = self.estimate_tokens(
-                [message], self.client_wrapper.model_name, average_chars_per_token
+                [message], self.model_name, average_chars_per_token
             )
 
             if message[MessageKeys.PINNED]:
@@ -769,7 +771,7 @@ class LLMIntegration:
         pinned_tokens = 0
         truncated_messages = self._truncate(self._messages)
         for message_idx, message in enumerate(self._messages):
-            tokens = self.estimate_tokens([message], self.client_wrapper.model_name)
+            tokens = self.estimate_tokens([message], self.model_name)
             in_context = message in truncated_messages
             if in_context:
                 total_tokens += tokens
@@ -886,3 +888,13 @@ class LLMIntegration:
         latest = self._token_usage[-1] if self._token_usage else overall.copy()
 
         return {"overall": overall, "latest": latest}
+
+    def set_client_wrapper(self, client_wrapper: LLMClientWrapper) -> None:
+        """Get the model name used in the integration."""
+        self.client_wrapper = client_wrapper
+        # model is stored explicitly as client_wrapper might be unset later
+        self.model_name = client_wrapper.model_name
+
+    def unset_client_wrapper(self) -> None:
+        """Unset the client wrapper."""
+        self.client_wrapper = None
