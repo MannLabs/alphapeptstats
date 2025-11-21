@@ -182,7 +182,7 @@ else:
             )
             selected_llm_chat.get(
                 LLMKeys.LLM_INTEGRATION
-            ).client_wrapper = client_wrapper
+            ).set_client_wrapper(client_wrapper)
             st.rerun()
 
 ##################################### Analysis Input #####################################
